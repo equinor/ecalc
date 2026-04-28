@@ -3,8 +3,10 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
+from libecalc.domain.process.process_solver.configuration import Configuration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
+from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration
 from libecalc.domain.process.value_objects.chart import ChartCurve
 
 
@@ -39,7 +41,14 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    compressor_factory,
+    stage_units_factory,
+    with_individual_asv,
+    process_pipeline_factory,
+    process_runner_factory,
+    individual_asv_anti_surge_strategy_factory,
+    individual_asv_rate_control_strategy_factory,
+    outlet_pressure_solver_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -104,47 +113,58 @@ def test_individual_asv_rate_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stages_new = [stage1_new, stage2_new]
+    compressor1 = compressor_factory(chart_data=stage1_chart_data)
+    compressor2 = compressor_factory(chart_data=stage2_chart_data)
+    stage1_new = stage_units_factory(compressor=compressor1, shaft=shaft_new, temperature_kelvin=temperature)
+    stage2_new = stage_units_factory(compressor=compressor2, shaft=shaft_new, temperature_kelvin=temperature)
 
-    train_solver = ASVSolver(
-        compressors=stages_new,
-        fluid_service=fluid_service,
-        shaft=shaft_new,
-        individual_asv_control=True,
+    compressors = [compressor1, compressor2]
+    units_new, loops = with_individual_asv([*stage1_new, *stage2_new])
+    recirculation_loop_ids = [loop.get_id() for loop in loops]
+
+    # Currently pipeline is not used for anything but the ID, so not important which units are added ...
+    process_pipeline = process_pipeline_factory(units=units_new)
+
+    runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
+    anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
+        runner=runner,
+        recirculation_loop_ids=recirculation_loop_ids,
+        compressors=compressors,
     )
-    speed_solution, recirculation_solutions = train_solver.find_asv_solution(
+    pressure_control_strategy = individual_asv_rate_control_strategy_factory(
+        runner=runner,
+        recirculation_loop_ids=recirculation_loop_ids,
+        compressors=compressors,
+    )
+    train_solver = outlet_pressure_solver_factory(
+        shaft=shaft_new,
+        runner=runner,
+        anti_surge_strategy=anti_surge_strategy,
+        pressure_control_strategy=pressure_control_strategy,
+        process_pipeline_id=process_pipeline.get_id(),
+    )
+    solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    recirculation_loops = train_solver.get_recirculation_loops()
-    shaft_new.set_speed(speed_solution.configuration.speed)
-    current_stream = inlet_stream
-    for recirculation_loop, recirculation_solution in zip(recirculation_loops, recirculation_solutions):
-        recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
-        current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
-    new_outlet_stream = current_stream
+    config_dict = {config.configuration_handler_id: config for config in solution.configuration}
+    speed_configuration = config_dict[shaft_new.get_id()].value
+    runner.apply_configurations(solution.configuration)
+    new_outlet_stream = runner.run(inlet_stream=inlet_stream)
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
         old_outlet_stream.volumetric_rate_m3_per_hour, rel=0.001
     )  # 0.1 %
     assert new_outlet_stream.pressure_bara == pytest.approx(old_outlet_stream.pressure_bara, rel=0.001)  # 0.000001 %
     assert new_outlet_stream.density == pytest.approx(old_outlet_stream.density, rel=0.001)  # 0.1 %
-    assert shaft_new.get_speed() == pytest.approx(shaft_old.get_speed(), rel=0.001)  # 2.1 %
+    assert speed_configuration.speed == pytest.approx(shaft_old.get_speed(), rel=0.001)  # 2.1 %
 
     # For now new and old recirculation rate is not expected to match - as the old train recirculates individual stages and finds a solution
     # without common asv
     new_recirculation_rates = [
-        recirculation_solution.configuration.recirculation_rate for recirculation_solution in recirculation_solutions
+        config.value.recirculation_rate
+        for config in solution.configuration
+        if isinstance(config.value, RecirculationConfiguration)
     ]
     old_recirculation_rates = [
         stage_result.inlet_stream_including_asv.standard_rate_sm3_per_day
@@ -165,7 +185,14 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    compressor_factory,
+    stage_units_factory,
+    with_individual_asv,
+    process_pipeline_factory,
+    process_runner_factory,
+    individual_asv_anti_surge_strategy_factory,
+    individual_asv_pressure_control_strategy_factory,
+    outlet_pressure_solver_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -230,46 +257,56 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stages_new = [stage1_new, stage2_new]
+    compressor1 = compressor_factory(chart_data=stage1_chart_data)
+    compressor2 = compressor_factory(chart_data=stage2_chart_data)
+    stage1_new = stage_units_factory(compressor=compressor1, shaft=shaft_new, temperature_kelvin=temperature)
+    stage2_new = stage_units_factory(compressor=compressor2, shaft=shaft_new, temperature_kelvin=temperature)
 
-    train_solver = ASVSolver(
-        compressors=stages_new,
-        fluid_service=fluid_service,
-        shaft=shaft_new,
-        individual_asv_control=True,
-        constant_pressure_ratio=True,
+    compressors = [compressor1, compressor2]
+    units_new, loops = with_individual_asv([*stage1_new, *stage2_new])
+    recirculation_loop_ids = [loop.get_id() for loop in loops]
+
+    runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
+    process_pipeline = process_pipeline_factory(units=units_new)
+    anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
+        runner=runner,
+        recirculation_loop_ids=recirculation_loop_ids,
+        compressors=compressors,
     )
-    speed_solution, recirculation_solutions = train_solver.find_asv_solution(
+    pressure_control_strategy = individual_asv_pressure_control_strategy_factory(
+        runner=runner,
+        recirculation_loop_ids=recirculation_loop_ids,
+        compressors=compressors,
+    )
+    train_solver = outlet_pressure_solver_factory(
+        shaft=shaft_new,
+        runner=runner,
+        anti_surge_strategy=anti_surge_strategy,
+        pressure_control_strategy=pressure_control_strategy,
+        process_pipeline_id=process_pipeline.get_id(),
+    )
+    solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    recirculation_loops = train_solver.get_recirculation_loops()
-    shaft_new.set_speed(speed_solution.configuration.speed)
-    current_stream = inlet_stream
-    for recirculation_loop, recirculation_solution in zip(recirculation_loops, recirculation_solutions):
-        recirculation_loop.set_recirculation_rate(recirculation_solution.configuration.recirculation_rate)
-        current_stream = recirculation_loop.propagate_stream(inlet_stream=current_stream)
-    new_outlet_stream = current_stream
+    runner.apply_configurations(solution.configuration)
+    new_outlet_stream = runner.run(inlet_stream=inlet_stream)
+
+    speed_configuration: SpeedConfiguration = [
+        config.value for config in solution.configuration if isinstance(config.value, SpeedConfiguration)
+    ][0]
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
         old_outlet_stream.volumetric_rate_m3_per_hour, rel=0.001
     )  # 0.1 %
     assert new_outlet_stream.pressure_bara == pytest.approx(old_outlet_stream.pressure_bara, rel=0.001)  # 0.000001 %
     assert new_outlet_stream.density == pytest.approx(old_outlet_stream.density, rel=0.001)  # 0.1 %
-    assert shaft_new.get_speed() == pytest.approx(shaft_old.get_speed(), rel=0.001)  # 2.1 %
+    assert speed_configuration.speed == pytest.approx(shaft_old.get_speed(), rel=0.001)  # 2.1 %
 
     new_recirculation_rates = [
-        recirculation_solution.configuration.recirculation_rate for recirculation_solution in recirculation_solutions
+        config.value.recirculation_rate
+        for config in solution.configuration
+        if isinstance(config.value, RecirculationConfiguration)
     ]
     old_recirculation_rates = [
         stage_result.inlet_stream_including_asv.standard_rate_sm3_per_day
@@ -278,3 +315,116 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     ]
 
     assert new_recirculation_rates == pytest.approx(old_recirculation_rates, rel=0.01)
+
+
+def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
+    stream_factory,
+    compressor_factory,
+    stage_units_factory,
+    with_individual_asv,
+    process_pipeline_factory,
+    process_runner_factory,
+    individual_asv_anti_surge_strategy_factory,
+    individual_asv_rate_control_strategy_factory,
+    outlet_pressure_solver_factory,
+    chart_data_factory,
+):
+    shaft = VariableSpeedShaft()
+    chart_data = chart_data_factory.from_curves(
+        curves=[
+            ChartCurve(
+                speed_rpm=75.0,
+                rate_actual_m3_hour=[50.0, 200.0],
+                polytropic_head_joule_per_kg=[120_000.0, 80_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+            ChartCurve(
+                speed_rpm=105.0,
+                rate_actual_m3_hour=[70.0, 300.0],
+                polytropic_head_joule_per_kg=[170_000.0, 110_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+        ],
+        control_margin=0.0,
+    )
+    compressor1 = compressor_factory(chart_data=chart_data)
+    compressor2 = compressor_factory(chart_data=chart_data)
+    stage1_units = stage_units_factory(compressor=compressor1, shaft=shaft)
+    stage2_units = stage_units_factory(compressor=compressor2, shaft=shaft)
+    compressors = [compressor1, compressor2]
+    individual_asvs, loops = with_individual_asv([*stage1_units, *stage2_units])
+    loop_ids = [loop.get_id() for loop in loops]
+
+    runner = process_runner_factory(units=individual_asvs, configuration_handlers=[shaft, *loops])
+    process_pipeline = process_pipeline_factory(units=individual_asvs)
+    anti_surge = individual_asv_anti_surge_strategy_factory(
+        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+    )
+    pressure_control = individual_asv_rate_control_strategy_factory(
+        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+    )
+    solver = outlet_pressure_solver_factory(
+        shaft=shaft,
+        runner=runner,
+        anti_surge_strategy=anti_surge,
+        pressure_control_strategy=pressure_control,
+        process_pipeline_id=process_pipeline.get_id(),
+    )
+
+    inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0)
+    assert inlet_stream.volumetric_rate_m3_per_hour > 300.0
+
+    solution = solver.find_solution(
+        pressure_constraint=FloatConstraint(75.0),
+        inlet_stream=inlet_stream,
+    )
+
+    assert not solution.success
+
+
+def test_individual_asv_anti_surge_single_stage_returns_failure_when_rate_above_stonewall(
+    stream_factory,
+    compressor_factory,
+    stage_units_factory,
+    with_individual_asv,
+    process_runner_factory,
+    individual_asv_anti_surge_strategy_factory,
+    chart_data_factory,
+):
+    shaft = VariableSpeedShaft()
+    chart_data = chart_data_factory.from_curves(
+        curves=[
+            ChartCurve(
+                speed_rpm=75.0,
+                rate_actual_m3_hour=[50.0, 200.0],
+                polytropic_head_joule_per_kg=[120_000.0, 80_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+            ChartCurve(
+                speed_rpm=105.0,
+                rate_actual_m3_hour=[70.0, 300.0],
+                polytropic_head_joule_per_kg=[170_000.0, 110_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+        ],
+        control_margin=0.0,
+    )
+    compressor = compressor_factory(chart_data=chart_data)
+    stage_units = stage_units_factory(compressor=compressor, shaft=shaft)
+    compressors = [compressor]
+    individual_asvs, loops = with_individual_asv(stage_units)
+    loop_ids = [loop.get_id() for loop in loops]
+    runner = process_runner_factory(units=individual_asvs, configuration_handlers=[shaft, *loops])
+    anti_surge = individual_asv_anti_surge_strategy_factory(
+        runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
+    )
+
+    inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0)
+    assert inlet_stream.volumetric_rate_m3_per_hour > 300.0
+
+    runner.apply_configuration(
+        Configuration(configuration_handler_id=shaft.get_id(), value=SpeedConfiguration(speed=105.0))
+    )
+    solution = anti_surge.apply(inlet_stream=inlet_stream)
+
+    assert not solution.success

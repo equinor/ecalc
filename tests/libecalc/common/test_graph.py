@@ -69,7 +69,7 @@ class TestGraph:
             graph.get_predecessor("3")
 
         assert str(exc_info.value) == (
-            "Tried to get a single predecessor of node with several predecessors. NodeID: " "3, Predecessors: 2, 1"
+            "Tried to get a single predecessor of node with several predecessors. NodeID: 3, Predecessors: 2, 1"
         )
 
     def test_subgraph(self, graph_with_subgraph):

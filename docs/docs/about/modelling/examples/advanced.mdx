@@ -55,7 +55,7 @@ The results of a performed characterization of the equipment are listed below:
 | Gas export compressor B           |Direct fuel consumer| Variable fuel consumption depending on gas sales rate                                                                                                    |
 | Flare B                           |Direct fuel consumer| Flare B                                                                                                                                                  |
 
-## YAML model overview
+## YAML model overview {/* #yaml-model-overview */}
 The YAML model consist of these main components:
 - Time series inputs - [TIME_SERIES](/about/references/TIME_SERIES.md)
 - Facility characterization input - [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md)
@@ -81,14 +81,14 @@ INSTALLATIONS:
 
 We will now replace the placeholders for each of the main keywords above.
 
-## TIME_SERIES
+## TIME_SERIES {/* #time_series */}
 The reservoir variables, in this case, are found in a CSV (Comma separated file) `production_data.csv`.
 We give the time-series data a name that can be referenced as variables elsewhere in the form `<NAME>:<NAME OF COLUMN>`.
 See [TIME_SERIES](/about/references/TIME_SERIES.md) for further details.
 
 <CodeLinesFromFile title="model.yaml" start={5} end={8} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-## FACILITY_INPUTS
+## FACILITY_INPUTS {/* #facility_inputs */}
 We specify CSV input data for processing equipment using FACILITY_INPUTS. This is used for generatorsets,
 tabulated/sampled models and pump charts. See [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md) for further details.
 
@@ -97,14 +97,14 @@ Note that more complicated energy models are defined under the [MODELS](/about/r
 
 <CodeLinesFromFile title="model.yaml" start={10} end={23} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-## FUEL_TYPES
+## FUEL_TYPES {/* #fuel_types */}
 In this example there are two [FUEL_TYPES](/about/references/FUEL_TYPES.md) - `fuel_gas` and `bad_fuel_gas`.
 These are used for Installation A and Installation B respectively.
 Here we also define emissions in CO<sub>2</sub> and CH<sub>4</sub>:
 
 <CodeLinesFromFile title="model.yaml" start={25} end={39} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-## MODELS
+## MODELS {/* #models */}
 
 This advanced example requires some energy usage models to be defined under the model section. See [MODELS](/about/references/MODELS.md) for details.
 
@@ -119,7 +119,7 @@ Here we specify:
 
 See [MODELS](/about/references/MODELS.md) for further details.
 
-## VARIABLES
+## VARIABLES {/* #variables */}
 To run the model it is recommended to specify [VARIABLES](/about/references/VARIABLES.md),
 instead of hard coding values in difference places. This makes it easier to develop, maintain and understand the model
 by allowing descriptive variable names and avoid duplications.
@@ -139,7 +139,7 @@ The base_production_load_mw adds another 4.1 MW when the gas lift injection rate
 The flare rate changes in year 2030.
 :::
 
-## INSTALLATIONS
+## INSTALLATIONS {/* #installations */}
 
 An installation is composed of hydrocarbon export, a default fuel for that installation and consumers in the form
 of generatorsets (with electric sub-consumers), and direct fuel consumers.
@@ -173,7 +173,7 @@ INSTALLATIONS:
       <placeholder>
 ~~~~~~~~
 
-### Installation A
+### Installation A {/* #installation-a */}
 There is one generator set, `Generator set A`. This has a power to fuel function defined in
 [FACILITY_INPUTS](#facility_inputs) with the name `genset`. Further, the consumers getting
 power from the generator set are *Base production load*, *Gas export compressor*, *Produced water reinjection pump*
@@ -217,7 +217,7 @@ The setup for `Installation A` thus becomes:
           <placeholder>
 ~~~~~~~~
 
-### Installation B
+### Installation B {/* #installation-b */}
 There is one generator set, `Generator set B`. This has a power to fuel function defined in
 [FACILITY_INPUTS](#facility_inputs) with the name `genset`. Further, the consumer getting
 power from the generator set is *Base production load*.
@@ -254,7 +254,7 @@ The setup for `Installation B` thus becomes:
           <placeholder>
 ~~~~~~~~
 
-## ENERGY_USAGE_MODEL
+## ENERGY_USAGE_MODEL {/* #energy_usage_model */}
 We will now fill in the final placeholders with detailed [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)s.
 
 `Fixed production loads A` has a load of 7.6 MW with additional 4.1 MW when the field gas injection rate is positive:
@@ -309,10 +309,10 @@ in the variable [gasrateb_cd](#variables) as `SIM;GAS_PROD`, and put to the cond
 The model is specified:
 <CodeLinesFromFile start={246} end={273} language="yaml">{yamlModel}</CodeLinesFromFile>
 
-## Full eCalc YAML model
+## Full eCalc YAML model {/* #full-ecalc-yaml-model */}
 <CodeBlock title="model.yaml" language="yaml">{yamlModel}</CodeBlock>
 
-### Input files
+### Input files {/* #input-files */}
 <CodeBlock title="compressor_chart.csv">{compressorChartCsv}</CodeBlock>
 <CodeBlock title="compressor_sampled.csv">{compressorSampledCsv}</CodeBlock>
 <CodeBlock title="genset.csv">{genset}</CodeBlock>

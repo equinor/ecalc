@@ -1,6 +1,6 @@
 [project]
 name = "libecalc"
-version = "13.2.0"
+version = "13.5.1"
 description = "eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing."
 authors = [{ name = "eCalc Team", email = "fg_ecalc@equinor.com" }]
 requires-python = ">=3.12,<3.15"
@@ -31,16 +31,17 @@ dependencies = [
     "pydantic<3",
     "PyYAML==6.*",
     "numpy<3",
-    "pandas==2.*",
+    "pandas>=2,<4",
     "scipy<2",
     "ruamel-yaml~=0.18",
     "Shapely==2.*",
     "networkx~=3.2",
     "orjson~=3.8",
     "py4j~=0.10",
-    "rich==14.*",
+    "rich>=14,<16",
     "typer==0.*",
     "jneqsim>=3.0.42",
+    "uuid-utils>=0.14.1",
 ]
 
 [project.urls]
@@ -57,15 +58,12 @@ dev = [
     "pytest<9.0.0,>=8.3.5",
     "coverage[toml]<8.0.0,>=7.2.5",
     "pytest-xdist<4.0.0,>=3.6.1",
-    "inline-snapshot==0.29.2",  # Reason: later versions of inline-snapshots makes IDE crash when testing
-    "mypy~=1.15",
-    "types-PyYAML",
-    "pandas-stubs",
-    "types-networkx~=3.5.0.20250701",
-    "types-shapely~=2.1.0.20250512",
-    "scipy-stubs~=1.16.0.2",
+    "inline-snapshot==0.29.2", # Reason: later versions of inline-snapshots makes IDE crash when testing
+    "basedpyright==1.39.0", # Reason: seems to be a bug in 1.39.1 or 1.39.2 wrt. functional operators
     "pytest-split~=0.10.0",
     "pytest-profiling~=1.8.1",
+    "pandas-stubs>=3.0.0.260204",
+    "scipy-stubs>=1.17.1.2",
 ]
 
 [tool.uv]
@@ -116,36 +114,22 @@ markers = [
     "x86: tests that need x86 to pass"
 ]
 
-[tool.mypy]
-mypy_path = "./src"
-ignore_missing_imports = false
-warn_return_any = false
-# warn_unreachable = true
-warn_unused_configs = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-strict_equality = true
-strict_concatenate = true
-check_untyped_defs = true
-
-no_implicit_reexport = true
-
-warn_no_return = false
-disable_error_code = ["call-overload", "union-attr", "valid-type", "return-value", "attr-defined", "assignment"]
-namespace_packages = true
-explicit_package_bases = true
-plugins = ['pydantic.mypy']
-
-[[tool.mypy.overrides]]
-module = ["py4j.*", "jneqsim.*"]
-ignore_missing_imports = true
+[tool.basedpyright]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"
+reportMissingImports = true
+reportMissingTypeStubs = true
+include = ["src"]
+ignore = [
+    ".venv",
+]
 
 [tool.coverage.run]
 omit = ["^./__init__.py", "^api/.*"]
 
 [tool.ruff]
 include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
-target-version = "py311"
+target-version = "py312"
 line-length = 120
 
 [tool.ruff.lint]

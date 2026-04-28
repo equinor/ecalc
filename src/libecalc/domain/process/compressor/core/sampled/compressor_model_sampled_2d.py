@@ -50,8 +50,8 @@ class CompressorModelSampled2DRatePd:
         """
         # the interpolator we use when calculating energy usage
         self._interpolator = LinearNDInterpolator(
-            sampled_data[self.variable_order_2d][:].values,
-            sampled_data[function_header[:]][:].values,  # type: ignore[arg-type]
+            sampled_data[self.variable_order_2d].to_numpy(),
+            sampled_data[function_header].to_numpy(),  # type: ignore[arg-type]
             fill_value=np.nan,
             rescale=True,
         )
@@ -59,7 +59,7 @@ class CompressorModelSampled2DRatePd:
         # we define a convex hull for the working area for the compressor
         # for any point (rate, Dp) in the convex hull we can draw a line between
         # them to interpolate and find interpolated values
-        convex_hull = ConvexHull(sampled_data[self.variable_order_2d][:].values)
+        convex_hull = ConvexHull(sampled_data[self.variable_order_2d].to_numpy())
 
         # we can only increase rate, therefore we do not care about upper_rate_points...
         # we either want upper or lower convex hull, so for Pd we want lower
@@ -217,13 +217,13 @@ class CompressorModelSampled2DRatePs:
 
     def __init__(self, sampled_data: pd.DataFrame, function_header: str):
         self._interpolator = LinearNDInterpolator(
-            sampled_data[self.variable_order_2d][:].values,
-            sampled_data[function_header[:]][:].values,  # type: ignore[arg-type]
+            sampled_data[self.variable_order_2d].to_numpy(),
+            sampled_data[function_header].to_numpy(),  # type: ignore[arg-type]
             fill_value=np.nan,
             rescale=True,
         )
 
-        convex_hull = ConvexHull(sampled_data[self.variable_order_2d][:].values)
+        convex_hull = ConvexHull(sampled_data[self.variable_order_2d].to_numpy())
         (
             lower_rate_points_qh,
             _,
@@ -292,13 +292,13 @@ class CompressorModelSampled2DPsPd:
 
     def __init__(self, sampled_data: pd.DataFrame, function_header: str):
         self._interpolator = LinearNDInterpolator(
-            sampled_data[self.variable_order_2d][:].values,
-            sampled_data[function_header[:]][:].values,  # type: ignore[arg-type]
+            sampled_data[self.variable_order_2d].to_numpy(),
+            sampled_data[function_header].to_numpy(),  # type: ignore[arg-type]
             fill_value=np.nan,
             rescale=True,
         )
 
-        convex_hull = ConvexHull(sampled_data[self.variable_order_2d][:].values)
+        convex_hull = ConvexHull(sampled_data[self.variable_order_2d].to_numpy())
         lower_pd_points_qh, _, _ = get_lower_upper_qhull(convex_hull, axis=self.pd_axis, case_2d="ps_pd")
         lower_pd_points = lower_pd_points_qh.points
 

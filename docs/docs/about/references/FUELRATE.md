@@ -6,11 +6,11 @@
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) /
 [FUELRATE](/about/references/FUELRATE.md)
 
-## Description
+## Description {/* #description */}
 Used for direct fuel [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) to define fuel consumption directly with an
 [EXPRESSION](/about/references/EXPRESSION.md).
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: DIRECT
@@ -19,7 +19,7 @@ ENERGY_USAGE_MODEL:
   CONDITION: <condition expression>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 Constant fuel rate:
 ~~~~~~~~yaml

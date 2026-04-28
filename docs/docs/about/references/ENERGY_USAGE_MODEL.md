@@ -10,7 +10,7 @@
  | Yes        | `FUELCONSUMERS`      | `COMPRESSORS`                 |
  |            | `CONSUMERS`          | `CONDITION`  <br /> `CONDITIONS`  <br /> `CONSUMPTION_RATE_TYPE` <br /> `DISCHARGE_PRESSURE` <br /> `ENERGYFUNCTION` <br /> `FLUID_DENSITY` <br /> `FUELRATE` <br /> `LOAD` <br /> `OPERATIONAL_SETTINGS` <br /> `POWERLOSSFACTOR` <br /> `PUMPS` <br /> `RATE` <br /> `SUCTION_PRESSURE` <br /> `TOTAL_SYSTEM_RATE` <br /> `TYPE`  <br /> `VARIABLES`      |
 
-## Description
+## Description {/* #description */}
 
 The energy usage model specifies the data to calculate the energy usage of a consumer. This data is used to set up a
 function that may be evaluated for a set of time series and returns a result including the calculated energy usage.
@@ -31,7 +31,7 @@ Energy usage model types:
 For all types, the keywords [CONDITION](/about/references/CONDITION.md), [CONDITIONS](/about/references/CONDITIONS.md) and [POWERLOSSFACTOR](/about/references/POWERLOSSFACTOR.md) are optional and supported, and these will act
 on the calculated energy usage after the calculated energy usage from the model defined by [TYPE](/about/references/TYPE.md).
 
-## Temporal energy usage model
+## Temporal energy usage model {/* #temporal-energy-usage-model */}
 
 It is possible to update the energy model within a consumer over time, as long as the
 `ENERGY_USAGE_MODEL` stays within one type. The `TYPE` cannot change over time. In case `TYPE` evolution is needed, we recommend that you split the model into two [CONSUMERS](/about/references/CONSUMERS.md).

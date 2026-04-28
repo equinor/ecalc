@@ -79,7 +79,7 @@ def _start_server(maximum_memory: str = "2G") -> "JavaGateway":  #  type: ignore
 
     logging.getLogger("py4j").setLevel(logging.ERROR)
     try:
-        from py4j.java_gateway import JavaGateway
+        from py4j.java_gateway import JavaGateway  # pyright: ignore[reportMissingTypeStubs]
 
         return JavaGateway.launch_gateway(classpath=classpath, die_on_exit=False, javaopts=[f"-Xmx{maximum_memory}"])
     except ValueError as e:
@@ -119,7 +119,7 @@ class NeqsimService(AbstractContextManager, ABC):
             )
         cls._py4j_config = config
         _logger.info(
-            f"Py4J configured: maximum_memory={config.maximum_memory}, " f"shutdown_on_exit={config.shutdown_on_exit}"
+            f"Py4J configured: maximum_memory={config.maximum_memory}, shutdown_on_exit={config.shutdown_on_exit}"
         )
 
     @classmethod

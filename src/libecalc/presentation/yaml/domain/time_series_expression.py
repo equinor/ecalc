@@ -26,6 +26,7 @@ class TimeSeriesExpression:
 
         """
 
+        self._original_expression = expression
         self._expression = convert_expression(expression)
         self.expression_evaluator = expression_evaluator
         self._condition = convert_expression(condition) if condition is not None else None
@@ -35,6 +36,9 @@ class TimeSeriesExpression:
         Returns the converted expression.
         """
         return self._expression
+
+    def get_original_expression(self) -> ExpressionType:
+        return self._original_expression
 
     def get_evaluated_expression(self) -> list[float]:
         """

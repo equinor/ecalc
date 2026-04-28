@@ -1,12 +1,12 @@
 # UNIT
 
-## Description
+## Description {/* #description */}
 
 `UNIT` is a keyword that can be specified for:
 - [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) - [EMISSIONS](/about/references/EMISSIONS.md) - [RATE](/about/references/RATE.md) or
 - [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) - [VOLUME](/about/references/VOLUME.md) - [RATE](/about/references/RATE.md)
 
-## Format
+## Format {/* #format */}
 Venting emitter of [TYPE](/about/references/TYPE.md) `DIRECT_EMISSION`:
 ~~~~yaml
 RATE:
@@ -23,7 +23,7 @@ RATE:
   TYPE: <emission rate type, default STREAM_DAY>
 ~~~~
 
-## Example 
+## Example {/* #example */}
 TYPE: DIRECT_EMISSION
 ~~~~yaml
 RATE:

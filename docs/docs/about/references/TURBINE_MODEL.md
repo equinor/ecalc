@@ -1,12 +1,12 @@
 # TURBINE_MODEL
 
-## Description
+## Description {/* #description */}
 
 When using a [TURBINE](/about/modelling/setup/models/turbine_modeling.md) it is required for a `TURBINE_MODEL` to be specified. This is done under the `MODELS` section.
 
 A turbine model describes a gas-fired turbine that is coupled to a compressor or compression train. It is specified in a similar way to a [GENERATORSET](GENERATORSETS.md). `TURBINE_LOAD`, `TURBINE_EFFICIENCY` and `LOWER_HEATING_VALUE` needs to be inputted here.
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -18,7 +18,7 @@ MODELS:
     POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

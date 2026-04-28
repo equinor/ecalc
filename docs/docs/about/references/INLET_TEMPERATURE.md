@@ -6,13 +6,13 @@
 |----------|------------------------------------------------|------------------|
 | Yes      | [MODELS](/about/references/MODELS.md) | None             |
 
-## Description
+## Description {/* #description */}
 This is a keyword used in [COMPRESSOR MODELLING](/about/modelling/setup/models/compressor_modelling/compressor_models_types/index.md) when defining the individual stages of a compressor train.
 It is a necessary input parameter which describes the inlet temperature to a compressor stage. Temperature **must** be given in <sup>o</sup>C.
 
 As of now, this is can only be given as a single value. Time-series are not accepted here.
 
-## Format
+## Format {/* #format */}
 
 ~~~~~yaml
 MODELS:
@@ -24,7 +24,7 @@ MODELS:
     ...
 ~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~yaml
 MODELS:

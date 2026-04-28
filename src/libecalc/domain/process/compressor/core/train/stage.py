@@ -13,11 +13,13 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
+from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
+from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
+    LegacySplitter,
+)
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
@@ -29,8 +31,8 @@ class CompressorTrainStage:
 
     The stage is composed of a series of process units that modify the inlet stream before it enters the compressor.
     The process units are:
-    - Splitter: Splits the inlet stream if required. One stream goes towards the compressor, the other(s) are taken out.
-    - Mixer: Mixes the inlet stream with other streams if required.
+    - LegacySplitter: Splits the inlet stream if required. One stream goes towards the compressor, the other(s) are taken out.
+    - LegacyMixer: Mixes the inlet stream with other streams if required.
     - TemperatureSetter: Cools the inlet stream to a required temperature. Often termed an intercooler.
     - LiquidRemover: Removes liquid from the inlet stream if required. Often termed a scrubber.
     - Choke: Chokes the inlet stream if a choke valve is defined (pressure drop ahead of stage).
@@ -43,13 +45,13 @@ class CompressorTrainStage:
 
     def __init__(
         self,
-        compressor: Compressor,
+        compressor: LegacyCompressor,
         temperature_setter: TemperatureSetter,
         liquid_remover: LiquidRemover | None,
         rate_modifier: RateModifier,
         fluid_service: FluidService,
-        splitter: Splitter | None = None,
-        mixer: Mixer | None = None,
+        splitter: LegacySplitter | None = None,
+        mixer: LegacyMixer | None = None,
         choke: Choke | None = None,
         interstage_pressure_control: InterstagePressureControl | None = None,
     ):
@@ -105,7 +107,7 @@ class CompressorTrainStage:
         rates_out_of_splitter: list[float] | None = None,
         streams_in_to_mixer: list[FluidStream] | None = None,
     ):
-        # First the stream passes through the Splitter (if defined)
+        # First the stream passes through the LegacySplitter (if defined)
         if self.splitter is not None:
             self.splitter.rates_out_of_splitter = rates_out_of_splitter
             inlet_stream_after_splitter = self.split(
@@ -114,7 +116,7 @@ class CompressorTrainStage:
         else:
             inlet_stream_after_splitter = inlet_stream_stage
 
-        # Then the stream passes through the Mixer     (if defined)
+        # Then the stream passes through the LegacyMixer     (if defined)
         if self.mixer is not None:
             if streams_in_to_mixer is None:
                 raise IllegalStateException("streams_in_to_mixer cannot be None when a mixer is defined")
@@ -157,9 +159,9 @@ class CompressorTrainStage:
 
         Args:
             inlet_stream_stage (FluidStream): The conditions of the inlet fluid stream. If there are several inlet streams,
-                the first one is the stage inlet stream, the others enter the stage at the Mixer.
-            rates_out_of_splitter (list[float] | None, optional): Additional rates to the Splitter if defined.
-            streams_in_to_mixer (list[FluidStream] | None, optional): Additional streams to the Mixer if defined.
+                the first one is the stage inlet stream, the others enter the stage at the LegacyMixer.
+            rates_out_of_splitter (list[float] | None, optional): Additional rates to the LegacySplitter if defined.
+            streams_in_to_mixer (list[FluidStream] | None, optional): Additional streams to the LegacyMixer if defined.
 
         Returns:
             CompressorTrainStageResultSingleTimeStep: The result of the evaluation for the compressor stage
@@ -256,8 +258,8 @@ class CompressorTrainStage:
         assert streams_in_to_mixer is not None
         if self.mixer.number_of_inputs != len(streams_in_to_mixer) + 1:
             raise IllegalStateException(
-                f"Number of additional rates to Mixer ({len(streams_in_to_mixer)}) "
-                f"does not match number of Mixer inputs ({self.mixer.number_of_inputs})."
+                f"Number of additional rates to LegacyMixer ({len(streams_in_to_mixer)}) "
+                f"does not match number of LegacyMixer inputs ({self.mixer.number_of_inputs})."
             )
 
         all_streams_to_mixer = [inlet_stream_stage] + streams_in_to_mixer
@@ -336,8 +338,9 @@ class CompressorTrainStage:
         result_mass_rate = find_root(
             lower_bound=0,
             upper_bound=max_recirculation,
-            func=lambda x: _calculate_compressor_stage(additional_mass_rate=x).discharge_pressure
-            - target_discharge_pressure,
+            func=lambda x: (
+                _calculate_compressor_stage(additional_mass_rate=x).discharge_pressure - target_discharge_pressure
+            ),
         )
 
         return _calculate_compressor_stage(result_mass_rate)

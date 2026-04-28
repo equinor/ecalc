@@ -13,9 +13,15 @@ from libecalc.presentation.yaml.yaml_entities import (
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
+    YamlProcessSimulation,
+    YamlProcessSystem,
+    YamlProcessUnit,
+)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
@@ -67,6 +73,26 @@ class YamlValidator(abc.ABC):
     @property
     @abc.abstractmethod
     def fuel_types(self) -> Iterable[YamlFuelType]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def inlet_streams(self) -> dict[str, YamlInletStream]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def process_units(self) -> dict[str, YamlProcessUnit]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def process_systems(self) -> dict[str, YamlProcessSystem]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def process_simulations(self) -> Iterable[YamlProcessSimulation]:
         pass
 
     @property
@@ -149,7 +175,7 @@ class YamlDumper(abc.ABC):
         pass
 
 
-class ReaderType(str, enum.Enum):
+class ReaderType(enum.StrEnum):
     """Which yaml model to use. User should in general define capabilities, and get an appropriate yaml model, but for
     now we define implementation.
     """

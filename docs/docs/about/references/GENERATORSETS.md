@@ -3,7 +3,7 @@
 [INSTALLATIONS](/about/references/INSTALLATIONS.md) / 
 [GENERATORSETS](/about/references/GENERATORSETS.md)
 
-## Description
+## Description {/* #description */}
 Under [GENERATORSETS](/about/references/GENERATORSETS.md) one or
 several `generator sets` (a 'set' of an engine of some sort and a generator) are specified in a list.
 Each generator set requires three sub-keywords, [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) and 

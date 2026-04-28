@@ -9,19 +9,19 @@
 |------------|---------------------------|------------------------------------|
 | Yes        | `ENERGY_USAGE_MODEL`      | None                               |
 
-## Description
+## Description {/* #description */}
 Reference to a compressor train model defined in [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md) or 
 [MODELS](/about/references/MODELS.md) used for [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) 
 TYPE [VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES](/about/modelling/setup/models/compressor_modelling/compressor_models_types/variable_speed_compressor_train_model_with_multiple_streams_and_pressures.md).
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES
   COMPRESSOR_TRAIN_MODEL: <reference to compressor train model in facility inputs or models of compressor type>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: advanced_compressor_train

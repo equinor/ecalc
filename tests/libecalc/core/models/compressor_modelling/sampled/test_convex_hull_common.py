@@ -40,7 +40,7 @@ def test_get_lower_upper_qhull():
     # func_header = EcalcYamlKeywords.consumer_tabular_fuel
     df.columns = variables  # + [func_header]
 
-    qh = ConvexHull(df[variables][:].values)
+    qh = ConvexHull(df[variables].to_numpy())
 
     # Test in all three directions
     lower_p, upper_p, _ = get_lower_upper_qhull(qh, axis=0)
@@ -78,7 +78,7 @@ def test_get_lower_upper_qhull():
 
     df.columns = variables
 
-    qh = ConvexHull(df[variables][:].values)
+    qh = ConvexHull(df[variables].to_numpy())
 
     # axis=0
     lower_p, upper_p, _ = get_lower_upper_qhull(qh, axis=0)
@@ -121,7 +121,7 @@ def test_get_lower_upper_qhull():
     df = pd.DataFrame(df_data)
     df.columns = variables
 
-    qh = ConvexHull(df[variables][:].values)
+    qh = ConvexHull(df[variables].to_numpy())
 
     # axis=0
     lower_p, upper_p, _ = get_lower_upper_qhull(qh, axis=0)
@@ -314,7 +314,7 @@ def test_sampled_compressor_datedata2():
 
     ps_pd = np.asarray([[68.04, 111.90], [49.5160, 59.4977]])
 
-    convex_hull = ConvexHull(df[variable_headers][:].values)
+    convex_hull = ConvexHull(df[variable_headers].to_numpy())
     lower_rate_qh = get_lower_upper_qhull(convex_hull, axis=0)
 
     lower_convex_hull_0 = lower_rate_qh[0]

@@ -31,7 +31,7 @@ The following keywords are optional for a single speed compressor model:
 
 The model is defined under the main keyword [MODELS](/about/references/MODELS.md) in the format
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 MODELS:

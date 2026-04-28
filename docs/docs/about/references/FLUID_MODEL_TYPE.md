@@ -1,13 +1,13 @@
 # FLUID_MODEL_TYPE
 
-## Description
+## Description {/* #description */}
 
 `FLUID_MODEL_TYPE` is a required to be specified under the [MODELS](/about/references/MODELS.md) keyword when
 the model is of [TYPE](/about/references/TYPE.md) `FLUID`.
 
 The `FLUID_MODEL_TYPE` can either be set to `PREDEFINED` or to `COMPOSITION`.
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -17,7 +17,7 @@ MODELS:
     FLUID_MODEL_TYPE: <PREDEFINED or COMPOSITION>
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

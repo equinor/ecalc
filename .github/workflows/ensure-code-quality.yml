@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   workflow_call:
 
-permissions: {}
+permissions: { }
 
 env:
   UV_SYSTEM_PYTHON: 1
@@ -16,10 +16,13 @@ jobs:
     name: Build & Run Pre Commit hooks to verify code structure, quality etc. from pre-commit hooks
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v6
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
 
@@ -28,3 +31,25 @@ jobs:
 
       - name: Run pre-commit
         run: SKIP=trufflehog,no-commit-to-branch uv run pre-commit run --all-files --verbose
+
+  type-check:
+    permissions:
+      contents: read
+    name: Type check with basedpyright
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync -v
+
+      - name: Run basedpyright
+        run: uv run basedpyright src/

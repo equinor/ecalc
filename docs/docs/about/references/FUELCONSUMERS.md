@@ -3,7 +3,7 @@
 [INSTALLATIONS](/about/references/INSTALLATIONS.md) / 
 [FUELCONSUMERS](/about/references/FUELCONSUMERS.md)
 
-## Description
+## Description {/* #description */}
 The [FUELCONSUMERS](/about/references/FUELCONSUMERS.md) keyword covers the fuel consumers on the installation
 that are not generators. The attributes [NAME](/about/references/NAME.md), 
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md) and 
@@ -11,7 +11,7 @@ that are not generators. The attributes [NAME](/about/references/NAME.md),
 [FUEL](/about/references/FUEL.md) is optional and may be used to
 override the installation's default fuel type.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 FUELCONSUMERS:
   - NAME: <consumer name>
@@ -20,7 +20,7 @@ FUELCONSUMERS:
     FUEL: <fuel specification>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 FUELCONSUMERS:
   - NAME: CompressorFuelConsumer

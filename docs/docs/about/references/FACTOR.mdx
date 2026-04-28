@@ -3,7 +3,7 @@
 [...] /
 [FACTOR](FACTOR)
 
-## Description
+## Description {/* #description */}
 The keyword [FACTOR](FACTOR) can be used to add a multiplier. The
 [FACTOR](FACTOR) keyword can be used in various places in the eCalc configuration file.
 A factor can either be a number, or an `expression <Expressions>`.
@@ -12,21 +12,21 @@ A factor can either be a number, or an `expression <Expressions>`.
 The [FACTOR](FACTOR) keyword will have slightly different behavior depending on in which keyword
 it is used. Carefully read the documentation below!
 :::
-### Use in [ADJUSTMENT](ADJUSTMENT)
+### Use in [ADJUSTMENT](ADJUSTMENT) {/* #use-in-adjustment */}
 
 Adjustment of input data with a factor.
 
-### Use in [EMISSIONS](EMISSIONS.md)
+### Use in [EMISSIONS](EMISSIONS.md) {/* #use-in-emissions */}
 A single value with unit kg/Sm<sup>3</sup> defines the CO<sub>2</sub> factor for the fuel gas used on the
 installation. That is, how many kilograms of CO<sub>2</sub> are emitted
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 FACTOR: <VALUE>
 ~~~~~~~~
 
-## Example
-### Use in [ADJUSTMENT](ADJUSTMENT)
+## Example {/* #example */}
+### Use in [ADJUSTMENT](ADJUSTMENT) {/* #use-in-adjustment-1 */}
 
 Say you have input that that is of by 3% percentage.
 You could fix this like:
@@ -47,7 +47,7 @@ $$
 
 where $E_\mathrm{original}$ is the energy consumption before the adjustment.
 
-### Use in [EMISSIONS](EMISSIONS.md)
+### Use in [EMISSIONS](EMISSIONS.md) {/* #use-in-emissions-1 */}
 
 Say your fuel emits 2.5 kg CO<sub>2</sub> per Sm<sup>3</sup> of burned fuel, you can model this like:
 

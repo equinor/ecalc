@@ -1,7 +1,7 @@
 import enum
 
 
-class YamlFacilityModelType(str, enum.Enum):
+class YamlFacilityModelType(enum.StrEnum):
     ELECTRICITY2FUEL = "ELECTRICITY2FUEL"
     TABULAR = "TABULAR"
     COMPRESSOR_TABULAR = "COMPRESSOR_TABULAR"

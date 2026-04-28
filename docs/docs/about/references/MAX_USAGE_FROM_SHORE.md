@@ -3,18 +3,18 @@
 [INSTALLATIONS](/about/references/INSTALLATIONS.md) /
 [GENERATORSETS](/about/references/GENERATORSETS.md)
 
-## Description
+## Description {/* #description */}
 
 The peak load/effect that is expected for one hour, per year (MW). Relevant only for generatorsets of [CATEGORY](/about/references/CATEGORY.md) `POWER-FROM-SHORE`.
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 
 MAX_USAGE_FROM_SHORE: <expression or value>
 ~~~~~~~~
 
-## Examples
+## Examples {/* #examples */}
 10 MW peak/load effect:
 ~~~~~~~~yaml
 

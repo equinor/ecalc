@@ -1,12 +1,12 @@
 # TURBINE_LOADS
 
-## Description
+## Description {/* #description */}
 
 `TURBINE_LOADS` is a required to be specified under the [TURBINE_MODEL](/about/references/TURBINE_MODEL.md) keyword.
 
 This **must** be specified in MW (Mega-Watts) and **must** have equal length to the corresponding `TURBINE_EFFICIENCY` values.
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -16,7 +16,7 @@ MODELS:
     TURBINE_LOADS: <list of power values in mega watt>
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

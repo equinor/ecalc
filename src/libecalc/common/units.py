@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Callable
-from enum import Enum
+from enum import StrEnum
 from functools import singledispatch
 from typing import Any
 
@@ -43,7 +43,7 @@ class UnitConstants:
     WATT_PER_MEGAWATT = 1e6
 
 
-class Unit(str, Enum):
+class Unit(StrEnum):
     """A very simple unit registry to convert between common eCalc units."""
 
     NONE = "N/A"
@@ -120,17 +120,17 @@ class Unit(str, Enum):
         # Compressor chart polytropic head
         unit_registry[Unit.POLYTROPIC_HEAD_JOULE_PER_KG][Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG] = lambda a: a / 1000
         unit_registry[Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG][Unit.POLYTROPIC_HEAD_JOULE_PER_KG] = lambda a: a * 1000
-        unit_registry[Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN][Unit.POLYTROPIC_HEAD_JOULE_PER_KG] = (
-            lambda a: a * UnitConstants.EARTH_GRAVITY
+        unit_registry[Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN][Unit.POLYTROPIC_HEAD_JOULE_PER_KG] = lambda a: (
+            a * UnitConstants.EARTH_GRAVITY
         )
-        unit_registry[Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN][Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG] = (
-            lambda a: (a * UnitConstants.EARTH_GRAVITY) / 1000
+        unit_registry[Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN][Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG] = lambda a: (
+            (a * UnitConstants.EARTH_GRAVITY) / 1000
         )
-        unit_registry[Unit.POLYTROPIC_HEAD_JOULE_PER_KG][Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN] = (
-            lambda a: a / UnitConstants.EARTH_GRAVITY
+        unit_registry[Unit.POLYTROPIC_HEAD_JOULE_PER_KG][Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN] = lambda a: (
+            a / UnitConstants.EARTH_GRAVITY
         )
-        unit_registry[Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG][Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN] = (
-            lambda a: (a * 1000) / UnitConstants.EARTH_GRAVITY
+        unit_registry[Unit.POLYTROPIC_HEAD_KILO_JOULE_PER_KG][Unit.POLYTROPIC_HEAD_METER_LIQUID_COLUMN] = lambda a: (
+            (a * 1000) / UnitConstants.EARTH_GRAVITY
         )
 
         # Other

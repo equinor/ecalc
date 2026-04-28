@@ -23,7 +23,7 @@ class YamlGeneratorSet(YamlBase):
     fuel: YamlTemporalModel[str] = Field(
         None,
         title="FUEL",
-        description="The fuel used by the generator set." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
+        description="The fuel used by the generator set.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
     electricity2fuel: YamlTemporalModel[GeneratorSetModelReference] = Field(
         ...,

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from enum import Enum
+from enum import StrEnum
 from math import isnan
 
 import numpy as np
@@ -14,7 +14,7 @@ from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 
 
-class CompressorTrainCommonShaftFailureStatus(str, Enum):
+class CompressorTrainCommonShaftFailureStatus(StrEnum):
     NO_FAILURE = "NO_FAILURE"
     TARGET_DISCHARGE_PRESSURE_TOO_HIGH = "TARGET_DISCHARGE_PRESSURE_TOO_HIGH"
     TARGET_DISCHARGE_PRESSURE_TOO_LOW = "TARGET_DISCHARGE_PRESSURE_TOO_LOW"
@@ -32,7 +32,7 @@ class CompressorTrainCommonShaftFailureStatus(str, Enum):
     NOT_CALCULATED = "NOT_CALCULATED"
 
 
-class TargetPressureStatus(str, Enum):
+class TargetPressureStatus(StrEnum):
     NOT_CALCULATED = "NOT_CALCULATED"
     BELOW_TARGET_SUCTION_PRESSURE = "BELOW_TARGET_SUCTION_PRESSURE"
     ABOVE_TARGET_SUCTION_PRESSURE = "ABOVE_TARGET_SUCTION_PRESSURE"

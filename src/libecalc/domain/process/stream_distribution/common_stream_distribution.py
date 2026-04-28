@@ -1,18 +1,20 @@
 import abc
 from collections import defaultdict
 from collections.abc import Hashable, Iterable
+from collections.abc import Mapping
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 
 import networkx as nx
-from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
+
 from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.process.stream_distribution.stream_distribution import StreamDistribution
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class HasCapacity(abc.ABC):
+class HasExcessRate(abc.ABC):
     @abc.abstractmethod
-    def get_unhandled_rate(self, rate: float, pressure: float) -> float: ...
+    def get_excess_rate(self, inlet_stream: FluidStream) -> float: ...
 
 
 T = TypeVar("T", bound=Hashable)
@@ -28,7 +30,7 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
     def __init__(
         self,
         inlet_stream: FluidStream,
-        items: dict[T, HasCapacity],
+        items: Mapping[T, HasExcessRate],
         rate_fractions: list[float],
         overflows: list[Overflow[T]],
         fluid_service: FluidService,
@@ -69,9 +71,15 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
             current_rate = rate + overflow_rate
             if overflow is not None:
                 item = self._items[item_id]
-                unhandled_rate = item.get_unhandled_rate(current_rate, self._inlet_stream.pressure_bara)
-                handled_rate = current_rate - unhandled_rate
-                overflow_map[overflow.to_id].append(unhandled_rate)
+                stream = self._fluid_service.create_stream_from_standard_rate(
+                    fluid_model=self._inlet_stream.fluid_model,
+                    standard_rate_m3_per_day=current_rate,
+                    temperature_kelvin=self._inlet_stream.temperature_kelvin,
+                    pressure_bara=self._inlet_stream.pressure_bara,
+                )
+                excess_rate = item.get_excess_rate(stream)
+                handled_rate = current_rate - excess_rate
+                overflow_map[overflow.to_id].append(excess_rate)
                 adjusted_rates[item_id] = handled_rate
             else:
                 adjusted_rates[item_id] = current_rate

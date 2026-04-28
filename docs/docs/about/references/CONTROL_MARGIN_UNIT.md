@@ -5,7 +5,7 @@
 [STAGES](/about/references/STAGES.md) /
 [CONTROL_MARGIN_UNIT](/about/references/CONTROL_MARGIN_UNIT.md)
 
-## Description
+## Description {/* #description */}
 
 This keyword defines the unit of the [surge control margin](/about/references/CONTROL_MARGIN.md) for a variable speed compressor chart.
 
@@ -17,7 +17,7 @@ It is currently only possible to define a surge control margin for variable spee
 
 See [Surge control margin for variable speed compressor chart](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md) for more details.
 
-### Format
+### Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -34,7 +34,7 @@ MODELS:
           ....
 ~~~~
 
-### Example
+### Example {/* #example */}
 ~~~~yaml
 MODELS:
   - NAME: compressor_model

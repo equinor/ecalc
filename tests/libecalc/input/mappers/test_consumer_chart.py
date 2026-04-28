@@ -7,7 +7,7 @@ from libecalc.presentation.yaml.mappers.facility_input import (
 )
 from libecalc.presentation.yaml.mappers.model import (
     InvalidChartResourceException,
-    _single_speed_compressor_chart_mapper,
+    single_speed_compressor_chart_mapper,
 )
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
@@ -128,7 +128,7 @@ def compressor_chart():
 class TestCompressorChartSingleSpeed:
     def test_valid_with_speed(self, compressor_chart, chart_resource_with_speed):
         """Test that speed can be specified. Note: 1.0 and 1 is considered equal."""
-        chart = _single_speed_compressor_chart_mapper(
+        chart = single_speed_compressor_chart_mapper(
             model_config=compressor_chart,
             resources={"compressorchart.csv": chart_resource_with_speed},
             control_margin=None,
@@ -143,7 +143,7 @@ class TestCompressorChartSingleSpeed:
 
     def test_valid_without_speed(self, compressor_chart, chart_resource_without_speed):
         """Test that speed can be specified. Note: 1.0 and 1 is considered equal."""
-        chart = _single_speed_compressor_chart_mapper(
+        chart = single_speed_compressor_chart_mapper(
             model_config=compressor_chart,
             resources={"compressorchart.csv": chart_resource_without_speed},
             control_margin=None,
@@ -158,7 +158,7 @@ class TestCompressorChartSingleSpeed:
 
     def test_invalid_unequal_speed(self, compressor_chart, chart_resource_unequal_speed):
         with pytest.raises(InvalidChartResourceException) as exception_info:
-            _single_speed_compressor_chart_mapper(
+            single_speed_compressor_chart_mapper(
                 model_config=compressor_chart,
                 resources={"compressorchart.csv": chart_resource_unequal_speed},
                 control_margin=None,

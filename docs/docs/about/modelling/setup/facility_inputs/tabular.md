@@ -11,7 +11,7 @@ This is considered to be a consumer energy function for pure barycentric interpo
 convex area. One column defines the function value, the rest of the columns defines the
 variables for a 1D (if one variable column) or multidimensional interpolation.
 
-## Header and unit requirements
+## Header and unit requirements {/* #header-and-unit-requirements */}
 
 | Header | Unit| Comment |
 | ----- | ----| --- |
@@ -20,8 +20,8 @@ variables for a 1D (if one variable column) or multidimensional interpolation.
 
 Variable headers can be chosen freely as long as these correspond to the defined variables for the function.
 
-### Example
-#### 1D tabular energy function
+### Example {/* #example */}
+#### 1D tabular energy function {/* #1d-tabular-energy-function */}
 Contents of the file `energyfunc_1d_rate_fuel.csv`:
 
 ~~~~~~~~text
@@ -64,7 +64,7 @@ Note that the name `RATE` in the input file (under [FACILITY_INPUT](/about/model
  must be equal!
 :::
 
-#### 3D tabular energy function
+#### 3D tabular energy function {/* #3d-tabular-energy-function */}
 Contents of file `energyfunc_3d_rate_ps_pd_power.csv`:
 
 ~~~~~~~~text

@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import ConfigDict, Field, field_validator
 from pydantic_core.core_schema import ValidationInfo
@@ -9,7 +9,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_category_field import
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
 
 
-class FuelTypeUserDefinedCategoryType(str, Enum):
+class FuelTypeUserDefinedCategoryType(StrEnum):
     FUEL_GAS = "FUEL-GAS"
     DIESEL = "DIESEL"
 

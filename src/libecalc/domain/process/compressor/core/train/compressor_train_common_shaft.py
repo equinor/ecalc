@@ -431,9 +431,9 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 max_mass_rate_at_max_speed = maximize_x_given_boolean_condition_function(
                     x_min=EPSILON,
                     x_max=min_mass_rate_at_max_speed_first_stage,
-                    bool_func=lambda x: _calculate_train_result_at_max_speed_given_mass_rate(
-                        mass_rate=x
-                    ).within_capacity,
+                    bool_func=lambda x: (
+                        _calculate_train_result_at_max_speed_given_mass_rate(mass_rate=x).within_capacity
+                    ),
                     convergence_tolerance=1e-3,
                     maximum_number_of_iterations=20,
                 )
@@ -455,9 +455,9 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 max_mass_rate_at_max_speed = maximize_x_given_boolean_condition_function(
                     x_min=min_mass_rate_at_max_speed,
                     x_max=max_mass_rate_at_max_speed_first_stage,
-                    bool_func=lambda x: _calculate_train_result_at_max_speed_given_mass_rate(
-                        mass_rate=x
-                    ).within_capacity,
+                    bool_func=lambda x: (
+                        _calculate_train_result_at_max_speed_given_mass_rate(mass_rate=x).within_capacity
+                    ),
                     convergence_tolerance=1e-3,
                     maximum_number_of_iterations=20,
                 )
@@ -487,8 +487,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             result_mass_rate = find_root(
                 lower_bound=min_mass_rate_at_max_speed,
                 upper_bound=max_mass_rate_at_max_speed,
-                func=lambda x: _calculate_train_result_at_max_speed_given_mass_rate(mass_rate=x).discharge_pressure
-                - target_discharge_pressure,
+                func=lambda x: (
+                    _calculate_train_result_at_max_speed_given_mass_rate(mass_rate=x).discharge_pressure
+                    - target_discharge_pressure
+                ),
                 relative_convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
@@ -516,9 +518,9 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 max_mass_rate_at_min_speed = maximize_x_given_boolean_condition_function(
                     x_min=EPSILON,
                     x_max=max_mass_rate_at_min_speed_first_stage,
-                    bool_func=lambda x: _calculate_train_result_at_min_speed_given_mass_rate(
-                        mass_rate=x
-                    ).within_capacity,
+                    bool_func=lambda x: (
+                        _calculate_train_result_at_min_speed_given_mass_rate(mass_rate=x).within_capacity
+                    ),
                 )
                 result_max_mass_rate_at_min_speed = _calculate_train_result_at_min_speed_given_mass_rate(
                     mass_rate=max_mass_rate_at_min_speed
@@ -538,8 +540,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 result_speed = find_root(
                     lower_bound=self.minimum_speed,
                     upper_bound=self.maximum_speed,
-                    func=lambda x: _calculate_train_result_given_speed_at_stone_wall(speed=x).discharge_pressure
-                    - target_discharge_pressure,
+                    func=lambda x: (
+                        _calculate_train_result_given_speed_at_stone_wall(speed=x).discharge_pressure
+                        - target_discharge_pressure
+                    ),
                 )
                 self.shaft.set_speed(result_speed)
                 compressor_train_result = _calculate_train_result_given_speed_at_stone_wall(speed=result_speed)
@@ -588,12 +592,14 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                     find_root(
                         lower_bound=result_with_minimum_rate.stage_results[0].mass_rate_asv_corrected_kg_per_hour,
                         upper_bound=rate_to_return,
-                        func=lambda x: self.evaluate_given_constraints(
-                            constraints=constraints.create_conditions_with_new_input(
-                                new_rate=self._fluid_service.mass_rate_to_standard_rate(fluid_model, x),
-                            )
-                        ).power_megawatt
-                        - maximum_power * (1 - POWER_CALCULATION_TOLERANCE),
+                        func=lambda x: (
+                            self.evaluate_given_constraints(
+                                constraints=constraints.create_conditions_with_new_input(
+                                    new_rate=self._fluid_service.mass_rate_to_standard_rate(fluid_model, x),
+                                )
+                            ).power_megawatt
+                            - maximum_power * (1 - POWER_CALCULATION_TOLERANCE)
+                        ),
                         relative_convergence_tolerance=1e-3,
                         maximum_number_of_iterations=20,
                     ),
@@ -754,8 +760,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         result_inlet_pressure = find_root(
             lower_bound=EPSILON + self.stages[0].pressure_drop_ahead_of_stage,
             upper_bound=target_discharge_pressure,
-            func=lambda x: _calculate_train_result_given_inlet_pressure(inlet_pressure=x).discharge_pressure
-            - target_discharge_pressure,
+            func=lambda x: (
+                _calculate_train_result_given_inlet_pressure(inlet_pressure=x).discharge_pressure
+                - target_discharge_pressure
+            ),
         )
 
         train_result = _calculate_train_result_given_inlet_pressure(inlet_pressure=result_inlet_pressure)
@@ -825,8 +833,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         result_asv_rate_margin = find_root(
             lower_bound=0.0,
             upper_bound=1.0,
-            func=lambda x: _calculate_train_result_given_asv_rate_margin(asv_rate_fraction=x).discharge_pressure
-            - target_discharge_pressure,
+            func=lambda x: (
+                _calculate_train_result_given_asv_rate_margin(asv_rate_fraction=x).discharge_pressure
+                - target_discharge_pressure
+            ),
         )
         # This mass rate, is the mass rate to use as mass rate after asv for each stage,
         # thus the asv in each stage should be set to correspond to this mass rate
@@ -972,9 +982,11 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 maximum_mass_rate = maximize_x_given_boolean_condition_function(
                     x_min=0.0,
                     x_max=maximum_mass_rate,
-                    bool_func=lambda x: _calculate_train_result_given_mass_rate(
-                        mass_rate_kg_per_hour=x
-                    ).mass_rate_asv_corrected_is_constant_for_stages,
+                    bool_func=lambda x: (
+                        _calculate_train_result_given_mass_rate(
+                            mass_rate_kg_per_hour=x
+                        ).mass_rate_asv_corrected_is_constant_for_stages
+                    ),
                     convergence_tolerance=1e-3,
                     maximum_number_of_iterations=20,
                 )
@@ -986,9 +998,11 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             minimum_mass_rate = -maximize_x_given_boolean_condition_function(
                 x_min=-maximum_mass_rate,
                 x_max=-minimum_mass_rate,
-                bool_func=lambda x: _calculate_train_result_given_mass_rate(
-                    mass_rate_kg_per_hour=-x
-                ).mass_rate_asv_corrected_is_constant_for_stages,
+                bool_func=lambda x: (
+                    _calculate_train_result_given_mass_rate(
+                        mass_rate_kg_per_hour=-x
+                    ).mass_rate_asv_corrected_is_constant_for_stages
+                ),
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
@@ -1014,18 +1028,22 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             minimum_mass_rate = -maximize_x_given_boolean_condition_function(
                 x_min=-(minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)),
                 x_max=-minimum_mass_rate,
-                bool_func=lambda x: _calculate_train_result_given_mass_rate(
-                    mass_rate_kg_per_hour=-x
-                ).mass_rate_asv_corrected_is_constant_for_stages,
+                bool_func=lambda x: (
+                    _calculate_train_result_given_mass_rate(
+                        mass_rate_kg_per_hour=-x
+                    ).mass_rate_asv_corrected_is_constant_for_stages
+                ),
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
             maximum_mass_rate = maximize_x_given_boolean_condition_function(
                 x_min=(minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)),
                 x_max=maximum_mass_rate,
-                bool_func=lambda x: _calculate_train_result_given_mass_rate(
-                    mass_rate_kg_per_hour=x
-                ).mass_rate_asv_corrected_is_constant_for_stages,
+                bool_func=lambda x: (
+                    _calculate_train_result_given_mass_rate(
+                        mass_rate_kg_per_hour=x
+                    ).mass_rate_asv_corrected_is_constant_for_stages
+                ),
                 convergence_tolerance=1e-3,
                 maximum_number_of_iterations=20,
             )
@@ -1055,8 +1073,10 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         result_mass_rate = find_root(
             lower_bound=minimum_mass_rate,
             upper_bound=maximum_mass_rate,
-            func=lambda x: _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=x).discharge_pressure
-            - target_discharge_pressure,
+            func=lambda x: (
+                _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=x).discharge_pressure
+                - target_discharge_pressure
+            ),
         )
         # This mass rate is the mass rate to use as mass rate after asv for each stage,
         # thus the asv in each stage should be set to correspond to this mass rate

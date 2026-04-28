@@ -1,22 +1,16 @@
-from libecalc.domain.process.entities.process_units.choke import Choke
+from collections.abc import Sequence
+
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
+from libecalc.domain.process.process_solver.process_runner import ProcessRunner
+from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import (
     ChokeConfiguration,
     DownstreamChokeSolver,
 )
-from libecalc.domain.process.process_system.process_system import ProcessSystem
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
-
-
-class DownstreamChokeRunner:
-    def __init__(self, process_system: ProcessSystem, downstream_choke: Choke):
-        self._process_system = process_system
-        self._downstream_choke = downstream_choke
-
-    def run(self, inlet_stream: FluidStream, downstream_delta_pressure: float) -> FluidStream:
-        self._downstream_choke.set_pressure_change(pressure_change=downstream_delta_pressure)
-        return self._process_system.propagate_stream(inlet_stream=inlet_stream)
 
 
 class DownstreamChokePressureControlStrategy(PressureControlStrategy):
@@ -27,33 +21,46 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
 
     def __init__(
         self,
-        runner: DownstreamChokeRunner,
+        simulator: ProcessRunner,
+        choke_configuration_handler_id: ConfigurationHandlerId,
     ):
-        self._runner = runner
+        self._choke_configuration_handler_id = choke_configuration_handler_id
+        self._simulator = simulator
 
-    def apply(self, target_pressure: FloatConstraint, inlet_stream: FluidStream) -> bool:
+    def apply(
+        self,
+        target_pressure: FloatConstraint,
+        inlet_stream: FluidStream,
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+        def outlet_with_choke(cfg: ChokeConfiguration) -> FluidStream:
+            self._simulator.apply_configuration(
+                Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=cfg)
+            )
+            return self._simulator.run(inlet_stream=inlet_stream)
+
         # 1) Baseline (no choking)
-        baseline_outlet_stream = self._runner.run(inlet_stream=inlet_stream, downstream_delta_pressure=0.0)
+        baseline_config = ChokeConfiguration(delta_pressure=0.0)
+        baseline_outlet_stream = outlet_with_choke(baseline_config)
 
         # If already at/below target, don't choke (can't increase pressure anyway).
         if baseline_outlet_stream.pressure_bara <= target_pressure:
-            return baseline_outlet_stream.pressure_bara == target_pressure
+            return Solution(
+                success=baseline_outlet_stream.pressure_bara == target_pressure,
+                configuration=[
+                    Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=baseline_config)
+                ],
+            )
 
         # 2) Solve for needed downstream ΔP
         choke_solver = DownstreamChokeSolver(target_pressure=target_pressure.value)
 
-        def outlet_with_choke(cfg: ChokeConfiguration) -> FluidStream:
-            return self._runner.run(
-                inlet_stream=inlet_stream,
-                downstream_delta_pressure=cfg.delta_pressure,
-            )
-
         solution = choke_solver.solve(outlet_with_choke)
-
-        # Ensure final state matches the chosen configuration
-        choked_outlet_stream = self._runner.run(
-            inlet_stream=inlet_stream,
-            downstream_delta_pressure=solution.configuration.delta_pressure,
+        return Solution(
+            success=solution.success,
+            configuration=[
+                Configuration(
+                    configuration_handler_id=self._choke_configuration_handler_id,
+                    value=solution.configuration,
+                )
+            ],
         )
-
-        return choked_outlet_stream.pressure_bara == target_pressure

@@ -1,7 +1,7 @@
 import enum
 
 
-class YamlModelType(str, enum.Enum):
+class YamlModelType(enum.StrEnum):
     FLUID = "FLUID"
     COMPRESSOR_CHART = "COMPRESSOR_CHART"
     TURBINE = "TURBINE"
@@ -14,7 +14,7 @@ class YamlModelType(str, enum.Enum):
     COMPRESSOR_WITH_TURBINE = "COMPRESSOR_WITH_TURBINE"
 
 
-class YamlChartType(str, enum.Enum):
+class YamlChartType(enum.StrEnum):
     SINGLE_SPEED = "SINGLE_SPEED"
     VARIABLE_SPEED = "VARIABLE_SPEED"
     GENERIC_FROM_INPUT = "GENERIC_FROM_INPUT"

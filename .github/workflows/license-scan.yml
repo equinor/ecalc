@@ -12,16 +12,18 @@ jobs:
       contents: read
     steps:
       - name: 'Checkout Repository'
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: 'Dependency Review'
         id: review
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
         with:
           allow-licenses: 0BSD, BSD-1-Clause, BSD-2-Clause, BSD-3-Clause, LGPL-2.0-or-later, LGPL-2.1-or-later, LGPL-3.0-only, LGPL-3.0-or-later, MIT, WTFPL, Apache-2.0, MPL-2.0, ISC
-# Note that we explicitly allow LGPL-2.x-or-later, since LGPL-2.x (only) is not compatible with LGPL-3.x
-#          allow-dependencies-licenses: 'pkg:pypi/numpy'
-#
+        # Note that we explicitly allow LGPL-2.x-or-later, since LGPL-2.x (only) is not compatible with LGPL-3.x
+        #          allow-dependencies-licenses: 'pkg:pypi/numpy'
+
       - name: 'Disallow unlicensed/unknown license'
         shell: bash
         env:

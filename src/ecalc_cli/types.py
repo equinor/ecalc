@@ -1,9 +1,7 @@
 import enum
 
-from libecalc.common import time_utils
 
-
-class DateFormat(str, enum.Enum):
+class DateFormat(enum.StrEnum):
     """Supported date formats in ecalc CLI."""
 
     ISO_8601 = "0"
@@ -16,4 +14,8 @@ class DateFormat(str, enum.Enum):
     """DD_MM_YYYY"""
 
 
-Frequency = enum.Enum("Frequency", {e.name: e.name for e in time_utils.Frequency})  # type: ignore
+class Frequency(enum.StrEnum):
+    NONE = "NONE"
+    YEAR = "YEAR"
+    MONTH = "MONTH"
+    DAY = "DAY"

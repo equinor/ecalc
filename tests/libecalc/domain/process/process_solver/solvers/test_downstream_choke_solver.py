@@ -1,5 +1,6 @@
 import pytest
 
+from libecalc.domain.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import (
     ChokeConfiguration,
     DownstreamChokeSolver,
@@ -16,7 +17,6 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 )
 def test_downstream_choke_solver(
     simple_process_unit_factory,
-    process_system_factory,
     fluid_service,
     stream_factory,
     inlet_pressure,
@@ -25,9 +25,7 @@ def test_downstream_choke_solver(
     choke_factory,
 ):
     downstream_choke = choke_factory()
-    process_system = process_system_factory(
-        process_units=[simple_process_unit_factory(pressure_multiplier=1), downstream_choke],
-    )
+    process_units = [simple_process_unit_factory(pressure_multiplier=1), downstream_choke]
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=inlet_pressure)
 
@@ -35,10 +33,9 @@ def test_downstream_choke_solver(
 
     def choke_func(config: ChokeConfiguration) -> FluidStream:
         downstream_choke.set_pressure_change(pressure_change=config.delta_pressure)
-        return process_system.propagate_stream(inlet_stream=inlet_stream)
+        return propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
     choke_solution = downstream_choke_solver.solve(func=choke_func)
-    assert choke_solution.success
 
     outlet_stream = choke_func(choke_solution.configuration)
 

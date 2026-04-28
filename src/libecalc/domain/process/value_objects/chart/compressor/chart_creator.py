@@ -118,10 +118,12 @@ class CompressorChartCreator:
             design_rate_unified = maximum_design_rate_unified - maximize_x_given_boolean_condition_function(
                 x_min=0,
                 x_max=maximum_design_rate_unified - design_rate_unified,
-                bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
-                    unified_rate=maximum_design_rate_unified - x,
-                    unified_head=design_head_unified,
-                ).any_points_below_stone_wall,
+                bool_func=lambda x: (
+                    not _create_compressor_chart_result_from_unified_design_point(
+                        unified_rate=maximum_design_rate_unified - x,
+                        unified_head=design_head_unified,
+                    ).any_points_below_stone_wall
+                ),
             )
             while _create_compressor_chart_result_from_unified_design_point(
                 unified_rate=design_rate_unified,
@@ -133,10 +135,12 @@ class CompressorChartCreator:
                 design_head_unified = maximize_x_given_boolean_condition_function(
                     x_min=design_head_unified,
                     x_max=maximum_design_head_unified,
-                    bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
-                        unified_rate=design_rate_unified,
-                        unified_head=x,
-                    ).any_points_below_stone_wall,
+                    bool_func=lambda x: (
+                        not _create_compressor_chart_result_from_unified_design_point(
+                            unified_rate=design_rate_unified,
+                            unified_head=x,
+                        ).any_points_below_stone_wall
+                    ),
                 )
 
         # Scenario 3: Point(s) above maximum speed curve. Increase head. Points can potentially end up on the stone
@@ -147,10 +151,12 @@ class CompressorChartCreator:
             design_head_unified = maximize_x_given_boolean_condition_function(
                 x_min=design_head_unified,
                 x_max=maximum_design_head_unified,
-                bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
-                    unified_rate=design_rate_unified,
-                    unified_head=x,
-                ).any_points_below_stone_wall,
+                bool_func=lambda x: (
+                    not _create_compressor_chart_result_from_unified_design_point(
+                        unified_rate=design_rate_unified,
+                        unified_head=x,
+                    ).any_points_below_stone_wall
+                ),
             )
             # If no points are above the maximum speed curve, reduce head until one point hits the maximum speed curve
             if not _create_compressor_chart_result_from_unified_design_point(
@@ -160,10 +166,12 @@ class CompressorChartCreator:
                 change_in_design_head_unified = maximize_x_given_boolean_condition_function(
                     x_min=0,
                     x_max=maximum_change_in_head_unified,
-                    bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
-                        unified_rate=design_rate_unified,
-                        unified_head=design_head_unified - x,
-                    ).any_points_above_maximum_speed_curve,
+                    bool_func=lambda x: (
+                        not _create_compressor_chart_result_from_unified_design_point(
+                            unified_rate=design_rate_unified,
+                            unified_head=design_head_unified - x,
+                        ).any_points_above_maximum_speed_curve
+                    ),
                 )
                 design_rate_unified = design_rate_unified - change_in_design_head_unified
             else:
@@ -177,10 +185,12 @@ class CompressorChartCreator:
                     design_head_unified = maximize_x_given_boolean_condition_function(
                         x_min=design_head_unified,
                         x_max=maximum_design_head_unified,
-                        bool_func=lambda x: not _create_compressor_chart_result_from_unified_design_point(
-                            unified_rate=design_rate_unified,
-                            unified_head=x,
-                        ).any_points_below_stone_wall,
+                        bool_func=lambda x: (
+                            not _create_compressor_chart_result_from_unified_design_point(
+                                unified_rate=design_rate_unified,
+                                unified_head=x,
+                            ).any_points_below_stone_wall
+                        ),
                     )
 
         design_rate, design_head = (

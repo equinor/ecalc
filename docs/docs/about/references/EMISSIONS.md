@@ -17,7 +17,7 @@ or
 | No         | `FUEL_TYPES`         | `FACTOR`  <br />  `NAME`            |
 
 
-## Description
+## Description {/* #description */}
 This can be used in three ways:
 
 - In [EMISSIONS](/about/references/EMISSIONS.md) one or more emissions related to the use of fuel is specified as
@@ -25,15 +25,15 @@ a list. Each emission entry is **required** to have a [NAME](/about/references/N
 - [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) of type DIRECT_EMISSION: To specify emission rates directly.
 - [VENTING_EMITTERS](/about/references/VENTING_EMITTERS.md) of type OIL_VOLUME: To specify emission factors, i.e. calculate emissions as fractions of oil loading/storage volumes.
 
-## For fuels
-### Format
+## For fuels {/* #for-fuels */}
+### Format {/* #format */}
 ~~~~~~~~yaml
 EMISSIONS:
   - NAME: <name>
     FACTOR: <factor>
 ~~~~~~~~
 
-### Example
+### Example {/* #example */}
 For example, if you want to add CO<sub>2</sub> emissions associated to the usage of a [FUEL_TYPES](/about/references/FUEL_TYPES.md)
 you write the following:
 
@@ -43,11 +43,11 @@ EMISSIONS:
     FACTOR: 2.5  # [kg/Sm3]
 ~~~~~~~~
 
-## For venting emitters (type: DIRECT_EMISSION, from eCalc v8.13)
+## For venting emitters (type: DIRECT_EMISSION, from eCalc v8.13) {/* #for-venting-emitters-type-direct_emission-from-ecalc-v813 */}
 Note that the emission name is case-insensitive.
 The keywords [NAME](/about/references/NAME.md) and [RATE](/about/references/RATE.md) are required.
 
-### Format
+### Format {/* #format-1 */}
 ~~~~~~~~yaml
 EMISSIONS:
   - NAME: <name>
@@ -55,7 +55,7 @@ EMISSIONS:
   ...
 ~~~~~~~~
 
-### Example
+### Example {/* #example-1 */}
 ~~~~~~~~yaml
 EMISSIONS:
   - NAME: co2
@@ -69,11 +69,11 @@ EMISSIONS:
       UNIT: KG_PER_DAY
       TYPE: STREAM_DAY
 ~~~~~~~~
-## For venting emitters (type: OIL_VOLUME, from eCalc v8.13)
+## For venting emitters (type: OIL_VOLUME, from eCalc v8.13) {/* #for-venting-emitters-type-oil_volume-from-ecalc-v813 */}
 Note that the emission name is case-insensitive.
 The keywords [NAME](/about/references/NAME.md) and `EMISSION_FACTOR` are required.
 
-### Format
+### Format {/* #format-2 */}
 ~~~~~~~~yaml
 EMISSIONS:
   - NAME: <name>
@@ -81,7 +81,7 @@ EMISSIONS:
   ...
 ~~~~~~~~
 
-### Example
+### Example {/* #example-2 */}
 ~~~~~~~~yaml
 EMISSIONS:
   - NAME: co2

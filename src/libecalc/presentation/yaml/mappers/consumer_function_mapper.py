@@ -43,11 +43,13 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor.compressor import Compressor
+from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
+from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
+from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
+    LegacySplitter,
+)
 from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.mixer.mixer import Mixer
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.splitter.splitter import Splitter
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.evaluation_input import (
@@ -55,7 +57,6 @@ from libecalc.domain.process.evaluation_input import (
     CompressorSampledEvaluationInput,
     PumpEvaluationInput,
 )
-from libecalc.domain.process.process_system.process_unit import create_process_unit_id
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -65,7 +66,7 @@ from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_variable import TimeSeriesVariable
 from libecalc.expression import Expression
-from libecalc.expression.expression import InvalidExpressionError
+from libecalc.expression.expression import ExpressionType, InvalidExpressionError
 from libecalc.presentation.yaml.domain.ecalc_components import (
     CompressorProcessSystemComponent,
     CompressorSampledComponent,
@@ -88,16 +89,16 @@ from libecalc.presentation.yaml.mappers.facility_input import (
     _get_float_column_or_none,
 )
 from libecalc.presentation.yaml.mappers.fluid_mapper import (
-    _composition_fluid_model_mapper,
-    _predefined_fluid_model_mapper,
+    composition_fluid_model_mapper,
+    predefined_fluid_model_mapper,
 )
 from libecalc.presentation.yaml.mappers.model import (
     InvalidChartResourceException,
     _generic_from_design_point_compressor_chart_mapper,
     _pressure_control_mapper,
-    _single_speed_compressor_chart_mapper,
-    _variable_speed_compressor_chart_mapper,
     map_yaml_to_fixed_speed_pressure_control,
+    single_speed_compressor_chart_mapper,
+    variable_speed_compressor_chart_mapper,
 )
 from libecalc.presentation.yaml.mappers.simplified_train_mapping_utils import (
     CompressorOperationalTimeSeries,
@@ -165,7 +166,7 @@ class InvalidConsumptionType(Exception):
         super().__init__(message)
 
 
-def _handle_condition_list(conditions: list[str]):
+def handle_condition_list(conditions: list[ExpressionType]):
     conditions_with_parentheses = [f"({condition})" for condition in conditions]
     return " {*} ".join(conditions_with_parentheses)
 
@@ -180,7 +181,7 @@ def _map_condition(energy_usage_model: ConditionedModel) -> str | int | float | 
         condition_value = energy_usage_model.condition
         return condition_value
     elif energy_usage_model.conditions:
-        return _handle_condition_list(energy_usage_model.conditions)  # type: ignore[arg-type]
+        return handle_condition_list(energy_usage_model.conditions)  # type: ignore[arg-type]
     else:
         return None
 
@@ -283,7 +284,7 @@ class CompressorModelMapper:
             raise ModelValidationException(
                 errors=[
                     self._create_error(
-                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                        message=f"Unable to find resource '{resource_name}'.", reference=reference, key="FILE"
                     )
                 ]
             )
@@ -293,9 +294,9 @@ class CompressorModelMapper:
         model = self._reference_service.get_fluid(reference)
         try:
             if isinstance(model, YamlPredefinedFluidModel):
-                return _predefined_fluid_model_mapper(model)
+                return predefined_fluid_model_mapper(model)
             elif isinstance(model, YamlCompositionFluidModel):
-                return _composition_fluid_model_mapper(model)
+                return composition_fluid_model_mapper(model)
             else:
                 assert_never(model)
         except ValidationError as ve:
@@ -317,11 +318,11 @@ class CompressorModelMapper:
         assert isinstance(model, YamlSingleSpeedChart | YamlVariableSpeedChart)  # Generic charts are handled separately
         try:
             if isinstance(model, YamlSingleSpeedChart):
-                return _single_speed_compressor_chart_mapper(
+                return single_speed_compressor_chart_mapper(
                     model_config=model, resources=self._resources, control_margin=control_margin
                 )
             elif isinstance(model, YamlVariableSpeedChart):
-                return _variable_speed_compressor_chart_mapper(
+                return variable_speed_compressor_chart_mapper(
                     model_config=model, resources=self._resources, control_margin=control_margin
                 )
             else:
@@ -353,15 +354,13 @@ class CompressorModelMapper:
 
         return CompressorTrainStage(
             rate_modifier=RateModifier(chart_data, shaft=shaft),
-            compressor=Compressor(chart_data, fluid_service=fluid_service, shaft=shaft),
+            compressor=LegacyCompressor(chart_data, fluid_service=fluid_service, shaft=shaft),
             temperature_setter=TemperatureSetter(
                 required_temperature_kelvin=inlet_temperature_kelvin,
                 fluid_service=fluid_service,
-                process_unit_id=create_process_unit_id(),
             ),
             liquid_remover=LiquidRemover(
                 fluid_service=fluid_service,
-                process_unit_id=create_process_unit_id(),
             )
             if remove_liquid_after_cooling
             else None,
@@ -370,17 +369,18 @@ class CompressorModelMapper:
                 Choke(
                     pressure_change=pressure_drop_ahead_of_stage,
                     fluid_service=fluid_service,
-                    process_unit_id=create_process_unit_id(),
                 )
                 if pressure_drop_ahead_of_stage
                 else None
             ),
             interstage_pressure_control=interstage_pressure_control,
             splitter=(
-                Splitter(number_of_splitter_ports_this_stage + 1) if number_of_splitter_ports_this_stage > 0 else None
+                LegacySplitter(number_of_splitter_ports_this_stage + 1)
+                if number_of_splitter_ports_this_stage > 0
+                else None
             ),
             mixer=(
-                Mixer(number_of_mixer_ports_this_stage + 1, fluid_service=fluid_service)
+                LegacyMixer(number_of_mixer_ports_this_stage + 1, fluid_service=fluid_service)
                 if number_of_mixer_ports_this_stage > 0
                 else None
             ),
@@ -424,7 +424,7 @@ class CompressorModelMapper:
             )
         pressure_control = _pressure_control_mapper(model)
         if fluid_model is None:
-            raise DomainValidationException("Fluid model is required for compressor train")
+            raise DomainValidationException("Fluid model is required for compressor train.")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
@@ -472,13 +472,13 @@ class CompressorModelMapper:
         maximum_discharge_pressure = model.maximum_discharge_pressure
         if maximum_discharge_pressure and pressure_control != FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
             raise DomainValidationException(
-                f"Setting maximum discharge pressure for single speed compressor train is currently"
-                f"only supported with {FixedSpeedPressureControl.DOWNSTREAM_CHOKE} pressure control"
-                f"option. Pressure control option is {pressure_control}"
+                f"Setting {EcalcYamlKeywords.maximum_discharge_pressure} for single speed compressor train is currently "
+                f"only supported with {FixedSpeedPressureControl.DOWNSTREAM_CHOKE.value} pressure control option. "
+                f"Pressure control option is {pressure_control.value}."
             )
 
         if fluid_model is None:
-            raise DomainValidationException("Fluid model is required for compressor train")
+            raise DomainValidationException("Fluid model is required for compressor train.")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
@@ -552,7 +552,7 @@ class CompressorModelMapper:
             # For unknown stages, maximum_pressure_ratio_per_stage is required to determine stage count
             if train_spec.maximum_pressure_ratio_per_stage is None:
                 raise DomainValidationException(
-                    "MAXIMUM_PRESSURE_RATIO_PER_STAGE is required for unknown compressor stages"
+                    "MAXIMUM_PRESSURE_RATIO_PER_STAGE is required for unknown compressor stages."
                 )
 
             suction_pressure = operational_data.suction_pressures
@@ -597,15 +597,12 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(chart, shaft=shaft),
-                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
+                        compressor=LegacyCompressor(chart, fluid_service=fluid_service, shaft=shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin,
                             fluid_service=fluid_service,
-                            process_unit_id=create_process_unit_id(),
                         ),
-                        liquid_remover=LiquidRemover(
-                            fluid_service=fluid_service, process_unit_id=create_process_unit_id()
-                        ),
+                        liquid_remover=LiquidRemover(fluid_service=fluid_service),
                         fluid_service=fluid_service,
                     )
                 )
@@ -662,15 +659,12 @@ class CompressorModelMapper:
                 stages.append(
                     CompressorTrainStage(
                         rate_modifier=RateModifier(chart, shaft=shaft),
-                        compressor=Compressor(chart, fluid_service=fluid_service, shaft=shaft),
+                        compressor=LegacyCompressor(chart, fluid_service=fluid_service, shaft=shaft),
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin,
                             fluid_service=fluid_service,
-                            process_unit_id=create_process_unit_id(),
                         ),
-                        liquid_remover=LiquidRemover(
-                            fluid_service=fluid_service, process_unit_id=create_process_unit_id()
-                        ),
+                        liquid_remover=LiquidRemover(fluid_service=fluid_service),
                         fluid_service=fluid_service,
                     )
                 )
@@ -758,7 +752,7 @@ class CompressorModelMapper:
         ]
 
         if not any(fluid_models):
-            raise DomainValidationException("An inlet stream is required for this model")
+            raise DomainValidationException("An inlet stream is required for this model.")
 
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
@@ -871,7 +865,7 @@ class TabularModelMapper:
             raise ModelValidationException(
                 errors=[
                     self._create_error(
-                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                        message=f"Unable to find resource '{resource_name}'.", reference=reference, key="FILE"
                     )
                 ]
             )
@@ -924,7 +918,7 @@ class PumpModelMapper:
             raise ModelValidationException(
                 errors=[
                     self._create_error(
-                        message=f"Unable to find resource '{resource_name}'", reference=reference, key="FILE"
+                        message=f"Unable to find resource '{resource_name}'.", reference=reference, key="FILE"
                     )
                 ]
             )

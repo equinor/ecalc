@@ -5,8 +5,8 @@ from abc import ABC
 from collections import defaultdict
 from collections.abc import Iterable, Iterator
 from datetime import datetime
-from enum import Enum
-from typing import Any, Generic, Self, TypeVar, Union
+from enum import StrEnum
+from typing import Any, Self, TypeVar, Union
 
 import numpy as np
 import pandas as pd
@@ -24,7 +24,7 @@ from libecalc.common.units import Unit, UnitConstants
 TimeSeriesValue = TypeVar("TimeSeriesValue", bound=Union[int, float, bool, str])
 
 
-class RateType(str, Enum):
+class RateType(StrEnum):
     STREAM_DAY = "STREAM_DAY"
     CALENDAR_DAY = "CALENDAR_DAY"
 
@@ -119,7 +119,7 @@ class Rates:
         return Rates.compute_cumulative(volumes)
 
 
-class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
+class TimeSeries[TimeSeriesValue](BaseModel, ABC):
     periods: Periods
     values: list[TimeSeriesValue]
     unit: Unit
@@ -176,7 +176,7 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
 
     @property
     def max(self):
-        return max(self.values)
+        return max(self.values)  # type: ignore[type-var]
 
     def resample(self, freq: Frequency, include_start_date: bool = True, include_end_date: bool = True) -> Self:
         """
@@ -389,11 +389,11 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
                 raise ValueError(
                     f"You can not alter the existing periods. This is not resampling. Period {period} is not part of the new periods."
                 )
-        new_values: defaultdict[Period, float | str] = defaultdict(float)
-        new_values.update({t: fillna for t in new_periods})
+        new_values: defaultdict[Period, float | str | bool | int] = defaultdict(float)
+        new_values.update(dict.fromkeys(new_periods, fillna))
         for t, v in zip(self.periods, self.values):
             if t in new_values:
-                new_values[t] = v
+                new_values[t] = v  # type: ignore[arg-type]
 
         return self.__class__(periods=new_periods, values=new_values.values(), unit=self.unit)
 
@@ -402,7 +402,11 @@ class TimeSeries(BaseModel, Generic[TimeSeriesValue], ABC):
             return NotImplemented
         return bool(
             # Check that all values are either both NaN or equal
-            all(np.isnan(other) and np.isnan(this) or other == this for this, other in zip(self.values, other.values))
+            all(
+                (isinstance(this, float) and isinstance(other, float) and np.isnan(other) and np.isnan(this))
+                or other == this
+                for this, other in zip(self.values, other.values)
+            )
             and self.periods == other.periods
             and self.unit == other.unit
         )

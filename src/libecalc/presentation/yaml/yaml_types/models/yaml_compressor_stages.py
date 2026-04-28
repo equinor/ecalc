@@ -1,5 +1,5 @@
 import enum
-from typing import Generic, TypeVar, Union
+from typing import TypeVar, Union
 
 from pydantic import Field
 
@@ -12,7 +12,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_enums import (
 )
 
 
-class YamlControlMarginUnits(str, enum.Enum):
+class YamlControlMarginUnits(enum.StrEnum):
     FRACTION = "FRACTION"
     PERCENTAGE = "PERCENTAGE"
 
@@ -96,7 +96,7 @@ class YamlUnknownCompressorStages(YamlBase):
 TStage = TypeVar("TStage", bound=Union[YamlCompressorStage, YamlCompressorStageWithMarginAndPressureDrop])
 
 
-class YamlCompressorStages(YamlBase, Generic[TStage]):
+class YamlCompressorStages[TStage: Union[YamlCompressorStage, YamlCompressorStageWithMarginAndPressureDrop]](YamlBase):
     stages: list[TStage] = Field(
         ...,
         description="List of compressor stages",

@@ -8,11 +8,11 @@ description: Using pumps in calculations
 Pump charts are defined in the [FACILITY_INPUTS](/about/modelling/setup/facility_inputs/index.md) section, and is then referred to from an
 [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md).
 
-## PUMP energy usage model
+## PUMP energy usage model {/* #pump-energy-usage-model */}
 To configure a single pump, the pump rate, suction- and discharge pressures and fluid density must be given as inputs. In addition, a reference to a pump chart defined in the
 [FACILITY_INPUTS](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) section has to be included.
 
-### Format
+### Format {/* #format */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: PUMP
@@ -24,7 +24,7 @@ ENERGY_USAGE_MODEL:
   FLUID_DENSITY: <fluid density expression>
 ~~~~~~~~
 
-### Example
+### Example {/* #example */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: PUMP
@@ -35,7 +35,7 @@ ENERGY_USAGE_MODEL:
   FLUID_DENSITY: 1000
 ~~~~~~~~
 
-### Units
+### Units {/* #units */}
 
 | Quantity           | Default units      |
 |--------------------|--------------------|
@@ -45,12 +45,12 @@ ENERGY_USAGE_MODEL:
 | FLUID_DENSITY      | kg/m<sup>3</sup>   |
 
 
-## PUMP_SYSTEM energy usage model
+## PUMP_SYSTEM energy usage model {/* #pump_system-energy-usage-model */}
 
 Model a system of pumps that share common manifolds and have cross-overs between them and for which the rate may be
 split between them based on various operational strategies.
 
-### Format
+### Format {/* #format-1 */}
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
   TYPE: PUMP_SYSTEM
@@ -71,7 +71,7 @@ ENERGY_USAGE_MODEL:
  (or converted to 0 when aggregating upwards to e.g. genset)
 :::
 
-### Example
+### Example {/* #example-1 */}
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
@@ -92,7 +92,7 @@ ENERGY_USAGE_MODEL:
       DISCHARGE_PRESSURE: 200
 ~~~~~~~~
 
-### Units
+### Units {/* #units-1 */}
 
 | Quantity           | Default units      |
 |--------------------|--------------------|

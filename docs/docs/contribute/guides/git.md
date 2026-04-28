@@ -13,7 +13,7 @@ If you do not want to work with files locally, GitHub lets you complete many Git
 * [Managing files](https://docs.github.com/en/get-started/quickstart/set-up-git#:~:text=Forking%20a%20repository-,Managing%20files,-Being%20social)
 :::
 
-## Setting up Git
+## Setting up Git {/* #setting-up-git */}
 Go to [git-scm.com](https://git-scm.com/downloads) to download the appropriate git client unless it is already installed on your system.
 
 To verify that git is installed, you can run:
@@ -23,7 +23,7 @@ git --version
 
 See [GitHub Docs - Set up Git](https://docs.github.com/en/get-started/quickstart/set-up-git) for detailed instructions.
 
-## Using Git
+## Using Git {/* #using-git */}
 Git is a powerful tool that can be used in many ways. We recommend the following resources:
 
 1. Introduction to git - [GitHub - About git](https://docs.github.com/en/get-started/using-git/about-git)
@@ -38,7 +38,7 @@ In the following sections we use the syntax &ltsome text> where you should fill 
 * **&ltdescription>**: a short summary of the code changes, e.g., fix: array parsing issue when multiple spaces were contained in string.
 :::
 
-### Cloning a git repository
+### Cloning a git repository {/* #cloning-a-git-repository */}
 Navigate to the location where you want to store the code, and clone the repository:
 
 ```shell
@@ -48,14 +48,14 @@ git clone git@github.com:equinor/ecalc.git
 This will create a local copy of a project that already exists remotely. The copy will be stored in a sub-folder, with the
 same name as the repository, ecalc/.
 
-### Tell Git who you are
+### Tell Git who you are {/* #tell-git-who-you-are */}
 ```shell
 git config --global user.name "My name"
 git config --global user.email example@email.com
 ```
 This is what will show in the git log when you make changes.
 
-### Create your own branch
+### Create your own branch {/* #create-your-own-branch */}
 In order to create a new local branch and switch to it:
 ```shell
 git checkout -b <type of change>/<issue number>-<description>
@@ -65,12 +65,12 @@ for new versions of git you may also use the more intuitive.
 git switch -c <type of change>/<issue number>-<description>
 ```
 
-### Switch between existing branches
+### Switch between existing branches {/* #switch-between-existing-branches */}
 ```shell
 git checkout <branch name>
 ```
 
-### Fetch changes from GitHub
+### Fetch changes from GitHub {/* #fetch-changes-from-github */}
 ```shell
 git pull
 ```
@@ -79,20 +79,20 @@ This will update the local branch you are currently in, with changes done in Git
 git push --set-upstream origin <change type>/<issue number>-<description>
 ```
 
-### Send your changes to GitHub
+### Send your changes to GitHub {/* #send-your-changes-to-github */}
 ```shell
 git push
 ```
 This will update the remove repository on GitHub. If it is the first time for a new branch you will also
 have to tell git that you are creating a new remote branch by using the command:
 
-### Check status of changes
+### Check status of changes {/* #check-status-of-changes */}
 List the files you have changed and those you still need to add or commit:
 ```shell
 git status
 ```
 
-### Add files
+### Add files {/* #add-files */}
 Add new or changed files
 ```shell
 git add <filename>
@@ -102,7 +102,7 @@ or adding everything in and below your working directory
 git add .
 ```
 
-### Commit changes
+### Commit changes {/* #commit-changes */}
 Commit any files you've added with git add, and also commit any files you've changed since then:
 ```shell
 git commit -m "<change type>: <description"
@@ -110,15 +110,15 @@ git commit -m "<change type>: <description"
 This will save a snapshot to the project history and completes the change-tracking process.
 Anything that has been previously staged with git add will become a part of the snapshot with git commit.
 
-### Send changes to GitHub
+### Send changes to GitHub {/* #send-changes-to-github */}
 In order to send changes back to GitHub, you will use the following command:
 ```shell
 git commit -m "<change type>: <description"
 ```
 
-## Workflow examples
+## Workflow examples {/* #workflow-examples */}
 
-### Pull Requests
+### Pull Requests {/* #pull-requests */}
 For Equinor internal developers you are welcome to open a Pull Request directly in the [ecalc](https://github.com/equinor/ecalc/) repository.
 
 Here's a quick guide:
@@ -150,7 +150,7 @@ Here's a quick guide:
     ```
 7. You can now [Create a Pull Request](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request) 
 
-### Fork the repository
+### Fork the repository {/* #fork-the-repository */}
 
 For external developers, you will [contribute to the project through forking](https://docs.github.com/en/get-started/quickstart/contributing-to-projects).
 

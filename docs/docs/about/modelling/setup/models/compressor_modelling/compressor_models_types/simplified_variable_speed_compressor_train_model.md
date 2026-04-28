@@ -21,7 +21,7 @@ In addition, a [FLUID MODEL](/about/modelling/setup/models/fluid_model.md) must 
 The model comes in two versions, one where the compressor stages are known (pre defined), and one where the compressor
 stages are calculated at run-time based on input data.
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -34,7 +34,7 @@ MODELS:
     CALCULATE_MAX_RATE: <Optional. compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. >
 ~~~~~~~~
 
-### Simplified compressor train model with known compressor stages
+### Simplified compressor train model with known compressor stages {/* #simplified-compressor-train-model-with-known-compressor-stages */}
 When the compressor stages are known, each stage is defined with a compressor chart and an inlet temperature:
 
 ~~~~~~~~yaml
@@ -53,7 +53,7 @@ MODELS:
     MAXIMUM_POWER: <Optional constant MW maximum power the compressor train can require>
 ~~~~~~~~
 
-### Simplified compressor train model with unknown number of compressor stages
+### Simplified compressor train model with unknown number of compressor stages {/* #simplified-compressor-train-model-with-unknown-number-of-compressor-stages */}
 When the number of compressor stages are not known, one may specify the maximum pressure ratio per stage.
 When the maximum pressure ratio is set, the number of compressors will be determined at run time (based on input data)
 such that the number of compressors is large enough to ensure no pressure ratios are above a given maximum pressure
@@ -75,9 +75,9 @@ MODELS:
     POWER_ADJUSTMENT_CONSTANT: <Optional constant MW adjustment added to the model>
 ~~~~~~~~
 
-## Examples
+## Examples {/* #examples */}
 
-### A (single) compressor with a generic compressor chart, with design point calculated from input data, and fluid composition
+### A (single) compressor with a generic compressor chart, with design point calculated from input data, and fluid composition {/* #a-single-compressor-with-a-generic-compressor-chart-with-design-point-calculated-from-input-data-and-fluid-composition */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: generic_from_input_compressor_chart
@@ -112,7 +112,7 @@ MODELS:
           COMPRESSOR_CHART: generic_from_input_compressor_chart
 ~~~~~~~~
 
-### A (single) turbine driven compressor with a generic compressor chart with design point and predefined composition
+### A (single) turbine driven compressor with a generic compressor chart with design point and predefined composition {/* #a-single-turbine-driven-compressor-with-a-generic-compressor-chart-with-design-point-and-predefined-composition */}
 
 ~~~~~~~~yaml
 MODELS:
@@ -153,7 +153,7 @@ MODELS:
     TURBINE_MODEL: compressor_train_turbine
 ~~~~~~~~
 
-### A compressor train with two stages where the first stage has unknown spec while the second generic compressor chart from design point
+### A compressor train with two stages where the first stage has unknown spec while the second generic compressor chart from design point {/* #a-compressor-train-with-two-stages-where-the-first-stage-has-unknown-spec-while-the-second-generic-compressor-chart-from-design-point */}
 
 ~~~~~~~~yaml
             MODELS:
@@ -189,7 +189,7 @@ MODELS:
                       COMPRESSOR_CHART: generic_from_design_point_compressor_chart
 ~~~~~~~~
 
-### A compressor train where the number of stages are unknown
+### A compressor train where the number of stages are unknown {/* #a-compressor-train-where-the-number-of-stages-are-unknown */}
 
 ~~~~~~~~yaml
             MODELS:

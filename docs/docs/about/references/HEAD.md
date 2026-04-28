@@ -1,6 +1,6 @@
 # HEAD
 
-## Description
+## Description {/* #description */}
 
 `HEAD` is a keyword that is used defining [PUMP](/about/modelling/setup/facility_inputs/pump_modelling/pump_charts.md) and [COMPRESSOR CHARTS](/about/modelling/setup/models/compressor_modelling/compressor_charts/index.md).
 Head can either be given as a M, KJ_PER_KG, JOULE_PER_KG.
@@ -12,9 +12,9 @@ For compressors, it is used in two separate ways under the `MODELS` or section:
 
 For pumps, it is defined under the `FACILITY_INPUTS` section.
 
-## Format
+## Format {/* #format */}
 
-### COMPRESSORS
+### COMPRESSORS {/* #compressors */}
 
 ~~~~~yaml
 MODELS:
@@ -26,7 +26,7 @@ MODELS:
     ....
 ~~~~~
 
-### PUMPS
+### PUMPS {/* #pumps */}
 
 ~~~~~yaml
 FACILITY_INPUTS:
@@ -37,9 +37,9 @@ FACILITY_INPUTS:
         ...
 ~~~~~
 
-## Example
+## Example {/* #example */}
 
-### COMPRESSORS
+### COMPRESSORS {/* #compressors-1 */}
 
 ~~~~~yaml
 MODELS:

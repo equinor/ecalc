@@ -1,11 +1,11 @@
 # COMPRESSOR_TRAIN
 
-## Description
+## Description {/* #description */}
 
 This keyword is necessary when defining a compressor model. It relates to defining the actual
 [STAGES](/about/references/STAGES.md) in the compressor model.
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:

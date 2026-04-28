@@ -3,18 +3,18 @@
 [INSTALLATIONS](/about/references/INSTALLATIONS.md) /
 [GENERATORSETS](/about/references/GENERATORSETS.md)
 
-## Description
+## Description {/* #description */}
 
 Fraction, describing power loss from shore. Used to calculate actual power supply onshore. Relevant only for generatorsets of [CATEGORY](/about/references/CATEGORY.md) `POWER-FROM-SHORE`.
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 
 CABLE_LOSS: <expression or value>
 ~~~~~~~~
 
-## Examples
+## Examples {/* #examples */}
 10 percent power loss from shore:
 ~~~~~~~~yaml
 

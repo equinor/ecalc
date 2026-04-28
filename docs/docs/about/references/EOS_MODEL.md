@@ -1,6 +1,6 @@
 # EOS_MODEL
 
-## Description
+## Description {/* #description */}
 
 `EOS_MODEL` is required to be specified under the [MODELS](/about/references/MODELS.md) keyword when
 the model is of [TYPE](/about/references/TYPE.md) `FLUID`.
@@ -13,7 +13,7 @@ The `EOS_MODEL` can be one of the following:
 
 If the `EOS_MODEL` is not specified, it will be defaulted to `SRK`.
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -23,7 +23,7 @@ MODELS:
     EOS_MODEL: <SRK/PR/GERG_SRK/GERG_PR>
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

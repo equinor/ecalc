@@ -362,9 +362,7 @@ class TestTimeSeriesRate:
             )
 
         assert (
-            "Time series: "
-            "number of periods do not match number of values. "
-            "Most likely a bug, report to eCalc Dev Team."
+            "Time series: number of periods do not match number of values. Most likely a bug, report to eCalc Dev Team."
         ) in str(exc_info.value)
 
     def test_mismatch_regularity_values(self):

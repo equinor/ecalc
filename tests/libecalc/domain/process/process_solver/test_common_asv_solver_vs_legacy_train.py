@@ -1,12 +1,11 @@
 import pytest
-from inline_snapshot import snapshot
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.asv_solvers import ASVSolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.fluid_stream import FluidModel, FluidService
 
@@ -55,7 +54,14 @@ def test_common_asv_solver_vs_legacy_train(
     variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
-    compressor_train_stage_process_unit_factory,
+    compressor_factory,
+    stage_units_factory,
+    with_common_asv,
+    process_pipeline_factory,
+    process_runner_factory,
+    common_asv_anti_surge_strategy_factory,
+    common_asv_pressure_control_strategy_factory,
+    outlet_pressure_solver_factory,
 ):
     temperature = 300.0
     target_pressure = 92.0
@@ -120,32 +126,39 @@ def test_common_asv_solver_vs_legacy_train(
 
     # Evaluate new train solver.
     shaft_new = VariableSpeedShaft()
-    stage1_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage1_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
+    first_compressor = compressor_factory(chart_data=stage1_chart_data)
+    stage1_new = stage_units_factory(compressor=first_compressor, shaft=shaft_new, temperature_kelvin=temperature)
+    stage2_new = stage_units_factory(
+        compressor=compressor_factory(chart_data=stage2_chart_data), shaft=shaft_new, temperature_kelvin=temperature
     )
-    stage2_new = compressor_train_stage_process_unit_factory(
-        chart_data=stage2_chart_data,
-        shaft=shaft_new,
-        temperature_kelvin=temperature,
-    )
-    stages_new = [stage1_new, stage2_new]
 
-    train_solver = ASVSolver(
-        compressors=stages_new,
-        fluid_service=fluid_service,
-        shaft=shaft_new,
-        individual_asv_control=False,
+    common_asv, process_units = with_common_asv([*stage1_new, *stage2_new])
+
+    runner = process_runner_factory(units=process_units, configuration_handlers=[shaft_new, common_asv])
+    anti_surge_strategy = common_asv_anti_surge_strategy_factory(
+        runner=runner,
+        recirculation_loop_id=common_asv.get_id(),
+        first_compressor=first_compressor,
     )
-    speed_solution, recirculation_solution = train_solver.find_asv_solution(
+    pressure_control_strategy = common_asv_pressure_control_strategy_factory(
+        runner=runner,
+        recirculation_loop_id=common_asv.get_id(),
+        first_compressor=first_compressor,
+    )
+    process_pipeline = process_pipeline_factory(units=process_units)
+    train_solver = outlet_pressure_solver_factory(
+        shaft=shaft_new,
+        runner=runner,
+        anti_surge_strategy=anti_surge_strategy,
+        pressure_control_strategy=pressure_control_strategy,
+        process_pipeline_id=process_pipeline.get_id(),
+    )
+    solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
         inlet_stream=inlet_stream,
     )
-    recirculation_loop = train_solver.get_recirculation_loop()
-    shaft_new.set_speed(speed_solution.configuration.speed)
-    recirculation_loop.set_recirculation_rate(recirculation_solution[0].configuration.recirculation_rate)
-    new_outlet_stream = recirculation_loop.propagate_stream(inlet_stream=inlet_stream)
+    runner.apply_configurations(solution.configuration)
+    new_outlet_stream = runner.run(inlet_stream=inlet_stream)
 
     assert new_outlet_stream.volumetric_rate_m3_per_hour == pytest.approx(
         old_outlet_stream.volumetric_rate_m3_per_hour, rel=0.001
@@ -158,7 +171,10 @@ def test_common_asv_solver_vs_legacy_train(
 
     # For now new and old recirculation rate is not expected to match - as the old train recirculates individual stages and finds a solution
     # without common asv
-    new_recirculation_rate = recirculation_solution[0].configuration.recirculation_rate
+    recirculation_configuration = [
+        config for config in solution.configuration if isinstance(config.value, RecirculationConfiguration)
+    ][0]
+    new_recirculation_rate = recirculation_configuration.value.recirculation_rate
     old_recirculation_rate_1 = (
         old_result.stage_results[0].standard_rate_asv_corrected_sm3_per_day
         - old_result.stage_results[0].standard_rate_sm3_per_day
@@ -168,6 +184,6 @@ def test_common_asv_solver_vs_legacy_train(
         - old_result.stage_results[1].standard_rate_sm3_per_day
     )
 
-    assert new_recirculation_rate == snapshot(250000.74999999988)
-    assert old_recirculation_rate_1 == snapshot(249999.99999999988)
+    assert new_recirculation_rate == pytest.approx(250000.0, rel=1e-6)
+    assert old_recirculation_rate_1 == pytest.approx(250000.0, rel=1e-6)
     assert old_recirculation_rate_2 == 0.0

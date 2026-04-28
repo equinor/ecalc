@@ -4,14 +4,14 @@ sidebar_position: 1
 description: Generic workflow 
 ---
 
-## Simplified Process Flow Diagram
+## Simplified Process Flow Diagram {/* #simplified-process-flow-diagram */}
 The image below illustrates a simplified process flow diagram for a generic offshore oil and gas facility. Each unit included in this diagram can be modelled with the use of eCalc. 
 The [workflow](#workflow) below will outline what is necessary to obtain for each step. In addition, there are some accompanied [explanations](#workflow-explanation) to the workflow.
 
 ![](images/simple_facility_pfd.jpg)
 
 
-## Workflow 
+## Workflow {/* #workflow */}
 
 ```mermaid
 ---
@@ -107,15 +107,15 @@ config:
       ide4 ~~~ ide5
 ```
 
-## Workflow Explanation
+## Workflow Explanation {/* #workflow-explanation */}
 
-### Required Subsurface Profiles
+### Required Subsurface Profiles {/* #required-subsurface-profiles */}
 
 All subsurface profiles must be in calendar day rate Sm<sup>3</sup>/cd and with its PE ([REGULARITY](../../references/REGULARITY.md)). This data must be inputted as a `TIME-SERIES` and references to how it is used in the facility or by a relevant consumer.
 
-### Facility Information
+### Facility Information {/* #facility-information */}
 
-#### Constant Power Loads
+#### Constant Power Loads {/* #constant-power-loads */}
 
 To simplify certain models, there could be some common assumptions made. Here are some examples:
 
@@ -127,27 +127,27 @@ If this compressor is small and has little fluctuation in its load, or its proce
 thus, to simplify modelling, this recompressor could be modelled as a constant load. And at times, is included within the facility's base load
 - **Oil Export Pumps**: These are normally modelled as constant loads because of little variation in the load, and the fact that they are small consumers. 
 
-#### Additional Information
+#### Additional Information {/* #additional-information */}
 
 Any emissions that do not fall within the defined categories can still be considered for a given platform. For example, if there are drilling activities, an additional fuel type can be specified and related to the fuel consumption of a drilling rig. 
 
-### Consumer Information
+### Consumer Information {/* #consumer-information */}
 
-#### Generator Set
+#### Generator Set {/* #generator-set */}
 
 As eCalc™ does not model gas turbine generators in depth, alternative methods are used. 
 Here, fuel consumed and power generated is related in tabular form. These are typically linear relationships, and if more than one generator is used, "generator switching" is modelled by adding another generator curve on top of the existing.
 
 This means that the facility will operate in the most efficient manner, i.e. meaning that if one generator will satisfy the power demand, only one generator will always be used. 
 
-#### Compressor Curves
+#### Compressor Curves {/* #compressor-curves */}
 
 eCalc™ has generic compressor curve functionality which can be used when compressor curves are not available. 
 However, if a manufactor compressor chart is available, it is always recommended to use this over a generic chart. 
 The generic compressor curves, use the assumption of constant polytropic efficiency, which is only a good assumption if the compressor is running near the design points. 
 
 
-### Validation
+### Validation {/* #validation */}
 
 Checking whether the eCalc™ model is valid or not is an essential task. If a model is not valid, this means that input requirements set by the user are not being fulfilled, or that some consumers are giving unrealistic solutions. 
 
@@ -158,7 +158,7 @@ Validity can be checked by consumers, and there are often specific reasons why c
 
 Before any chart adjustments are made, engineers should first verify who provide the input that the adjustments make sense. 
 
-### Calibration
+### Calibration {/* #calibration */}
 
 The term calibration in eCalc™ refers to the history matching of the facility. Essentially, real operational data is compared against the eCalc™ model results. If they do not correlate various changes are made to the model.
 

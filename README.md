@@ -8,7 +8,8 @@
 ![PyPI - Implementation](https://img.shields.io/pypi/implementation/libecalc)
 ![Pre-commit - Enabled](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit&logoColor=white)   
 
-# eCalc™
+# eCalc™@
+
 eCalc™ is a software tool for calculation of energy demand and greenhouse gas (GHG) emissions from oil and gas production and processing.
 
 > **Note**
@@ -92,7 +93,6 @@ In vscode:
 In github codespaces:
 - In the repo click the "<> Code" button -> codespaces -> in the codespaces section click the ellipsis menu (three dots) -> click "New with options.." -> under "Dev container configuration" click and choose "eCalc Python Dev Environment" -> then click button "Create Codespace".
 
-
 ![ecalc-selftest](docs/gifs/selftest.gif)
 
 ### Create and run your first model
@@ -133,6 +133,18 @@ uv run pytest -n auto
 To update inline snapshots
 ```shell
 uv run pytest -m "inlinesnapshot" --inline-snapshot=fix
+```
+
+### Running type checks
+
+We use basedpyright for type checking, to run type checks
+```shell
+uv run basedpyright
+```
+
+to also update the baseline file 
+```shell
+uv run basedpyright --writebaseline
 ```
 
 ## Documentation

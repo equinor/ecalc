@@ -68,7 +68,7 @@ class InvalidChartResourceException(Exception):
             return None
 
 
-def _single_speed_compressor_chart_mapper(
+def single_speed_compressor_chart_mapper(
     model_config: YamlSingleSpeedChart,
     resources: Resources,
     control_margin: float | None,
@@ -100,7 +100,7 @@ def _single_speed_compressor_chart_mapper(
     return chart_data
 
 
-def _variable_speed_compressor_chart_mapper(
+def variable_speed_compressor_chart_mapper(
     model_config: YamlVariableSpeedChart,
     resources: Resources,
     control_margin: float | None,

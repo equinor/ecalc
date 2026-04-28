@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ComponentLevel(str, Enum):
+class ComponentLevel(StrEnum):
     ASSET = "ASSET"
     INSTALLATION = "INSTALLATION"
     GENERATOR_SET = "GENERATOR_SET"

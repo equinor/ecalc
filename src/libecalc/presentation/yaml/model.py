@@ -5,6 +5,7 @@ from datetime import datetime
 from functools import cached_property, reduce
 from typing import Any, Self
 
+from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.component_type import ComponentType
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
@@ -32,6 +33,8 @@ from libecalc.domain.process.evaluation_input import (
     CompressorSampledEvaluationInput,
     PumpEvaluationInput,
 )
+from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipeline
+from libecalc.domain.process.process_simulation import ProcessSimulation
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -42,6 +45,7 @@ from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
+from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
     InvalidEndDate,
@@ -137,6 +141,27 @@ class YamlModel:
         self._mapping_context = MappingContext(target_period=self.period)
 
         self._id = uuid.uuid4()  # ID used for "asset" energy container, which is the same as model?
+
+    def get_process_simulations(self) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
+        self.validate_for_run()
+        process_simulations = []
+        facility_resources, _ = self._resource_service.get_facility_resources()
+        mapper = ProcessSimulationMapper(
+            expression_evaluator=self.get_expression_evaluator(),
+            process_simulation_period=self.period,
+            fluid_service=NeqSimFluidService.instance(),
+            resources=facility_resources,
+            reference_service=self._get_reference_service(),
+        )
+        process_pipelines = []
+        for yaml_process_simulation in self._configuration.process_simulations:
+            process_pipeline, process_simulation = mapper.map_process_simulation(
+                yaml_process_simulation=yaml_process_simulation
+            )
+            process_pipelines.extend(process_pipeline)
+            process_simulations.append(process_simulation)
+
+        return process_pipelines, process_simulations
 
     def get_emitter(self, container_id: uuid.UUID) -> Emitter | None:
         for installation in self.get_installations():
@@ -517,9 +542,9 @@ class YamlModel:
         """
         process_service = self.get_process_service()
         allowed_model_result_types = (CompressorTrainResult, PumpModelResult)
-        assert all(
-            isinstance(model_result, allowed_model_result_types) for model_result in model_results.values()
-        ), "All models must be of allowed types"
+        assert all(isinstance(model_result, allowed_model_result_types) for model_result in model_results.values()), (
+            "All models must be of allowed types"
+        )
 
         # Construct ConsumerFunctionResult objects for each consumer
         consumer_function_results: dict[uuid.UUID, list[ConsumerFunctionResult]] = {}

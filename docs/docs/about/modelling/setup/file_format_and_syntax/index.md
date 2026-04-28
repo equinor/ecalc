@@ -8,7 +8,7 @@ description: YAML file format and syntax guide
 
 The setup file is written in YAML format and needs to follow a strict pattern which consists of several levels specified by indentation. The indentation is very important. It is recommended to use an indentation of 2 spaces per level. At each level, there might be both required and optional keywords.
 
-## Setup file syntax
+## Setup file syntax {/* #setup-file-syntax */}
 
 The overall system in eCalc is that the user defines inputs from subsurface and facility and
 then establishes a model between these.
@@ -53,9 +53,9 @@ Comments are supported anywhere in the yml and csv files by using '#' to indicat
 All data after a '#' on the same line is ignored. If '#' is used at the beginning of the file, the
 first line without a preceding '#' is used as the header.
 :::
-## Examples
+## Examples {/* #examples */}
 
-### YAML format example
+### YAML format example {/* #yaml-format-example */}
 ~~~~~~~~yaml
 TIME_SERIES:
   - FILE:
@@ -94,6 +94,6 @@ INSTALLATIONS:
 
 ~~~~~~~~
 
-### Full examples
+### Full examples {/* #full-examples */}
 
 Examples are an excellent way to quickly get an overview of the syntax. Check them out [here](/about/modelling/examples/index.md).

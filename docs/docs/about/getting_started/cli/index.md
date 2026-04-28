@@ -16,9 +16,9 @@ You must minimum have **Python 3.11** installed to use eCalc.
 
 See all commands and options in the [CLI reference](/about/getting_started/cli/cli_reference.md)
 
-## Example Usage
+## Example Usage {/* #example-usage */}
 
-#### Use show command to inspect results
+#### Use show command to inspect results {/* #use-show-command-to-inspect-results */}
 
 First run ecalc (here shown with default output folder)
 
@@ -50,22 +50,22 @@ or write the full csv result to a file (this will give the same output as `ecalc
 $ ecalc show results --output-format csv --file results.csv
 ~~~~~~~~
 
-#### Output Monthly CSV data
+#### Output Monthly CSV data {/* #output-monthly-csv-data */}
 ~~~~~~~~bash
 $ ecalc run -f MONTH /somelocation/myfield.yml
 ~~~~~~~~
 
-#### Specify different output folder
+#### Specify different output folder {/* #specify-different-output-folder */}
 ~~~~~~~~bash
 $ ecalc run -o /somedirectory/foo/bar/ /somelocation/myfield.yml
 ~~~~~~~~
 
-#### Specify a different naming prefix to outputs
+#### Specify a different naming prefix to outputs {/* #specify-a-different-naming-prefix-to-outputs */}
 ~~~~~~~~bash
 $ ecalc run -n myfield_myproject /somelocation/myfield.yml
 ~~~~~~~~
 
-#### Show stack trace for debugging
+#### Show stack trace for debugging {/* #show-stack-trace-for-debugging */}
 ~~~~~~~~bash
 $ ecalc run --log DEBUG /somelocation/myfield.yml
 ~~~~~~~~

@@ -1,6 +1,6 @@
 # GAS_TYPE
 
-## Description
+## Description {/* #description */}
 
 `GAS_TYPE` is required to be specified under the [MODELS](/about/references/MODELS.md) keyword when
 the model is of [TYPE](/about/references/TYPE.md) `FLUID` and the [FLUID_MODEL_TYPE](/about/references/FLUID_MODEL_TYPE.md)
@@ -15,7 +15,7 @@ is `PREDEFINED`. Available gas types are:
 If no `GAS_TYPE` is specified, it will be defaulted to `MEDIUM`.
 
 
-## Format
+## Format {/* #format */}
 
 ~~~~yaml
 MODELS:
@@ -25,7 +25,7 @@ MODELS:
     EOS_MODEL: <SRK/PR/GERG_SRK/GERG_PR>
 ~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~yaml
 MODELS:

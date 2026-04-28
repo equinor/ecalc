@@ -2,7 +2,7 @@ name: Publish libeCalc package to PyPI
 
 on:
   workflow_run:
-    workflows: [release-please]
+    workflows: [ release-please ]
     types:
       - completed
   # Note! We cannot trigger on published event, since that can only be triggered when done manually (or with a
@@ -16,17 +16,17 @@ on:
   # NOTE!: When using Trusted Publishing to PyPI, we cannot do that from within a reusable workflow, therefore
   # we make it independent, and trigger it with published event from release-please workflow, instead of calling explicitly.
 
-permissions: {}
+permissions: { }
 
 jobs:
-  check-release-created:  # Parses JSON file from release-please workflow to see if a release was created
+  check-release-created: # Parses JSON file from release-please workflow to see if a release was created
     permissions:
       actions: read # to dl artifacts from triggering workflow
       contents: read
     runs-on: ubuntu-24.04
     steps:
       - name: Download release-please outputs
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: release-please-outputs
           run-id: ${{ github.event.workflow_run.id }}
@@ -55,13 +55,14 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           # NOTE: Make sure we publish from the main branch, not the triggering ref
           ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
 
       - name: Install uv
-        uses: astral-sh/setup-uv@v7
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
           enable-cache: true
 
@@ -75,7 +76,7 @@ jobs:
         run: uv build
 
       - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
+        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # v1.14.0
         with:
           # repository-url: https://test.pypi.org/legacy/ # NOTE: Only needed to specify for Test PyPI
           packages-dir: dist/

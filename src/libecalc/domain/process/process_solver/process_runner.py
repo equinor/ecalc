@@ -1,0 +1,31 @@
+import abc
+from collections.abc import Sequence
+
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.domain.process.process_solver.configuration import Configuration, OperatingConfiguration
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+
+
+class ProcessRunner(abc.ABC):
+    @abc.abstractmethod
+    def apply_configuration(self, configuration: Configuration[OperatingConfiguration]):
+        """Apply the given configuration to the process system."""
+        ...
+
+    def apply_configurations(self, configurations: Sequence[Configuration[OperatingConfiguration]]):
+        """Apply the given configurations to the process system."""
+        for configuration in configurations:
+            self.apply_configuration(configuration)
+
+    @abc.abstractmethod
+    def run(self, inlet_stream: FluidStream, to_id: ProcessUnitId | None = None) -> FluidStream:
+        """
+        Simulate the process
+        Args:
+            inlet_stream: inlet stream to the process.
+            to_id: If provided, simulates the process up to, not including, the specified simulation unit id. If None, simulates the entire process.
+
+        Returns: The outlet stream
+
+        """
+        ...

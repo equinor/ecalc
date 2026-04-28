@@ -1,8 +1,14 @@
 from collections.abc import Callable
 
+from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy
-from libecalc.domain.process.process_solver.solver import Solution, Solver
+from libecalc.domain.process.process_solver.solver import (
+    Solution,
+    Solver,
+    SolverFailureStatus,
+    TargetNotAchievableEvent,
+)
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 from .downstream_choke_solver import ChokeConfiguration
@@ -20,23 +26,46 @@ class UpstreamChokeSolver(Solver):
         self._root_finding_strategy = root_finding_strategy
 
     def solve(self, func: Callable[[ChokeConfiguration], FluidStream]) -> Solution[ChokeConfiguration]:
+        def outlet_pressure(config: ChokeConfiguration) -> float:
+            """Evaluate outlet pressure, treating RateTooHighError as infeasible (pressure = 0).
+
+            A large upstream pressure drop drives suction pressure towards zero, causing actual
+            volumetric flow to exceed the maximum rate the compressor chart can handle.
+            When the process signals RateTooHighError the operating point is infeasible;
+            returning 0 tells the solver that maximum choking brackets
+            the target from below, so the algorithm converges in the feasible region.
+            """
+            try:
+                return func(config).pressure_bara
+            except RateTooHighError:
+                return 0.0
+
         choke_configuration = ChokeConfiguration(delta_pressure=0)
-        outlet_stream = func(choke_configuration)
-        if outlet_stream.pressure_bara <= self._target_pressure:
+        if outlet_pressure(choke_configuration) <= self._target_pressure:
             # Don't use choke if outlet pressure is below target
-            return Solution(success=True, configuration=choke_configuration)
+            return Solution(
+                success=outlet_pressure(choke_configuration) == self._target_pressure,
+                configuration=choke_configuration,
+            )
 
         # Evaluate outlet pressure at maximum allowed upstream ΔP (within boundary).
         max_cfg = ChokeConfiguration(delta_pressure=self._delta_pressure_boundary.max)
-        outlet_at_max_choke = func(max_cfg)
-
-        if outlet_at_max_choke.pressure_bara > self._target_pressure:
+        max_cfg_pressure = outlet_pressure(max_cfg)
+        if max_cfg_pressure > self._target_pressure:
             # If we are still above target even at max choking, then no solution exists within the boundary.
-            return Solution(success=False, configuration=max_cfg)
+            return Solution(
+                success=False,
+                configuration=max_cfg,
+                failure_event=TargetNotAchievableEvent(
+                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
+                    achievable_value=max_cfg_pressure,
+                    target_value=self._target_pressure,
+                ),
+            )
 
         pressure_change = self._root_finding_strategy.find_root(
             boundary=self._delta_pressure_boundary,
-            func=lambda x: func(ChokeConfiguration(delta_pressure=x)).pressure_bara - self._target_pressure,
+            func=lambda x: outlet_pressure(ChokeConfiguration(delta_pressure=x)) - self._target_pressure,
         )
 
         return Solution(success=True, configuration=ChokeConfiguration(delta_pressure=pressure_change))

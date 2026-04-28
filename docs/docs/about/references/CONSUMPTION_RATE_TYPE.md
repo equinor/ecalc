@@ -9,7 +9,7 @@
 |------------|---------------------------|------------------------------------|
 | No         | `ENERGY_USAGE_MODEL`      | None                               |
 
-## Description
+## Description {/* #description */}
 :::important
 You must have good control of the input rates - which are stream day rates and which are calendar day rates - and
 specify `CALENDAR_DAY` as input if necessary.
@@ -35,14 +35,14 @@ $$
 stream\ day\ rate = \frac{calendar\ day\ rate}{regularity}
 $$
 :::
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 CONSUMPTION_RATE_TYPE: <consumption_rate_type>
 ~~~~~~~~
 
 Where `<consumption_rate_type>` can either be `CALENDAR_DAY` or `STREAM_DAY`.
 
-## Example
+## Example {/* #example */}
 Specifying consumption rate type for fixed/direct consumers:
 
 ~~~~~~~~yaml

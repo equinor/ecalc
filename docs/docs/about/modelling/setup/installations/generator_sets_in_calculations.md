@@ -25,7 +25,7 @@ definition and the generator set fuel definition, but a complete override of the
 
 Category can be either `TURBINE-GENERATOR` or `POWER-FROM-SHORE`.
 
-### Format
+### Format {/* #format */}
 ~~~~~~~~yaml
 GENERATORSETS:
   - NAME: <generatorset name>
@@ -36,8 +36,8 @@ GENERATORSETS:
       ...
 ~~~~~~~~
 
-## Electricity2fuel function
-### Description
+## Electricity2fuel function {/* #electricity2fuel-function */}
+### Description {/* #description */}
 The behavior of a generator set is described by an [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md)
 table, which relates the burned fuel rate to delivered power, including the power generation efficiency at different loads.
 It also defines the operational envelope of the generator set.
@@ -45,7 +45,7 @@ It also defines the operational envelope of the generator set.
 [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) may be modeled with a constant function through time or
 with different power vs. fuel relations for different time intervals.
 
-### Format
+### Format {/* #format-1 */}
 ~~~~~~~~yaml
 ELECTRICITY2FUEL: <facility_input_reference>
 ~~~~~~~~
@@ -58,12 +58,12 @@ ELECTRICITY2FUEL:
   <DATE>: <facility_input_reference_2>
 ~~~~~~~~
 
-## Power from shore
-### Description
+## Power from shore {/* #power-from-shore */}
+### Description {/* #description-1 */}
 :::note
 Power from shore is currently handled in eCalc™ by defining a dummy [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) model with zero fuel usage, and applying the `POWER-FROM-SHORE` category. This is an intermediate solution and will be dealt with differently in the future.
 :::
-### Example
+### Example {/* #example */}
 Make an [ELECTRICITY2FUEL](/about/references/ELECTRICITY2FUEL.md) input file with zero fuel usage.
 
 ~~~~~~~~text
@@ -110,14 +110,14 @@ GENERATORSETS:
       ...
 ~~~~~~~~
 
-## Heaters and boilers
-### Description
+## Heaters and boilers {/* #heaters-and-boilers */}
+### Description {/* #description-2 */}
 :::note
 Heaters and boilers should be modeled in eCalc™ as 
 [GENERATORSETS](/about/references/GENERATORSETS.md), applying the [HEATER](/about/references/CATEGORY.md) and [BOILER](/about/references/CATEGORY.md) categories. This is an intermediate solution and may be dealt with differently in the future.
 :::
 
-### Example: Boiler as generator set
+### Example: Boiler as generator set {/* #example-boiler-as-generator-set */}
 Specify the correlation between energy delivered and fuel consumed under 
 [FACILITY_INPUTS](/about/references/FACILITY_INPUTS.md):
 ~~~~~~~~yaml

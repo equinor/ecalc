@@ -1,6 +1,11 @@
 from abc import ABC, abstractmethod
+from collections.abc import Sequence
 
+from libecalc.domain.process.process_solver.configuration import Configuration
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
+from libecalc.domain.process.process_solver.solver import Solution
+from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
@@ -15,7 +20,7 @@ class PressureControlStrategy(ABC):
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
-    ) -> bool:
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         """Adjust the system to meet the target pressure.
 
         Args:
@@ -23,6 +28,6 @@ class PressureControlStrategy(ABC):
             inlet_stream: The inlet fluid stream.
 
         Returns:
-            True if the target pressure was met, False otherwise.
+            Solution containing the manipulations (e.g. recirculation rate, choke ΔP) needed to meet the target pressure.
         """
         ...

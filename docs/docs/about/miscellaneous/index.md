@@ -6,7 +6,7 @@ description: Output data
 
 # Input Data
 
-### Timeseries
+### Timeseries {/* #timeseries */}
 
 The file format is a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file,
 where the first column **MUST** contain the date/timestep and the remaining columns contain numbers. All
@@ -25,9 +25,9 @@ Accepted formats; only one format is allowed per file/resource:
 - *Day-first* (with time) — DD.MM.YYYY HH:MM:SS
 - *Year only* — YYYY
 
-#### Examples:
+#### Examples: {/* #examples */}
 
-##### File1:
+##### File1: {/* #file1 */}
 ```csv
 DATE,Variable1,Variable2
 2023.01.01,100,200
@@ -35,7 +35,7 @@ DATE,Variable1,Variable2
 2023.01.03,120,220
 ```
 
-##### File2:
+##### File2: {/* #file2 */}
 ```csv
 Variable1,Variable2,DATE
 100,200,01.01.2023
@@ -43,7 +43,7 @@ Variable1,Variable2,DATE
 120,220,03.01.2023
 ```
 
-##### NOT ALLOWED (combining date only, with date and time):
+##### NOT ALLOWED (combining date only, with date and time): {/* #not-allowed-combining-date-only-with-date-and-time */}
 ```csv
 DATE,Variable1,Variable2
 01.01.2023,100,200
@@ -51,7 +51,7 @@ DATE,Variable1,Variable2
 03.01.2023 12:00,120,220
 ```
 
-### Facility Data
+### Facility Data {/* #facility-data */}
 
 The facility data is also a [CSV](https://en.wikipedia.org/wiki/Comma-separated_values) file. Each column **MUST** have 
 a header name. A facility data file has different purposes, depending on where and what it is being used for in the
@@ -63,7 +63,7 @@ and see the specific type for more details on the expected format.
 In general, each model is outputted to a .csv file with what is viewed as necessary information for an operator.
 Further details, if necessary, can be seen in a .json file.
 
-## Decimals and significant digits in eCalc
+## Decimals and significant digits in eCalc {/* #decimals-and-significant-digits-in-ecalc */}
 
 Output numbers/result in eCalc are currently given at "6 significant digits/figures accuracy". This statement is valid
 for positive and negative integers and float numbers. Read more about significant digits [here](https://en.wikipedia.org/wiki/Significant_figures).
@@ -85,7 +85,7 @@ not operate with more than 6 digits after the decimal sign.
 We may in the future allow user to specify number of significant digits in output, but for now it is fixed.
 
 
-## Quality control
+## Quality control {/* #quality-control */}
 
 eCalc™ has a quality control function, which is represented by a validity flag. This validity flag gives the user information to whether or not their model is valid.
 This flag can either be seen in the .csv or .json output file.

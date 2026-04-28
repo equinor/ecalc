@@ -4,19 +4,20 @@ import pytest
 from inline_snapshot import snapshot
 from libecalc.domain.process.stream_distribution.common_stream_distribution import (
     CommonStreamDistribution,
-    HasCapacity,
+    HasExcessRate,
     Overflow,
 )
 from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
-class Item(HasCapacity):
+class Item(HasExcessRate):
     def __init__(self, capacity: float):
         self.id = uuid4()
         self._capacity = capacity
 
-    def get_unhandled_rate(self, rate: float, pressure: float) -> float:
-        return max(0.0, rate - self._capacity)
+    def get_excess_rate(self, inlet_stream: FluidStream) -> float:
+        return max(0.0, inlet_stream.standard_rate_sm3_per_day - self._capacity)
 
 
 class TestCommonStreamDistribution:
@@ -56,7 +57,7 @@ class TestCommonStreamDistribution:
         streams = stream_distribution.get_streams()
 
         rates = [stream.standard_rate_sm3_per_day for stream in streams]
-        assert rates == [45, 55]
+        assert rates == pytest.approx([45, 55])
 
     def test_common_stream_with_overflow_out_of_capacity(self, stream_factory, fluid_service):
         inlet_stream = stream_factory(standard_rate_m3_per_day=110)
@@ -75,7 +76,7 @@ class TestCommonStreamDistribution:
         streams = stream_distribution.get_streams()
 
         rates = [stream.standard_rate_sm3_per_day for stream in streams]
-        assert rates == [45, 65]
+        assert rates == pytest.approx([45, 65])
 
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot

@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
+from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
@@ -12,9 +13,8 @@ StreamRef = str
 FluidModelReference = str
 
 
-class YamlStreamRateUnit(str, enum.Enum):
+class YamlStreamRateUnit(enum.StrEnum):
     SM3_PER_DAY = "SM3_PER_DAY"
-    KG_PER_HOUR = "KG_PER_HOUR"
 
 
 class YamlInletStreamRate(YamlBase):
@@ -24,7 +24,7 @@ class YamlInletStreamRate(YamlBase):
     unit: YamlStreamRateUnit = Field(
         ...,
         title="UNIT",
-        description="Rate unit. SM3_PER_DAY for standard volume, KG_PER_HOUR for mass, KMOL_PER_HOUR for molar rate.",
+        description="Rate unit. SM3_PER_DAY for standard volume.",
     )
     type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
 
@@ -74,13 +74,13 @@ class YamlInletStream(YamlBase):
         description="Reference to a fluid model (e.g. defined in MODELS/FLUID_MODELS elsewhere).",
     )
 
-    temperature: YamlExpressionType | None = Field(
-        None,
+    temperature: YamlExpressionType = Field(
+        STANDARD_TEMPERATURE_KELVIN,
         title="TEMPERATURE",
         description="Temperature in K. Optional; defaults to standard temperature if omitted.",
     )
-    pressure: YamlExpressionType | None = Field(
-        None,
+    pressure: YamlExpressionType = Field(
+        STANDARD_PRESSURE_BARA,
         title="PRESSURE",
         description="Pressure in Pa. Optional; defaults to standard pressure if omitted.",
     )

@@ -1,26 +1,17 @@
-from dataclasses import dataclass
+from collections.abc import Sequence
 
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
-from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
+from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.search_strategies import RootFindingStrategy
+from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
+from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
-from libecalc.domain.process.process_system.process_system import ProcessSystem
 from libecalc.domain.process.value_objects.fluid_stream import FluidStream
-
-
-@dataclass
-class UpstreamChokeRunner:
-    def __init__(self, process_system: ProcessSystem, upstream_choke: Choke):
-        self._process_system = process_system
-        self._upstream_choke = upstream_choke
-
-    def run(self, inlet_stream: FluidStream, upstream_delta_pressure: float) -> FluidStream:
-        self._upstream_choke.set_pressure_change(pressure_change=upstream_delta_pressure)
-        return self._process_system.propagate_stream(inlet_stream=inlet_stream)
 
 
 class UpstreamChokePressureControlStrategy(PressureControlStrategy):
@@ -34,13 +25,19 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
 
     def __init__(
         self,
-        runner: "UpstreamChokeRunner",
+        simulator: ProcessRunner,
+        choke_configuration_handler_id: ConfigurationHandlerId,
         root_finding_strategy: RootFindingStrategy,
     ):
-        self._runner = runner
+        self._choke_configuration_handler_id = choke_configuration_handler_id
+        self._simulator = simulator
         self._root_finding_strategy = root_finding_strategy
 
-    def apply(self, target_pressure: FloatConstraint, inlet_stream: FluidStream) -> bool:
+    def apply(
+        self,
+        target_pressure: FloatConstraint,
+        inlet_stream: FluidStream,
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         # Use a small margin to avoid evaluating exactly at the physical/numerical extremes:
         # ΔP = 0 (no choke) and ΔP = inlet_pressure (zero/negative suction pressure).
         delta_pressure_boundary = Boundary(
@@ -57,14 +54,20 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
         def choke_func(config: ChokeConfiguration) -> FluidStream:
             # The runner is responsible for interpreting upstream ΔP as reduced suction pressure
             # seen by the downstream process system.
-            return self._runner.run(
+            self._simulator.apply_configuration(
+                Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=config)
+            )
+            return self._simulator.run(
                 inlet_stream=inlet_stream,
-                upstream_delta_pressure=config.delta_pressure,
             )
 
         solution = solver.solve(choke_func)
 
-        # Re-run with the chosen configuration to leave the choke/process state configured.
-        outlet_stream_after_choke = choke_func(solution.configuration)
-
-        return outlet_stream_after_choke.pressure_bara == target_pressure
+        return Solution(
+            success=solution.success,
+            configuration=[
+                Configuration(
+                    configuration_handler_id=self._choke_configuration_handler_id, value=solution.configuration
+                )
+            ],
+        )

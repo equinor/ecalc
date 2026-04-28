@@ -9,7 +9,7 @@
 |------------|---------------------------|------------------------------------|
 | No         | `ENERGY_USAGE_MODEL`         | `None`   |
 
-## Description
+## Description {/* #description */}
 
 This refers to an energy function model defined in either [FACILITY INPUTS](/about/references/FACILITY_INPUTS.md) or in [MODELS](/about/references/MODELS.md) used for [ENERGY USAGE MODEL](/about/references/ENERGY_USAGE_MODEL.md).
 The following attributes can be utilised:
@@ -18,7 +18,7 @@ The following attributes can be utilised:
 * [PUMP ENERGY USAGE MODEL](/about/modelling/setup/installations/pump_models_in_calculations.md)
 * [TABULATED ENERGY USAGE MODEL](/about/references/ENERGY_USAGE_MODEL.md)
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:
@@ -26,7 +26,7 @@ ENERGY_USAGE_MODEL:
   ENERGYFUNCTION: <reference to energy function in facility inputs or models of compressor type>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 

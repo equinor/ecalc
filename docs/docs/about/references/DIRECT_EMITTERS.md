@@ -17,13 +17,13 @@ Deprecated from eCalc v8.7 (changed name to <strong>VENTING_EMITTERS</strong>).
 - eCalc version 8.6 and earlier: Use DIRECT_EMITTERS as before.
 :::
 
-## Description
+## Description {/* #description */}
 The [DIRECT_EMITTERS](/about/references/DIRECT_EMITTERS.md) keyword covers the direct emissions on the installation
 that are not consuming energy. The attributes [NAME](/about/references/NAME.md),
 [EMISSION_NAME](/about/references/EMISSION_NAME.md), [CATEGORY](/about/references/CATEGORY.md) and
 [EMITTER_MODEL](/about/references/EMITTER_MODEL.md) are required.
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 DIRECT_EMITTERS:
   - NAME: <emitter name>
@@ -32,7 +32,7 @@ DIRECT_EMITTERS:
     EMITTER_MODEL: <emitter model>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 DIRECT_EMITTERS:
   - NAME: SomeDirectEmitter

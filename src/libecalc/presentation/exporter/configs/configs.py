@@ -704,5 +704,14 @@ class STPConfig(ResultConfig):
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
                 ),
+                Applier(
+                    name="flare",
+                    title="Flare",
+                    unit=Unit.STANDARD_CUBIC_METER,
+                    query=FuelQuery(
+                        installation_category="FIXED",
+                        consumer_categories=["FLARE"],
+                    ),
+                ),
             ],
         )

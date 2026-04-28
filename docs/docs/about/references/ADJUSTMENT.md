@@ -11,7 +11,7 @@
 `ADJUSTMENT` has been removed in v13.0. See [Migration Guide](../migration_guides/v12.0_to_v13.0.md) on how to adjust your input data accordingly in >= v13.0
 :::
 
-## Description
+## Description {/* #description */}
 For various reasons (degenerated equipment, liquid pumps, etc.), the predicted energy usage from
 the facility input does not always match the historic usage. To account for this, adjustments
 may be added to the facility input. Currently, linear adjustment to the energy usage is supported.
@@ -25,14 +25,14 @@ implemented and used for a small subset of equipment, namely: SAMPLED COMPRESSOR
 If you are not sure, give it a test first.
 :::
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 ADJUSTMENT:
   <ADJUSTMENT 1>: <VALUE>
   <ADJUSTMENT 2>: <VALUE>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 Say you have input that is off by a constant and percentage. You could fix this in the following way:
 
 ~~~~~~~~yaml

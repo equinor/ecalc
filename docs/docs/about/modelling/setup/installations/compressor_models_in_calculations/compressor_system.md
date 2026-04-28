@@ -21,7 +21,7 @@ charts is not allowed. This is because the compressor train in those cases will 
 conditions and cannot be predefined.
 :::
 
-## Format
+## Format {/* #format */}
 
 ~~~~~~~~yaml
 NAME: <Reference name>
@@ -37,7 +37,7 @@ ENERGY_USAGE_MODEL:
     <operational settings data>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 
 ~~~~~~~~yaml
 ENERGY_USAGE_MODEL:

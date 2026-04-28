@@ -10,17 +10,17 @@
 | Yes        | `ENERGY_USAGE_MODEL` <br /> `OPERATIONAL_SETTINGS` | None                               |
 
 
-## Description
+## Description {/* #description */}
 Used to define the discharge pressure for some [ENERGY_USAGE_MODEL](/about/references/ENERGY_USAGE_MODEL.md)
  types  and in [OPERATIONAL_SETTINGS](/about/references/OPERATIONAL_SETTINGS.md) using an 
 [Expressions](/about/references/EXPRESSION.md).
 
-## Format
+## Format {/* #format */}
 ~~~~~~~~yaml
 DISCHARGE_PRESSURE: <discharge pressure expression>
 ~~~~~~~~
 
-## Example
+## Example {/* #example */}
 ~~~~~~~~yaml
 DISCHARGE_PRESSURE: 200 # [bar]
 ~~~~~~~~

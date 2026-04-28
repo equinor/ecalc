@@ -1,6 +1,6 @@
 # COMPOSITION
 
-## Description
+## Description {/* #description */}
 
 `COMPOSITION` is required to be specified for a model under the [MODELS](/about/references/MODELS.md) keyword
 when the model is of [TYPE](/about/references/TYPE.md) `FLUID` and the [FLUID_MODEL_TYPE](/about/references/FLUID_MODEL_TYPE.md) is set to be `COMPOSITION`.
@@ -23,7 +23,7 @@ not specified. If methane is not part of your composition, simply put 0.0 for it
 It is not important that the fractions sum to one as they will be normalized by eCalc. It is the relative amount of
 each that will be important.
 
-### Format
+### Format {/* #format */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of fluid model, for reference>
@@ -44,7 +44,7 @@ MODELS:
       n_hexane: <mole fraction>
 ~~~~~~~~
 
-### Example
+### Example {/* #example */}
 ~~~~~~~~yaml
 MODELS:
   - NAME: <name of fluid model, for reference>

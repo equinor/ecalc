@@ -1,21 +1,18 @@
-import uuid
+from typing import Final
 
 import pytest
 
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.domain.process.entities.process_units.compressor import Compressor
+from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
     BinarySearchStrategy,
     ScipyRootFindingStrategy,
 )
 from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
-from libecalc.domain.process.process_system.compressor_stage_process_unit import CompressorStageProcessUnit
-from libecalc.domain.process.process_system.process_error import OutsideCapacityError, RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_system.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
 from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.fluid_stream import FluidService
 from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -142,8 +139,13 @@ def fluid_stream_mock(mock_fluid) -> FluidStream:
 
 
 class SimpleProcessUnit(ProcessUnit):
-    def __init__(self, pressure_multiplier: float, fluid_service: FluidService):
-        self._id = create_process_unit_id()
+    def __init__(
+        self,
+        pressure_multiplier: float,
+        fluid_service: FluidService,
+        process_unit_id: ProcessUnitId | None = None,
+    ):
+        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._pressure_multiplier = pressure_multiplier
         self._fluid_service = fluid_service
 
@@ -171,67 +173,63 @@ def simple_process_unit_factory(fluid_service):
 
 
 @pytest.fixture
-def compressor_train_stage_process_unit_factory(fluid_service, compressor_stage_factory):
-    def create_stage_process_unit(
-        chart_data: ChartData,
+def compressor_factory(fluid_service):
+    def create_compressor(chart_data: ChartData):
+        return Compressor(
+            compressor_chart=chart_data,
+            fluid_service=fluid_service,
+        )
+
+    return create_compressor
+
+
+@pytest.fixture
+def stage_units_factory(fluid_service):
+    def create_stage_units(
+        compressor: Compressor,
         shaft: Shaft,
         temperature_kelvin: float = 303.15,
-    ):
-        return StageProcessUnit(
-            compressor_stage=compressor_stage_factory(
-                compressor_chart_data=chart_data,
-                shaft=shaft,
-                inlet_temperature_kelvin=temperature_kelvin,
+        pressure_drop_ahead_of_stage: float = 0.0,
+        remove_liquid_after_cooling: bool = False,
+    ) -> list[ProcessUnit]:
+        assert isinstance(compressor, Compressor)
+        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+        fluid_service = NeqSimFluidService.instance()
+        units: list[ProcessUnit] = []
+
+        if pressure_drop_ahead_of_stage:
+            from libecalc.domain.process.entities.process_units.choke import Choke
+
+            units.append(
+                Choke(
+                    fluid_service=fluid_service,
+                    pressure_change=pressure_drop_ahead_of_stage,
+                )
+            )
+
+        units.append(
+            TemperatureSetter(
+                required_temperature_kelvin=temperature_kelvin,
+                fluid_service=fluid_service,
             )
         )
 
-    return create_stage_process_unit
+        if remove_liquid_after_cooling:
+            from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 
+            units.append(
+                LiquidRemover(
+                    fluid_service=fluid_service,
+                )
+            )
 
-class StageProcessUnit(CompressorStageProcessUnit):
-    def __init__(self, compressor_stage: CompressorTrainStage):
-        self._id = uuid.uuid4()
-        self._compressor_stage = compressor_stage
+        shaft.connect(compressor)
+        units.append(compressor)
 
-    def get_id(self) -> ProcessUnitId:
-        return self._id
+        return units
 
-    def get_speed_boundary(self) -> Boundary:
-        chart = self._compressor_stage.compressor.compressor_chart
-        return Boundary(min=chart.minimum_speed, max=chart.maximum_speed)
-
-    def get_maximum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        compressor_inlet_stream = self._compressor_stage.get_compressor_inlet_stream(inlet_stream_stage=inlet_stream)
-        density = compressor_inlet_stream.density
-        max_actual_rate = self._compressor_stage.compressor.compressor_chart.maximum_rate_as_function_of_speed(
-            self._compressor_stage.compressor.speed
-        )
-        max_mass_rate = max_actual_rate * density
-        return self._compressor_stage.fluid_service.mass_rate_to_standard_rate(
-            fluid_model=compressor_inlet_stream.fluid_model, mass_rate_kg_per_h=max_mass_rate
-        )
-
-    def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
-        compressor_inlet_stream = self._compressor_stage.get_compressor_inlet_stream(inlet_stream_stage=inlet_stream)
-        density = compressor_inlet_stream.density
-        min_actual_rate = self._compressor_stage.compressor.compressor_chart.minimum_rate_as_function_of_speed(
-            self._compressor_stage.compressor.speed
-        )
-        min_mass_rate = min_actual_rate * density
-        return self._compressor_stage.fluid_service.mass_rate_to_standard_rate(
-            fluid_model=compressor_inlet_stream.fluid_model, mass_rate_kg_per_h=min_mass_rate
-        )
-
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
-        result = self._compressor_stage.evaluate(inlet_stream_stage=inlet_stream)
-        if result.chart_area_flag == ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE:
-            raise RateTooHighError()
-        if result.chart_area_flag == ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE:
-            raise RateTooLowError()
-
-        if not result.within_capacity:
-            raise OutsideCapacityError()
-        return result.outlet_stream
+    return create_stage_units
 
 
 @pytest.fixture

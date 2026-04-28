@@ -413,7 +413,7 @@ class CompressorModelSampled:
 
         """
         uniques = sampled_data.apply(lambda x: x.nunique())
-        return array_to_list(uniques[uniques != 1].index.values)
+        return list(uniques[uniques != 1].index)
 
     @dataclass
     class Turbine:
