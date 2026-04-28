@@ -31,7 +31,7 @@ from libecalc.domain.process.value_objects.chart import ChartCurve
 def with_common_asv(recirculation_loop_factory, direct_mixer_factory, direct_splitter_factory):
     """Factory fixture: wrap all units in a single RecirculationLoop.
 
-    Returns the loop, its ID, and the first compressor found in units.
+    Returns the loop and the pipeline units [mixer, *units, splitter].
     """
 
     def create(units: list[ProcessUnit]) -> tuple[RecirculationLoop, Sequence[ProcessUnit]]:
@@ -48,7 +48,7 @@ def with_individual_asv(with_common_asv):
     """Factory fixture: wrap each Compressor in its own RecirculationLoop.
 
     Non-compressor units (e.g. TemperatureSetter) are kept in-place outside the loop.
-    Returns the transformed unit list, the loop (configuration handler) list, and the compressor references.
+    Returns the transformed unit list and the loop (configuration handler) list.
     """
 
     def create(

@@ -1,17 +1,17 @@
 from typing import Final
 
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_pipeline.process_unit import GasProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class TemperatureSetter(ProcessUnit):
+class TemperatureSetter(GasProcessUnit):
     def __init__(
         self,
         required_temperature_kelvin: float,
         fluid_service: FluidService,
         process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or GasProcessUnit._create_id()
         self._required_temperature_kelvin = required_temperature_kelvin
         self._fluid_service = fluid_service
 

@@ -1,7 +1,7 @@
 from typing import Protocol
 
-from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.domain.process.process_solver.boundary import Boundary
 
 
 class RecirculatingUnit(Protocol):

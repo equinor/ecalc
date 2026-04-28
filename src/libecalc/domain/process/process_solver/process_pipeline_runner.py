@@ -4,10 +4,10 @@ from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, P
 from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
-def propagate_stream_many(process_units: Sequence[ProcessUnit], inlet_stream: FluidStream) -> FluidStream:
+def propagate_stream_many(process_units: Sequence[ProcessUnit], inlet_stream: StreamWithPressure) -> StreamWithPressure:
     current_stream = inlet_stream
     for process_unit in process_units:
         current_stream = process_unit.propagate_stream(current_stream)
@@ -34,10 +34,10 @@ class ProcessPipelineRunner(ProcessRunner):
 
     def _propagate_stream_to_id(
         self,
-        inlet_stream: FluidStream,
+        inlet_stream: StreamWithPressure,
         units: Iterable[ProcessUnit],
         to_id: ProcessUnitId,
-    ) -> tuple[FluidStream, bool]:
+    ) -> tuple[StreamWithPressure, bool]:
         current_stream = inlet_stream
         for unit in units:
             if unit.get_id() == to_id:
@@ -46,7 +46,7 @@ class ProcessPipelineRunner(ProcessRunner):
 
         return current_stream, False
 
-    def run(self, inlet_stream: FluidStream, to_id: ProcessUnitId | None = None) -> FluidStream:
+    def run(self, inlet_stream: StreamWithPressure, to_id: ProcessUnitId | None = None) -> StreamWithPressure:
         if to_id is not None:
             current_stream, found = self._propagate_stream_to_id(
                 inlet_stream=inlet_stream, units=self._units.values(), to_id=to_id

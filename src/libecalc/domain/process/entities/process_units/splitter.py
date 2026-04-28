@@ -1,10 +1,10 @@
 from typing import Final
 
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_pipeline.process_unit import GasProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class Splitter(ProcessUnit):
+class Splitter(GasProcessUnit):
     """Removes a fixed standard rate from the through-stream.
 
     The split rate is set via `set_rate` before propagation. This models a gas
@@ -13,7 +13,7 @@ class Splitter(ProcessUnit):
     """
 
     def __init__(self, fluid_service: FluidService, process_unit_id: ProcessUnitId | None = None, rate: float = 0.0):
-        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or GasProcessUnit._create_id()
         self._fluid_service = fluid_service
         self._rate = rate
 

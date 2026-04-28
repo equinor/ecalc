@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Protocol, Self, TypeVar
 
 
@@ -23,7 +25,7 @@ class MixableStream(StreamWithPressure, Protocol):
     """
 
     @property
-    def standard_density_gas_phase_after_flash(self) -> float: ...
+    def standard_density(self) -> float: ...
 
     @property
     def mass_rate_kg_per_h(self) -> float: ...

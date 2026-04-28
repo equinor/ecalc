@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from libecalc.common.units import UnitConstants
 
 
-@dataclass
+@dataclass(frozen=True)
 class LiquidStream:
     """A fully-specified incompressible liquid stream.
 
@@ -28,12 +28,11 @@ class LiquidStream:
         return self.mass_rate_kg_per_h / self.density_kg_per_m3
 
     @property
-    def standard_density_gas_phase_after_flash(self) -> float:
-        """Liquid density at operating conditions [kg/m³].
+    def standard_density(self) -> float:
+        """Liquid density [kg/m³].
 
-        For incompressible liquids, standard ≈ actual density (no significant
-        pressure/temperature correction needed). Named to match FluidStream so
-        both stream types work with the same RecirculationLoop logic.
+        For incompressible liquids, operating density ≈ standard density
+        (no significant pressure/temperature correction needed).
         """
         return self.density_kg_per_m3
 

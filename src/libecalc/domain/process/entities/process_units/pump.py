@@ -27,6 +27,9 @@ class Pump(LiquidProcessUnit):
         self._id = process_unit_id
         self._pump_chart = Chart(pump_chart)
         self._speed: float | None = None
+        self._last_head_joule_per_kg: float | None = None
+        self._last_efficiency: float | None = None
+        self._last_mass_rate_kg_per_s: float | None = None
 
     def get_id(self) -> ProcessUnitId:
         return self._id
@@ -94,6 +97,10 @@ class Pump(LiquidProcessUnit):
                 process_unit_id=self._id,
             )
 
+        self._last_head_joule_per_kg = head
+        self._last_efficiency = efficiency
+        self._last_mass_rate_kg_per_s = inlet_stream.mass_rate_kg_per_h / 3600.0
+
         pressure_rise_bara = head * density / _BARA_TO_PASCAL
         outlet_pressure = inlet_stream.pressure_bara + pressure_rise_bara
 
@@ -106,6 +113,34 @@ class Pump(LiquidProcessUnit):
     @property
     def maximum_speed(self) -> float:
         return self._pump_chart.maximum_speed
+
+    @property
+    def last_shaft_power_mw(self) -> float:
+        """Shaft power [MW] from the most recent propagate_stream() call.
+
+        P = ṁ [kg/s] × head [J/kg] / η / 1e6
+        """
+        if (
+            self._last_head_joule_per_kg is None
+            or self._last_efficiency is None
+            or self._last_mass_rate_kg_per_s is None
+        ):
+            raise ValueError("No result available — call propagate_stream() first.")
+        return self._last_mass_rate_kg_per_s * self._last_head_joule_per_kg / self._last_efficiency / 1e6
+
+    @property
+    def last_head_joule_per_kg(self) -> float:
+        """Hydraulic head [J/kg] from the most recent propagate_stream() call."""
+        if self._last_head_joule_per_kg is None:
+            raise ValueError("No result available — call propagate_stream() first.")
+        return self._last_head_joule_per_kg
+
+    @property
+    def last_efficiency(self) -> float:
+        """Pump efficiency [-] from the most recent propagate_stream() call."""
+        if self._last_efficiency is None:
+            raise ValueError("No result available — call propagate_stream() first.")
+        return self._last_efficiency
 
     def _head_and_efficiency_at_rate(self, rate_m3_per_hour: float) -> tuple[float, float]:
         """Head [J/kg] and efficiency [-] at current speed and flow rate."""
