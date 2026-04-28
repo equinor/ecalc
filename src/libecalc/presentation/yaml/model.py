@@ -542,9 +542,9 @@ class YamlModel:
         """
         process_service = self.get_process_service()
         allowed_model_result_types = (CompressorTrainResult, PumpModelResult)
-        assert all(
-            isinstance(model_result, allowed_model_result_types) for model_result in model_results.values()
-        ), "All models must be of allowed types"
+        assert all(isinstance(model_result, allowed_model_result_types) for model_result in model_results.values()), (
+            "All models must be of allowed types"
+        )
 
         # Construct ConsumerFunctionResult objects for each consumer
         consumer_function_results: dict[uuid.UUID, list[ConsumerFunctionResult]] = {}

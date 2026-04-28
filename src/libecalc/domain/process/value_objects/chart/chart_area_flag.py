@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ChartAreaFlag(str, Enum):
+class ChartAreaFlag(StrEnum):
     INTERNAL_POINT = "INTERNAL_POINT"
     BELOW_MINIMUM_FLOW_RATE = "BELOW_MINIMUM_FLOW_RATE"
     BELOW_MINIMUM_HEAD = "BELOW_MINIMUM_HEAD"

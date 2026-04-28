@@ -1,7 +1,7 @@
 import enum
 
 
-class DateFormat(str, enum.Enum):
+class DateFormat(enum.StrEnum):
     """Supported date formats in ecalc CLI."""
 
     ISO_8601 = "0"
@@ -14,7 +14,7 @@ class DateFormat(str, enum.Enum):
     """DD_MM_YYYY"""
 
 
-class Frequency(str, enum.Enum):
+class Frequency(enum.StrEnum):
     NONE = "NONE"
     YEAR = "YEAR"
     MONTH = "MONTH"

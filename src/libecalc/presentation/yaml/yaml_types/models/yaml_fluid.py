@@ -8,19 +8,19 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference import ModelNa
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 
 
-class YamlEosModel(str, enum.Enum):
+class YamlEosModel(enum.StrEnum):
     SRK = "SRK"
     PR = "PR"
     GERG_SRK = "GERG_SRK"
     GERG_PR = "GERG_PR"
 
 
-class YamlFluidModelType(str, enum.Enum):
+class YamlFluidModelType(enum.StrEnum):
     PREDEFINED = "PREDEFINED"
     COMPOSITION = "COMPOSITION"
 
 
-class YamlPredefinedFluidType(str, enum.Enum):
+class YamlPredefinedFluidType(enum.StrEnum):
     ULTRA_DRY = "ULTRA_DRY"
     DRY = "DRY"
     MEDIUM = "MEDIUM"

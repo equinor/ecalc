@@ -20,6 +20,7 @@ repos:
         exclude: gen/|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist
         args:
           - --fix
+#          - --unsafe-fixes # Enable this to allow potentially unsafe fixes, such as those that may change code behavior. Use with caution.
       - id: ruff-format
 
   - repo: https://github.com/codespell-project/codespell

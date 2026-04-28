@@ -31,12 +31,12 @@ class Shaft(ConfigurationHandler, ABC):
         return self._id
 
     def handle_configuration(self, configuration: Configuration):
-        assert (
-            configuration.configuration_handler_id == self._id
-        ), f"Configuration id '{configuration.configuration_handler_id}' does not match shaft id '{self._id}'"
-        assert isinstance(
-            configuration.value, SpeedConfiguration
-        ), f"Expected configuration value to be of type 'SpeedConfiguration' for shaft speed, got '{type(configuration.value)}'"
+        assert configuration.configuration_handler_id == self._id, (
+            f"Configuration id '{configuration.configuration_handler_id}' does not match shaft id '{self._id}'"
+        )
+        assert isinstance(configuration.value, SpeedConfiguration), (
+            f"Expected configuration value to be of type 'SpeedConfiguration' for shaft speed, got '{type(configuration.value)}'"
+        )
         self.set_speed(configuration.value.speed)
 
     @abstractmethod

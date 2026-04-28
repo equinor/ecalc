@@ -338,8 +338,9 @@ class CompressorTrainStage:
         result_mass_rate = find_root(
             lower_bound=0,
             upper_bound=max_recirculation,
-            func=lambda x: _calculate_compressor_stage(additional_mass_rate=x).discharge_pressure
-            - target_discharge_pressure,
+            func=lambda x: (
+                _calculate_compressor_stage(additional_mass_rate=x).discharge_pressure - target_discharge_pressure
+            ),
         )
 
         return _calculate_compressor_stage(result_mass_rate)

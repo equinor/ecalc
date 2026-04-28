@@ -103,7 +103,7 @@ class CompressorModelSampled1D:
             msg = (
                 f"1D compressor sampled data require unique variable input values. "
                 f"I got non-unique {self._x_column_name} values "
-                f'{", ".join(duplicates)}'
+                f"{', '.join(duplicates)}"
             )
             logger.error(msg)
             raise IllegalStateException(msg)

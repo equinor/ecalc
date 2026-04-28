@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ConsumerFunctionType(str, Enum):
+class ConsumerFunctionType(StrEnum):
     SINGLE = "SINGLE"
     SYSTEM = "SYSTEM"

@@ -26,7 +26,7 @@ class TestPeriod:
         period = Period(start=datetime(2022, 1, 1), end=datetime(2030, 4, 5))
         assert str(period) == "2022-01-01 00:00:00;2030-04-05 00:00:00"
         assert repr(period) == (
-            "Period(start=datetime.datetime(2022, 1, 1, 0, 0), " "end=datetime.datetime(2030, 4, 5, 0, 0))"
+            "Period(start=datetime.datetime(2022, 1, 1, 0, 0), end=datetime.datetime(2030, 4, 5, 0, 0))"
         )
 
     def test_start_end_defined(self):

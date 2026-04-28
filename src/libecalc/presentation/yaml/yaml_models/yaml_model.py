@@ -175,7 +175,7 @@ class YamlDumper(abc.ABC):
         pass
 
 
-class ReaderType(str, enum.Enum):
+class ReaderType(enum.StrEnum):
     """Which yaml model to use. User should in general define capabilities, and get an appropriate yaml model, but for
     now we define implementation.
     """

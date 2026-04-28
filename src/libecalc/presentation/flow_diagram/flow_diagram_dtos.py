@@ -1,14 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict
 
 from libecalc.common.string.string_utils import to_camel_case
 
 
-class NodeType(str, Enum):
+class NodeType(StrEnum):
     """Supported Node types in FDE diagram"""
 
     GENERATOR = "generator"

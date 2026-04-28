@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -23,7 +23,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 
 
-class InstallationUserDefinedCategoryType(str, Enum):
+class InstallationUserDefinedCategoryType(StrEnum):
     """
     Installation category
     """

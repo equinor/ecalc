@@ -2,7 +2,7 @@ import enum
 from dataclasses import dataclass
 
 
-class EcalcErrorType(str, enum.Enum):
+class EcalcErrorType(enum.StrEnum):
     """Valid error types in libecalc."""
 
     CLIENT_ERROR = "User error"

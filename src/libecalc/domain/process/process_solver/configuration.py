@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import total_ordering
-from typing import Generic, NewType, TypeVar
+from typing import NewType, TypeVar
 from uuid import UUID
 
 T_co = TypeVar("T_co", covariant=True)
@@ -13,7 +13,7 @@ ConfigurationHandlerId = NewType("ConfigurationHandlerId", UUID)
 
 
 @dataclass(frozen=True)
-class Configuration(Generic[T_co]):
+class Configuration[T_co]:
     configuration_handler_id: ConfigurationHandlerId
     value: T_co
 

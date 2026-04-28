@@ -13,7 +13,7 @@ StreamRef = str
 FluidModelReference = str
 
 
-class YamlStreamRateUnit(str, enum.Enum):
+class YamlStreamRateUnit(enum.StrEnum):
     SM3_PER_DAY = "SM3_PER_DAY"
 
 

@@ -84,7 +84,7 @@ class YamlAsset(YamlBase):
     installations: list[YamlInstallation] = Field(
         ...,
         title="INSTALLATIONS",
-        description="Description of the system of energy consumers." "\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
+        description="Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
     )
     start: YamlDefaultDatetime = Field(
         None,
@@ -95,7 +95,7 @@ class YamlAsset(YamlBase):
     end: YamlDefaultDatetime = Field(
         ...,
         title="END",
-        description="Global end date for eCalc calculations in <YYYY-MM-DD> format." "\n\n$ECALC_DOCS_KEYWORDS_URL/END",
+        description="Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
     )
 
     @model_validator(mode="after")

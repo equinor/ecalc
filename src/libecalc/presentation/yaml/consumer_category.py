@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ConsumerUserDefinedCategoryType(str, Enum):
+class ConsumerUserDefinedCategoryType(StrEnum):
     """
     Consumer category
     """

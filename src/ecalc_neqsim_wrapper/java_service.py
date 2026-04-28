@@ -119,7 +119,7 @@ class NeqsimService(AbstractContextManager, ABC):
             )
         cls._py4j_config = config
         _logger.info(
-            f"Py4J configured: maximum_memory={config.maximum_memory}, " f"shutdown_on_exit={config.shutdown_on_exit}"
+            f"Py4J configured: maximum_memory={config.maximum_memory}, shutdown_on_exit={config.shutdown_on_exit}"
         )
 
     @classmethod

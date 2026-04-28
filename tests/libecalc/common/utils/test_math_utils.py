@@ -77,7 +77,7 @@ T = TypeVar("T")
         ("empty", {}, {}, {}, None),
     ],
 )
-def test_elementwise_subtraction_by_key(
+def test_elementwise_subtraction_by_key[T](
     what: str,
     this: dict[T, float],
     that: dict[T, float],

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from functools import reduce
-from typing import TYPE_CHECKING, Any, Generic, TypeVar
+from typing import TYPE_CHECKING, Any, TypeVar
 
 from libecalc.common.time_utils import Periods
 from libecalc.common.units import Unit
@@ -64,7 +64,7 @@ class GeneratorSetResult(CommonResultBase):
 T = TypeVar("T", bound=TimeSeries)
 
 
-class ConcatenatedProperty(Generic[T]):
+class ConcatenatedProperty[T: TimeSeries]:
     """
     Descriptor that aggregates lists of values into TimeSeries.
     """
@@ -217,9 +217,9 @@ class CompressorResult:
         self._results = results
         self.periods = periods
         self.id = id
-        assert all(
-            isinstance(result.energy_function_result, CompressorTrainResult) for result in results
-        ), "Got compressor result without CompressorTrainResult"
+        assert all(isinstance(result.energy_function_result, CompressorTrainResult) for result in results), (
+            "Got compressor result without CompressorTrainResult"
+        )
 
     @property
     def temporal_results(self) -> list[ConsumerFunctionResult]:

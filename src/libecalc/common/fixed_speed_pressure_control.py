@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class FixedSpeedPressureControl(str, Enum):
+class FixedSpeedPressureControl(StrEnum):
     UPSTREAM_CHOKE = "UPSTREAM_CHOKE"
     DOWNSTREAM_CHOKE = "DOWNSTREAM_CHOKE"
     INDIVIDUAL_ASV_PRESSURE = "INDIVIDUAL_ASV_PRESSURE"

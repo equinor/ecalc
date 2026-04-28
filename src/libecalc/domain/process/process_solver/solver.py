@@ -2,8 +2,8 @@ import abc
 import dataclasses
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from enum import Enum
-from typing import Generic, Self, TypeVar
+from enum import StrEnum
+from typing import Self, TypeVar
 
 from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
@@ -18,7 +18,7 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 TConfiguration = TypeVar("TConfiguration", covariant=True)
 
 
-class SolverFailureStatus(str, Enum):
+class SolverFailureStatus(StrEnum):
     ABOVE_MAXIMUM_FLOW_RATE = "ABOVE_MAXIMUM_FLOW_RATE"
     BELOW_MINIMUM_FLOW_RATE = "BELOW_MINIMUM_FLOW_RATE"
     MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET = "MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET"
@@ -48,7 +48,7 @@ SolverFailureEvent = OutsideCapacityEvent | TargetNotAchievableEvent
 
 
 @dataclass(frozen=True)
-class Solution(Generic[TConfiguration]):
+class Solution[TConfiguration]:
     success: bool
     configuration: TConfiguration
     failure_event: SolverFailureEvent | None = field(default=None)
@@ -74,6 +74,6 @@ class Solution(Generic[TConfiguration]):
         )
 
 
-class Solver(abc.ABC, Generic[TConfiguration]):
+class Solver[TConfiguration](abc.ABC):
     @abc.abstractmethod
     def solve(self, func: Callable[[TConfiguration], FluidStream]) -> Solution[TConfiguration]: ...

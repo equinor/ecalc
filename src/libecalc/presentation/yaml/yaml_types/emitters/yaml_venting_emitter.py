@@ -23,7 +23,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 )
 
 
-class YamlVentingType(str, enum.Enum):
+class YamlVentingType(enum.StrEnum):
     OIL_VOLUME = "OIL_VOLUME"
     DIRECT_EMISSION = "DIRECT_EMISSION"
 

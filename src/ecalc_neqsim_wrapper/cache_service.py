@@ -10,8 +10,8 @@ import logging
 import threading
 from collections import OrderedDict
 from dataclasses import dataclass
-from enum import Enum
-from typing import Generic, TypeVar
+from enum import StrEnum
+from typing import TypeVar
 
 _logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ K = TypeVar("K")
 V = TypeVar("V")
 
 
-class CacheName(str, Enum):
+class CacheName(StrEnum):
     """Registry of all cache names used in ecalc."""
 
     REFERENCE_FLUID = "reference_fluid"
@@ -51,7 +51,7 @@ class CacheConfig:
         return cls()
 
 
-class LRUCache(Generic[K, V]):
+class LRUCache[K, V]:
     """Thread-safe LRU cache with statistics tracking."""
 
     def __init__(self, max_size: int = 10000):

@@ -68,9 +68,9 @@ class TestCacheBehavior:
         stats_after_hit = flash_cache.get_stats()
 
         # Assert: Second flash should hit cache (same rounded key)
-        assert (
-            stats_after_hit["misses"] == stats_before["misses"] + 1
-        ), "Expected one miss on first flash with tiny difference"
+        assert stats_after_hit["misses"] == stats_before["misses"] + 1, (
+            "Expected one miss on first flash with tiny difference"
+        )
         assert stats_after_hit["hits"] == stats_before["hits"] + 1, "Expected hit on second flash (same rounded key)"
 
         # Act: Flash with value outside 6 decimal threshold (should miss cache)
@@ -82,9 +82,9 @@ class TestCacheBehavior:
         stats_after_miss = flash_cache.get_stats()
 
         # Assert: Third flash should miss cache (different rounded key)
-        assert (
-            stats_after_miss["misses"] == stats_after_hit["misses"] + 1
-        ), "Expected miss on third flash (outside rounding threshold)"
+        assert stats_after_miss["misses"] == stats_after_hit["misses"] + 1, (
+            "Expected miss on third flash (outside rounding threshold)"
+        )
         assert stats_after_miss["hits"] == stats_after_hit["hits"], "Expected no additional hits"
 
         # Properties should be slightly different for fluid_3
@@ -152,9 +152,9 @@ class TestCacheBehavior:
 
         # Assert: Properties should differ (different compositions at same P/T)
         assert fluid_medium.density != fluid_rich.density, "Different compositions should have different densities"
-        assert (
-            fluid_medium.molar_mass != fluid_rich.molar_mass
-        ), "Different compositions should have different molar masses"
+        assert fluid_medium.molar_mass != fluid_rich.molar_mass, (
+            "Different compositions should have different molar masses"
+        )
 
         # Act: Re-flash medium composition to verify it hits its own cache entry
         stats_before = flash_cache.get_stats()
