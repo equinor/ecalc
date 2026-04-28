@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
     hooks:
       - id: no-commit-to-branch  # Do not allow commits to master/main branch
       - id: debug-statements  # Looks for debugger imports and `breakpoint()`
@@ -13,7 +13,7 @@ repos:
       - id: detect-private-key  # Checks for private keys
       - id: check-merge-conflict  # Check for merge conflict strings
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: 'v0.6.4'
+    rev: '4924b0e01e032fea073ad04a1c5cfa7e4add0afb'  # frozen: v0.15.6
     hooks:
       - id: ruff
         files: ^(src/.*\.py|tests/.*\.py)$
@@ -21,29 +21,31 @@ repos:
         args:
           - --fix
       - id: ruff-format
+
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: '2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a' # frozen: v2.4.2
     hooks:
       - id: codespell
         name: Check for typos in code
         additional_dependencies: [ tomli ]
         exclude: docs/docs/changelog/changelog.md|.*\.ipynb
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: v9.17.0
+    rev: 1f6454da22d006d5bb0d2e65c96c43c23c8a534f  # frozen: v9.24.0
+
     hooks:
       - id: commitlint
         stages: [ commit-msg ]
         additional_dependencies: [ '@commitlint/config-conventional' ]
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: v3.87.2
+    rev: 6c05c4a00b91aa542267d8e32a8254774799d68d  # frozen: v3.93.8
     hooks:
       - id: trufflehog
         stages: [ "pre-commit" ]
         entry: trufflehog git file://. --since-commit HEAD --fail -x .trufflehogignore
 
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.19.1
+    rev: 75992aaa40730136014f34227e0135f63fc951b4  # frozen: v3.21.2
     hooks:
       - id: pyupgrade
-        args: [ "--py311-plus" ]
+        args: [ "--py312-plus" ]
