@@ -253,7 +253,11 @@ class CompressorModelSampled:
         )
         turbine_result = turbine.calculate_turbine_power_usage(interpolated_consumer_values)
         turbine_energy_result = turbine_result.get_energy_result() if turbine_result is not None else None
-        turbine_power = turbine_energy_result.power.values if turbine_energy_result is not None else None
+        turbine_power = (
+            turbine_energy_result.power.values
+            if turbine_energy_result is not None and turbine_energy_result.power is not None
+            else None
+        )
 
         energy_usage = (
             turbine_energy_result.energy_usage.values
