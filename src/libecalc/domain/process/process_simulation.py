@@ -106,7 +106,7 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessSimulationId:
         return ProcessSimulationId(ecalc_id_generator())
-    
+
     def get_inlet_streams(self) -> list[TimeSeriesStream]:
         match self.stream_distribution:
             case CommonStreamDistributionConfig():
