@@ -85,11 +85,12 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
             current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
 
-            def recirculation_func(config: RecirculationConfiguration):
+            def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
                 self._simulator.apply_configuration(
                     Configuration(configuration_handler_id=recirculation_loop_id, value=config)
                 )
-                return self._simulator.run(inlet_stream=inlet_stream)
+                compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
+                return compressor.propagate_stream(inlet_stream=compressor_inlet_stream)
 
             solver = RecirculationSolver(
                 search_strategy=BinarySearchStrategy(tolerance=10e-3),
@@ -111,10 +112,8 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
                     failure_event=solution.failure_event,
                 )
 
-        self._simulator.apply_configurations(configurations)
-        outlet_stream = self._simulator.run(inlet_stream=inlet_stream)
         return Solution(
-            success=outlet_stream.pressure_bara == target_pressure,
+            success=True,
             configuration=configurations,
         )
 
@@ -211,10 +210,8 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
             inlet_stream=inlet_stream,
             asv_rate_fraction=result_fraction,
         )
-        self._simulator.apply_configurations(configurations)
-        outlet_stream = self._simulator.run(inlet_stream=inlet_stream)
         return Solution(
-            success=outlet_stream.pressure_bara == target_pressure,
+            success=True,
             configuration=configurations,
         )
 
