@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId, create_process_pipeline_id
+from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
@@ -74,11 +74,11 @@ def outlet_pressure_solver_factory(root_finding_strategy):
         runner: ProcessRunner,
         anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
-        process_pipeline_id: ProcessPipelineId | None = None,
+        process_pipeline_id: ProcessPipelineId,
     ):
         return OutletPressureSolver(
             shaft_id=shaft.get_id(),
-            process_pipeline_id=process_pipeline_id or create_process_pipeline_id(),
+            process_pipeline_id=process_pipeline_id,
             runner=runner,
             anti_surge_strategy=anti_surge_strategy,
             pressure_control_strategy=pressure_control_strategy,

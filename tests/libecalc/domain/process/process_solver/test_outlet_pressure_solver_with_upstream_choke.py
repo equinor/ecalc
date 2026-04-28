@@ -2,7 +2,6 @@ import pytest
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.testing.chart_data_factory import ChartDataFactory
@@ -22,7 +21,6 @@ def single_speed_compressor(fluid_service):
         ]
     )
     return Compressor(
-        process_unit_id=create_process_unit_id(),
         compressor_chart=chart_data,
         fluid_service=fluid_service,
     )
@@ -34,6 +32,7 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
     choke_configuration_handler_factory,
     single_speed_compressor,
     with_common_asv,
+    process_pipeline_factory,
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     upstream_choke_pressure_control_strategy_factory,
@@ -56,6 +55,7 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
         units=[upstream_choke, *process_units],
         configuration_handlers=[shaft, recirculation_loop, upstream_choke_configuration_handler],
     )
+    process_pipeline = process_pipeline_factory(units=[upstream_choke, *process_units])
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_id=recirculation_loop.get_id(),
@@ -70,6 +70,7 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
+        process_pipeline_id=process_pipeline.get_id(),
     )
 
     # 500_000 sm3/day at 25 bara gives ~850 m3/h actual, which fits within [500, 1500].

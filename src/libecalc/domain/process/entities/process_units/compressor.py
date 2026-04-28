@@ -1,3 +1,5 @@
+from typing import Final
+
 from libecalc.domain.process.compressor.core.train.utils.common import (
     RECIRCULATION_BOUNDARY_TOLERANCE,
     calculate_outlet_pressure_and_stream,
@@ -13,11 +15,11 @@ from libecalc.domain.process.value_objects.fluid_stream import FluidService, Flu
 class Compressor(ProcessUnit):
     def __init__(
         self,
-        process_unit_id: ProcessUnitId,
         compressor_chart: ChartData,
         fluid_service: FluidService,
+        process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id = process_unit_id
+        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._compressor_chart = CompressorChart(compressor_chart)
         self._fluid_service = fluid_service
         self._speed: float | None = None

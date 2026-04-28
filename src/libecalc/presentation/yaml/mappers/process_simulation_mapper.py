@@ -1,4 +1,3 @@
-import uuid
 from collections.abc import Sequence
 from typing import Literal, assert_never
 
@@ -17,9 +16,8 @@ from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
 from libecalc.domain.process.process_pipeline.process_pipeline import (
     ProcessPipeline,
     ProcessPipelineId,
-    create_process_pipeline_id,
 )
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, create_process_unit_id
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_simulation import (
     AntiSurgeConfig,
     CommonStreamDistributionConfig,
@@ -29,13 +27,12 @@ from libecalc.domain.process.process_simulation import (
     PressureControlConfig,
     ProcessProblem,
     ProcessSimulation,
-    create_process_problem_id,
 )
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.domain.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
-from libecalc.domain.process.process_solver.configuration import ConfigurationHandlerId, create_configuration_handler_id
+from libecalc.domain.process.process_solver.configuration import ConfigurationHandlerId
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.domain.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
@@ -103,15 +100,9 @@ class StreamDistributionItem(HasExcessRate, HasValidity):
 
 
 def with_asv(units: Sequence[ProcessUnit]) -> tuple[ConfigurationHandler, list[ProcessUnit]]:
-    recirculation_loop_id = create_configuration_handler_id()
-    mixer = DirectMixer(
-        process_unit_id=create_process_unit_id(),
-    )
-    splitter = DirectSplitter(
-        process_unit_id=create_process_unit_id(),
-    )
+    mixer = DirectMixer()
+    splitter = DirectSplitter()
     recirculation_loop = RecirculationLoop(
-        configuration_handler_id=recirculation_loop_id,
         mixer=mixer,
         splitter=splitter,
     )
@@ -124,11 +115,9 @@ def with_asv(units: Sequence[ProcessUnit]) -> tuple[ConfigurationHandler, list[P
 
 
 def choke_factory(fluid_service: FluidService) -> tuple[Choke, ChokeConfigurationHandler]:
-    choke_id = create_process_unit_id()
-    choke = Choke(process_unit_id=choke_id, fluid_service=fluid_service)
+    choke = Choke(fluid_service=fluid_service)
 
     return choke, ChokeConfigurationHandler(
-        configuration_handler_id=create_configuration_handler_id(),
         choke=choke,
     )
 
@@ -200,7 +189,6 @@ class ProcessSimulationMapper:
         chart: ChartData = self._get_compressor_chart(yaml_compressor_model_chart=yaml_compressor.compressor_model)
 
         return Compressor(
-            process_unit_id=create_process_unit_id(),
             compressor_chart=chart,
             fluid_service=self._fluid_service,
         )
@@ -309,16 +297,11 @@ class ProcessSimulationMapper:
                 compressor = self._get_compressor(yaml_compressor_stage=yaml_compressor_stage)
                 compressor_ids.append(compressor.get_id())
                 temperature_setter = TemperatureSetter(
-                    process_unit_id=create_process_unit_id(),
                     required_temperature_kelvin=0,
                     fluid_service=self._fluid_service,
                 )
-                choke = Choke(
-                    process_unit_id=create_process_unit_id(), fluid_service=self._fluid_service, pressure_change=0
-                )
-                liquid_remover = LiquidRemover(
-                    process_unit_id=create_process_unit_id(), fluid_service=self._fluid_service
-                )
+                choke = Choke(fluid_service=self._fluid_service, pressure_change=0)
+                liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
                 process_unit_map[temperature_setter.get_id()] = temperature_setter
                 process_unit_map[choke.get_id()] = choke
                 process_unit_map[liquid_remover.get_id()] = liquid_remover
@@ -361,17 +344,16 @@ class ProcessSimulationMapper:
                 configuration_handlers.append(choke_configuration_handler)
                 process_units = [choke, *process_units]
             process_pipeline = ProcessPipeline(
-                id=create_process_pipeline_id(),
                 stream_propagators=process_units,
             )
 
-            pressure_control_configs[process_pipeline.id] = PressureControlConfig(
+            pressure_control_configs[process_pipeline.get_id()] = PressureControlConfig(
                 type=pressure_control,
             )
-            anti_surge_configs[process_pipeline.id] = AntiSurgeConfig(
+            anti_surge_configs[process_pipeline.get_id()] = AntiSurgeConfig(
                 type="COMMON_ASV" if pressure_control == "COMMON_ASV" else "INDIVIDUAL_ASV",
             )
-            process_pipeline_reference_to_id_map[item.name] = process_pipeline.id
+            process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
 
         for process_pipeline_reference, constraint in yaml_process_simulation.constraints.items():
@@ -464,11 +446,10 @@ class ProcessSimulationMapper:
 
         process_problems = [
             ProcessProblem(
-                id=create_process_problem_id(),
-                process_pipeline_id=process_pipeline.id,
-                constraint=constraints[process_pipeline.id],
-                anti_surge_strategy=anti_surge_configs[process_pipeline.id],
-                pressure_control_strategy=pressure_control_configs[process_pipeline.id],
+                process_pipeline_id=process_pipeline.get_id(),
+                constraint=constraints[process_pipeline.get_id()],
+                anti_surge_strategy=anti_surge_configs[process_pipeline.get_id()],
+                pressure_control_strategy=pressure_control_configs[process_pipeline.get_id()],
             )
             for process_pipeline in process_pipelines
         ]
@@ -476,7 +457,6 @@ class ProcessSimulationMapper:
         return (
             process_pipelines,
             ProcessSimulation(
-                id=uuid.uuid4(),
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
             ),

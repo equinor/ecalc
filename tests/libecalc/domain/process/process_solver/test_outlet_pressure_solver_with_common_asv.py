@@ -2,7 +2,6 @@ import pytest
 
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.value_objects.chart import ChartCurve
@@ -23,6 +22,7 @@ def test_outlet_pressure_solver_with_common_asv(
     shaft,
     chart_data_factory,
     with_common_asv,
+    process_pipeline_factory,
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
@@ -40,6 +40,7 @@ def test_outlet_pressure_solver_with_common_asv(
 
     common_asv, process_units = with_common_asv([*stage1, *stage2])
     runner = process_runner_factory(units=process_units, configuration_handlers=[shaft, common_asv])
+    process_pipeline = process_pipeline_factory(units=process_units)
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_id=common_asv.get_id(),
@@ -55,6 +56,7 @@ def test_outlet_pressure_solver_with_common_asv(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
+        process_pipeline_id=process_pipeline.get_id(),
     )
 
     inlet_stream = stream_factory(
@@ -109,7 +111,6 @@ def small_chart_compressor(fluid_service, shaft):
         ]
     )
     compressor = Compressor(
-        process_unit_id=create_process_unit_id(),
         compressor_chart=chart_data,
         fluid_service=fluid_service,
     )
@@ -122,6 +123,7 @@ def test_find_solution_returns_failure_when_rate_above_stonewall(
     small_chart_compressor,
     stream_factory,
     with_common_asv,
+    process_pipeline_factory,
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
@@ -130,6 +132,7 @@ def test_find_solution_returns_failure_when_rate_above_stonewall(
     common_asv, process_units = with_common_asv([small_chart_compressor])
 
     runner = process_runner_factory(units=process_units, configuration_handlers=[shaft, common_asv])
+    process_pipeline = process_pipeline_factory(units=process_units)
     anti_surge = common_asv_anti_surge_strategy_factory(
         runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
     )
@@ -141,6 +144,7 @@ def test_find_solution_returns_failure_when_rate_above_stonewall(
         runner=runner,
         anti_surge_strategy=anti_surge,
         pressure_control_strategy=pressure_control,
+        process_pipeline_id=process_pipeline.get_id(),
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0, temperature_kelvin=300.0)

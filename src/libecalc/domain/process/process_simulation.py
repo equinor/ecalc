@@ -1,8 +1,9 @@
-import uuid
-from dataclasses import dataclass, field
-from typing import Literal, NewType, assert_never
+from dataclasses import dataclass
+from typing import Final, Literal, NewType, Self, assert_never
 from uuid import UUID
 
+from libecalc.common.ddd.entity import Entity
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.domain.process.stream_distribution.common_stream_distribution import Overflow
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
@@ -44,25 +45,31 @@ class AntiSurgeConfig:
 ProcessProblemId = NewType("ProcessProblemId", UUID)
 
 
-def create_process_problem_id() -> ProcessProblemId:
-    return ProcessProblemId(uuid.uuid4())
-
-
-@dataclass
-class ProcessProblem:  # TODO: Rename to subproblem?
+class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
     # can a problem exist wo. a simulation? yes, e.g. get max rate ...
     # given a physical pipeline (a contained problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
     # TODO: might have subproblems, or dependencies, but we may want to add those as problems that depend on each other and needs to be evaluated in a given order
-    pressure_control_strategy: PressureControlConfig
-    anti_surge_strategy: AntiSurgeConfig
-    constraint: Constraint  # ie target pressure - and intermediate pressures ...
-    process_pipeline_id: (
-        ProcessPipelineId  # embedded ref here now for convenience, but not a part of this aggr, so FK/ID later
-    )
-    id: ProcessProblemId = field(default_factory=create_process_problem_id)
+
+    def __init__(
+        self,
+        pressure_control_strategy: PressureControlConfig,
+        anti_surge_strategy: AntiSurgeConfig,
+        constraint: Constraint,
+        process_pipeline_id: ProcessPipelineId,
+        process_problem_id: ProcessProblemId | None = None,
+    ):
+        self.pressure_control_strategy = pressure_control_strategy
+        self.anti_surge_strategy = anti_surge_strategy
+        self.constraint = constraint
+        self.process_pipeline_id = process_pipeline_id
+        self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:
-        return self.id
+        return self._id
+
+    @classmethod
+    def _create_id(cls: type[Self]) -> ProcessProblemId:
+        return ProcessProblemId(ecalc_id_generator())
 
     def get_constraint(self) -> Constraint:
         return self.constraint
@@ -74,11 +81,31 @@ class ProcessProblem:  # TODO: Rename to subproblem?
         return self.anti_surge_strategy
 
 
-@dataclass
-class ProcessSimulation:  # process_model?
-    id: UUID
-    stream_distribution: CommonStreamDistributionConfig | IndividualStreamDistributionConfig
-    process_problems: list[ProcessProblem]
+ProcessSimulationId = NewType("ProcessSimulationId", UUID)
+
+
+class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
+    """
+    TODO: one or more subproblems, where we first need to find the stream distribution before looking at each subproblem separately
+    quit and notify as soon as we notice we are not able to find a solution, or always finish?
+    """
+
+    def __init__(
+        self,
+        stream_distribution: CommonStreamDistributionConfig | IndividualStreamDistributionConfig,
+        process_problems: list[ProcessProblem],
+        process_simulation_id: ProcessSimulationId | None = None,
+    ):
+        self.stream_distribution = stream_distribution
+        self.process_problems = process_problems
+        self._id: Final[ProcessSimulationId] = process_simulation_id or ProcessSimulation._create_id()
+
+    def get_id(self) -> ProcessSimulationId:
+        return self._id
+
+    @classmethod
+    def _create_id(cls: type[Self]) -> ProcessSimulationId:
+        return ProcessSimulationId(ecalc_id_generator())
 
     def get_inlet_streams(self) -> list[TimeSeriesStream]:
         match self.stream_distribution:

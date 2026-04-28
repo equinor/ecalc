@@ -1,5 +1,3 @@
-import uuid
-
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_TEMPERATURE_KELVIN
@@ -33,7 +31,7 @@ def sidestream(fluid_service, fluid_model_medium):
 
 
 def test_mixer_adds_external_stream_rate(fluid_service, inlet_stream, sidestream):
-    mixer = Mixer(process_unit_id=uuid.uuid4(), fluid_service=fluid_service)
+    mixer = Mixer(fluid_service=fluid_service)
     mixer.set_stream(sidestream)
 
     outlet = mixer.propagate_stream(inlet_stream)
@@ -57,7 +55,7 @@ def test_mixer_uses_lowest_pressure(fluid_service, fluid_model_medium):
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         standard_rate_m3_per_day=100_000,
     )
-    mixer = Mixer(process_unit_id=uuid.uuid4(), fluid_service=fluid_service)
+    mixer = Mixer(fluid_service=fluid_service)
     mixer.set_stream(low_pressure_sidestream)
 
     outlet = mixer.propagate_stream(high_pressure_stream)
@@ -66,7 +64,7 @@ def test_mixer_uses_lowest_pressure(fluid_service, fluid_model_medium):
 
 
 def test_mixer_raises_when_no_stream_set(fluid_service, inlet_stream):
-    mixer = Mixer(process_unit_id=uuid.uuid4(), fluid_service=fluid_service)
+    mixer = Mixer(fluid_service=fluid_service)
 
     with pytest.raises(ValueError, match="no external stream set"):
         mixer.propagate_stream(inlet_stream)
@@ -80,7 +78,7 @@ def test_mixer_stream_can_be_updated(fluid_service, inlet_stream, sidestream, fl
         temperature_kelvin=STANDARD_TEMPERATURE_KELVIN,
         standard_rate_m3_per_day=200_000,
     )
-    mixer = Mixer(process_unit_id=uuid.uuid4(), fluid_service=fluid_service)
+    mixer = Mixer(fluid_service=fluid_service)
     mixer.set_stream(sidestream)
     mixer.set_stream(larger_sidestream)
 
@@ -96,7 +94,7 @@ def test_mixer_stream_can_be_updated(fluid_service, inlet_stream, sidestream, fl
 
 def test_splitter_removes_rate(fluid_service, inlet_stream):
     split_rate = 100_000.0
-    splitter = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=split_rate)
+    splitter = Splitter(fluid_service=fluid_service, rate=split_rate)
 
     outlet = splitter.propagate_stream(inlet_stream)
 
@@ -106,7 +104,7 @@ def test_splitter_removes_rate(fluid_service, inlet_stream):
 
 
 def test_splitter_preserves_pressure_and_temperature(fluid_service, inlet_stream):
-    splitter = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=50_000.0)
+    splitter = Splitter(fluid_service=fluid_service, rate=50_000.0)
 
     outlet = splitter.propagate_stream(inlet_stream)
 
@@ -115,7 +113,7 @@ def test_splitter_preserves_pressure_and_temperature(fluid_service, inlet_stream
 
 
 def test_splitter_zero_rate_is_passthrough(fluid_service, inlet_stream):
-    splitter = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=0.0)
+    splitter = Splitter(fluid_service=fluid_service, rate=0.0)
 
     outlet = splitter.propagate_stream(inlet_stream)
 
@@ -123,7 +121,7 @@ def test_splitter_zero_rate_is_passthrough(fluid_service, inlet_stream):
 
 
 def test_splitter_rate_can_be_updated(fluid_service, inlet_stream):
-    splitter = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=50_000.0)
+    splitter = Splitter(fluid_service=fluid_service, rate=50_000.0)
     splitter.set_rate(150_000.0)
 
     outlet = splitter.propagate_stream(inlet_stream)
@@ -135,7 +133,7 @@ def test_splitter_rate_can_be_updated(fluid_service, inlet_stream):
 
 def test_splitter_get_split_stream_has_split_rate(fluid_service, inlet_stream):
     split_rate = 100_000.0
-    splitter = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=split_rate)
+    splitter = Splitter(fluid_service=fluid_service, rate=split_rate)
 
     split_stream = splitter.get_split_stream(inlet_stream)
 
@@ -144,7 +142,7 @@ def test_splitter_get_split_stream_has_split_rate(fluid_service, inlet_stream):
 
 def test_splitter_through_and_split_stream_sum_to_inlet(fluid_service, inlet_stream):
     split_rate = 100_000.0
-    splitter = Splitter(process_unit_id=uuid.uuid4(), fluid_service=fluid_service, rate=split_rate)
+    splitter = Splitter(fluid_service=fluid_service, rate=split_rate)
 
     through = splitter.propagate_stream(inlet_stream)
     split = splitter.get_split_stream(inlet_stream)

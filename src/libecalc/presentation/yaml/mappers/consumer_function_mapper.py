@@ -57,7 +57,6 @@ from libecalc.domain.process.evaluation_input import (
     CompressorSampledEvaluationInput,
     PumpEvaluationInput,
 )
-from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
@@ -359,11 +358,9 @@ class CompressorModelMapper:
             temperature_setter=TemperatureSetter(
                 required_temperature_kelvin=inlet_temperature_kelvin,
                 fluid_service=fluid_service,
-                process_unit_id=create_process_unit_id(),
             ),
             liquid_remover=LiquidRemover(
                 fluid_service=fluid_service,
-                process_unit_id=create_process_unit_id(),
             )
             if remove_liquid_after_cooling
             else None,
@@ -372,7 +369,6 @@ class CompressorModelMapper:
                 Choke(
                     pressure_change=pressure_drop_ahead_of_stage,
                     fluid_service=fluid_service,
-                    process_unit_id=create_process_unit_id(),
                 )
                 if pressure_drop_ahead_of_stage
                 else None
@@ -605,11 +601,8 @@ class CompressorModelMapper:
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin,
                             fluid_service=fluid_service,
-                            process_unit_id=create_process_unit_id(),
                         ),
-                        liquid_remover=LiquidRemover(
-                            fluid_service=fluid_service, process_unit_id=create_process_unit_id()
-                        ),
+                        liquid_remover=LiquidRemover(fluid_service=fluid_service),
                         fluid_service=fluid_service,
                     )
                 )
@@ -670,11 +663,8 @@ class CompressorModelMapper:
                         temperature_setter=TemperatureSetter(
                             required_temperature_kelvin=inlet_temperature_kelvin,
                             fluid_service=fluid_service,
-                            process_unit_id=create_process_unit_id(),
                         ),
-                        liquid_remover=LiquidRemover(
-                            fluid_service=fluid_service, process_unit_id=create_process_unit_id()
-                        ),
+                        liquid_remover=LiquidRemover(fluid_service=fluid_service),
                         fluid_service=fluid_service,
                     )
                 )

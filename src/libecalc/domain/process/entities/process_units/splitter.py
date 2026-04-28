@@ -1,3 +1,5 @@
+from typing import Final
+
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
@@ -10,8 +12,8 @@ class Splitter(ProcessUnit):
     continues downstream.
     """
 
-    def __init__(self, process_unit_id: ProcessUnitId, fluid_service: FluidService, rate: float = 0.0):
-        self._id = process_unit_id
+    def __init__(self, fluid_service: FluidService, process_unit_id: ProcessUnitId | None = None, rate: float = 0.0):
+        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._fluid_service = fluid_service
         self._rate = rate
 

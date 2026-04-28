@@ -1,4 +1,3 @@
-import uuid
 from collections.abc import Sequence
 from dataclasses import dataclass
 from functools import total_ordering
@@ -7,11 +6,10 @@ from uuid import UUID
 
 T_co = TypeVar("T_co", covariant=True)
 
+# NOTE: We define this Id here for simplicity for now, since
+# ConfigurationHandler and Configuration depends on it, to avoid
+# circular dependency
 ConfigurationHandlerId = NewType("ConfigurationHandlerId", UUID)
-
-
-def create_configuration_handler_id() -> ConfigurationHandlerId:
-    return ConfigurationHandlerId(uuid.uuid4())
 
 
 @dataclass(frozen=True)

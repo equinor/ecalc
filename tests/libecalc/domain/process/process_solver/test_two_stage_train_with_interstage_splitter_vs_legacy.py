@@ -4,7 +4,6 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.entities.process_units.splitter import Splitter
 from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 
@@ -20,6 +19,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     compressor_factory,
     stage_units_factory,
     with_individual_asv,
+    process_pipeline_factory,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
@@ -96,7 +96,6 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
         temperature_kelvin=temperature,
     )
     interstage_splitter = Splitter(
-        process_unit_id=create_process_unit_id(),
         fluid_service=fluid_service,
         rate=export_rate_sm3_per_day,
     )
@@ -106,6 +105,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     recirculation_loop_ids = [loop.get_id() for loop in loops]
 
     runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
+    process_pipeline = process_pipeline_factory(units=units_new)
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
@@ -121,6 +121,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
+        process_pipeline_id=process_pipeline.get_id(),
     )
     solution = train_solver.find_solution(
         pressure_constraint=FloatConstraint(target_pressure),
