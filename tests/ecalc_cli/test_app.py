@@ -34,8 +34,12 @@ def _get_args(
     flow_diagram: bool = False,
     date_format_option: int = None,
     logs_folder: Path = None,
+    log_level: str = "INFO",
 ):
     args = []
+
+    args.append("--log")
+    args.append(log_level)
 
     if logs_folder is not None:
         args.append("--log-folder")
@@ -421,6 +425,7 @@ class TestLogFileOutput:
                 output_folder=tmp_path,
                 name_prefix=run_name_prefix,
                 logs_folder=tmp_path,
+                log_level="INFO",  # In order to print something to log when we do not have warnings
             ),
             catch_exceptions=False,
         )

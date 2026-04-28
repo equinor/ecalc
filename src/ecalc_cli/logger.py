@@ -91,7 +91,7 @@ class CLILogConfigurator:
                 "filename": self.__log_path / f"{date.today()}_debug.log",
                 "maxBytes": 10000000,  # 10 MB
                 "backupCount": 1,
-                "level": str(LogLevel.WARNING.value),
+                "level": str(self.__log_level.value),
             }
             log_config["loggers"]["cliecalc"]["handlers"].append("rotating_file_handler")
             log_config["loggers"]["libecalc"]["handlers"].append("rotating_file_handler")

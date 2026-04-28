@@ -6,7 +6,6 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc.common.consumption_type import ConsumptionType
-from libecalc.common.decorators.feature_flags import Feature
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.list.list_utils import array_to_list
@@ -254,7 +253,11 @@ class CompressorModelSampled:
         )
         turbine_result = turbine.calculate_turbine_power_usage(interpolated_consumer_values)
         turbine_energy_result = turbine_result.get_energy_result() if turbine_result is not None else None
-        turbine_power = turbine_energy_result.power.values if turbine_energy_result is not None else None
+        turbine_power = (
+            turbine_energy_result.power.values
+            if turbine_energy_result is not None and turbine_energy_result.power is not None
+            else None
+        )
 
         energy_usage = (
             turbine_energy_result.energy_usage.values
@@ -441,9 +444,6 @@ class CompressorModelSampled:
             else:
                 self.fuel_to_power_function = None
 
-        @Feature.experimental(  # type: ignore[misc]
-            feature_description="Calculate (turbine) power usage in fuel-driven compressor sampled model"
-        )
         def calculate_turbine_power_usage(self, fuel_usage_values: NDArray[np.float64]) -> TurbineResult | None:
             if self.fuel_to_power_function is not None and fuel_usage_values is not None:
                 load = self.fuel_to_power_function(fuel_usage_values)
