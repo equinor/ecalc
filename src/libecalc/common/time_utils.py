@@ -250,7 +250,7 @@ class Frequency(enum.StrEnum):
     D: calendar day.
     """
 
-    NONE = None
+    NONE = "none"
     YEAR = "YS"
     MONTH = "MS"
     DAY = "D"
