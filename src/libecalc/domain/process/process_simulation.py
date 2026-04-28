@@ -1,9 +1,10 @@
 from dataclasses import dataclass
-from typing import Final, Literal, NewType, Self
+from typing import Final, Literal, NewType, Self, assert_never
 from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.domain.process.stream_distribution.common_stream_distribution import Overflow
 from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -54,7 +55,7 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
         pressure_control_strategy: PressureControlConfig,
         anti_surge_strategy: AntiSurgeConfig,
         constraint: Constraint,
-        process_pipeline_id: UUID,
+        process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
         self.pressure_control_strategy = pressure_control_strategy
@@ -91,11 +92,11 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
 
     def __init__(
         self,
-        inlet_streams: list[TimeSeriesStream],
+        stream_distribution: CommonStreamDistributionConfig | IndividualStreamDistributionConfig,
         process_problems: list[ProcessProblem],
         process_simulation_id: ProcessSimulationId | None = None,
     ):
-        self.inlet_streams = inlet_streams
+        self.stream_distribution = stream_distribution
         self.process_problems = process_problems
         self._id: Final[ProcessSimulationId] = process_simulation_id or ProcessSimulation._create_id()
 
@@ -105,3 +106,12 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessSimulationId:
         return ProcessSimulationId(ecalc_id_generator())
+    
+    def get_inlet_streams(self) -> list[TimeSeriesStream]:
+        match self.stream_distribution:
+            case CommonStreamDistributionConfig():
+                return [self.stream_distribution.inlet_stream]
+            case IndividualStreamDistributionConfig():
+                return self.stream_distribution.inlet_streams
+            case _:
+                assert_never(self.stream_distribution)

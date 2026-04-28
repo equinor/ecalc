@@ -9,6 +9,7 @@ sidebar_position: -61
 # eCalc {{ version }}
 
 ## Features
+STP: "flare" column has been added to STP Export - for `FIXED` installations only.
 
 ## Bug Fixes
 

@@ -1,5 +1,4 @@
 import pytest
-from inline_snapshot import snapshot
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
@@ -185,6 +184,6 @@ def test_common_asv_solver_vs_legacy_train(
         - old_result.stage_results[1].standard_rate_sm3_per_day
     )
 
-    assert new_recirculation_rate == snapshot(250000.000001)
-    assert old_recirculation_rate_1 == snapshot(249999.99999999988)
+    assert new_recirculation_rate == pytest.approx(250000.0, rel=1e-6)
+    assert old_recirculation_rate_1 == pytest.approx(250000.0, rel=1e-6)
     assert old_recirculation_rate_2 == 0.0

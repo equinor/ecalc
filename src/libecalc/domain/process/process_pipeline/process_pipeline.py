@@ -8,7 +8,6 @@ from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit
 
 ProcessPipelineId = NewType("ProcessPipelineId", UUID)
 
-
 class ProcessPipeline(Entity[ProcessPipelineId]):
     def __init__(self, stream_propagators: Sequence[ProcessUnit], process_pipeline_id: ProcessPipelineId | None = None):
         self.stream_propagators = stream_propagators
