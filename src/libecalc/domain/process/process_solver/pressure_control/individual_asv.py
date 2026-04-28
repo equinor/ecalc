@@ -85,7 +85,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
             current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
 
-            def recirculation_func(config: RecirculationConfiguration):
+            def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
                 self._simulator.apply_configuration(
                     Configuration(configuration_handler_id=recirculation_loop_id, value=config)
                 )
