@@ -59,8 +59,7 @@ class Entity[TId: UUID](ABC):
             return False
         if not isinstance(other, Entity):
             raise TypeError(
-                f"Cannot compare Entity with {type(other).__name__}. "
-                "Entities can only be compared with other Entities."
+                f"Cannot compare Entity with {type(other).__name__}. Entities can only be compared with other Entities."
             )
         return type(self) is type(other) and self.get_id() == other.get_id()
 

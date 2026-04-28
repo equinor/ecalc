@@ -1,27 +1,27 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ChartRateUnit(str, Enum):
+class ChartRateUnit(StrEnum):
     AM3_PER_HOUR = "AM3_PER_HOUR"
 
 
-class ChartPolytropicHeadUnit(str, Enum):
+class ChartPolytropicHeadUnit(StrEnum):
     J_PER_KG = "JOULE_PER_KG"
     KJ_PER_KG = "KJ_PER_KG"
     M = "M"
 
 
-class ChartEfficiencyUnit(str, Enum):
+class ChartEfficiencyUnit(StrEnum):
     FRACTION = "FRACTION"
     PERCENTAGE = "PERCENTAGE"
 
 
-class ChartControlMarginUnit(str, Enum):
+class ChartControlMarginUnit(StrEnum):
     FRACTION = "FRACTION"
     PERCENTAGE = "PERCENTAGE"
 
 
-class InterpolationType(str, Enum):
+class InterpolationType(StrEnum):
     LEFT = "LEFT"
     RIGHT = "RIGHT"
     LINEAR = "LINEAR"

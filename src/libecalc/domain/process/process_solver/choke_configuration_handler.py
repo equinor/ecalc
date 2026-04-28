@@ -20,10 +20,10 @@ class ChokeConfigurationHandler(ConfigurationHandler):
         return self._id
 
     def handle_configuration(self, configuration: Configuration) -> None:
-        assert (
-            configuration.configuration_handler_id == self._id
-        ), f"Configuration id '{configuration.configuration_handler_id}' does not match choke configuration handler id '{self._id}'"
-        assert isinstance(
-            configuration.value, ChokeConfiguration
-        ), f"Expected configuration value to be of type 'ChokeConfiguration', got '{type(configuration.value)}'"
+        assert configuration.configuration_handler_id == self._id, (
+            f"Configuration id '{configuration.configuration_handler_id}' does not match choke configuration handler id '{self._id}'"
+        )
+        assert isinstance(configuration.value, ChokeConfiguration), (
+            f"Expected configuration value to be of type 'ChokeConfiguration', got '{type(configuration.value)}'"
+        )
         self._choke.set_pressure_change(configuration.value.delta_pressure)

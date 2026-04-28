@@ -43,7 +43,7 @@ class YamlFuelConsumer(YamlBase):
     fuel: YamlTemporalModel[str] = Field(
         None,
         title="FUEL",
-        description="The fuel used by the consumer." "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
+        description="The fuel used by the consumer.\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL",
     )
 
     @model_validator(mode="after")

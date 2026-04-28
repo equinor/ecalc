@@ -1,7 +1,7 @@
 from collections.abc import Iterable, Iterator
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Generic, Self, TypeVar
+from typing import Self, TypeVar
 
 from libecalc.common.time_utils import Period, define_time_model_for_period
 
@@ -39,12 +39,12 @@ class UnsortedKeys(InvalidTemporalModel):
 
 
 @dataclass
-class Model(Generic[ModelType]):
+class Model[ModelType]:
     period: Period
     model: ModelType
 
 
-class TemporalModel(Generic[ModelType]):
+class TemporalModel[ModelType]:
     """If data has datetime keys, convert to Period keys"""
 
     def __init__(self, data: dict[datetime, ModelType] | dict[Period, ModelType]):

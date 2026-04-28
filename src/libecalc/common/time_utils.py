@@ -242,7 +242,7 @@ def define_time_model_for_period(time_model_data: Any | None, target_period: Per
     return dict_to_return
 
 
-class Frequency(str, enum.Enum):
+class Frequency(enum.StrEnum):
     """Represents frequency/resolution of output data
     Using the offset aliases from pandas
     YS: year start
@@ -250,7 +250,7 @@ class Frequency(str, enum.Enum):
     D: calendar day.
     """
 
-    NONE = None
+    NONE = "none"
     YEAR = "YS"
     MONTH = "MS"
     DAY = "D"

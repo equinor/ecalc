@@ -236,21 +236,21 @@ def test_mix_neqsim_streams():
     mixed_comp_dict = mixed_composition.model_dump()
 
     # Check primary components with specific values
-    assert np.isclose(
-        mixed_comp_dict.get("methane", 0.0), expected_values["methane"]
-    ), f"Methane fraction is {mixed_comp_dict.get('methane', 0.0)}, expected {expected_values['methane']}"
+    assert np.isclose(mixed_comp_dict.get("methane", 0.0), expected_values["methane"]), (
+        f"Methane fraction is {mixed_comp_dict.get('methane', 0.0)}, expected {expected_values['methane']}"
+    )
 
-    assert np.isclose(
-        mixed_comp_dict.get("ethane", 0.0), expected_values["ethane"]
-    ), f"Ethane fraction is {mixed_comp_dict.get('ethane', 0.0)}, expected {expected_values['ethane']}"
+    assert np.isclose(mixed_comp_dict.get("ethane", 0.0), expected_values["ethane"]), (
+        f"Ethane fraction is {mixed_comp_dict.get('ethane', 0.0)}, expected {expected_values['ethane']}"
+    )
 
-    assert np.isclose(
-        mixed_comp_dict.get("propane", 0.0), expected_values["propane"]
-    ), f"Propane fraction is {mixed_comp_dict.get('propane', 0.0)}, expected {expected_values['propane']}"
+    assert np.isclose(mixed_comp_dict.get("propane", 0.0), expected_values["propane"]), (
+        f"Propane fraction is {mixed_comp_dict.get('propane', 0.0)}, expected {expected_values['propane']}"
+    )
 
-    assert np.isclose(
-        mixed_comp_dict.get("n_butane", 0.0), expected_values["n_butane"]
-    ), f"n_butane fraction is {mixed_comp_dict.get('n_butane', 0.0)}, expected {expected_values['n_butane']}"
+    assert np.isclose(mixed_comp_dict.get("n_butane", 0.0), expected_values["n_butane"]), (
+        f"n_butane fraction is {mixed_comp_dict.get('n_butane', 0.0)}, expected {expected_values['n_butane']}"
+    )
 
     # Verify the returned NeqsimFluid has the correct properties
     assert mixed_fluid.molar_mass > 0, "Molar mass should be positive"

@@ -1,6 +1,6 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ConsumptionType(str, Enum):
+class ConsumptionType(StrEnum):
     FUEL = "FUEL"
     ELECTRICITY = "ELECTRICITY"

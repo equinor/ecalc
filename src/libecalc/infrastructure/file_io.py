@@ -48,7 +48,7 @@ class UnzippedFile:
     file: IO
 
 
-class EcalcFileType(str, enum.Enum):
+class EcalcFileType(enum.StrEnum):
     YAML = "yaml"
     CSV = "csv"
     ZIP = "zip"

@@ -3,7 +3,7 @@ import typing
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import reduce
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 TResult = TypeVar("TResult")
 
@@ -12,19 +12,19 @@ PriorityID = str
 
 
 @dataclass
-class PriorityOptimizerResult(Generic[TResult]):
+class PriorityOptimizerResult[TResult]:
     priority_used: PriorityID
     priority_results: list[typing.Any]  # TODO: typing. This is the consumer results merged based on priorities used
 
 
 @dataclass
-class EvaluatorResult(Generic[TResult]):
+class EvaluatorResult[TResult]:
     id: ComponentID
     result: TResult
     is_valid: bool
 
 
-class PriorityOptimizer(Generic[TResult]):
+class PriorityOptimizer[TResult]:
     def optimize(
         self,
         priorities: list[PriorityID],

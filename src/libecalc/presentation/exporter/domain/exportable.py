@@ -1,17 +1,17 @@
 from abc import ABC, abstractmethod
 from collections.abc import Iterable, Iterator, Sequence
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 
 
-class ExportableType(str, Enum):
+class ExportableType(StrEnum):
     INSTALLATION = "INSTALLATION"
 
 
-class ConsumptionType(str, Enum):
+class ConsumptionType(StrEnum):
     FUEL = "FUEL"
     ELECTRICITY = "ELECTRICITY"
 

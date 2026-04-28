@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 
 
-class LogLevel(str, enum.Enum):
+class LogLevel(enum.StrEnum):
     """Valid log levels for CLI logger."""
 
     ERROR = "ERROR"

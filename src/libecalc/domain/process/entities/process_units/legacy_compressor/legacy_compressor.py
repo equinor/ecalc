@@ -93,9 +93,9 @@ class LegacyCompressor:
         actual_rate_m3_per_h_including_asv: float,
     ):
         assert self.speed is not None, "Speed must be set before calculating polytropic values."
-        assert (
-            self._rate_before_asv_m3_per_h is not None
-        ), "Rate before ASV must be set before calculating chart area flag."
+        assert self._rate_before_asv_m3_per_h is not None, (
+            "Rate before ASV must be set before calculating chart area flag."
+        )
 
         chart_result = self.compressor_chart.calculate_polytropic_head_and_efficiency_single_point(
             speed=self.speed,

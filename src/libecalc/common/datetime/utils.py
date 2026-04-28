@@ -1,9 +1,9 @@
-from enum import Enum
+from enum import StrEnum
 
 from libecalc.common.logger import logger
 
 
-class DateTimeFormats(str, Enum):
+class DateTimeFormats(StrEnum):
     date_format_iso_8601 = "%Y-%m-%d"
     date_format_iso_8601_no_dash = "%Y%m%d"
     date_format_alternative_dd_mm_yyyy = "%d.%m.%Y"

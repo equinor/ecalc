@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyResult, Quantity
 
 
-class PumpFailureStatus(str, Enum):
+class PumpFailureStatus(StrEnum):
     NO_FAILURE = "NO_FAILURE"
     ABOVE_MAXIMUM_PUMP_RATE = "ABOVE_MAXIMUM_PUMP_RATE"
     REQUIRED_HEAD_ABOVE_ACTUAL_HEAD = "REQUIRED_HEAD_ABOVE_ACTUAL_HEAD"

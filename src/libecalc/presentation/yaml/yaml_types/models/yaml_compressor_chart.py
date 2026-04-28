@@ -19,17 +19,17 @@ class YamlCurve(YamlBase):
     efficiency: list[float]
 
 
-class YamlRateUnits(str, enum.Enum):
+class YamlRateUnits(enum.StrEnum):
     AM3_PER_HOUR = "AM3_PER_HOUR"
 
 
-class YamlHeadUnits(str, enum.Enum):
+class YamlHeadUnits(enum.StrEnum):
     M = "M"
     KJ_PER_KG = "KJ_PER_KG"
     JOULE_PER_KG = "JOULE_PER_KG"
 
 
-class YamlEfficiencyUnits(str, enum.Enum):
+class YamlEfficiencyUnits(enum.StrEnum):
     FRACTION = "FRACTION"
     PERCENTAGE = "PERCENTAGE"
 

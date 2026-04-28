@@ -1,4 +1,4 @@
-from typing import Annotated, Generic, Literal, TypeAlias, TypeVar
+from typing import Annotated, Literal, TypeVar
 
 from pydantic import Field
 
@@ -50,7 +50,7 @@ class YamlCompressor(YamlBase):
     compressor_model: YamlCompressorModelChart
 
 
-ProcessSystemReference: TypeAlias = str  # TODO: validate correct reference
+type ProcessSystemReference = str  # TODO: validate correct reference
 
 CompressorReference = ProcessUnitReference  # TODO: validate correct process unit type
 
@@ -78,7 +78,7 @@ class YamlCompressorStageProcessSystem(YamlBase):
 TTarget = TypeVar("TTarget")
 
 
-class YamlItem(YamlBase, Generic[TTarget]):
+class YamlItem[TTarget](YamlBase):
     target: TTarget | ProcessSystemReference
 
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Generic, Protocol, Self, TypeVar
+from typing import Protocol, Self, TypeVar
 from uuid import UUID
 
 import networkx as nx
@@ -16,7 +16,7 @@ class NodeWithID(Protocol):
 TNode = TypeVar("TNode", bound=NodeWithID | UUID)
 
 
-class Graph(Generic[TNode]):
+class Graph[TNode: NodeWithID | UUID]:
     def __init__(self):
         self.graph: nx.DiGraph = nx.DiGraph()
         self.nodes: dict[NodeID, TNode] = {}

@@ -75,7 +75,7 @@ class Regularity:
         values = self.temporal_expression.evaluate()
         invalid_values = [value for value in values if not (0 <= value <= 1)]
         if invalid_values:
-            msg = f"REGULARITY must evaluate to fractions between 0 and 1. " f"Invalid values: {invalid_values}"
+            msg = f"REGULARITY must evaluate to fractions between 0 and 1. Invalid values: {invalid_values}"
             raise InvalidRegularity(message=msg)
 
     def get_subset(self, start_index: int, end_index: int) -> Self:

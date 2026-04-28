@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class ChartType(str, Enum):
+class ChartType(StrEnum):
     SINGLE_SPEED = "SINGLE_SPEED_CHART"
     VARIABLE_SPEED = "VARIABLE_SPEED_CHART"
     GENERIC_FROM_DESIGN_POINT = "GENERIC_CHART_FROM_DESIGN_POINT"
