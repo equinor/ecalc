@@ -29,3 +29,8 @@ class ProcessRunner(abc.ABC):
 
         """
         ...
+
+    @abc.abstractmethod
+    def get_max_standard_rate(self, inlet_stream: FluidStream) -> float:
+        """Bottleneck inlet standard rate [sm³/day] at the current configured state."""
+        ...

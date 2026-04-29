@@ -1,6 +1,6 @@
 from collections.abc import Iterable, Sequence
 
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId, RateConstrainedUnit
 from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
@@ -55,3 +55,11 @@ class ProcessPipelineRunner(ProcessRunner):
             return current_stream
         else:
             return propagate_stream_many(process_units=list(self._units.values()), inlet_stream=inlet_stream)
+
+    def get_max_standard_rate(self, inlet_stream: FluidStream) -> float:
+        min_max_rate = float("inf")
+        for unit in self._units.values():
+            if isinstance(unit, RateConstrainedUnit):
+                unit_inlet = self.run(inlet_stream=inlet_stream, to_id=unit.get_id())
+                min_max_rate = min(min_max_rate, unit.get_maximum_standard_rate(unit_inlet))
+        return max(0.0, min_max_rate)
