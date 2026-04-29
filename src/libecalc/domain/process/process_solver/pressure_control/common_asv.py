@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 
-from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
@@ -16,7 +15,8 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationConfiguration,
     RecirculationSolver,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.process_solver.unit_protocol import RecirculatingUnit
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class CommonASVPressureControlStrategy(PressureControlStrategy):
@@ -31,20 +31,20 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         self,
         simulator: ProcessRunner,
         recirculation_loop_id: ConfigurationHandlerId,
-        first_compressor: Compressor,
+        first_unit: RecirculatingUnit,
         root_finding_strategy: RootFindingStrategy,
     ):
         self._simulator = simulator
         self._recirculation_loop_id = recirculation_loop_id
-        self._first_compressor = first_compressor
+        self._first_unit = first_unit
         self._root_finding_strategy = root_finding_strategy
 
     def apply(
         self,
         target_pressure: FloatConstraint,
-        inlet_stream: FluidStream,
+        inlet_stream: StreamWithPressure,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
-        def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
+        def recirculation_func(config: RecirculationConfiguration) -> StreamWithPressure:
             self._simulator.apply_configuration(
                 Configuration(configuration_handler_id=self._recirculation_loop_id, value=config)
             )
@@ -60,8 +60,8 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                 value=RecirculationConfiguration(recirculation_rate=0.0),
             )
         )
-        compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
-        boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
+        unit_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_unit.get_id())
+        boundary = self._first_unit.get_recirculation_range(unit_inlet_stream)
         min_configuration = RecirculationConfiguration(recirculation_rate=boundary.max)
         min_pressure_stream = recirculation_func(min_configuration)
 

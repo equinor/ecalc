@@ -1,3 +1,5 @@
+from typing import cast
+
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
@@ -49,7 +51,7 @@ class FeasibilitySolver:
         Returns the full inlet rate if the solver succeeds, otherwise finds the
         bottleneck compressor's stone wall limit at the current operating point.
         """
-        solution = self._solver.find_solution(target_pressure, inlet_stream)
+        solution = self._solver.find_solution(target_pressure, inlet_stream)  # pyright: ignore[reportArgumentType] - FluidStream satisfies StreamWithPressure at runtime
 
         if solution.success:
             # The train can handle the full rate — no need to search for a bottleneck.
@@ -61,9 +63,12 @@ class FeasibilitySolver:
         # Search for compressor with the lowest max rate
         min_max_rate = float("inf")
         for compressor in self._compressors:
-            compressor_inlet = self._runner.run(
-                inlet_stream=inlet_stream,
-                to_id=compressor.get_id(),
+            compressor_inlet = cast(
+                FluidStream,
+                self._runner.run(  # pyright: ignore[reportArgumentType]
+                    inlet_stream=inlet_stream,
+                    to_id=compressor.get_id(),
+                ),
             )
             max_rate = compressor.get_maximum_standard_rate(compressor_inlet)
             min_max_rate = min(min_max_rate, max_rate)

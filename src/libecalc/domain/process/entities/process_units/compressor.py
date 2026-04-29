@@ -5,21 +5,21 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
     calculate_outlet_pressure_and_stream,
 )
 from libecalc.domain.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_pipeline.process_unit import GasProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class Compressor(ProcessUnit):
+class Compressor(GasProcessUnit):
     def __init__(
         self,
         compressor_chart: ChartData,
         fluid_service: FluidService,
         process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or GasProcessUnit._create_id()
         self._compressor_chart = CompressorChart(compressor_chart)
         self._fluid_service = fluid_service
         self._speed: float | None = None
@@ -85,6 +85,14 @@ class Compressor(ProcessUnit):
     def set_speed(self, speed: float) -> None:
         """Set the rotational speed used for chart lookup."""
         self._speed = speed
+
+    @property
+    def minimum_speed(self) -> float:
+        return self._compressor_chart.minimum_speed
+
+    @property
+    def maximum_speed(self) -> float:
+        return self._compressor_chart.maximum_speed
 
     def get_minimum_standard_rate(self, inlet_stream: FluidStream) -> float:
         """Minimum standard volumetric rate [sm³/day] at current speed.

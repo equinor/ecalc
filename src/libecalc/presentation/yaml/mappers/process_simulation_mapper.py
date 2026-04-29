@@ -265,14 +265,14 @@ class ProcessSimulationMapper:
                 return CommonASVAntiSurgeStrategy(
                     simulator=simulator,
                     root_finding_strategy=ScipyRootFindingStrategy(),
-                    first_compressor=compressors[0],
+                    first_unit=compressors[0],  # pyright: ignore[reportArgumentType] - Compressor satisfies RecirculatingUnit at runtime
                     recirculation_loop_id=recirculation_loop_ids[0],
                 )
             case "INDIVIDUAL_ASV":
                 return IndividualASVAntiSurgeStrategy(
                     simulator=simulator,
                     recirculation_loop_ids=recirculation_loop_ids,
-                    compressors=compressors,
+                    units=compressors,  # pyright: ignore[reportArgumentType]
                 )
             case _:
                 assert_never(recirculation_type)

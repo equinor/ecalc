@@ -3,21 +3,21 @@ from typing import Final
 import pytest
 
 from libecalc.domain.process.entities.shaft import Shaft, VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_pipeline.process_unit import GasProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
 from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
-class SpeedProcessUnit(ProcessUnit):
+class SpeedProcessUnit(GasProcessUnit):
     def __init__(
         self,
         shaft: Shaft,
         fluid_service: FluidService,
         process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or GasProcessUnit._create_id()
         self._shaft = shaft
         self._fluid_service = fluid_service
 

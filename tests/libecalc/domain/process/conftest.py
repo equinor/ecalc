@@ -5,7 +5,7 @@ import pytest
 from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.domain.process.process_pipeline.process_unit import GasProcessUnit, ProcessUnit, ProcessUnitId
 from libecalc.domain.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
     BinarySearchStrategy,
@@ -138,14 +138,14 @@ def fluid_stream_mock(mock_fluid) -> FluidStream:
     return FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)
 
 
-class SimpleProcessUnit(ProcessUnit):
+class SimpleProcessUnit(GasProcessUnit):
     def __init__(
         self,
         pressure_multiplier: float,
         fluid_service: FluidService,
         process_unit_id: ProcessUnitId | None = None,
     ):
-        self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
+        self._id: Final[ProcessUnitId] = process_unit_id or GasProcessUnit._create_id()
         self._pressure_multiplier = pressure_multiplier
         self._fluid_service = fluid_service
 

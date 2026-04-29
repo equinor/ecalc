@@ -15,7 +15,7 @@ from libecalc.domain.process.process_solver.solver import (
     TargetNotAchievableEvent,
 )
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class MultiPressureSolver:
@@ -67,7 +67,7 @@ class MultiPressureSolver:
     def find_solution(
         self,
         pressure_targets: list[FloatConstraint],
-        inlet_stream: FluidStream,
+        inlet_stream: StreamWithPressure,
     ) -> Solution[Sequence[Configuration]]:
         if len(pressure_targets) != len(self._segments):
             raise DomainValidationException(

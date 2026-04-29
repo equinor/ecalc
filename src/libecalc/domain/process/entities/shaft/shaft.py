@@ -1,8 +1,9 @@
+import uuid
 from abc import ABC, abstractmethod
-from typing import Final
+from typing import Final, NewType, Protocol, runtime_checkable
+from uuid import UUID
 
 from libecalc.common.errors.exceptions import ProgrammingError
-from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.configuration import (
     Configuration,
@@ -10,12 +11,32 @@ from libecalc.domain.process.process_solver.configuration import (
 )
 from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler, ConfigurationHandlerId
 
+ShaftId = NewType("ShaftId", UUID)
 
-class Shaft(ConfigurationHandler, ABC):
-    """Abstract base class for a shaft.
 
-    Can be expanded to include more properties and methods as needed.
-    Name, id, units connected to it, etc
+def create_shaft_id() -> ShaftId:
+    return ShaftId(uuid.uuid4())
+
+
+@runtime_checkable
+class ShaftConnectable(Protocol):
+    """Any unit that can be mounted on a shaft: exposes speed bounds and accepts speed updates."""
+
+    @property
+    def minimum_speed(self) -> float: ...
+
+    @property
+    def maximum_speed(self) -> float: ...
+
+    def set_speed(self, speed: float) -> None: ...
+
+
+class Shaft[T: ShaftConnectable](ConfigurationHandler, ABC):
+    """Abstract base class for a shaft driving a homogeneous set of process units.
+
+    A shaft connects to either compressors or pumps — never a mix of both.
+    The generic parameter _T enforces this at the type-checking level:
+        VariableSpeedShaft[Compressor], SingleSpeedShaft[Pump], etc.
     """
 
     def __init__(
@@ -25,7 +46,7 @@ class Shaft(ConfigurationHandler, ABC):
     ):
         self._id: Final[ConfigurationHandlerId] = configuration_handler_id or ConfigurationHandler._create_id()
         self._speed_rpm = speed_rpm
-        self._compressors: list[Compressor] = []
+        self._units: list[T] = []
 
     def get_id(self) -> ConfigurationHandlerId:
         return self._id
@@ -43,10 +64,10 @@ class Shaft(ConfigurationHandler, ABC):
     def set_speed(self, value: float) -> None:
         pass
 
-    def connect(self, compressor: Compressor) -> None:
-        if compressor in self._compressors:
-            raise ProgrammingError("Compressor is already registered on this shaft.")
-        self._compressors.append(compressor)
+    def connect(self, unit: T) -> None:
+        if unit in self._units:
+            raise ProgrammingError("Unit is already registered on this shaft.")
+        self._units.append(unit)
 
     def get_speed(self) -> float:
         if self._speed_rpm is None:
@@ -61,21 +82,19 @@ class Shaft(ConfigurationHandler, ABC):
         return self._speed_rpm is not None
 
     def get_speed_boundary(self) -> Boundary:
-        from libecalc.domain.process.process_solver.boundary import Boundary
-
-        if not self._compressors:
-            raise ValueError("No compressors registered on this shaft.")
-        min_speed = max(c.compressor_chart.minimum_speed for c in self._compressors)
-        max_speed = min(c.compressor_chart.maximum_speed for c in self._compressors)
+        if not self._units:
+            raise ValueError("No units registered on this shaft.")
+        min_speed = max(u.minimum_speed for u in self._units)
+        max_speed = min(u.maximum_speed for u in self._units)
         return Boundary(min=min_speed, max=max_speed)
 
     def _apply_speed(self, value: float):
         self._speed_rpm = value
-        for compressor in self._compressors:
-            compressor.set_speed(value)
+        for unit in self._units:
+            unit.set_speed(value)
 
 
-class SingleSpeedShaft(Shaft):
+class SingleSpeedShaft[T: ShaftConnectable](Shaft[T]):
     def set_speed(self, value: float):
         if self._speed_rpm is None:
             self._apply_speed(value)
@@ -83,6 +102,6 @@ class SingleSpeedShaft(Shaft):
             raise AttributeError("Speed has already been set. Cannot modify speed of SingleSpeedShaft")
 
 
-class VariableSpeedShaft(Shaft):
+class VariableSpeedShaft[T: ShaftConnectable](Shaft[T]):
     def set_speed(self, value: float):
         self._apply_speed(value)

@@ -101,6 +101,11 @@ class FluidStream:
         return self.fluid.standard_density_gas_phase_after_flash
 
     @property
+    def standard_density(self) -> float:
+        """Gas phase density at standard conditions [kg/Sm³]."""
+        return self.fluid.standard_density_gas_phase_after_flash
+
+    @property
     def enthalpy_joule_per_kg(self) -> float:
         """Get specific enthalpy [J/kg]."""
         return self.fluid.enthalpy_joule_per_kg

@@ -65,7 +65,7 @@ def test_individual_asv_pressure_control_reaches_target_pressure(
     strategy = individual_asv_pressure_control_strategy_factory(
         runner=runner,
         recirculation_loop_ids=loop_ids,
-        compressors=compressors,
+        units=compressors,
     )
 
     target = FloatConstraint(target_pressure_bara)
@@ -137,7 +137,7 @@ def test_individual_asv_pressure_each_stage_meets_geometric_target(
     strategy = individual_asv_pressure_control_strategy_factory(
         runner=runner,
         recirculation_loop_ids=[loop.get_id() for loop in loops],
-        compressors=compressors,
+        units=compressors,
     )
 
     # Solve and apply the resulting per-loop recirculation rates.

@@ -131,12 +131,12 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=low_pressure_runner,
             recirculation_loop_ids=low_pressure_loop_ids,
-            compressors=low_pressure_compressors,
+            units=low_pressure_compressors,
         ),
         pressure_control_strategy=individual_asv_rate_control_strategy_factory(
             runner=low_pressure_runner,
             recirculation_loop_ids=low_pressure_loop_ids,
-            compressors=low_pressure_compressors,
+            units=low_pressure_compressors,
         ),
         root_finding_strategy=root_finding_strategy,
         speed_boundary=speed_boundary,
@@ -148,12 +148,12 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=high_pressure_runner,
             recirculation_loop_ids=high_pressure_loop_ids,
-            compressors=high_pressure_compressors,
+            units=high_pressure_compressors,
         ),
         pressure_control_strategy=individual_asv_rate_control_strategy_factory(
             runner=high_pressure_runner,
             recirculation_loop_ids=high_pressure_loop_ids,
-            compressors=high_pressure_compressors,
+            units=high_pressure_compressors,
         ),
         root_finding_strategy=root_finding_strategy,
         speed_boundary=speed_boundary,
@@ -299,12 +299,12 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
             anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
                 runner=runner,
                 recirculation_loop_ids=loop_ids,
-                compressors=compressors,
+                units=compressors,
             ),
             pressure_control_strategy=individual_asv_rate_control_strategy_factory(
                 runner=runner,
                 recirculation_loop_ids=loop_ids,
-                compressors=compressors,
+                units=compressors,
             ),
             root_finding_strategy=root_finding_strategy,
             speed_boundary=speed_boundary,
@@ -399,10 +399,10 @@ def test_target_not_achievable_event_identifies_failing_segment(
         shaft_id=shaft.get_id(),
         runner=lp_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
-            runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
+            runner=lp_runner, recirculation_loop_ids=lp_loop_ids, units=lp_compressors
         ),
         pressure_control_strategy=individual_asv_rate_control_strategy_factory(
-            runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
+            runner=lp_runner, recirculation_loop_ids=lp_loop_ids, units=lp_compressors
         ),
         root_finding_strategy=root_finding_strategy,
         speed_boundary=speed_boundary,
@@ -412,10 +412,10 @@ def test_target_not_achievable_event_identifies_failing_segment(
         shaft_id=shaft.get_id(),
         runner=hp_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
-            runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
+            runner=hp_runner, recirculation_loop_ids=hp_loop_ids, units=hp_compressors
         ),
         pressure_control_strategy=individual_asv_rate_control_strategy_factory(
-            runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
+            runner=hp_runner, recirculation_loop_ids=hp_loop_ids, units=hp_compressors
         ),
         root_finding_strategy=root_finding_strategy,
         speed_boundary=speed_boundary,

@@ -9,7 +9,7 @@ from libecalc.domain.process.process_solver.solver import (
     SolverFailureStatus,
     TargetNotAchievableEvent,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 from .downstream_choke_solver import ChokeConfiguration
 
@@ -25,7 +25,7 @@ class UpstreamChokeSolver(Solver):
         self._delta_pressure_boundary = delta_pressure_boundary
         self._root_finding_strategy = root_finding_strategy
 
-    def solve(self, func: Callable[[ChokeConfiguration], FluidStream]) -> Solution[ChokeConfiguration]:
+    def solve(self, func: Callable[[ChokeConfiguration], StreamWithPressure]) -> Solution[ChokeConfiguration]:
         def outlet_pressure(config: ChokeConfiguration) -> float:
             """Evaluate outlet pressure, treating RateTooHighError as infeasible (pressure = 0).
 

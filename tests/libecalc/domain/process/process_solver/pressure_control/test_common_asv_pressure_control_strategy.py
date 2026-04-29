@@ -64,7 +64,7 @@ def test_common_asv_pressure_control_uses_compressor_inlet_for_boundary(
     strategy = common_asv_pressure_control_strategy_factory(
         runner=runner,
         recirculation_loop_id=recirculation_loop.get_id(),
-        first_compressor=compressor,
+        first_unit=compressor,
     )
 
     # Compute both candidate boundaries independently, to verify difference

@@ -1,7 +1,6 @@
 from collections.abc import Sequence
 from typing import override
 
-from libecalc.domain.process.entities.process_units.compressor import Compressor
 from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
 from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.domain.process.process_solver.configuration import Configuration, ConfigurationHandlerId
@@ -12,29 +11,26 @@ from libecalc.domain.process.process_solver.solver import (
     SolverFailureStatus,
 )
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.process_solver.unit_protocol import RecirculatingUnit
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
-    """Anti-surge strategy for INDIVIDUAL ASV topology (one recirculation loop per stage).
+    """Anti-surge / minimum-flow strategy for INDIVIDUAL ASV topology.
 
-    Propagates stage-by-stage, setting each stage’s ASV recirculation to the minimum feasible
-    value based on that stage’s actual inlet stream, and returns the final outlet stream.
-
-    Contract:
-      - Mutates each stage's RecirculationLoop by setting its recirculation rate.
-      - Returns the outlet stream after all stages have been propagated with minimum feasible recirculation.
+    One recirculation loop per stage. Works for both compressor anti-surge and
+    pump minimum-flow bypass — any unit satisfying RecirculatingUnit.
     """
 
     def __init__(
         self,
         recirculation_loop_ids: Sequence[ConfigurationHandlerId],
-        compressors: Sequence[Compressor],
+        units: Sequence[RecirculatingUnit],
         simulator: ProcessRunner,
     ):
-        assert len(recirculation_loop_ids) == len(compressors)
+        assert len(recirculation_loop_ids) == len(units)
         self._recirculation_loop_ids = recirculation_loop_ids
-        self._compressors = compressors
+        self._units = units
         self._simulator = simulator
 
     def _apply_recirculation_configuration(self, loop_id: ConfigurationHandlerId, recirculation_rate: float):
@@ -60,11 +56,11 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
             )
 
     @override
-    def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
+    def apply(self, inlet_stream: StreamWithPressure) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         configurations: Sequence[Configuration[RecirculationConfiguration]] = []
-        for loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors, strict=True):
+        for loop_id, unit in zip(self._recirculation_loop_ids, self._units, strict=True):
             try:
-                inlet_stream_compressor = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
+                inlet_stream_unit = self._simulator.run(inlet_stream=inlet_stream, to_id=unit.get_id())
             except RateTooHighError as e:
                 return Solution(
                     success=False,
@@ -76,19 +72,19 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
                         source_id=e.process_unit_id,
                     ),
                 )
-            max_actual_rate = compressor.maximum_flow_rate
-            if inlet_stream_compressor.volumetric_rate_m3_per_hour > max_actual_rate:
+            max_actual_rate = unit.maximum_flow_rate
+            if inlet_stream_unit.volumetric_rate_m3_per_hour > max_actual_rate:  # pyright: ignore[reportAttributeAccessIssue]
                 return Solution(
                     success=False,
                     configuration=configurations,
                     failure_event=OutsideCapacityEvent(
                         status=SolverFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
-                        actual_value=inlet_stream_compressor.volumetric_rate_m3_per_hour,
+                        actual_value=inlet_stream_unit.volumetric_rate_m3_per_hour,  # pyright: ignore[reportAttributeAccessIssue]
                         boundary_value=max_actual_rate,
-                        source_id=compressor.get_id(),
+                        source_id=unit.get_id(),
                     ),
                 )
-            boundary = compressor.get_recirculation_range(inlet_stream=inlet_stream_compressor)
+            boundary = unit.get_recirculation_range(inlet_stream=inlet_stream_unit)
             configuration: Configuration[RecirculationConfiguration] = Configuration(
                 configuration_handler_id=loop_id,
                 value=RecirculationConfiguration(

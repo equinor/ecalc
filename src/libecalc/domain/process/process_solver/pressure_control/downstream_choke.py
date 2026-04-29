@@ -10,7 +10,7 @@ from libecalc.domain.process.process_solver.solvers.downstream_choke_solver impo
     DownstreamChokeSolver,
 )
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class DownstreamChokePressureControlStrategy(PressureControlStrategy):
@@ -30,9 +30,9 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
     def apply(
         self,
         target_pressure: FloatConstraint,
-        inlet_stream: FluidStream,
+        inlet_stream: StreamWithPressure,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
-        def outlet_with_choke(cfg: ChokeConfiguration) -> FluidStream:
+        def outlet_with_choke(cfg: ChokeConfiguration) -> StreamWithPressure:
             self._simulator.apply_configuration(
                 Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=cfg)
             )

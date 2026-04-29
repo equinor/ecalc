@@ -19,7 +19,7 @@ from libecalc.domain.process.process_solver.solvers.recirculation_solver import 
     RecirculationConfiguration,
 )
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class OutletPressureSolver:
@@ -81,7 +81,7 @@ class OutletPressureSolver:
     def _find_speed_solution(
         self,
         pressure_constraint: FloatConstraint,
-        inlet_stream: FluidStream,
+        inlet_stream: StreamWithPressure,
     ) -> Solution[SpeedConfiguration]:
         speed_solver = SpeedSolver(
             search_strategy=BinarySearchStrategy(),
@@ -90,7 +90,7 @@ class OutletPressureSolver:
             target_pressure=pressure_constraint.value,
         )
 
-        def speed_func(configuration: SpeedConfiguration) -> FluidStream:
+        def speed_func(configuration: SpeedConfiguration) -> StreamWithPressure:
             self._simulator.apply_configuration(
                 Configuration(configuration_handler_id=self._shaft_id, value=configuration)
             )
@@ -107,7 +107,7 @@ class OutletPressureSolver:
 
         return speed_solution
 
-    def _get_outlet_stream(self, inlet_stream: FluidStream, configurations: Sequence[Configuration]):
+    def _get_outlet_stream(self, inlet_stream: StreamWithPressure, configurations: Sequence[Configuration]):
         self._simulator.apply_configurations(configurations)
         return self._simulator.run(inlet_stream=inlet_stream)
 
@@ -118,7 +118,7 @@ class OutletPressureSolver:
     def find_solution(
         self,
         pressure_constraint: FloatConstraint,
-        inlet_stream: FluidStream,
+        inlet_stream: StreamWithPressure,
     ) -> Solution[Sequence[Configuration]]:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
