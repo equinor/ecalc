@@ -37,9 +37,6 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self._root_finding_strategy = root_finding_strategy
         self._simulator = simulator
 
-    def reset(self) -> None:
-        self._apply_configuration(RecirculationConfiguration(recirculation_rate=0.0))
-
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         # Increase recirculation to give minimum feasible flow and return outlet.
         recirculation_solution = self._increase_recirculation_to_minimum_feasible(inlet_stream)

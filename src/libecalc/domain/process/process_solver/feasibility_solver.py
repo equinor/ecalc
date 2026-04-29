@@ -56,7 +56,7 @@ class FeasibilitySolver:
             return inlet_stream.standard_rate_sm3_per_day
 
         # Apply the configuration before querying compressor charts.
-        self._runner.apply_configurations(solution.configuration)
+        self._runner.reset_to(configurations=solution.configuration)
 
         # Search for compressor with the lowest max rate
         min_max_rate = float("inf")

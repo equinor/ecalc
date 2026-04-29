@@ -33,6 +33,9 @@ class RecirculationLoop(ConfigurationHandler):
     def get_recirculation_rate(self) -> float:
         return self._mixer.get_mix_rate()
 
+    def reset(self) -> None:
+        self.set_recirculation_rate(0.0)
+
     def handle_configuration(self, configuration: Configuration):
         if configuration.configuration_handler_id != self._id:
             raise ValueError(

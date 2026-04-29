@@ -27,3 +27,6 @@ class ChokeConfigurationHandler(ConfigurationHandler):
             f"Expected configuration value to be of type 'ChokeConfiguration', got '{type(configuration.value)}'"
         )
         self._choke.set_pressure_change(configuration.value.delta_pressure)
+
+    def reset(self) -> None:
+        self._choke.set_pressure_change(0.0)

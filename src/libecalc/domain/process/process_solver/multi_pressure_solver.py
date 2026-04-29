@@ -96,9 +96,8 @@ class MultiPressureSolver:
         current_inlet = inlet_stream
 
         for segment, target in zip(self._segments, pressure_targets):
-            segment.runner.apply_configuration(shaft_config)
+            segment.runner.reset_to(configurations=[shaft_config])
 
-            segment.anti_surge_strategy.reset()
             anti_surge_solution = segment.anti_surge_strategy.apply(inlet_stream=current_inlet)
             segment.runner.apply_configurations(anti_surge_solution.configuration)
             solution = solution.combine(anti_surge_solution)

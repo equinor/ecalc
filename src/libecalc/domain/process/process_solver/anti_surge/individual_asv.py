@@ -48,18 +48,6 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
         )
 
     @override
-    def reset(self) -> None:
-        for loop_id in self._recirculation_loop_ids:
-            self._simulator.apply_configuration(
-                Configuration(
-                    configuration_handler_id=loop_id,
-                    value=RecirculationConfiguration(
-                        recirculation_rate=0.0,
-                    ),
-                )
-            )
-
-    @override
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         configurations: Sequence[Configuration[RecirculationConfiguration]] = []
         for loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors, strict=True):
