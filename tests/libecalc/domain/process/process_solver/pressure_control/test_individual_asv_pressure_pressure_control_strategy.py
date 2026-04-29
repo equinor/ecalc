@@ -159,6 +159,6 @@ def test_individual_asv_pressure_each_stage_meets_geometric_target(
     # sqrt(inlet*target) — landing near the train target would indicate stage 0 is solving
     # against the full train outlet instead of its own.
     for i, (actual, expected) in enumerate(zip(actual_outlet_pressures, expected_outlet_pressures)):
-        assert actual == pytest.approx(
-            expected, rel=5e-3
-        ), f"Stage {i} outlet {actual:.3f} bara != expected {expected:.3f} bara"
+        assert actual == pytest.approx(expected, rel=5e-3), (
+            f"Stage {i} outlet {actual:.3f} bara != expected {expected:.3f} bara"
+        )
