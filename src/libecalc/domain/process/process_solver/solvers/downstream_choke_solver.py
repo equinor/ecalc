@@ -2,14 +2,14 @@ from collections.abc import Callable
 
 from libecalc.domain.process.process_solver.configuration import ChokeConfiguration
 from libecalc.domain.process.process_solver.solver import Solution, Solver
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class DownstreamChokeSolver(Solver[ChokeConfiguration]):
     def __init__(self, target_pressure: float):
         self._target_pressure = target_pressure
 
-    def solve(self, func: Callable[[ChokeConfiguration], FluidStream]) -> Solution[ChokeConfiguration]:
+    def solve(self, func: Callable[[ChokeConfiguration], StreamWithPressure]) -> Solution[ChokeConfiguration]:
         configuration = ChokeConfiguration(delta_pressure=0)
         outlet_stream = func(configuration)
         if outlet_stream.pressure_bara <= self._target_pressure:

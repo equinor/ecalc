@@ -11,7 +11,7 @@ from libecalc.domain.process.process_solver.solver import Solution
 from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class UpstreamChokePressureControlStrategy(PressureControlStrategy):
@@ -36,7 +36,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
     def apply(
         self,
         target_pressure: FloatConstraint,
-        inlet_stream: FluidStream,
+        inlet_stream: StreamWithPressure,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
         # Use a small margin to avoid evaluating exactly at the physical/numerical extremes:
         # ΔP = 0 (no choke) and ΔP = inlet_pressure (zero/negative suction pressure).
@@ -51,7 +51,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
             delta_pressure_boundary=delta_pressure_boundary,
         )
 
-        def choke_func(config: ChokeConfiguration) -> FluidStream:
+        def choke_func(config: ChokeConfiguration) -> StreamWithPressure:
             # The runner is responsible for interpreting upstream ΔP as reduced suction pressure
             # seen by the downstream process system.
             self._simulator.apply_configuration(

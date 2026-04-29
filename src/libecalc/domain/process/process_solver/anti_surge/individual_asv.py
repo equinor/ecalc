@@ -73,13 +73,13 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
                     ),
                 )
             max_actual_rate = unit.maximum_flow_rate
-            if inlet_stream_unit.volumetric_rate_m3_per_hour > max_actual_rate:
+            if inlet_stream_unit.volumetric_rate_m3_per_hour > max_actual_rate:  # pyright: ignore[reportAttributeAccessIssue]
                 return Solution(
                     success=False,
                     configuration=configurations,
                     failure_event=OutsideCapacityEvent(
                         status=SolverFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
-                        actual_value=inlet_stream_unit.volumetric_rate_m3_per_hour,
+                        actual_value=inlet_stream_unit.volumetric_rate_m3_per_hour,  # pyright: ignore[reportAttributeAccessIssue]
                         boundary_value=max_actual_rate,
                         source_id=unit.get_id(),
                     ),

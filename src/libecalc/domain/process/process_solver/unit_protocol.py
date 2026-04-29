@@ -1,7 +1,8 @@
-from typing import Protocol
+from typing import Any, Protocol
 
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.domain.process.process_solver.boundary import Boundary
+from libecalc.domain.process.value_objects.stream_protocol import StreamWithPressure
 
 
 class RecirculatingUnit(Protocol):
@@ -16,4 +17,6 @@ class RecirculatingUnit(Protocol):
     @property
     def maximum_flow_rate(self) -> float: ...
 
-    def get_recirculation_range(self, inlet_stream) -> Boundary: ...
+    def get_recirculation_range(self, inlet_stream: Any) -> Boundary: ...
+
+    def propagate_stream(self, inlet_stream: Any) -> StreamWithPressure: ...
