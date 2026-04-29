@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any, dataclass_transform
+from typing import dataclass_transform
 
 """
 Base class for DDD Value Objects.
@@ -26,7 +26,7 @@ Instead of using @dataclass
 
 
 @dataclass_transform(frozen_default=True, eq_default=True, slots_default=True)
-def value_object(cls: Any) -> Any:
+def value_object[T](cls: type[T]) -> type[T]:
     """
     Basically 1. Telling typechecker which guarantees this decorator gives and 2. Construct the class that
     does exactly that.
