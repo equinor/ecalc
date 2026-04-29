@@ -51,6 +51,15 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
             return self._simulator.run(inlet_stream=inlet_stream)
 
         # Check feasibility: can we reach target pressure at maximum recirculation?
+        # Reset recirculation before computing the boundary — the mixer may carry
+        # residual state from anti-surge, which inflates the inlet rate and
+        # shrinks the recirculation range.
+        self._simulator.apply_configuration(
+            Configuration(
+                configuration_handler_id=self._recirculation_loop_id,
+                value=RecirculationConfiguration(recirculation_rate=0.0),
+            )
+        )
         compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
         boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
         min_configuration = RecirculationConfiguration(recirculation_rate=boundary.max)

@@ -156,3 +156,61 @@ def test_find_solution_returns_failure_when_rate_above_stonewall(
     )
 
     assert not solution.success
+
+
+def test_pressure_control_boundary_not_affected_by_residual_anti_surge_recirculation(
+    shaft,
+    small_chart_compressor,
+    stream_factory,
+    with_common_asv,
+    process_pipeline_factory,
+    process_runner_factory,
+    common_asv_anti_surge_strategy_factory,
+    common_asv_pressure_control_strategy_factory,
+    outlet_pressure_solver_factory,
+):
+    """Regression test: pressure control must reset recirculation before computing
+    the recirculation boundary.
+
+    When the inlet rate is well below the chart minimum, anti-surge sets a large
+    recirculation to reach the minimum flow. If pressure control does not reset
+    that recirculation before computing the boundary, the mixer inflates the
+    inlet rate, shrinking the available recirculation range. This can cause the
+    solver to report the target pressure as unreachable even though the
+    compressor can handle it at full recirculation.
+    """
+    common_asv, process_units = with_common_asv([small_chart_compressor])
+
+    runner = process_runner_factory(units=process_units, configuration_handlers=[shaft, common_asv])
+    process_pipeline = process_pipeline_factory(units=process_units)
+    anti_surge = common_asv_anti_surge_strategy_factory(
+        runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
+    )
+    pressure_control = common_asv_pressure_control_strategy_factory(
+        runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
+    )
+    solver = outlet_pressure_solver_factory(
+        shaft=shaft,
+        runner=runner,
+        anti_surge_strategy=anti_surge,
+        pressure_control_strategy=pressure_control,
+        process_pipeline_id=process_pipeline.get_id(),
+    )
+
+    # Inlet rate well below the chart minimum of 50 m³/h — forces large anti-surge recirculation.
+    inlet_stream = stream_factory(standard_rate_m3_per_day=5_000, pressure_bara=30.0, temperature_kelvin=300.0)
+    assert inlet_stream.volumetric_rate_m3_per_hour < 50.0
+
+    # A moderate target pressure that the compressor can deliver at high recirculation.
+    solution = solver.find_solution(
+        pressure_constraint=FloatConstraint(60.0),
+        inlet_stream=inlet_stream,
+    )
+
+    # Without the fix, the shrunken boundary could cause this to fail.
+    assert solution.success
+
+    # Verify the solution actually achieves the target pressure.
+    runner.apply_configurations(solution.configuration)
+    outlet_stream = runner.run(inlet_stream=inlet_stream)
+    assert outlet_stream.pressure_bara == pytest.approx(60.0, abs=0.5)
