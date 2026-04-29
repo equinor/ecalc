@@ -1,12 +1,10 @@
 import abc
 from enum import Enum
-from typing import Generic, Literal, Self, TypeVar, get_args
-
-from typing_extensions import get_original_bases
+from types import get_original_bases
+from typing import Literal, Self, get_args
 
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
-from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model import (
     YamlElectricityEnergyUsageModel,
     YamlEnergyUsageModelCompressor,
@@ -23,8 +21,8 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsse
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
-    YamlInstallation,
     InstallationUserDefinedCategoryType,
+    YamlInstallation,
 )
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
@@ -42,7 +40,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model_type import YamlFacilityModelType
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
-from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType, FuelTypeUserDefinedCategoryType
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import FuelTypeUserDefinedCategoryType, YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlTurbine
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     CompressorEnergyUsageModelModelReference,
@@ -62,10 +60,8 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 
-T = TypeVar("T")
 
-
-class Builder(abc.ABC, Generic[T]):
+class Builder[T](abc.ABC):
     __model__: type[T]
 
     def __init_subclass__(cls, **kwargs):
@@ -268,9 +264,6 @@ class YamlEnergyUsageModelCompressorBuilder(Builder[YamlEnergyUsageModelCompress
         self.energy_function = YamlCompressorTabularBuilder().with_test_data().validate().name
         self.suction_pressure = 20
         self.discharge_pressure = 80
-
-
-TYamlClass = TypeVar("TYamlClass", bound=YamlBase)
 
 
 class YamlFuelConsumerBuilder(Builder[YamlFuelConsumer]):

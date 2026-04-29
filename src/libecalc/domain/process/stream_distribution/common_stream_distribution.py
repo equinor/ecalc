@@ -1,9 +1,7 @@
 import abc
 from collections import defaultdict
-from collections.abc import Hashable, Iterable
-from collections.abc import Mapping
+from collections.abc import Hashable, Iterable, Mapping
 from dataclasses import dataclass
-from typing import Generic, TypeVar
 
 import networkx as nx
 
@@ -17,16 +15,13 @@ class HasExcessRate(abc.ABC):
     def get_excess_rate(self, inlet_stream: FluidStream) -> float: ...
 
 
-T = TypeVar("T", bound=Hashable)
-
-
 @dataclass
-class Overflow(Generic[T]):
+class Overflow[T: Hashable]:
     from_id: T
     to_id: T
 
 
-class CommonStreamDistribution(StreamDistribution, Generic[T]):
+class CommonStreamDistribution[T: Hashable](StreamDistribution):
     def __init__(
         self,
         inlet_stream: FluidStream,

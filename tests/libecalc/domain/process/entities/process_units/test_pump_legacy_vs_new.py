@@ -17,10 +17,10 @@ the same hydraulic operating point.
 import pytest
 
 from libecalc.domain.process.entities.process_units.pump import Pump
+from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.process_solver.boundary import Boundary
 from libecalc.domain.process.process_solver.configuration import SpeedConfiguration
 from libecalc.domain.process.process_solver.solvers.speed_solver import SpeedSolver
-from libecalc.domain.process.process_pipeline.process_unit import create_process_unit_id
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.liquid_stream import LiquidStream
