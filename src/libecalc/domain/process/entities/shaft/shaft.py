@@ -1,6 +1,6 @@
 import uuid
 from abc import ABC, abstractmethod
-from typing import Final, Generic, NewType, Protocol, TypeVar, runtime_checkable
+from typing import Final, NewType, Protocol, runtime_checkable
 from uuid import UUID
 
 from libecalc.common.errors.exceptions import ProgrammingError
@@ -31,10 +31,7 @@ class ShaftConnectable(Protocol):
     def set_speed(self, speed: float) -> None: ...
 
 
-_T = TypeVar("_T", bound=ShaftConnectable)
-
-
-class Shaft(ConfigurationHandler, ABC, Generic[_T]):
+class Shaft[T: ShaftConnectable](ConfigurationHandler, ABC):
     """Abstract base class for a shaft driving a homogeneous set of process units.
 
     A shaft connects to either compressors or pumps — never a mix of both.
@@ -49,7 +46,7 @@ class Shaft(ConfigurationHandler, ABC, Generic[_T]):
     ):
         self._id: Final[ConfigurationHandlerId] = configuration_handler_id or ConfigurationHandler._create_id()
         self._speed_rpm = speed_rpm
-        self._units: list[_T] = []
+        self._units: list[T] = []
 
     def get_id(self) -> ConfigurationHandlerId:
         return self._id
@@ -67,7 +64,7 @@ class Shaft(ConfigurationHandler, ABC, Generic[_T]):
     def set_speed(self, value: float) -> None:
         pass
 
-    def connect(self, unit: _T) -> None:
+    def connect(self, unit: T) -> None:
         if unit in self._units:
             raise ProgrammingError("Unit is already registered on this shaft.")
         self._units.append(unit)
@@ -97,7 +94,7 @@ class Shaft(ConfigurationHandler, ABC, Generic[_T]):
             unit.set_speed(value)
 
 
-class SingleSpeedShaft(Shaft[_T]):
+class SingleSpeedShaft[T: ShaftConnectable](Shaft[T]):
     def set_speed(self, value: float):
         if self._speed_rpm is None:
             self._apply_speed(value)
@@ -105,6 +102,6 @@ class SingleSpeedShaft(Shaft[_T]):
             raise AttributeError("Speed has already been set. Cannot modify speed of SingleSpeedShaft")
 
 
-class VariableSpeedShaft(Shaft[_T]):
+class VariableSpeedShaft[T: ShaftConnectable](Shaft[T]):
     def set_speed(self, value: float):
         self._apply_speed(value)
