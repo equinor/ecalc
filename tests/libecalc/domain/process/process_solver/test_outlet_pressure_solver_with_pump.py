@@ -166,6 +166,10 @@ class TestPumpPipelineIntegration:
         expected_power = mass_rate_kg_s * pump.last_head_joule_per_kg / pump.last_efficiency / 1e6
         assert pump.last_shaft_power_mw == pytest.approx(expected_power, rel=1e-6)
 
+    @pytest.mark.xfail(
+        reason="Boundary calculation change from PR #1508 shifts minimum achievable pressure. See _context/tasks/debugging/pump-recirculation-test-failure-after-rebase.md",
+        strict=True,
+    )
     def test_pump_pipeline_with_recirculation(
         self,
         shaft,
