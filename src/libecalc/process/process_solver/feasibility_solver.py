@@ -1,13 +1,20 @@
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import OutsideCapacityError
+from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
-from libecalc.process.process_solver.process_runner import ProcessRunner
-from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.process_solver.search_strategies import (
+    BinarySearchStrategy,
+    DidNotConvergeError,
+    SearchStrategy,
+)
+
+_RATE_SEARCH_TOLERANCE = 1e-4
+_RATE_SEARCH_MAX_ITERATIONS = 40
 
 
 class FeasibilitySolver:
-    """
-    Calculates how much of a given inlet rate exceeds what a compressor train
+    """Calculates how much of a given inlet rate exceeds what a compressor train
     can handle for a target pressure.
 
     Orchestrates OutletPressureSolver and queries compressor charts to find
@@ -17,57 +24,54 @@ class FeasibilitySolver:
     def __init__(
         self,
         outlet_pressure_solver: OutletPressureSolver,
-        compressors: list[Compressor],
-        runner: ProcessRunner,
+        search_strategy: SearchStrategy | None = None,
     ):
         self._solver = outlet_pressure_solver
-        self._compressors = compressors
-        self._runner = runner
+        self._search_strategy = search_strategy or BinarySearchStrategy(
+            tolerance=_RATE_SEARCH_TOLERANCE,
+            max_iterations=_RATE_SEARCH_MAX_ITERATIONS,
+        )
 
     def get_excess_rate(
         self,
         inlet_stream: FluidStream,
         target_pressure: FloatConstraint,
     ) -> float:
-        """
-        Rate [sm³/day] that exceeds what this train can handle.
+        """Rate [sm³/day] that exceeds what this train can handle.
 
         This is the amount that must be redirected (e.g. via overflow)
         to another train in the stream distribution.
         """
-        feasible = self._find_feasible_rate(inlet_stream, target_pressure)
-        excess_rate = max(0.0, inlet_stream.standard_rate_sm3_per_day - feasible)
-        return excess_rate
+        full_rate = inlet_stream.standard_rate_sm3_per_day
+        if full_rate <= 0.0:
+            return 0.0
 
-    def _find_feasible_rate(
+        if self._is_feasible(inlet_stream, target_pressure):
+            return 0.0
+
+        capacity = self._largest_feasible_rate(inlet_stream, target_pressure, full_rate)
+        return max(0.0, full_rate - capacity)
+
+    def _largest_feasible_rate(
         self,
         inlet_stream: FluidStream,
         target_pressure: FloatConstraint,
+        upper_bound_sm3_per_day: float,
     ) -> float:
-        """Highest standard rate [sm³/day] for which the train can meet target_pressure.
-
-        Returns the full inlet rate if the solver succeeds, otherwise finds the
-        bottleneck compressor's stone wall limit at the current operating point.
-        """
-        solution = self._solver.find_solution(target_pressure, inlet_stream)
-
-        if solution.success:
-            # The train can handle the full rate — no need to search for a bottleneck.
-            return inlet_stream.standard_rate_sm3_per_day
-
-        # Apply the configuration before querying compressor charts.
-        self._runner.reset_to(configurations=solution.configuration)
-
-        # Search for compressor with the lowest max rate
-        min_max_rate = float("inf")
-        for compressor in self._compressors:
-            compressor_inlet = self._runner.run(
-                inlet_stream=inlet_stream,
-                to_id=compressor.get_id(),
+        boundary = Boundary(min=0.0, max=upper_bound_sm3_per_day)
+        try:
+            return self._search_strategy.search(
+                boundary=boundary,
+                func=lambda rate: (
+                    self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure),
+                    True,
+                ),
             )
-            max_rate = compressor.get_maximum_standard_rate(compressor_inlet)
-            min_max_rate = min(min_max_rate, max_rate)
+        except DidNotConvergeError:
+            return 0.0
 
-        feasible_rate = max(0.0, min_max_rate)
-
-        return feasible_rate
+    def _is_feasible(self, inlet_stream: FluidStream, target_pressure: FloatConstraint) -> bool:
+        try:
+            return self._solver.find_solution(target_pressure, inlet_stream).success
+        except (DidNotConvergeError, OutsideCapacityError):
+            return False
