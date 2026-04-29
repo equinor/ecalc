@@ -184,10 +184,10 @@ def test_pressure_control_boundary_not_affected_by_residual_anti_surge_recircula
     runner = process_runner_factory(units=process_units, configuration_handlers=[shaft, common_asv])
     process_pipeline = process_pipeline_factory(units=process_units)
     anti_surge = common_asv_anti_surge_strategy_factory(
-        runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
+        runner=runner, recirculation_loop_id=common_asv.get_id(), first_unit=small_chart_compressor
     )
     pressure_control = common_asv_pressure_control_strategy_factory(
-        runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
+        runner=runner, recirculation_loop_id=common_asv.get_id(), first_unit=small_chart_compressor
     )
     solver = outlet_pressure_solver_factory(
         shaft=shaft,
