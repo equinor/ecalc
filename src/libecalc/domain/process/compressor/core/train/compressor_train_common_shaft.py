@@ -6,6 +6,10 @@ from typing import Self
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
+from libecalc.common.numeric_methods import (
+    find_root,
+    maximize_x_given_boolean_condition_function,
+)
 from libecalc.domain.component_validation_error import (
     ProcessChartTypeValidationException,
     ProcessDischargePressureValidationException,
@@ -21,10 +25,6 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
     POWER_CALCULATION_TOLERANCE,
     PRESSURE_CALCULATION_TOLERANCE,
     RATE_CALCULATION_TOLERANCE,
-)
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
-    find_root,
-    maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag

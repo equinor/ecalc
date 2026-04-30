@@ -7,11 +7,11 @@ from numpy.typing import NDArray
 
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.logger import logger
+from libecalc.common.numeric_methods import find_root
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 

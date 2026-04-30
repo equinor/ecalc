@@ -1,8 +1,9 @@
 import abc
 from typing import TypeGuard
 
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+
+EPSILON = 1e-5
 
 
 class StreamConstraint(abc.ABC):

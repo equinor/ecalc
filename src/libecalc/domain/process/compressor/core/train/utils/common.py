@@ -1,7 +1,7 @@
 from libecalc.common.logger import logger
+from libecalc.common.numeric_methods import DampState, adaptive_pressure_update
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import DampState, adaptive_pressure_update
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
