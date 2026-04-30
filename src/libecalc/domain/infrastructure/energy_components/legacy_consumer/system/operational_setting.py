@@ -6,7 +6,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
@@ -83,7 +83,7 @@ class ConsumerSystemOperationalSettingExpressions:
                 f"({len(field_values)}) is not equal to the number of elements in rates ({n_rates})."
             )
             logger.error(msg)
-            raise DomainValidationException(message=msg)
+            raise EcalcValidationException(message=msg)
 
         rates = self.rates
         suction_pressures = self.suction_pressures

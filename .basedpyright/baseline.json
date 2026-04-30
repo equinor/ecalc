@@ -704,7 +704,7 @@
                 }
             }
         ],
-        "./src/libecalc/domain/component_validation_error.py": [
+        "./src/libecalc/domain/ecalc_validation_error.py": [
             {
                 "code": "reportArgumentType",
                 "range": {

@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.stream_distribution.common_stream_distribution import (
     HasExcessRate,
@@ -87,7 +87,7 @@ class TestCommonStreamDistribution:
             Item(capacity=45),
             Item(capacity=55),
         ]
-        with pytest.raises(DomainValidationException) as exc_info:
+        with pytest.raises(EcalcValidationException) as exc_info:
             CommonStreamDistribution(
                 inlet_stream=inlet_stream,
                 items={item.id: item for item in items},

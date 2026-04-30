@@ -8,7 +8,7 @@ from inline_snapshot import snapshot
 from libecalc.common.component_type import ComponentType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
-from libecalc.domain.component_validation_error import (
+from libecalc.domain.ecalc_validation_error import (
     GeneratorSetHeaderValidationException,
 )
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel

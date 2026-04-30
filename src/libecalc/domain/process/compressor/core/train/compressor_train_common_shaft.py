@@ -10,7 +10,7 @@ from libecalc.common.numeric_methods import (
     find_root,
     maximize_x_given_boolean_condition_function,
 )
-from libecalc.domain.component_validation_error import (
+from libecalc.domain.ecalc_validation_error import (
     ProcessChartTypeValidationException,
     ProcessDischargePressureValidationException,
 )

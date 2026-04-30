@@ -7,7 +7,7 @@ from typing import Generic, TypeVar
 
 import networkx as nx
 
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.stream_distribution.stream_distribution import StreamDistribution
@@ -49,7 +49,7 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
             self._overflow_graph.add_edge(overflow.from_id, overflow.to_id)
 
         if not nx.is_directed_acyclic_graph(self._overflow_graph):
-            raise DomainValidationException("Overflow can not be cyclic")
+            raise EcalcValidationException("Overflow can not be cyclic")
 
     def get_number_of_streams(self) -> int:
         return len(self._rates)

@@ -11,7 +11,7 @@ from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.component_validation_error import (
+from libecalc.domain.ecalc_validation_error import (
     ProcessEqualLengthValidationException,
     ProcessMissingVariableValidationException,
     ProcessNegativeValuesValidationException,

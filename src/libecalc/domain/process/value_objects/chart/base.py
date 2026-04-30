@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.ecalc_validation_error import EcalcValidationException
 
 logger = logging.getLogger(__name__)
 
@@ -35,13 +35,13 @@ class ChartCurve:
         self.speed_rpm = speed_rpm
 
         if not all(0 <= efficiency <= 1 for efficiency in efficiency_fraction):
-            raise DomainValidationException("Efficiency fraction should be between 0 and 1")
+            raise EcalcValidationException("Efficiency fraction should be between 0 and 1")
 
         if not len(rate_actual_m3_hour) == len(polytropic_head_joule_per_kg) == len(efficiency_fraction):
-            raise DomainValidationException("All chart curve data must have equal number of points")
+            raise EcalcValidationException("All chart curve data must have equal number of points")
 
         if len(rate_actual_m3_hour) < 2:
-            raise DomainValidationException(
+            raise EcalcValidationException(
                 "A chart curve can not be defined by a single point. At least two points must be given."
             )
 

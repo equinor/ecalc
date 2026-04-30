@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from libecalc.common.time_utils import Period
-from libecalc.domain.component_validation_error import ProcessPressureRatioValidationException
+from libecalc.domain.ecalc_validation_error import ProcessPressureRatioValidationException
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import (
     ExpressionTimeSeriesPressure,
     InvalidPressureException,

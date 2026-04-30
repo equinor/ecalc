@@ -9,7 +9,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import InvalidTemporalModel, TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.energy.energy_component import EnergyContainerID
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport
@@ -244,7 +244,7 @@ class EcalcModelMapper:
                 raise ModelValidationException.from_pydantic(
                     e, file_context=self._configuration.get_file_context(yaml_path.keys)
                 ) from e
-            except (InvalidExpressionError, DomainValidationException) as e:
+            except (InvalidExpressionError, EcalcValidationException) as e:
                 raise ModelValidationException(errors=[self._create_error(str(e), specific_path=yaml_path)]) from e
 
             temporal_fuel_model[period] = parsed_fuel
@@ -260,7 +260,7 @@ class EcalcModelMapper:
                 name=model.name,
                 resource=resource,
             )
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(
                 errors=[self._create_reference_error(message=str(e), reference=reference)]
             ) from e
@@ -295,7 +295,7 @@ class EcalcModelMapper:
                     for start_time, model_reference in generator_set_model_data.items()
                 }
             )
-        except (InvalidReferenceException, InvalidTemporalModel, DomainValidationException) as e:
+        except (InvalidReferenceException, InvalidTemporalModel, EcalcValidationException) as e:
             raise ModelValidationException(
                 errors=[self._create_error(str(e), specific_path=yaml_path.append("ELECTRICITY2FUEL"))]
             ) from e
@@ -328,7 +328,7 @@ class EcalcModelMapper:
             else:
                 cable_loss = None
 
-        except (InvalidExpressionError, DomainValidationException) as e:
+        except (InvalidExpressionError, EcalcValidationException) as e:
             raise ModelValidationException(
                 errors=[self._create_error(str(e), specific_path=yaml_path.append("CABLE_LOSS"))]
             ) from e
@@ -343,7 +343,7 @@ class EcalcModelMapper:
                 if data.max_usage_from_shore
                 else None
             )
-        except (InvalidExpressionError, DomainValidationException) as e:
+        except (InvalidExpressionError, EcalcValidationException) as e:
             raise ModelValidationException(
                 errors=[self._create_error(str(e), specific_path=yaml_path.append("MAX_USAGE_FROM_SHORE"))]
             ) from e
@@ -361,7 +361,7 @@ class EcalcModelMapper:
                 component_type=ComponentType.GENERATOR_SET,
                 expression_evaluator=self._expression_evaluator,
             )
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), specific_path=yaml_path)]) from e
 
     def map_installation(
@@ -377,7 +377,7 @@ class EcalcModelMapper:
                 target_period=self._target_period,
                 expression_evaluator=self._expression_evaluator,
             )
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(
                 errors=[self._create_error(message=e.message, specific_path=yaml_path.append("regularity"))]
             ) from e
@@ -394,7 +394,7 @@ class EcalcModelMapper:
                 regularity=regularity,
                 target_period=self._target_period,
             )
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(
                 errors=[self._create_error(message=e.message, specific_path=yaml_path.append("HCEXPORT"))]
             ) from e
@@ -457,7 +457,7 @@ class EcalcModelMapper:
                 venting_emitters=venting_emitters,  # type: ignore[arg-type]
                 expression_evaluator=self._expression_evaluator,
             )
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), specific_path=yaml_path)]) from e
 
     def map_consumer(
@@ -499,7 +499,7 @@ class EcalcModelMapper:
             raise ModelValidationException(
                 errors=[self._create_error(message=str(e), specific_path=yaml_path.append("ENERGY_USAGE_MODEL"))]
             ) from e
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(
                 errors=[self._create_error(str(e), specific_path=yaml_path.append("ENERGY_USAGE_MODEL"))]
             ) from e
@@ -533,7 +533,7 @@ class EcalcModelMapper:
                     component_type=_get_component_type(data.energy_usage_model),
                     expression_evaluator=self._expression_evaluator,
                 )
-            except DomainValidationException as e:
+            except EcalcValidationException as e:
                 raise ModelValidationException(
                     errors=[self._create_error(message=str(e), specific_path=yaml_path)]
                 ) from e
@@ -548,7 +548,7 @@ class EcalcModelMapper:
                     consumes=consumes,
                     expression_evaluator=self._expression_evaluator,
                 )
-            except DomainValidationException as e:
+            except EcalcValidationException as e:
                 raise ModelValidationException(
                     errors=[self._create_error(message=str(e), specific_path=yaml_path)]
                 ) from e
@@ -613,7 +613,7 @@ class EcalcModelMapper:
                 )
             else:
                 return assert_never(data)
-        except (InvalidExpressionError, DomainValidationException) as e:
+        except (InvalidExpressionError, EcalcValidationException) as e:
             raise ModelValidationException(errors=[self._create_error(message=str(e), specific_path=yaml_path)]) from e
 
     def map_yaml_component(
@@ -712,7 +712,7 @@ class EcalcModelMapper:
                 asset_id, parent_id=None, energy_container=ecalc_model
             )
             return ecalc_model
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(
                 errors=[
                     ModelValidationError(

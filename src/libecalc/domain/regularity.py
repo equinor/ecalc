@@ -5,12 +5,12 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesFloat
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.expression.expression import ExpressionType, InvalidExpressionError
 from libecalc.expression.temporal_expression import TemporalExpression
 
 
-class InvalidRegularity(DomainValidationException): ...
+class InvalidRegularity(EcalcValidationException): ...
 
 
 class Regularity:

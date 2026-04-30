@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector
@@ -88,7 +88,7 @@ class TestGetGlobalTimeVector:
         ) == [datetime(2020, 1, 1), datetime(2020, 1, 2)]
 
     def test_only_end(self):
-        with pytest.raises(DomainValidationException) as exc_info:
+        with pytest.raises(EcalcValidationException) as exc_info:
             get_global_time_vector(time_series_time_vector=[], end=datetime(2020, 1, 1))
         assert "No time series found" in str(exc_info.value)
 

@@ -1,10 +1,10 @@
 from libecalc.common.time_utils import Periods
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
-class InvalidPressureException(DomainValidationException):
+class InvalidPressureException(EcalcValidationException):
     """Exception raised for invalid pressure values."""
 
     def __init__(self, pressure: float, pressure_expression: str):
