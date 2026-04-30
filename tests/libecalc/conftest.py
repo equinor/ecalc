@@ -10,25 +10,12 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_f
 )
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.process_units.direct_mixer import DirectMixer
-from libecalc.domain.process.entities.process_units.direct_splitter import DirectSplitter
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
 from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
     LegacySplitter,
 )
-from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipeline
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit
-from libecalc.domain.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
-from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
-from libecalc.domain.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
-from libecalc.domain.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import Chart, ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -37,6 +24,19 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
+from libecalc.process.process_pipeline.process_unit import ProcessUnit
+from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
+from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
+from libecalc.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
+from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
+from libecalc.process.process_units.choke import Choke
+from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.process_units.direct_mixer import DirectMixer
+from libecalc.process.process_units.direct_splitter import DirectSplitter
+from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.temperature_setter import TemperatureSetter
+from libecalc.process.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.testing.chart_data_factory import ChartDataFactory
 
 

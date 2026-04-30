@@ -6,49 +6,7 @@ from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.process_units.direct_mixer import DirectMixer
-from libecalc.domain.process.entities.process_units.direct_splitter import DirectSplitter
-from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_pipeline import (
-    ProcessPipeline,
-    ProcessPipelineId,
-)
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.process_simulation import (
-    AntiSurgeConfig,
-    CommonStreamDistributionConfig,
-    CommonStreamSettings,
-    Constraint,
-    IndividualStreamDistributionConfig,
-    PressureControlConfig,
-    ProcessProblem,
-    ProcessSimulation,
-)
-from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
-from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
-from libecalc.domain.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
-from libecalc.domain.process.process_solver.configuration import ConfigurationHandlerId
-from libecalc.domain.process.process_solver.configuration_handler import ConfigurationHandler
-from libecalc.domain.process.process_solver.feasibility_solver import FeasibilitySolver
-from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.process_runner import ProcessRunner
-from libecalc.domain.process.process_solver.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.process_solver.search_strategies import ScipyRootFindingStrategy
-from libecalc.domain.process.stream_distribution.common_stream_distribution import (
-    HasExcessRate,
-    Overflow,
-)
-from libecalc.domain.process.stream_distribution.priorities_stream_distribution import (
-    HasValidity,
-)
 from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.fluid_stream import FluidModel, FluidService, FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
 from libecalc.expression.expression import ExpressionType
@@ -75,6 +33,50 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
+from libecalc.process.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.fluid_stream.time_series_stream import TimeSeriesStream
+from libecalc.process.process_pipeline.process_pipeline import (
+    ProcessPipeline,
+    ProcessPipelineId,
+)
+from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_simulation import (
+    AntiSurgeConfig,
+    CommonStreamDistributionConfig,
+    CommonStreamSettings,
+    Constraint,
+    IndividualStreamDistributionConfig,
+    PressureControlConfig,
+    ProcessProblem,
+    ProcessSimulation,
+)
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
+from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
+from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
+from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
+from libecalc.process.process_solver.configuration import ConfigurationHandlerId
+from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
+from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
+from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.process_runner import ProcessRunner
+from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
+from libecalc.process.process_solver.search_strategies import ScipyRootFindingStrategy
+from libecalc.process.process_units.choke import Choke
+from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.process_units.direct_mixer import DirectMixer
+from libecalc.process.process_units.direct_splitter import DirectSplitter
+from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.temperature_setter import TemperatureSetter
+from libecalc.process.shaft import VariableSpeedShaft
+from libecalc.process.stream_distribution.common_stream_distribution import (
+    HasExcessRate,
+    Overflow,
+)
+from libecalc.process.stream_distribution.priorities_stream_distribution import (
+    HasValidity,
+)
 
 
 class StreamDistributionItem(HasExcessRate, HasValidity):

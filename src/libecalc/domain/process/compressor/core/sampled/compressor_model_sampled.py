@@ -38,7 +38,7 @@ from libecalc.domain.process.core.results import (
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_model import FluidModel
 
 
 class CompressorModelSampled:
@@ -228,7 +228,7 @@ class CompressorModelSampled:
         degenerated_pd_ok = discharge_pressure <= self._degenerated_pd if discharge_pressure is not None else True
 
         indices_to_evaluate = self._get_indices_from_condition(
-            condition=rate_is_positive & degenerated_rate_ok & degenerated_ps_ok & degenerated_pd_ok  # type: ignore[arg-type]
+            condition=rate_is_positive & degenerated_rate_ok & degenerated_ps_ok & degenerated_pd_ok
         )
 
         rate_to_evaluate: NDArray[np.float64] = rate[indices_to_evaluate] if rate is not None else np.array([])

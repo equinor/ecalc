@@ -8,8 +8,8 @@ from libecalc.common.units import Unit
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 
 
 @pytest.fixture

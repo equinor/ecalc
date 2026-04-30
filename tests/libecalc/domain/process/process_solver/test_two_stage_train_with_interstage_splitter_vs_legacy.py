@@ -2,10 +2,10 @@ import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.entities.process_units.splitter import Splitter
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
+from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
+from libecalc.process.process_units.splitter import Splitter
+from libecalc.process.shaft import VariableSpeedShaft
 
 
 @pytest.mark.parametrize("pd_target", [50.0, 92.0, 150.0])

@@ -4,11 +4,12 @@ from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.domain.component_validation_error import ProcessCompressorEfficiencyValidationException
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
-from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.shaft import Shaft
 
 
 @dataclass

@@ -1,7 +1,7 @@
-from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.shaft import Shaft
 
 
 class RateModifier:

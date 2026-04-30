@@ -13,7 +13,7 @@ from libecalc.domain.process.compressor.core.train.base import CompressorTrainMo
 from libecalc.domain.process.compressor.core.train.utils.common import POWER_CALCULATION_TOLERANCE
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.core.results import CompressorTrainResult
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_model import FluidModel
 
 
 class CompressorWithTurbineModel:

@@ -2,15 +2,16 @@ from typing import Final
 
 import pytest
 
-from libecalc.domain.process.process_pipeline.process_error import ProcessError, RateTooHighError, RateTooLowError
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.process_pipeline_runner import propagate_stream_many
-from libecalc.domain.process.process_solver.solvers.recirculation_solver import (
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import ProcessError, RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_solver.boundary import Boundary
+from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
+from libecalc.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
     RecirculationSolver,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
 
 
 class RateCompressor(ProcessUnit):

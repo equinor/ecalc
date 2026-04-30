@@ -2,29 +2,29 @@ from collections.abc import Sequence
 
 import pytest
 
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.domain.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
-from libecalc.domain.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
-from libecalc.domain.process.process_solver.configuration import ConfigurationHandlerId
-from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
-from libecalc.domain.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
-from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
+from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
+from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
+from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
+from libecalc.process.process_solver.configuration import ConfigurationHandlerId
+from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
+from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
+from libecalc.process.process_solver.pressure_control.downstream_choke import (
     DownstreamChokePressureControlStrategy,
 )
-from libecalc.domain.process.process_solver.pressure_control.individual_asv import (
+from libecalc.process.process_solver.pressure_control.individual_asv import (
     IndividualASVPressureControlStrategy,
     IndividualASVRateControlStrategy,
 )
-from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
-from libecalc.domain.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
-from libecalc.domain.process.process_solver.process_runner import ProcessRunner
-from libecalc.domain.process.process_solver.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
+from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
+from libecalc.process.process_solver.process_runner import ProcessRunner
+from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
+from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.shaft import Shaft
 
 
 @pytest.fixture

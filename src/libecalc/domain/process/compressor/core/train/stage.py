@@ -12,18 +12,19 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_enthalpy_change_head_iteration,
 )
 from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
-from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
 from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
     LegacySplitter,
 )
-from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_units.choke import Choke
+from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.temperature_setter import TemperatureSetter
 
 
 class CompressorTrainStage:
@@ -446,16 +447,16 @@ class CompressorTrainStage:
             outlet_stream=outlet_stream,
             inlet_stream_including_asv=inlet_stream.with_mass_rate(mass_rate_to_use_kg_per_hour),
             outlet_stream_including_asv=outlet_stream.with_mass_rate(mass_rate_to_use_kg_per_hour),
-            power_megawatt=power_mw,  # type: ignore[arg-type]
+            power_megawatt=power_mw,
             chart_area_flag=chart_area_flag,
-            polytropic_enthalpy_change_kJ_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg / 1000,  # type: ignore[arg-type]
-            polytropic_enthalpy_change_before_choke_kJ_per_kg=polytropic_enthalpy_change_kilo_joule_per_kg,  # type: ignore[arg-type]
-            polytropic_head_kJ_per_kg=(polytropic_enthalpy_change_to_use_joule_per_kg * polytropic_efficiency) / 1000,  # type: ignore[arg-type]
-            polytropic_efficiency=polytropic_efficiency,  # type: ignore[arg-type]
+            polytropic_enthalpy_change_kJ_per_kg=polytropic_enthalpy_change_to_use_joule_per_kg / 1000,
+            polytropic_enthalpy_change_before_choke_kJ_per_kg=polytropic_enthalpy_change_kilo_joule_per_kg,
+            polytropic_head_kJ_per_kg=(polytropic_enthalpy_change_to_use_joule_per_kg * polytropic_efficiency) / 1000,
+            polytropic_efficiency=polytropic_efficiency,
             rate_has_recirculation=rate_has_recirc,
             rate_exceeds_maximum=rate_exceeds_maximum,
             pressure_is_choked=pressure_is_choked,
             head_exceeds_maximum=head_exceeds_maximum,
             # Assuming choking and ASV. Valid points are to the left and below the compressor chart.
-            point_is_valid=~np.isnan(power_mw),  # type: ignore[arg-type] # power_mw is set to np.NaN if invalid step.
+            point_is_valid=~np.isnan(power_mw),  # power_mw is set to np.NaN if invalid step.
         )

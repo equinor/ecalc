@@ -15,8 +15,9 @@ from numpy.typing import NDArray
 
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 
 def calculate_enthalpy_change_head_iteration(

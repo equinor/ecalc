@@ -20,8 +20,9 @@ from libecalc.domain.process.compressor.core.train.types import StreamPort
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 INVALID_MAX_RATE = np.nan
 

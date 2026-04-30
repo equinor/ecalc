@@ -14,12 +14,12 @@ from typing import ClassVar
 
 from ecalc_neqsim_wrapper.cache_service import CacheConfig, CacheName, CacheService, LRUCache
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
-from libecalc.domain.process.value_objects.fluid_stream.constants import ThermodynamicConstants
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
-from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidService
-from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.fluid_stream.constants import ThermodynamicConstants
+from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.process.fluid_stream.fluid_properties import FluidProperties
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 _logger = logging.getLogger(__name__)
 

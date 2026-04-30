@@ -3,9 +3,9 @@ from unittest.mock import MagicMock
 import pytest
 
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.value_objects.fluid_stream.exceptions import NegativeMassRateException
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.fluid_stream.exceptions import NegativeMassRateException
+from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from tests.libecalc.domain.process.conftest import create_mock_fluid_properties
 
 

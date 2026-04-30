@@ -2,13 +2,13 @@ import pytest
 
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
-from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
-from libecalc.domain.process.process_solver.boundary import Boundary
-from libecalc.domain.process.process_solver.process_pipeline_runner import propagate_stream_many
-from libecalc.domain.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
-from libecalc.domain.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import RateTooHighError
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.process.process_solver.boundary import Boundary
+from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
+from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
+from libecalc.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 
 
 @pytest.mark.parametrize(

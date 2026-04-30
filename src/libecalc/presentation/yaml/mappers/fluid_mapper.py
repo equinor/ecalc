@@ -1,7 +1,7 @@
 from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 
 """
 Some "standard" predefined compositions to choose from
