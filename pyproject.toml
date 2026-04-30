@@ -55,12 +55,12 @@ ecalc = "ecalc_cli.main:main"
 dev = [
     "pre-commit==4.5.*",
     "pytest-snapshot~=0.9",
-    "pytest<9.0.0,>=8.3.5",
+    "pytest==9.*, >=9.0.3",
     "coverage[toml]<8.0.0,>=7.2.5",
     "pytest-xdist<4.0.0,>=3.6.1",
     "inline-snapshot==0.29.2", # Reason: later versions of inline-snapshots makes IDE crash when testing
     "basedpyright==1.39.0", # Reason: seems to be a bug in 1.39.1 or 1.39.2 wrt. functional operators
-    "pytest-split~=0.10.0",
+    "pytest-split==0.*, >=0.10.0",
     "pytest-profiling~=1.8.1",
     "pandas-stubs>=3.0.0.260204",
     "scipy-stubs>=1.17.1.2",
