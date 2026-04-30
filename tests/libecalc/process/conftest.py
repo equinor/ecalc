@@ -15,7 +15,6 @@ from libecalc.process.process_solver.search_strategies import (
     BinarySearchStrategy,
     ScipyRootFindingStrategy,
 )
-from libecalc.process.process_solver.stream_constraint import PressureStreamConstraint
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.liquid_remover import LiquidRemover
@@ -135,12 +134,6 @@ def mock_fluid(mock_fluid_model, mock_fluid_properties) -> Fluid:
     return Fluid(fluid_model=mock_fluid_model, properties=mock_fluid_properties)
 
 
-@pytest.fixture
-def fluid_stream_mock(mock_fluid) -> FluidStream:
-    """Create a mocked fluid stream for testing."""
-    return FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)
-
-
 class SimpleProcessUnit(ProcessUnit):
     def __init__(
         self,
@@ -227,14 +220,6 @@ def stage_units_factory(fluid_service):
         return units
 
     return create_stage_units
-
-
-@pytest.fixture
-def stream_constraint_factory():
-    def create_stream_constraint(pressure: float):
-        return PressureStreamConstraint(target_pressure=pressure)
-
-    return create_stream_constraint
 
 
 @pytest.fixture
