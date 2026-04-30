@@ -2,6 +2,7 @@ import numpy as np
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.fixed_speed_pressure_control import InterstagePressureControl
+from libecalc.common.numeric_methods import find_root
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.utils.common import (
@@ -11,7 +12,6 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_enthalpy_change_head_iteration,
 )
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
 from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (

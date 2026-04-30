@@ -1,7 +1,7 @@
 import numpy as np
 
 from libecalc.common.chart_type import ChartType
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
+from libecalc.common.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
 from libecalc.domain.process.value_objects.chart import ChartCurve

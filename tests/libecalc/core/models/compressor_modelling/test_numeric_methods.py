@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import (
+from libecalc.common.numeric_methods import (
     DampState,
     adaptive_pressure_update,
     find_root,

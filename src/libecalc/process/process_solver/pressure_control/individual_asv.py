@@ -1,6 +1,6 @@
 from collections.abc import Sequence
 
-from libecalc.domain.process.compressor.core.train.utils.numeric_methods import find_root
+from libecalc.common.numeric_methods import find_root
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.float_constraint import FloatConstraint
