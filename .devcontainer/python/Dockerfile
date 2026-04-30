@@ -1,7 +1,7 @@
 ARG VARIANT="3.12-bookworm"
 FROM mcr.microsoft.com/devcontainers/python:${VARIANT}
 
-COPY --from=ghcr.io/astral-sh/uv:0.10 /uv /uvx /bin/
+COPY --from=ghcr.io/astral-sh/uv:0.11 /uv /uvx /bin/
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV USER=vscode
