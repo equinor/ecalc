@@ -6,8 +6,6 @@ from libecalc.domain.component_validation_error import ComponentValidationExcept
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineId
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.domain.process.process_solver.equal_ratio_outlet_pressure_calculator import (
@@ -15,47 +13,6 @@ from libecalc.domain.process.process_solver.equal_ratio_outlet_pressure_calculat
 )
 from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.process_solver.solver import SolverFailureStatus
-from libecalc.testing.chart_data_factory import ChartDataFactory
-
-
-@pytest.fixture
-def make_compressor(fluid_service):
-    def _make(min_rate=300.0, max_rate=3000.0, head_hi=80000.0, head_lo=55000.0, eff=0.75):
-        chart_data = ChartDataFactory.from_rate_and_head(
-            rate=[min_rate, max_rate],
-            head=[head_hi, head_lo],
-            efficiency=eff,
-        )
-        return Compressor(
-            process_unit_id=ProcessUnitId(ecalc_id_generator()),
-            compressor_chart=chart_data,
-            fluid_service=fluid_service,
-        )
-
-    return _make
-
-
-@pytest.fixture
-def make_temperature_setter(fluid_service):
-    def _make(temperature_kelvin=303.15):
-        return TemperatureSetter(
-            process_unit_id=ProcessUnitId(ecalc_id_generator()),
-            required_temperature_kelvin=temperature_kelvin,
-            fluid_service=fluid_service,
-        )
-
-    return _make
-
-
-@pytest.fixture
-def make_liquid_remover(fluid_service):
-    def _make():
-        return LiquidRemover(
-            process_unit_id=ProcessUnitId(ecalc_id_generator()),
-            fluid_service=fluid_service,
-        )
-
-    return _make
 
 
 def test_single_stage_simplified_solver_meets_target(stream_factory, fluid_service, make_compressor):

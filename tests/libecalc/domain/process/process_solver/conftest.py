@@ -2,7 +2,10 @@ from collections.abc import Sequence
 
 import pytest
 
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.entities.process_units.compressor import Compressor
+from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
+from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
 from libecalc.domain.process.entities.shaft import Shaft
 from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
@@ -25,6 +28,47 @@ from libecalc.domain.process.process_solver.pressure_control.upstream_choke impo
 from libecalc.domain.process.process_solver.process_runner import ProcessRunner
 from libecalc.domain.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.testing.chart_data_factory import ChartDataFactory
+
+
+@pytest.fixture
+def make_compressor(fluid_service):
+    def _make(min_rate=300.0, max_rate=3000.0, head_hi=80000.0, head_lo=55000.0, eff=0.75):
+        chart_data = ChartDataFactory.from_rate_and_head(
+            rate=[min_rate, max_rate],
+            head=[head_hi, head_lo],
+            efficiency=eff,
+        )
+        return Compressor(
+            process_unit_id=ProcessUnitId(ecalc_id_generator()),
+            compressor_chart=chart_data,
+            fluid_service=fluid_service,
+        )
+
+    return _make
+
+
+@pytest.fixture
+def make_temperature_setter(fluid_service):
+    def _make(temperature_kelvin=303.15):
+        return TemperatureSetter(
+            process_unit_id=ProcessUnitId(ecalc_id_generator()),
+            required_temperature_kelvin=temperature_kelvin,
+            fluid_service=fluid_service,
+        )
+
+    return _make
+
+
+@pytest.fixture
+def make_liquid_remover(fluid_service):
+    def _make():
+        return LiquidRemover(
+            process_unit_id=ProcessUnitId(ecalc_id_generator()),
+            fluid_service=fluid_service,
+        )
+
+    return _make
 
 
 @pytest.fixture
