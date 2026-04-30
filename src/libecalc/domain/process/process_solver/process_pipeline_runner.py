@@ -29,6 +29,16 @@ class ProcessPipelineRunner(ProcessRunner):
         self._configurations[configuration.configuration_handler_id] = configuration
         self._apply_config_for_unit(configuration_handler=unit, configuration=configuration)
 
+    def reset_to(
+        self,
+        configurations: Sequence[Configuration] = (),
+    ) -> None:
+        self._configurations.clear()
+        for handler in self._configuration_handlers.values():
+            handler.reset()
+        if configurations:
+            self.apply_configurations(configurations)
+
     def _get_configuration_handler(self, configuration_handler_id: ConfigurationHandlerId) -> ConfigurationHandler:
         return self._configuration_handlers[configuration_handler_id]
 

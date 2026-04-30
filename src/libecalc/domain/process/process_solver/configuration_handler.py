@@ -15,6 +15,11 @@ class ConfigurationHandler(Entity[ConfigurationHandlerId], abc.ABC):
         """Handle the given configuration."""
         ...
 
+    @abc.abstractmethod
+    def reset(self) -> None:
+        """Restore handler to its default/unconfigured state."""
+        ...
+
     @classmethod
     def _create_id(cls: type[Self]) -> ConfigurationHandlerId:
         return ConfigurationHandlerId(ecalc_id_generator())

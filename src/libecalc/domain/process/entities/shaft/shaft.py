@@ -39,6 +39,9 @@ class Shaft(ConfigurationHandler, ABC):
         )
         self.set_speed(configuration.value.speed)
 
+    def reset(self) -> None:
+        self.reset_speed()
+
     @abstractmethod
     def set_speed(self, value: float) -> None:
         pass

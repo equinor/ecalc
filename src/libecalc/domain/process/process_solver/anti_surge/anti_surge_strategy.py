@@ -26,8 +26,3 @@ class AntiSurgeStrategy(ABC):
             Outlet stream after applying anti-surge adjustments (e.g. setting ASV recirculation).
         """
         ...
-
-    @abstractmethod
-    def reset(self) -> None:
-        """Reset mutable control state used by the strategy (e.g. ASV recirculation)."""
-        ...

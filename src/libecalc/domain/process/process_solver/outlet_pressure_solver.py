@@ -91,14 +91,12 @@ class OutletPressureSolver:
         )
 
         def speed_func(configuration: SpeedConfiguration) -> FluidStream:
-            self._simulator.apply_configuration(
-                Configuration(configuration_handler_id=self._shaft_id, value=configuration)
+            self._simulator.reset_to(
+                configurations=[Configuration(configuration_handler_id=self._shaft_id, value=configuration)],
             )
-            self._anti_surge_strategy.reset()
             try:
                 return self._simulator.run(inlet_stream=inlet_stream)
             except RateTooLowError:
-                # Reset anti-surge control state before applying the strategy.
                 solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
                 self._simulator.apply_configurations(solution.configuration)
                 return self._simulator.run(inlet_stream=inlet_stream)
@@ -123,6 +121,7 @@ class OutletPressureSolver:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
+        self._simulator.reset_to()
         configurations: dict[ConfigurationHandlerId, Configuration] = {}
         speed_solution = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
         configurations[self._shaft_id] = Configuration(
@@ -130,8 +129,7 @@ class OutletPressureSolver:
             value=speed_solution.configuration,
         )
 
-        self._simulator.apply_configurations(list(configurations.values()))
-        self._anti_surge_strategy.reset()
+        self._simulator.reset_to(configurations=list(configurations.values()))
         self._anti_surge_solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
         for anti_surge_configuration in self._anti_surge_solution.configuration:
             configurations[anti_surge_configuration.configuration_handler_id] = anti_surge_configuration

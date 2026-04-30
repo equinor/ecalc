@@ -18,6 +18,22 @@ class ProcessRunner(abc.ABC):
             self.apply_configuration(configuration)
 
     @abc.abstractmethod
+    def reset_to(
+        self,
+        configurations: Sequence[Configuration] = (),
+    ) -> None:
+        """Establish a clean starting state for the next evaluation.
+
+        Clears all configuration-handler state on the runner (e.g. shaft speed,
+        recirculation rates, choke pressure changes) and then applies the given
+        configurations as the new starting point.
+
+        Call this whenever a solver begins a new attempt so that no state from a
+        previous run leaks into the next one.
+        """
+        ...
+
+    @abc.abstractmethod
     def run(self, inlet_stream: FluidStream, to_id: ProcessUnitId | None = None) -> FluidStream:
         """
         Simulate the process
