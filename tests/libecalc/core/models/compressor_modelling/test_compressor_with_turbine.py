@@ -2,8 +2,7 @@ import numpy as np
 import pytest
 
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
-from libecalc.domain.process.value_objects.fluid_stream import EoSModel, FluidComposition
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 
 
 @pytest.fixture()

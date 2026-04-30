@@ -1,8 +1,8 @@
 import pytest
 
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.shaft import VariableSpeedShaft
 
 
 @pytest.mark.parametrize("target_pressure_bara", [50.0, 70.0, 87.0])
@@ -49,8 +49,6 @@ def test_individual_asv_pressure_control_reaches_target_pressure(
         ],
         control_margin=0.0,
     )
-
-    from libecalc.domain.process.entities.shaft import VariableSpeedShaft
 
     shaft = VariableSpeedShaft()
     compressor = compressor_factory(chart_data=chart_data)

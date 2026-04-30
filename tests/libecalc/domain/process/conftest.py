@@ -2,22 +2,25 @@ from typing import Final
 
 import pytest
 
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import Shaft
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.domain.process.process_solver.search_strategies import (
+from ecalc_neqsim_wrapper import NeqSimFluidService
+from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.process.fluid_stream.fluid_properties import FluidProperties
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
     BinarySearchStrategy,
     ScipyRootFindingStrategy,
 )
-from libecalc.domain.process.process_solver.stream_constraint import PressureStreamConstraint
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.fluid_stream import FluidService
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_properties import FluidProperties
-from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_solver.stream_constraint import PressureStreamConstraint
+from libecalc.process.process_units.choke import Choke
+from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.temperature_setter import TemperatureSetter
+from libecalc.process.shaft import Shaft
 
 
 @pytest.fixture
@@ -193,14 +196,10 @@ def stage_units_factory(fluid_service):
         remove_liquid_after_cooling: bool = False,
     ) -> list[ProcessUnit]:
         assert isinstance(compressor, Compressor)
-        from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
-
         fluid_service = NeqSimFluidService.instance()
         units: list[ProcessUnit] = []
 
         if pressure_drop_ahead_of_stage:
-            from libecalc.domain.process.entities.process_units.choke import Choke
-
             units.append(
                 Choke(
                     fluid_service=fluid_service,
@@ -216,8 +215,6 @@ def stage_units_factory(fluid_service):
         )
 
         if remove_liquid_after_cooling:
-            from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
-
             units.append(
                 LiquidRemover(
                     fluid_service=fluid_service,

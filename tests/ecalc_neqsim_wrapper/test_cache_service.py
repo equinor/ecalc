@@ -1,7 +1,7 @@
 import pytest
 
 from ecalc_neqsim_wrapper.cache_service import CacheName, CacheService
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_model import FluidModel
 
 
 @pytest.fixture(autouse=True)

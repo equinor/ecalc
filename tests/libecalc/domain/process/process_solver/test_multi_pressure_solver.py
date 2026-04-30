@@ -3,13 +3,13 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.entities.process_units.mixer import Mixer
-from libecalc.domain.process.entities.process_units.splitter import Splitter
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
-from libecalc.domain.process.process_solver.solver import TargetNotAchievableEvent
+from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
+from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.solver import TargetNotAchievableEvent
+from libecalc.process.process_units.mixer import Mixer
+from libecalc.process.process_units.splitter import Splitter
+from libecalc.process.shaft import VariableSpeedShaft
 
 
 @pytest.mark.parametrize("pd_target", [92.0, 150.0])

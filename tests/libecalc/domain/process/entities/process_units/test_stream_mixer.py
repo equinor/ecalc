@@ -3,12 +3,10 @@ import pytest
 from libecalc.domain.process.entities.process_units.simplified_stream_mixer.simplified_stream_mixer import (
     SimplifiedStreamMixer,
 )
-from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
-    IncompatibleEoSModelsException,
-)
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.fluid_stream.exceptions import IncompatibleEoSModelsException
+from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidModel
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 
 class TestSimplifiedStreamMixer:

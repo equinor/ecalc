@@ -6,10 +6,9 @@ from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureContr
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
-from libecalc.domain.process.entities.shaft import SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.process.shaft import SingleSpeedShaft, VariableSpeedShaft
 
 
 class TestCompressorTrainCommonShaft:

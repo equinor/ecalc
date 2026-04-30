@@ -1,13 +1,14 @@
 from collections import defaultdict
 
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.exceptions import (
+from libecalc.process.fluid_stream.exceptions import (
     EmptyStreamListException,
     IncompatibleEoSModelsException,
     ZeroTotalMassRateException,
-)  # TODO: Move exceptions to process domain root
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition, FluidModel
+)
+from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_model import FluidComposition, FluidModel
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 
 # TODO: Use enthalpy balance instead of simplified mixing?

@@ -16,8 +16,6 @@ from libecalc.common.math.numbers import Numbers
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.domain.process.value_objects.fluid_stream import FluidService
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.examples import advanced, drogon, simple
@@ -37,6 +35,8 @@ from libecalc.presentation.yaml.resource_service import ResourceService, TupleWi
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,

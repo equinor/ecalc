@@ -1,5 +1,5 @@
-from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.pressure_control.downstream_choke import (
+from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.pressure_control.downstream_choke import (
     DownstreamChokePressureControlStrategy,
 )
 

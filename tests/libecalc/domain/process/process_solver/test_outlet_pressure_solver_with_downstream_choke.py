@@ -1,9 +1,9 @@
 import pytest
 
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.testing.chart_data_factory import ChartDataFactory
 
 

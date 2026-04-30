@@ -1,7 +1,8 @@
 from libecalc.domain.process.entities.process_units.simplified_stream_mixer.simplified_stream_mixer import (
     SimplifiedStreamMixer,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidService, FluidStream
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 
 class LegacyMixer:

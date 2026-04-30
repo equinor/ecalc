@@ -2,13 +2,14 @@ from uuid import uuid4
 
 import pytest
 from inline_snapshot import snapshot
-from libecalc.domain.process.stream_distribution.common_stream_distribution import (
-    CommonStreamDistribution,
+
+from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.stream_distribution.common_stream_distribution import (
     HasExcessRate,
+    CommonStreamDistribution,
     Overflow,
 )
-from libecalc.domain.component_validation_error import DomainValidationException
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
 
 
 class Item(HasExcessRate):

@@ -20,7 +20,7 @@ from ecalc_neqsim_wrapper.mappings import (
 )
 from libecalc.common.decorators.capturer import Capturer
 from libecalc.common.logger import logger
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidComposition
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition
 
 _logger = logging.getLogger(__name__)
 

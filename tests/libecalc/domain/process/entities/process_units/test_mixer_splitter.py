@@ -1,8 +1,8 @@
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_TEMPERATURE_KELVIN
-from libecalc.domain.process.entities.process_units.mixer import Mixer
-from libecalc.domain.process.entities.process_units.splitter import Splitter
+from libecalc.process.process_units.mixer import Mixer
+from libecalc.process.process_units.splitter import Splitter
 
 # ── fixtures ─────────────────────────────────────────────────────────────────
 

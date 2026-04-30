@@ -1,8 +1,8 @@
 import pytest
 
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
 from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.shaft import VariableSpeedShaft
 
 
 def test_common_asv_pressure_control_uses_compressor_inlet_for_boundary(

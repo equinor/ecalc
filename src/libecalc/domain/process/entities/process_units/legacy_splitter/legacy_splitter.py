@@ -1,5 +1,5 @@
 from libecalc.common.logger import logger
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 
 class LegacySplitter:

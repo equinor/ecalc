@@ -3,8 +3,7 @@ from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERA
 from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
     LegacySplitter,
 )
-from libecalc.domain.process.value_objects.fluid_stream import FluidComposition
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
+from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 
 
 def test_splitter():

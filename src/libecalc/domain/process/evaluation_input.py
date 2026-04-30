@@ -5,11 +5,11 @@ from libecalc.domain.process.compressor.core.base import CompressorWithTurbineMo
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.domain.time_series_fluid_density import TimeSeriesFluidDensity
 from libecalc.domain.time_series_power_loss_factor import TimeSeriesPowerLossFactor
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
+from libecalc.process.fluid_stream.fluid_model import FluidModel
 
 
 class CompressorEvaluationInput:

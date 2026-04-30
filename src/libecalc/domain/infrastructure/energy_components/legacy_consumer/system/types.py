@@ -9,7 +9,7 @@ from libecalc.domain.process.compressor.core.sampled import CompressorModelSampl
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.core.results import EnergyFunctionResult
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_model import FluidModel
 
 
 class ConsumerSystemComponent(SystemComponent):

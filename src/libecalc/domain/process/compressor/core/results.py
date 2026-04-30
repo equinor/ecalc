@@ -11,8 +11,8 @@ from libecalc.domain.process.core.results.compressor import (
 )
 from libecalc.domain.process.value_objects.chart import Chart
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidComposition
+from libecalc.process.fluid_stream.fluid_model import FluidComposition
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 
 class CompressorTrainStageResultSingleTimeStep:

@@ -14,7 +14,7 @@ from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations i
     calculate_polytropic_head_campbell,
 )
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
-from libecalc.domain.process.value_objects.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid import Fluid
 
 
 @pytest.fixture

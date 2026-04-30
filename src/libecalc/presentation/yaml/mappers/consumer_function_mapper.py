@@ -42,16 +42,12 @@ from libecalc.domain.process.compressor.core.train.base import CompressorTrainMo
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.entities.process_units.choke import Choke
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
 from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
     LegacySplitter,
 )
-from libecalc.domain.process.entities.process_units.liquid_remover import LiquidRemover
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.process_units.temperature_setter import TemperatureSetter
-from libecalc.domain.process.entities.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 from libecalc.domain.process.evaluation_input import (
     CompressorEvaluationInput,
     CompressorSampledEvaluationInput,
@@ -59,8 +55,6 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import FluidModel
-from libecalc.domain.process.value_objects.fluid_stream.fluid_service import FluidService
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
@@ -154,6 +148,12 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
+from libecalc.process.fluid_stream.fluid_model import FluidModel
+from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.process_units.choke import Choke
+from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.temperature_setter import TemperatureSetter
+from libecalc.process.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
 
 logger = logging.getLogger(__name__)
 

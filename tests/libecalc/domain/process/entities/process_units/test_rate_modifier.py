@@ -1,6 +1,6 @@
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
+from libecalc.process.shaft import VariableSpeedShaft
 
 
 def test_modify_rate(variable_speed_compressor_chart_data, fluid_model_medium, fluid_service):
