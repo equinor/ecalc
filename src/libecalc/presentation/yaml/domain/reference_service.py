@@ -2,7 +2,7 @@ import abc
 from collections.abc import Iterable
 from typing import Protocol
 
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
     YamlCompressor,
@@ -32,7 +32,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
-class InvalidReferenceException(DomainValidationException):
+class InvalidReferenceException(EcalcValidationException):
     def __init__(self, reference_type: str, reference: str, available_references: Iterable[str] = None):
         if available_references is not None:
             available_message = f"Available references: {', '.join(available_references)}"

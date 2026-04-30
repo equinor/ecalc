@@ -4,10 +4,10 @@ from datetime import datetime
 import pandas as pd
 
 import libecalc.common.time_utils
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 
 
-class InvalidEndDate(DomainValidationException):
+class InvalidEndDate(EcalcValidationException):
     pass
 
 
@@ -55,7 +55,7 @@ def get_global_time_vector(
     """
     time_vector = set(time_series_time_vector)
     if not time_vector and not start:
-        raise DomainValidationException(
+        raise EcalcValidationException(
             "No time series found, please provide one or specify both a start date and an end date."
         )
     start = start or min(time_vector)

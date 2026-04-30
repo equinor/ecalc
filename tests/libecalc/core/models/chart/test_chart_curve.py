@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.process.value_objects.chart import ChartCurve
 
 
@@ -60,7 +60,7 @@ def test_chart_curve_100_percent_efficient():
 @pytest.mark.snapshot
 def test_chart_curve_data_invalid_setup_from_arrays():
     # Efficiency is a fraction between 0 and 1. Where 0 is 0 % efficiency and 1 is 100 % efficiency.
-    with pytest.raises(DomainValidationException) as exc_info:
+    with pytest.raises(EcalcValidationException) as exc_info:
         ChartCurve(
             rate_actual_m3_hour=[1, 2.0],
             polytropic_head_joule_per_kg=[3, 4.0],
@@ -71,7 +71,7 @@ def test_chart_curve_data_invalid_setup_from_arrays():
     assert str(exc_info.value) == snapshot("Efficiency fraction should be between 0 and 1")
 
     # Chart curve should have at least two points
-    with pytest.raises(DomainValidationException) as ve:
+    with pytest.raises(EcalcValidationException) as ve:
         ChartCurve(
             rate_actual_m3_hour=[1],
             polytropic_head_joule_per_kg=[3],

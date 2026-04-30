@@ -1,8 +1,8 @@
-from libecalc.common.errors.exceptions import InvalidColumnException
-from libecalc.domain.component_validation_error import (
+from libecalc.common.errors.ecalc_validation_error import (
     GeneratorSetEqualLengthValidationException,
     GeneratorSetHeaderValidationException,
 )
+from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.domain.resource import Resource
 
 

@@ -5,11 +5,11 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.consumption_type import ConsumptionType
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,
@@ -138,14 +138,14 @@ class CompressorTrainModel(ABC):
         intermediate_pressure: NDArray[np.float64] | None = None,
     ):
         if suction_pressure is None:
-            raise DomainValidationException("Suction pressure is required for model")
+            raise EcalcValidationException("Suction pressure is required for model")
         if discharge_pressure is None:
-            raise DomainValidationException("Discharge pressure is required for model")
+            raise EcalcValidationException("Discharge pressure is required for model")
         has_interstage_pressure = any(stage.interstage_pressure_control is not None for stage in self.stages)
         if has_interstage_pressure and intermediate_pressure is None:
-            raise DomainValidationException("Interstage control pressure is required for model")
+            raise EcalcValidationException("Interstage control pressure is required for model")
         if not has_interstage_pressure and intermediate_pressure is not None:
-            raise DomainValidationException("Model is not set up to receive interstage pressure")
+            raise EcalcValidationException("Model is not set up to receive interstage pressure")
         self._rate = rate
         self._suction_pressure = suction_pressure
         self._discharge_pressure = discharge_pressure
@@ -381,7 +381,7 @@ class CompressorTrainModel(ABC):
 
         # Check for multiple ports
         if len(self.ports) > 1:
-            raise DomainValidationException(
+            raise EcalcValidationException(
                 "Calculation of max standard rate is not well defined for compressor trains with more than one port."
             )
 

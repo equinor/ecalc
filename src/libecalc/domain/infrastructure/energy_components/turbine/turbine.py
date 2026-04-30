@@ -4,12 +4,12 @@ import numpy as np
 from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
-from libecalc.common.list.list_utils import array_to_list
-from libecalc.common.units import Unit
-from libecalc.domain.component_validation_error import (
+from libecalc.common.errors.ecalc_validation_error import (
     ProcessEqualLengthValidationException,
     ProcessTurbineEfficiencyValidationException,
 )
+from libecalc.common.list.list_utils import array_to_list
+from libecalc.common.units import Unit
 from libecalc.domain.process.core.results import TurbineResult
 
 SECONDS_PER_DAY = 86400

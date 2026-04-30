@@ -8,6 +8,10 @@ from pydantic import ValidationError
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.errors.ecalc_validation_error import (
+    EcalcValidationException,
+    ProcessPressureRatioValidationException,
+)
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.common.temporal_model import TemporalModel
@@ -15,10 +19,6 @@ from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.component_validation_error import (
-    DomainValidationException,
-    ProcessPressureRatioValidationException,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,
@@ -306,7 +306,7 @@ class CompressorModelMapper:
                     self._reference_service.get_yaml_path(reference).keys
                 ),
             ) from ve
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
     def _get_compressor_chart(
@@ -334,7 +334,7 @@ class CompressorModelMapper:
                     self._reference_service.get_yaml_path(reference).keys
                 ),
             ) from ve
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
     def _create_compressor_train_stage(
@@ -424,7 +424,7 @@ class CompressorModelMapper:
             )
         pressure_control = _pressure_control_mapper(model)
         if fluid_model is None:
-            raise DomainValidationException("Fluid model is required for compressor train.")
+            raise EcalcValidationException("Fluid model is required for compressor train.")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
@@ -471,14 +471,14 @@ class CompressorModelMapper:
         pressure_control = _pressure_control_mapper(model)
         maximum_discharge_pressure = model.maximum_discharge_pressure
         if maximum_discharge_pressure and pressure_control != FixedSpeedPressureControl.DOWNSTREAM_CHOKE:
-            raise DomainValidationException(
+            raise EcalcValidationException(
                 f"Setting {EcalcYamlKeywords.maximum_discharge_pressure} for single speed compressor train is currently "
                 f"only supported with {FixedSpeedPressureControl.DOWNSTREAM_CHOKE.value} pressure control option. "
                 f"Pressure control option is {pressure_control.value}."
             )
 
         if fluid_model is None:
-            raise DomainValidationException("Fluid model is required for compressor train.")
+            raise EcalcValidationException("Fluid model is required for compressor train.")
 
         compressor_model = CompressorTrainCommonShaft(
             stages=stages,
@@ -503,7 +503,7 @@ class CompressorModelMapper:
                 energy_usage_adjustment_constant=model.power_adjustment_constant,
                 energy_usage_adjustment_factor=model.power_adjustment_factor,
             )
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference)]) from e
 
     def _create_compressor_with_turbine(
@@ -551,19 +551,19 @@ class CompressorModelMapper:
             assert operational_data is not None
             # For unknown stages, maximum_pressure_ratio_per_stage is required to determine stage count
             if train_spec.maximum_pressure_ratio_per_stage is None:
-                raise DomainValidationException(
+                raise EcalcValidationException(
                     "MAXIMUM_PRESSURE_RATIO_PER_STAGE is required for unknown compressor stages."
                 )
 
             suction_pressure = operational_data.suction_pressures
             discharge_pressure = operational_data.discharge_pressures
             if suction_pressure is None:
-                raise DomainValidationException(
+                raise EcalcValidationException(
                     "SUCTION_PRESSURE is required for simplified compressor model. "
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
             if discharge_pressure is None:
-                raise DomainValidationException(
+                raise EcalcValidationException(
                     "DISCHARGE_PRESSURE is required for simplified compressor model. "
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
@@ -611,12 +611,12 @@ class CompressorModelMapper:
             suction_pressures = operational_data.suction_pressures
             discharge_pressures = operational_data.discharge_pressures
             if suction_pressures is None:
-                raise DomainValidationException(
+                raise EcalcValidationException(
                     "SUCTION_PRESSURE is required for simplified compressor model. "
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
             if discharge_pressures is None:
-                raise DomainValidationException(
+                raise EcalcValidationException(
                     "DISCHARGE_PRESSURE is required for simplified compressor model. "
                     "Simplified models perform thermodynamic calculations that require pressure data."
                 )
@@ -752,7 +752,7 @@ class CompressorModelMapper:
         ]
 
         if not any(fluid_models):
-            raise DomainValidationException("An inlet stream is required for this model.")
+            raise EcalcValidationException("An inlet stream is required for this model.")
 
         interstage_pressures = {i for i, stage in enumerate(stages) if stage.has_control_pressure}
         stage_number_interstage_pressure = interstage_pressures.pop() if interstage_pressures else None
@@ -830,7 +830,7 @@ class CompressorModelMapper:
                 return self._create_compressor_sampled(model, reference), None
             else:
                 assert_never(model)
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
 
 
@@ -883,7 +883,7 @@ class TabularModelMapper:
                 headers=resource_headers,
                 data=resource_data,
             )
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
 
 
@@ -933,7 +933,7 @@ class PumpModelMapper:
                 return _create_pump_model_single_speed_dto_model_data(resource=resource, facility_data=model)
             elif isinstance(model, YamlPumpChartVariableSpeed):
                 return _create_pump_chart_variable_speed_dto_model_data(resource=resource, facility_data=model)
-        except DomainValidationException as e:
+        except EcalcValidationException as e:
             raise ModelValidationException(errors=[self._create_error(str(e), reference=reference)]) from e
         except InvalidResourceException as e:
             raise InvalidChartResourceException(
@@ -1486,7 +1486,7 @@ class ConsumerFunctionMapper:
 
         # Validate consumption types and create result
         if not _all_equal(compressor_consumption_types):
-            raise DomainValidationException("All compressors in a system must consume the same kind of energy")
+            raise EcalcValidationException("All compressors in a system must consume the same kind of energy")
 
         # Can't infer energy_usage_type when there are no compressors
         consumption_type = (
@@ -1670,7 +1670,7 @@ class ConsumerFunctionMapper:
                 else:
                     assert_never(model)
                 temporal_dict[period] = mapped_model
-            except (InvalidConsumptionType, ValueError, InvalidExpressionError, DomainValidationException) as e:
+            except (InvalidConsumptionType, ValueError, InvalidExpressionError, EcalcValidationException) as e:
                 raise InvalidEnergyUsageModelException(
                     message=str(e),
                     period=period,

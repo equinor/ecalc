@@ -1,8 +1,8 @@
 from dataclasses import dataclass
 
+from libecalc.common.errors.ecalc_validation_error import ProcessCompressorEfficiencyValidationException
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.domain.component_validation_error import ProcessCompressorEfficiencyValidationException
 from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag

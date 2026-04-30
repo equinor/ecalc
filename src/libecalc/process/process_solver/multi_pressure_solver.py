@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Final
 
-from libecalc.domain.component_validation_error import DomainValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
@@ -31,10 +31,10 @@ class MultiPressureSolver:
         segments: list[OutletPressureSolver],
     ) -> None:
         if len(segments) < 2:
-            raise DomainValidationException("MultiPressureSolver requires at least 2 segments.")
+            raise EcalcValidationException("MultiPressureSolver requires at least 2 segments.")
         shaft_ids = {segment.shaft_id for segment in segments}
         if len(shaft_ids) != 1:
-            raise DomainValidationException("All segments must share the same shaft_id.")
+            raise EcalcValidationException("All segments must share the same shaft_id.")
         self._shaft_id: Final = next(iter(shaft_ids))
         self._validate_pressure_control_placement(segments)
         self._segments: Final = segments
@@ -47,12 +47,12 @@ class MultiPressureSolver:
             is_first = i == 0
             is_last = i == len(segments) - 1
             if isinstance(strategy, UpstreamChokePressureControlStrategy) and not is_first:
-                raise DomainValidationException(
+                raise EcalcValidationException(
                     f"UpstreamChokePressureControlStrategy is only valid for the first segment "
                     f"(segment {i} of {len(segments)})."
                 )
             if isinstance(strategy, DownstreamChokePressureControlStrategy) and not is_last:
-                raise DomainValidationException(
+                raise EcalcValidationException(
                     f"DownstreamChokePressureControlStrategy is only valid for the last segment "
                     f"(segment {i} of {len(segments)})."
                 )
@@ -63,7 +63,7 @@ class MultiPressureSolver:
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration]]:
         if len(pressure_targets) != len(self._segments):
-            raise DomainValidationException(
+            raise EcalcValidationException(
                 f"Number of pressure targets ({len(pressure_targets)}) must match "
                 f"number of segments ({len(self._segments)})."
             )

@@ -1,6 +1,6 @@
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException, ResourceFileMark
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.resource import Resources
@@ -111,7 +111,7 @@ def variable_speed_compressor_chart_mapper(
         resource_name = curve_config.file
         resource = resources.get(resource_name)
         if resource is None:
-            raise DomainValidationException(f"Resource '{resource_name}' not found for variable speed chart.")
+            raise EcalcValidationException(f"Resource '{resource_name}' not found for variable speed chart.")
         try:
             chart_data = UserDefinedChartData.from_resource(
                 resource, units=model_config.units, is_single_speed=False, control_margin=control_margin

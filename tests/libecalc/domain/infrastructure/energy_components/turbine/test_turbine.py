@@ -1,7 +1,7 @@
 import pytest
 
-from libecalc.domain.component_validation_error import (
-    DomainValidationException,
+from libecalc.common.errors.ecalc_validation_error import (
+    EcalcValidationException,
     ProcessEqualLengthValidationException,
 )
 from libecalc.domain.infrastructure.energy_components.turbine import Turbine
@@ -39,11 +39,11 @@ class TestTurbine:
 
         This test ensures that:
         1. Invalid efficiency fractions (values below 0 or above 1) are correctly identified.
-        2. The appropriate exception (DomainValidationException) is raised.
+        2. The appropriate exception is raised.
         3. The error message contains the correct details about the invalid values.
 
         """
-        with pytest.raises(DomainValidationException) as e:
+        with pytest.raises(EcalcValidationException) as e:
             (
                 Turbine(
                     lower_heating_value=38,

@@ -1,11 +1,11 @@
 from collections.abc import Sequence
 from typing import Literal, assert_never
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.component_validation_error import DomainValidationException
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
@@ -171,7 +171,7 @@ class ProcessSimulationMapper:
             resource_name = yaml_curves.file
             resource = self._resources.get(resource_name)
             if resource is None:
-                raise DomainValidationException(f"Resource '{resource_name}' not found for variable speed chart.")
+                raise EcalcValidationException(f"Resource '{resource_name}' not found for variable speed chart.")
             try:
                 return UserDefinedChartData.from_resource(
                     resource, units=yaml_chart.units, is_single_speed=False, control_margin=control_margin_fraction
@@ -321,7 +321,7 @@ class ProcessSimulationMapper:
             try:
                 pressure_control = yaml_process_simulation.pressure_control[item.name]
             except KeyError as e:
-                raise DomainValidationException(f"Missing pressure control for process system '{item.name}'") from e
+                raise EcalcValidationException(f"Missing pressure control for process system '{item.name}'") from e
 
             configuration_handlers = []
 
@@ -361,7 +361,7 @@ class ProcessSimulationMapper:
         for process_pipeline_reference, constraint in yaml_process_simulation.constraints.items():
             process_pipeline_id = process_pipeline_reference_to_id_map.get(process_pipeline_reference)
             if process_pipeline_id is None:
-                raise DomainValidationException(
+                raise EcalcValidationException(
                     f"Constraint specified for unknown process system '{process_pipeline_reference}'"
                 )
             constraints[process_pipeline_id] = Constraint(
@@ -391,14 +391,14 @@ class ProcessSimulationMapper:
                         try:
                             to_id = process_pipeline_reference_to_id_map[overflow.to_reference]
                         except KeyError as e:
-                            raise DomainValidationException(
+                            raise EcalcValidationException(
                                 f"Process system reference '{overflow.to_reference}' defined in overflow does not exist."
                             ) from e
 
                         try:
                             from_id = process_pipeline_reference_to_id_map[overflow.from_reference]
                         except KeyError as e:
-                            raise DomainValidationException(
+                            raise EcalcValidationException(
                                 f"Process system reference '{overflow.from_reference}' defined in overflow does not exist."
                             ) from e
 
