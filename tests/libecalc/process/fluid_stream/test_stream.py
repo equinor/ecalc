@@ -6,7 +6,6 @@ from libecalc.common.units import UnitConstants
 from libecalc.process.fluid_stream.exceptions import NegativeMassRateException
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from tests.libecalc.domain.process.conftest import create_mock_fluid_properties
 
 
 class TestStream:
@@ -19,12 +18,12 @@ class TestStream:
         assert stream.conditions.temperature_kelvin == 310.0
         assert stream.mass_rate_kg_per_h == 100.0
 
-    def test_pt_flash_pattern_via_service(self, mock_fluid):
+    def test_pt_flash_pattern_via_service(self, mock_fluid, mock_fluid_properties_factory):
         """Test PT-flash pattern: create_fluid + with_new_fluid."""
         stream = FluidStream(fluid=mock_fluid, mass_rate_kg_per_h=100.0)
 
         # Create mock properties for the result
-        new_props = create_mock_fluid_properties(
+        new_props = mock_fluid_properties_factory(
             pressure_bara=15.0,
             temperature_kelvin=350.0,
         )
@@ -82,7 +81,7 @@ class TestStream:
         expected_temp = 300.0 + (enthalpy_change / 1000.0)
 
         # Create mock properties for the result
-        new_props = create_mock_fluid_properties(
+        new_props = mock_fluid_properties_factory(
             pressure_bara=new_pressure,
             temperature_kelvin=expected_temp,
             enthalpy_joule_per_kg=target_enthalpy,
