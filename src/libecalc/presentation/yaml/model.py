@@ -7,13 +7,13 @@ from typing import Any, Self
 
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.component_type import ComponentType
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.core.result import ComponentResult, CompressorResult
 from libecalc.core.result.results import PumpResult
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyModel
 from libecalc.domain.energy.energy_component import EnergyContainerID
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset

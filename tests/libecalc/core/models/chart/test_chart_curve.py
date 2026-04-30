@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.process.value_objects.chart import ChartCurve
 
 

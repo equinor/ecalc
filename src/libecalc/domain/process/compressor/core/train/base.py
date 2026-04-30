@@ -5,11 +5,11 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.consumption_type import ConsumptionType
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
     CompressorTrainStageResultSingleTimeStep,

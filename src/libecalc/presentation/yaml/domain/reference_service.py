@@ -2,7 +2,7 @@ import abc
 from collections.abc import Iterable
 from typing import Protocol
 
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
     YamlCompressor,

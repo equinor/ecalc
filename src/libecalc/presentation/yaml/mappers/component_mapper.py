@@ -6,10 +6,10 @@ from pydantic import ValidationError
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.temporal_model import InvalidTemporalModel, TemporalModel
 from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.energy import EnergyComponent
 from libecalc.domain.energy.energy_component import EnergyContainerID
 from libecalc.domain.hydrocarbon_export import HydrocarbonExport

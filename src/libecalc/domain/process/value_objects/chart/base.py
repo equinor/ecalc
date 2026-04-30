@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 from shapely.geometry import LineString, Point
 
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 
 logger = logging.getLogger(__name__)
 

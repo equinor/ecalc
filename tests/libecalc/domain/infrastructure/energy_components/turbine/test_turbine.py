@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.domain.ecalc_validation_error import (
+from libecalc.common.errors.ecalc_validation_error import (
     EcalcValidationException,
     ProcessEqualLengthValidationException,
 )

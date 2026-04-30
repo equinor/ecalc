@@ -7,7 +7,7 @@ from typing import Generic, TypeVar
 
 import networkx as nx
 
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.stream_distribution.stream_distribution import StreamDistribution

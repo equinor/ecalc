@@ -1,8 +1,8 @@
 from typing import overload
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.logger import logger
 from libecalc.common.units import Unit
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.dto.types import ChartControlMarginUnit, ChartEfficiencyUnit, ChartPolytropicHeadUnit, ChartRateUnit
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 

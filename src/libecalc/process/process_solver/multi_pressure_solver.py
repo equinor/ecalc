@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 from typing import Final
 
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint

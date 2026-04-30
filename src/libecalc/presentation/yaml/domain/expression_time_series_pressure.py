@@ -1,5 +1,5 @@
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Periods
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.time_series_pressure import TimeSeriesPressure
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 

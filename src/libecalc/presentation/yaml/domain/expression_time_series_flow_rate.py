@@ -1,8 +1,8 @@
 import numpy as np
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Periods
 from libecalc.common.utils.rates import Rates, RateType
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression

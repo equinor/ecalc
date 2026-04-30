@@ -7,8 +7,8 @@ from numpy.typing import NDArray
 from scipy.interpolate import interp1d
 
 from libecalc.common.chart_type import ChartType
+from libecalc.common.errors.ecalc_validation_error import ProcessChartTypeValidationException
 from libecalc.common.list.list_utils import array_to_list
-from libecalc.domain.ecalc_validation_error import ProcessChartTypeValidationException
 from libecalc.domain.process.value_objects.chart.base import ChartCurve
 
 

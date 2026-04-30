@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 import libecalc.common.time_utils
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 
 
 class InvalidEndDate(EcalcValidationException):

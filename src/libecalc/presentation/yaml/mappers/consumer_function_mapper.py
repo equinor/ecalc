@@ -8,6 +8,10 @@ from pydantic import ValidationError
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
+from libecalc.common.errors.ecalc_validation_error import (
+    EcalcValidationException,
+    ProcessPressureRatioValidationException,
+)
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.common.temporal_model import TemporalModel
@@ -15,10 +19,6 @@ from libecalc.common.time_utils import Period, define_time_model_for_period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.ecalc_validation_error import (
-    EcalcValidationException,
-    ProcessPressureRatioValidationException,
-)
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function.direct_consumer_function import (
     DirectConsumerFunction,

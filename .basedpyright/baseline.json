@@ -458,6 +458,16 @@
                 }
             }
         ],
+        "./src/libecalc/common/errors/ecalc_validation_error.py": [
+            {
+                "code": "reportArgumentType",
+                "range": {
+                    "startColumn": 38,
+                    "endColumn": 42,
+                    "lineCount": 1
+                }
+            }
+        ],
         "./src/libecalc/common/errors/exceptions.py": [
             {
                 "code": "reportAttributeAccessIssue",
@@ -700,16 +710,6 @@
                 "range": {
                     "startColumn": 23,
                     "endColumn": 27,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./src/libecalc/domain/ecalc_validation_error.py": [
-            {
-                "code": "reportArgumentType",
-                "range": {
-                    "startColumn": 38,
-                    "endColumn": 42,
                     "lineCount": 1
                 }
             }

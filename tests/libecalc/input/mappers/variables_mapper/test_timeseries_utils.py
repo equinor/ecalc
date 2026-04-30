@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.dto.types import InterpolationType
 from libecalc.presentation.yaml.domain.time_series import TimeSeries
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import get_global_time_vector

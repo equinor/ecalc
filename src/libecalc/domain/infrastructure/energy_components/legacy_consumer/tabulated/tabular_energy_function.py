@@ -5,12 +5,12 @@ from collections.abc import Callable
 import numpy as np
 
 from libecalc.common.energy_usage_type import EnergyUsageType
-from libecalc.common.errors.exceptions import InvalidColumnException
-from libecalc.common.interpolation import setup_interpolator_1d, setup_interpolator_n_dimensional
-from libecalc.domain.ecalc_validation_error import (
+from libecalc.common.errors.ecalc_validation_error import (
     ProcessEqualLengthValidationException,
     ProcessHeaderValidationException,
 )
+from libecalc.common.errors.exceptions import InvalidColumnException
+from libecalc.common.interpolation import setup_interpolator_1d, setup_interpolator_n_dimensional
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.tabulated.common import Variable
 
 

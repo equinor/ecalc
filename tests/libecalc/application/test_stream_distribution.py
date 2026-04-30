@@ -3,7 +3,7 @@ from uuid import uuid4
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.stream_distribution.common_stream_distribution import (
     HasExcessRate,

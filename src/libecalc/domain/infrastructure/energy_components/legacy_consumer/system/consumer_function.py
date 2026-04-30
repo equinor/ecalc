@@ -3,8 +3,8 @@ import abc
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.logger import logger
-from libecalc.domain.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system.operational_setting import (
     ConsumerSystemOperationalSettingExpressions,
