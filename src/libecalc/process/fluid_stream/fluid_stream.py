@@ -141,6 +141,15 @@ class FluidStream:
         """
         return FluidStream(fluid=self.fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
 
+    def with_standard_rate(self, standard_rate_sm3_per_day: float) -> FluidStream:
+        """Create new stream with same fluid but different standard rate."""
+        from libecalc.common.units import UnitConstants
+
+        mass_rate_kg_per_h = (
+            standard_rate_sm3_per_day * self.standard_density_gas_phase_after_flash / UnitConstants.HOURS_PER_DAY
+        )
+        return FluidStream(fluid=self.fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
+
     def with_new_fluid(self, fluid: Fluid) -> FluidStream:
         """Create new stream with updated fluid but same mass rate.
 
