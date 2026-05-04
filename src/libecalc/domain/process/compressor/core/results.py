@@ -84,65 +84,57 @@ class CompressorTrainStageResultSingleTimeStep:
     def inlet_actual_rate_m3_per_hour(self) -> float:
         """Actual inlet rate in Am3/hour."""
         if self.inlet_stream is None:
-            return np.nan
-        else:
-            return self.inlet_stream.volumetric_rate_m3_per_hour
+            return 0.0
+        return self.inlet_stream.volumetric_rate_m3_per_hour
 
     @property
     def inlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
         """Actual inlet rate in Am3/hour, corrected for ASV."""
         if self.inlet_stream_including_asv is None:
-            return np.nan
-        else:
-            return self.inlet_stream_including_asv.volumetric_rate_m3_per_hour
+            return 0.0
+        return self.inlet_stream_including_asv.volumetric_rate_m3_per_hour
 
     @property
     def standard_rate_sm3_per_day(self) -> float:
         """Standard inlet rate in Sm3/day."""
         if self.inlet_stream is None:
-            return np.nan
-        else:
-            return self.inlet_stream.standard_rate_sm3_per_day
+            return 0.0
+        return self.inlet_stream.standard_rate_sm3_per_day
 
     @property
     def standard_rate_asv_corrected_sm3_per_day(self) -> float:
         """Standard inlet rate in Sm3/day, corrected for ASV."""
         if self.inlet_stream_including_asv is None:
-            return np.nan
-        else:
-            return self.inlet_stream_including_asv.standard_rate_sm3_per_day
+            return 0.0
+        return self.inlet_stream_including_asv.standard_rate_sm3_per_day
 
     @property
     def outlet_actual_rate_m3_per_hour(self) -> float:
         """Actual outlet rate in Am3/hour."""
         if self.outlet_stream is None:
-            return np.nan
-        else:
-            return self.outlet_stream.volumetric_rate_m3_per_hour
+            return 0.0
+        return self.outlet_stream.volumetric_rate_m3_per_hour
 
     @property
     def outlet_actual_rate_asv_corrected_m3_per_hour(self) -> float:
         """Actual outlet rate in Am3/hour, corrected for ASV."""
         if self.outlet_stream_including_asv is None:
-            return np.nan
-        else:
-            return self.outlet_stream_including_asv.volumetric_rate_m3_per_hour
+            return 0.0
+        return self.outlet_stream_including_asv.volumetric_rate_m3_per_hour
 
     @property
     def mass_rate_kg_per_hour(self) -> float:
         """Mass rate in kg/hour"""
         if self.inlet_stream is None:
-            return np.nan
-        else:
-            return self.inlet_stream.mass_rate_kg_per_h
+            return 0.0
+        return self.inlet_stream.mass_rate_kg_per_h
 
     @property
     def mass_rate_asv_corrected_kg_per_hour(self) -> float:
         """Mass rate in kg/hour, corrected for ASV."""
         if self.inlet_stream_including_asv is None:
-            return np.nan
-        else:
-            return self.inlet_stream_including_asv.mass_rate_kg_per_h
+            return 0.0
+        return self.inlet_stream_including_asv.mass_rate_kg_per_h
 
     @property
     def is_valid(self) -> bool:
