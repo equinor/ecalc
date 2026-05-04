@@ -35,6 +35,7 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
+from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.container_info import ContainerInfo
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
@@ -67,7 +68,6 @@ from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContextNames,
 )
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
-from libecalc.process.process_simulation import ProcessSimulation
 
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 

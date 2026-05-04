@@ -9,6 +9,17 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
+from libecalc.ecalc_model.process_simulation import (
+    AntiSurgeConfig,
+    CommonStreamDistributionConfig,
+    CommonStreamSettings,
+    Constraint,
+    IndividualStreamDistributionConfig,
+    PressureControlConfig,
+    ProcessProblem,
+    ProcessSimulation,
+)
+from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
@@ -36,22 +47,11 @@ from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.process.process_pipeline.process_pipeline import (
     ProcessPipeline,
     ProcessPipelineId,
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.process.process_simulation import (
-    AntiSurgeConfig,
-    CommonStreamDistributionConfig,
-    CommonStreamSettings,
-    Constraint,
-    IndividualStreamDistributionConfig,
-    PressureControlConfig,
-    ProcessProblem,
-    ProcessSimulation,
-)
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
