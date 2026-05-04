@@ -392,6 +392,10 @@ class CompressorTrainModel(ABC):
                 discharge_pressures,
             )
         ):
+            if suction_pressure_value <= 0 or discharge_pressure_value <= 0:
+                max_standard_rate[i] = 0.0
+                continue
+
             constraints = CompressorTrainEvaluationInput(
                 suction_pressure=suction_pressure_value,
                 discharge_pressure=discharge_pressure_value,
