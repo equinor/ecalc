@@ -27,6 +27,7 @@ def test_process_to_import_process_or_common_only(libecalc_architecture):
         "libecalc.fixtures",
         "libecalc.infrastructure",
         "libecalc.presentation",
+        "libecalc.testing",
     ]:
         rule = (
             Rule()
