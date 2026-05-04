@@ -260,6 +260,22 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calculate(
     assert np.all(np.asarray(energy_result.energy_usage.values) == 0)
 
 
+def test_get_max_standard_rate_with_zero_pressure(simplified_compressor_train_factory, fluid_model_rich):
+    compressor_train = simplified_compressor_train_factory()
+    compressor_train.set_evaluation_input(
+        fluid_model=fluid_model_rich,
+        rate=np.asarray([5000000.0, 0.0]),
+        suction_pressure=np.asarray([30.0, 0.0]),
+        discharge_pressure=np.asarray([200.0, 0.0]),
+    )
+    max_rates = compressor_train.get_max_standard_rate(
+        suction_pressures=np.asarray([30.0, 0.0]),
+        discharge_pressures=np.asarray([200.0, 0.0]),
+    )
+    assert max_rates[0] > 0
+    assert max_rates[1] == 0.0
+
+
 # Unit tests individual methods
 def _span_variables(input_variables: list[NDArray[np.float64]]) -> tuple:
     number_of_variables = len(input_variables)
