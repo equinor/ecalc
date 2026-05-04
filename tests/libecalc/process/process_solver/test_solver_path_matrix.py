@@ -18,25 +18,20 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.configuration import (
     ChokeConfiguration,
     Configuration,
-    OperatingConfiguration,
     RecirculationConfiguration,
     SpeedConfiguration,
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
-from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.solver import (
-    OutsideCapacityEvent,
     Solution,
     SolverFailureStatus,
-    TargetNotAchievableEvent,
 )
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
@@ -48,7 +43,6 @@ RECIRCULATION_TOLERANCE = 1e-6
 
 
 class SolverPathMode(StrEnum):
-    NONE = "none"
     DOWNSTREAM_CHOKE = "downstream_choke"
     UPSTREAM_CHOKE = "upstream_choke"
     INDIVIDUAL_ASV_RATE = "individual_asv_rate"
@@ -219,7 +213,6 @@ POWER_MW = {
     "R1": dict.fromkeys(MODES, 8.231),
     "R2": dict.fromkeys(MODES, 5.283),
     "R3": {
-        SolverPathMode.NONE: 2.492,
         SolverPathMode.DOWNSTREAM_CHOKE: 2.492,
         SolverPathMode.UPSTREAM_CHOKE: 2.227,
         SolverPathMode.INDIVIDUAL_ASV_RATE: 2.967,
@@ -230,7 +223,6 @@ POWER_MW = {
     "R5": dict.fromkeys(MODES, 22.47),
     "R6": dict.fromkeys(MODES, 9.053),
     "R7": {
-        SolverPathMode.NONE: 2.824,
         SolverPathMode.DOWNSTREAM_CHOKE: 2.824,
         SolverPathMode.UPSTREAM_CHOKE: 2.767,
         SolverPathMode.INDIVIDUAL_ASV_RATE: 2.945,
@@ -239,7 +231,6 @@ POWER_MW = {
     },
     "R8": dict.fromkeys(MODES, 0.0),
     "R9": {
-        SolverPathMode.NONE: 2.950,
         SolverPathMode.DOWNSTREAM_CHOKE: 2.950,
         SolverPathMode.UPSTREAM_CHOKE: 2.697,
         SolverPathMode.INDIVIDUAL_ASV_RATE: 2.964,
@@ -267,12 +258,8 @@ def _expected_cell(region: SolverRegion, mode: SolverPathMode) -> CellExpectatio
         )
         pressure_expectation = region.pressure_expectation_when_invalid
     elif region.id in {"R3", "R7"}:
-        expect_pressure_control = mode is not SolverPathMode.NONE
-        if mode is SolverPathMode.NONE:
-            success = False
-            failure_status = CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-            pressure_expectation = region.pressure_expectation_when_invalid
-        elif mode is SolverPathMode.DOWNSTREAM_CHOKE:
+        expect_pressure_control = True
+        if mode is SolverPathMode.DOWNSTREAM_CHOKE:
             expect_downstream_choke = True
         elif mode is SolverPathMode.UPSTREAM_CHOKE:
             expect_upstream_choke = True
@@ -281,12 +268,8 @@ def _expected_cell(region: SolverRegion, mode: SolverPathMode) -> CellExpectatio
     elif region.id == "R8":
         pressure_expectation = PressureExpectation.NAN
     elif region.id == "R9":
-        expect_pressure_control = mode is not SolverPathMode.NONE
-        if mode is SolverPathMode.NONE:
-            success = False
-            failure_status = CompressorTrainCommonShaftFailureStatus.TARGET_DISCHARGE_PRESSURE_TOO_LOW
-            pressure_expectation = region.pressure_expectation_when_invalid
-        elif mode is SolverPathMode.DOWNSTREAM_CHOKE:
+        expect_pressure_control = True
+        if mode is SolverPathMode.DOWNSTREAM_CHOKE:
             expect_downstream_choke = True
         elif mode is SolverPathMode.UPSTREAM_CHOKE:
             success = False
@@ -343,10 +326,6 @@ PROCESS_XFAILS = (
     | {
         (
             "R5",
-            SolverPathMode.NONE,
-        ): "Common-ASV/new-process topology currently loses the flow-capacity failure event for this stonewall case.",
-        (
-            "R5",
             SolverPathMode.DOWNSTREAM_CHOKE,
         ): "Common-ASV/new-process topology currently loses the flow-capacity failure event for this stonewall case.",
         (
@@ -380,7 +359,6 @@ PROCESS_MATRIX_PARAMS = tuple(
 )
 
 PRESSURE_CONTROL_BY_MODE = {
-    SolverPathMode.NONE: None,
     SolverPathMode.DOWNSTREAM_CHOKE: FixedSpeedPressureControl.DOWNSTREAM_CHOKE,
     SolverPathMode.UPSTREAM_CHOKE: FixedSpeedPressureControl.UPSTREAM_CHOKE,
     SolverPathMode.INDIVIDUAL_ASV_RATE: FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
@@ -389,51 +367,7 @@ PRESSURE_CONTROL_BY_MODE = {
 }
 
 
-class NoPressureControlStrategy(PressureControlStrategy):
-    def __init__(self, runner: ProcessRunner, process_pipeline_id: ProcessPipelineId):
-        self._runner = runner
-        self._process_pipeline_id = process_pipeline_id
-
-    def apply(
-        self,
-        target_pressure: FloatConstraint,
-        inlet_stream: FluidStream,
-    ) -> Solution[Sequence[Configuration[OperatingConfiguration]]]:
-        try:
-            outlet_stream = self._runner.run(inlet_stream=inlet_stream)
-        except RateTooHighError as error:
-            return Solution(
-                success=False,
-                configuration=[],
-                failure_event=OutsideCapacityEvent(
-                    status=SolverFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
-                    actual_value=error.actual_rate,
-                    boundary_value=error.boundary_rate,
-                    source_id=error.process_unit_id,
-                ),
-            )
-
-        if outlet_stream.pressure_bara == target_pressure:
-            return Solution(success=True, configuration=[])
-
-        status = (
-            SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET
-            if outlet_stream.pressure_bara > target_pressure.value
-            else SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET
-        )
-        return Solution(
-            success=False,
-            configuration=[],
-            failure_event=TargetNotAchievableEvent(
-                status=status,
-                achievable_value=outlet_stream.pressure_bara,
-                target_value=target_pressure.value,
-                source_id=self._process_pipeline_id,
-            ),
-        )
-
-
-@pytest.fixture
+@pytest.fixture(scope="session")
 def pure_methane_fluid_model(fluid_model_factory) -> FluidModel:
     return fluid_model_factory(
         fluid_composition=FluidComposition(
@@ -671,12 +605,7 @@ def process_solver_system_factory(
                 extra_units_after=extra_after,
             )
             process_pipeline = process_pipeline_factory(units=process_units)
-            if cell.mode is SolverPathMode.NONE:
-                pressure_control_strategy = NoPressureControlStrategy(
-                    runner=runner,
-                    process_pipeline_id=process_pipeline.get_id(),
-                )
-            elif cell.mode is SolverPathMode.DOWNSTREAM_CHOKE:
+            if cell.mode is SolverPathMode.DOWNSTREAM_CHOKE:
                 assert choke_handler is not None
                 pressure_control_strategy = downstream_choke_pressure_control_strategy_factory(
                     runner=runner,
@@ -819,7 +748,6 @@ def _assert_control_behavior(observation: MatrixObservation, cell: MatrixCell) -
     if cell.region.expect_auto_anti_surge:
         assert observation.has_anti_surge_recirculation
     elif cell.region.id in {"R1", "R6", "R7", "R8", "R9"} and cell.mode in {
-        SolverPathMode.NONE,
         SolverPathMode.DOWNSTREAM_CHOKE,
         SolverPathMode.UPSTREAM_CHOKE,
     }:
