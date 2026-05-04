@@ -1,5 +1,37 @@
 # Changelog
 
+## [13.7.0](https://github.com/equinor/ecalc/compare/v13.6.0...v13.7.0) (2026-05-04)
+
+
+### Features
+
+* MultiShaftEqualRatioSolver — equal-ratio independently-shafted train ([91fc2e7](https://github.com/equinor/ecalc/commit/91fc2e79323a7668da7f6e6d6103133e4a17fc12))
+* MultiShaftSolver — sequential solver with caller-supplied pressure targets ([#1527](https://github.com/equinor/ecalc/issues/1527)) ([91fc2e7](https://github.com/equinor/ecalc/commit/91fc2e79323a7668da7f6e6d6103133e4a17fc12))
+
+
+### Bug Fixes
+
+* guard against zero pressure in get_max_standard_rate ([#1532](https://github.com/equinor/ecalc/issues/1532)) ([ce1723e](https://github.com/equinor/ecalc/commit/ce1723e6bd908777340640b81a82ddbe36dba845))
+* short-circuit multi pressure solver on per-segment failure ([f72a717](https://github.com/equinor/ecalc/commit/f72a7170b173d5c1b7e5f6495e88db221571f27d))
+* upstream choke solver returns false success at rate capacity boundary ([#1529](https://github.com/equinor/ecalc/issues/1529)) ([64ce9ae](https://github.com/equinor/ecalc/commit/64ce9ae7ae787e2575883a0af267d96b00a9bf46))
+
+
+### Miscellaneous Chores
+
+* move time series stream and time aware process objects ([#1531](https://github.com/equinor/ecalc/issues/1531)) ([a2a9e16](https://github.com/equinor/ecalc/commit/a2a9e1600dacfea3a87e84f13892d41301385c17))
+* proposal to also have a decorator for value objects ([#1517](https://github.com/equinor/ecalc/issues/1517)) ([bcaf0be](https://github.com/equinor/ecalc/commit/bcaf0bee1c80c2c3766ba9edce947b5fcae0763b))
+
+
+### Code Refactoring
+
+* clean upstream choke solver — remove try/except surrogate, add precondition assert ([64ce9ae](https://github.com/equinor/ecalc/commit/64ce9ae7ae787e2575883a0af267d96b00a9bf46))
+
+
+### Tests
+
+* cover max-choke-above-target path in upstream choke solver ([64ce9ae](https://github.com/equinor/ecalc/commit/64ce9ae7ae787e2575883a0af267d96b00a9bf46))
+* failing first segment in multi pressure solver ([#1528](https://github.com/equinor/ecalc/issues/1528)) ([f72a717](https://github.com/equinor/ecalc/commit/f72a7170b173d5c1b7e5f6495e88db221571f27d))
+
 ## [13.6.0](https://github.com/equinor/ecalc/compare/v13.5.1...v13.6.0) (2026-05-01)
 
 
