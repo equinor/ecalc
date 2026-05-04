@@ -7,40 +7,40 @@ from math import isnan
 
 import numpy as np
 import pytest
+from libecalc.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
+from libecalc.process.compressor.core.train.stage import CompressorTrainStage
+from libecalc.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
+from libecalc.process.entities.process_units.choke import Choke
+from libecalc.process.entities.process_units.compressor import Compressor
+from libecalc.process.entities.shaft import VariableSpeedShaft
+from libecalc.process.value_objects.chart.chart import ChartData
+from libecalc.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.value_objects.fluid_stream import FluidComposition, FluidStream
+from libecalc.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
-from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
-from libecalc.domain.process.entities.process_units.choke import Choke
-from libecalc.domain.process.entities.process_units.compressor import Compressor
-from libecalc.domain.process.entities.shaft import VariableSpeedShaft
-from libecalc.domain.process.process_pipeline.process_error import RateTooHighError
-from libecalc.domain.process.process_pipeline.process_pipeline import ProcessPipelineId
-from libecalc.domain.process.process_pipeline.process_unit import ProcessUnit
-from libecalc.domain.process.process_solver.configuration import (
+from libecalc.process.process_pipeline.process_error import RateTooHighError
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.process_unit import ProcessUnit
+from libecalc.process.process_solver.configuration import (
     ChokeConfiguration,
     Configuration,
     OperatingConfiguration,
     RecirculationConfiguration,
     SpeedConfiguration,
 )
-from libecalc.domain.process.process_solver.float_constraint import FloatConstraint
-from libecalc.domain.process.process_solver.outlet_pressure_solver import OutletPressureSolver
-from libecalc.domain.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
-from libecalc.domain.process.process_solver.process_runner import ProcessRunner
-from libecalc.domain.process.process_solver.recirculation_loop import RecirculationLoop
-from libecalc.domain.process.process_solver.solver import (
+from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
+from libecalc.process.process_solver.process_runner import ProcessRunner
+from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
+from libecalc.process.process_solver.solver import (
     OutsideCapacityEvent,
     Solution,
     SolverFailureStatus,
     TargetNotAchievableEvent,
 )
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.fluid_stream import FluidComposition, FluidStream
-from libecalc.domain.process.value_objects.fluid_stream.fluid_model import EoSModel, FluidModel
 
 PRESSURE_TOLERANCE = 1e-3
 POWER_TOLERANCE = 0.1
