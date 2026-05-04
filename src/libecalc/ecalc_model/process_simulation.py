@@ -4,8 +4,8 @@ from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.process.fluid_stream.time_series_stream import TimeSeriesStream
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
 
