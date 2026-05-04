@@ -435,3 +435,93 @@ def test_target_not_achievable_event_identifies_failing_segment(
     assert not solution.success
     assert isinstance(solution.failure_event, TargetNotAchievableEvent)
     assert solution.failure_event.source_id == hp_process_pipeline.get_id()
+
+
+def test_target_not_achievable_event_when_first_segment_fails(
+    stream_factory,
+    chart_data_factory,
+    fluid_service,
+    compressor_factory,
+    stage_units_factory,
+    with_individual_asv,
+    process_pipeline_factory,
+    process_runner_factory,
+    individual_asv_anti_surge_strategy_factory,
+    individual_asv_rate_control_strategy_factory,
+    root_finding_strategy,
+    variable_speed_chart_data_factory,
+):
+    """TargetNotAchievableEvent.source_id should identify the first segment when it fails."""
+    temperature = 300.0
+    q0 = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
+    q0_vol = float(q0.volumetric_rate_m3_per_hour)
+
+    chart_data = variable_speed_chart_data_factory(
+        chart_data_factory,
+        min_rate=0.0,
+        max_rate=q0_vol * 5.0,
+        head_hi=150_000.0,
+        head_lo=50_000.0,
+        eff=0.75,
+    )
+
+    shaft = VariableSpeedShaft()
+
+    lp_compressor = compressor_factory(chart_data=chart_data)
+    lp_units_raw = stage_units_factory(compressor=lp_compressor, shaft=shaft, temperature_kelvin=temperature)
+    lp_compressors = [lp_compressor]
+    lp_units, lp_loops = with_individual_asv(lp_units_raw)
+    lp_loop_ids = [loop.get_id() for loop in lp_loops]
+    lp_runner = process_runner_factory(units=lp_units, configuration_handlers=[shaft, *lp_loops])
+    lp_process_pipeline = process_pipeline_factory(units=lp_units)
+
+    hp_compressor = compressor_factory(chart_data=chart_data)
+    hp_units_raw = stage_units_factory(compressor=hp_compressor, shaft=shaft, temperature_kelvin=temperature)
+    hp_compressors = [hp_compressor]
+    hp_units, hp_loops = with_individual_asv(hp_units_raw)
+    hp_loop_ids = [loop.get_id() for loop in hp_loops]
+    hp_runner = process_runner_factory(units=hp_units, configuration_handlers=[shaft, *hp_loops])
+    hp_process_pipeline = process_pipeline_factory(units=hp_units)
+
+    speed_boundary = shaft.get_speed_boundary()
+
+    lp_segment = OutletPressureSolver(
+        shaft_id=shaft.get_id(),
+        runner=lp_runner,
+        anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
+            runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
+        ),
+        pressure_control_strategy=individual_asv_rate_control_strategy_factory(
+            runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
+        ),
+        root_finding_strategy=root_finding_strategy,
+        speed_boundary=speed_boundary,
+        process_pipeline_id=lp_process_pipeline.get_id(),
+    )
+    hp_segment = OutletPressureSolver(
+        shaft_id=shaft.get_id(),
+        runner=hp_runner,
+        anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
+            runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
+        ),
+        pressure_control_strategy=individual_asv_rate_control_strategy_factory(
+            runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
+        ),
+        root_finding_strategy=root_finding_strategy,
+        speed_boundary=speed_boundary,
+        process_pipeline_id=hp_process_pipeline.get_id(),
+    )
+
+    solver = MultiPressureSolver(segments=[lp_segment, hp_segment])
+
+    inlet_stream = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
+
+    # First segment target is not achievable; second is irrelevant
+    solution = solver.find_solution(
+        pressure_targets=[FloatConstraint(9999.0), FloatConstraint(120.0)],
+        inlet_stream=inlet_stream,
+    )
+
+    assert not solution.success
+    assert isinstance(solution.failure_event, TargetNotAchievableEvent)
+    assert solution.failure_event.source_id == lp_process_pipeline.get_id()

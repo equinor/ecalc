@@ -72,6 +72,8 @@ class MultiPressureSolver:
         current_inlet = inlet_stream
         for segment, target in zip(self._segments, pressure_targets):
             solution_for_segment = segment.find_solution(pressure_constraint=target, inlet_stream=current_inlet)
+            if not solution_for_segment.success:
+                return solution_for_segment
             speed_configuration = solution_for_segment.get_configuration(self._shaft_id)
             assert isinstance(speed_configuration, SpeedConfiguration)
             speed_configurations.append(speed_configuration)
