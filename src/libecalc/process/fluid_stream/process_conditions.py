@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
+from libecalc.common.ddd import value_object
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.process.fluid_stream.exceptions import (
     NonPositivePressureException,
@@ -9,7 +8,7 @@ from libecalc.process.fluid_stream.exceptions import (
 )
 
 
-@dataclass(frozen=True)
+@value_object
 class ProcessConditions:
     """
     Represents the physical conditions of a process stream.

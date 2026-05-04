@@ -1,7 +1,7 @@
-from dataclasses import dataclass
+from libecalc.common.ddd import value_object
 
 
-@dataclass
+@value_object
 class Boundary:
     min: float
     max: float

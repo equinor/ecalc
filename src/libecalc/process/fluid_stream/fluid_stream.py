@@ -9,9 +9,9 @@ FluidService interface, and a new FluidStream created with with_new_fluid().
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 from functools import cached_property
 
+from libecalc.common.ddd import value_object
 from libecalc.common.units import UnitConstants
 from libecalc.process.fluid_stream.exceptions import NegativeMassRateException
 from libecalc.process.fluid_stream.fluid import Fluid
@@ -20,7 +20,7 @@ from libecalc.process.fluid_stream.fluid_properties import FluidProperties
 from libecalc.process.fluid_stream.process_conditions import ProcessConditions
 
 
-@dataclass(frozen=True)
+@value_object
 class FluidStream:
     """Represents a fluid stream with thermodynamic properties and a flow rate.
 
