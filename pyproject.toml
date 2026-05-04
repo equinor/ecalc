@@ -64,11 +64,7 @@ dev = [
     "pytest-profiling~=1.8.1",
     "pandas-stubs>=3.0.0.260204",
     "scipy-stubs>=1.17.1.2",
-    "pytestarch>=4.0.1",
-    "matplotlib>=3.10.9",
-]
-visualization = [
-    "pytestarch>=4.0.1",
+    "pytestarch[visualization]>=4.0.1",
 ]
 
 [tool.uv]

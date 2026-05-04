@@ -510,7 +510,6 @@ dev = [
     { name = "basedpyright" },
     { name = "coverage" },
     { name = "inline-snapshot" },
-    { name = "matplotlib" },
     { name = "pandas-stubs" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -518,11 +517,8 @@ dev = [
     { name = "pytest-snapshot" },
     { name = "pytest-split" },
     { name = "pytest-xdist" },
-    { name = "pytestarch" },
+    { name = "pytestarch", extra = ["visualization"] },
     { name = "scipy-stubs" },
-]
-visualization = [
-    { name = "pytestarch" },
 ]
 
 [package.metadata]
@@ -548,7 +544,6 @@ dev = [
     { name = "basedpyright", specifier = "==1.39.0" },
     { name = "coverage", extras = ["toml"], specifier = ">=7.2.5,<8.0.0" },
     { name = "inline-snapshot", specifier = "==0.29.2" },
-    { name = "matplotlib", specifier = ">=3.10.9" },
     { name = "pandas-stubs", specifier = ">=3.0.0.260204" },
     { name = "pre-commit", specifier = "==4.5.*" },
     { name = "pytest", specifier = "==9.*,>=9.0.3" },
@@ -556,10 +551,9 @@ dev = [
     { name = "pytest-snapshot", specifier = "~=0.9" },
     { name = "pytest-split", specifier = "==0.*,>=0.10.0" },
     { name = "pytest-xdist", specifier = ">=3.6.1,<4.0.0" },
-    { name = "pytestarch", specifier = ">=4.0.1" },
+    { name = "pytestarch", extras = ["visualization"], specifier = ">=4.0.1" },
     { name = "scipy-stubs", specifier = ">=1.17.1.2" },
 ]
-visualization = [{ name = "pytestarch", specifier = ">=4.0.1" }]
 
 [[package]]
 name = "markdown-it-py"
@@ -1184,6 +1178,11 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/42/a2/88b37e1133457c224155c29ae3619915977063e44fbf0d1780012aeb6a3e/pytestarch-4.0.1.tar.gz", hash = "sha256:2f288eb8a8a818d3d89a45180d1756c4db2885a7a1281c4ac019665ed97db6b9", size = 42727, upload-time = "2025-08-08T12:54:43.928Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ac/6e/8b6079324672f03fd4b914345ecd2df95a04caf658faf4d7f7e7fa97d543/pytestarch-4.0.1-py3-none-any.whl", hash = "sha256:4dd5adc363b3e1fde72d4b34564f03e62f715cc5e38f1c3a347b0f1cc92168fe", size = 61982, upload-time = "2025-08-08T12:54:42.818Z" },
+]
+
+[package.optional-dependencies]
+visualization = [
+    { name = "matplotlib" },
 ]
 
 [[package]]

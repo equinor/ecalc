@@ -7,7 +7,6 @@ from pytestarch import EvaluableArchitecture, get_evaluable_architecture
 @pytest.fixture(scope="session")
 def root_dir() -> Path:
     root_dir = Path(__file__).parent.parent.parent.parent / "libecalc" / "src" / "libecalc"
-    print(root_dir)
     return root_dir
 
 

@@ -5,36 +5,29 @@ def test_common_to_not_import_process(libecalc_architecture):
     rule = (
         Rule()
         .modules_that()
-        .are_sub_modules_of("libecalc.common")
-        .should_not()
+        .are_named("libecalc.common")
+        .should_only()
         .import_modules_that()
-        .are_sub_modules_of("libecalc.process")
+        .are_named(
+            ["libecalc.common", "libecalc.expression"]
+        )  # TODO: What to do with expression? Is it a part of ecalc_model "domain" only?
     )
 
     rule.assert_applies(libecalc_architecture)
 
 
 def test_process_to_import_process_or_common_only(libecalc_architecture):
-    # TODO: libecalc.domain due to train utils
-    # TODO: libecalc.domain due to charts
-    for forbidden_process_dep in [
-        "libecalc.application",
-        "libecalc.core",
-        "libecalc.dto",
-        "libecalc.ecalc_model",
-        "libecalc.examples",
-        "libecalc.expression",
-        "libecalc.fixtures",
-        "libecalc.infrastructure",
-        "libecalc.presentation",
-        "libecalc.testing",
-    ]:
-        rule = (
-            Rule()
-            .modules_that()
-            .are_sub_modules_of("libecalc.process")
-            .should_not()
-            .import_modules_that()
-            .are_sub_modules_of(forbidden_process_dep)
-        )
-        rule.assert_applies(libecalc_architecture)
+    allowed_process_dependencies = [
+        "libecalc.common",
+        "libecalc.process",
+        "libecalc.domain",  # TODO due to train utils and charts
+    ]
+    rule = (
+        Rule()
+        .modules_that()
+        .are_named("libecalc.process")
+        .should_only()
+        .import_modules_that()
+        .are_named(allowed_process_dependencies)
+    )
+    rule.assert_applies(libecalc_architecture)
