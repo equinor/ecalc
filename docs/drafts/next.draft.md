@@ -14,6 +14,7 @@ STP: "flare" column has been added to STP Export - for `FIXED` installations onl
 ## Bug Fixes
 
 - Hardened compressor PH flash handling so invalid thermodynamic states are no longer used in compressor outlet calculations.
+- `LiquidRemover` now scales the outlet mass rate by the gas mass fraction when liquid is dropped, so the removed liquid mass is no longer carried by the gas stream downstream.
 
 ## Breaking changes
 
