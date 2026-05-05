@@ -143,6 +143,22 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         constraints: CompressorTrainEvaluationInput,
         fixed_speed: float | None = None,  # TODO: not used?
     ) -> CompressorTrainResultSingleTimeStep:
+        try:
+            return self._evaluate_given_constraints_impl(constraints=constraints, fixed_speed=fixed_speed)
+        except IllegalStateException as exc:
+            # Unrecoverable EOS / flash failure bubbled up — mark this timestep
+            # NOT_CALCULATED rather than crash the whole timeseries.
+            logger.warning(
+                "Compressor train evaluation failed for a timestep and was treated as NOT_CALCULATED: %s",
+                exc,
+            )
+            return CompressorTrainResultSingleTimeStep.create_empty(number_of_stages=len(self.stages))
+
+    def _evaluate_given_constraints_impl(
+        self,
+        constraints: CompressorTrainEvaluationInput,
+        fixed_speed: float | None = None,
+    ) -> CompressorTrainResultSingleTimeStep:
         self.reset_rate_modifiers()
         self._validate_nonnegative_stage_rates(constraints)
         if self._validate_positive_ingoing_rates(constraints):
@@ -1127,11 +1143,42 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
 
         def _calculate_compressor_train(_speed: float) -> CompressorTrainResultSingleTimeStep:
             self.shaft.set_speed(_speed)
-            return self.calculate_compressor_train(
-                constraints=constraints,
-            )
+            try:
+                return self.calculate_compressor_train(
+                    constraints=constraints,
+                )
+            except IllegalStateException as exc:
+                # EOS / fluid layer rejected this speed — surface as infeasible
+                # so the speed solver treats it like an out-of-capacity probe
+                # and tries something else.
+                logger.warning(
+                    "Compressor speed %.1f produced an infeasible state and will be treated "
+                    "as out-of-capacity (%s). The shaft-speed solver will try a different proposal.",
+                    _speed,
+                    exc,
+                )
+                return CompressorTrainResultSingleTimeStep.create_infeasible(number_of_stages=len(self.stages))
 
         train_result_for_maximum_speed = _calculate_compressor_train(_speed=maximum_speed)
+
+        # If the EOS rejected the max-speed probe (chart_area_flag NOT_CALCULATED
+        # rather than a real capacity flag), bisect down to find the highest
+        # speed we can actually evaluate at and continue the normal speed search
+        # from there.
+        max_speed_eos_failed = (
+            not train_result_for_maximum_speed.within_capacity
+            and len(train_result_for_maximum_speed.stage_results) > 0
+            and train_result_for_maximum_speed.stage_results[0].chart_area_flag == ChartAreaFlag.NOT_CALCULATED
+        )
+        if max_speed_eos_failed:
+            feasible_max_speed = maximize_x_given_boolean_condition_function(
+                x_min=minimum_speed,
+                x_max=maximum_speed,
+                bool_func=lambda s: _calculate_compressor_train(_speed=s).within_capacity,
+            )
+            if feasible_max_speed > minimum_speed:
+                maximum_speed = feasible_max_speed
+                train_result_for_maximum_speed = _calculate_compressor_train(_speed=maximum_speed)
 
         if not train_result_for_maximum_speed.within_capacity:
             # will not find valid result - the rate is above maximum rate, return invalid results at maximum speed
