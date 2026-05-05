@@ -64,6 +64,7 @@ dev = [
     "pytest-profiling~=1.8.1",
     "pandas-stubs>=3.0.0.260204",
     "scipy-stubs>=1.17.1.2",
+    "pytestarch[visualization]>=4.0.1",
 ]
 
 [tool.uv]
@@ -111,7 +112,8 @@ markers = [
     "snapshot: snapshot tests, notoriously slow, but not necessarily.",
     "inlinesnapshot: inline snapshot tests, often used to test error messages",
     "dockersnapshot: tests that need x86 architecture for snapshot creation, so we make them in a container",
-    "x86: tests that need x86 to pass"
+    "x86: tests that need x86 to pass",
+    "arch: architecture tests."
 ]
 
 [tool.basedpyright]
