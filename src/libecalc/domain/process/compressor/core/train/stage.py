@@ -411,7 +411,12 @@ class CompressorTrainStage:
             exceeds_capacity = False
 
         target_enthalpy = float(inlet_stream.enthalpy_joule_per_kg + polytropic_enthalpy_change_to_use_joule_per_kg)
-        props = self._fluid_service.flash_ph(inlet_stream.fluid_model, float(outlet_pressure), target_enthalpy)
+        props = self._fluid_service.flash_ph(
+            inlet_stream.fluid_model,
+            float(outlet_pressure),
+            target_enthalpy,
+            temperature_guess_kelvin=inlet_stream.temperature_kelvin,
+        )
         outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
         outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 

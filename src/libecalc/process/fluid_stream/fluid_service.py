@@ -53,6 +53,7 @@ class FluidService(abc.ABC):
         fluid_model: FluidModel,
         pressure_bara: float,
         target_enthalpy: float,
+        temperature_guess_kelvin: float | None = None,
     ) -> FluidProperties:
         """PH flash to target pressure and enthalpy.
 
@@ -66,6 +67,12 @@ class FluidService(abc.ABC):
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
             target_enthalpy: Target specific enthalpy in J/kg (must be from same EoS session)
+            temperature_guess_kelvin: Optional initial temperature for the PH flash.
+                Implementations may use this to precondition the underlying thermodynamic
+                system at (pressure_bara, temperature_guess_kelvin) before solving PH.
+                Usfeul if knowing a temperature closer to final state than the reference fluid
+                temperature (T_std) to improve convergence speed or avoid eos crash for difficult cases.
+                (avoiding intermediate difficult states with low temperature and high pressure).
 
         Returns:
             FluidProperties at the specified conditions.
