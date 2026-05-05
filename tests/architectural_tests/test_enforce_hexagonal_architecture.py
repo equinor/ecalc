@@ -1,6 +1,8 @@
+import pytest
 from pytestarch import Rule
 
 
+@pytest.mark.arch
 def test_common_to_not_import_process(libecalc_architecture):
     rule = (
         Rule()
@@ -16,6 +18,7 @@ def test_common_to_not_import_process(libecalc_architecture):
     rule.assert_applies(libecalc_architecture)
 
 
+@pytest.mark.arch
 def test_process_to_import_process_or_common_only(libecalc_architecture):
     allowed_process_dependencies = [
         "libecalc.common",
