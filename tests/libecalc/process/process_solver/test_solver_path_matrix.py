@@ -18,7 +18,6 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError
-from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.configuration import (
     ChokeConfiguration,
     Configuration,
@@ -26,16 +25,12 @@ from libecalc.process.process_solver.configuration import (
     SpeedConfiguration,
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
-from libecalc.process.process_solver.process_runner import ProcessRunner
-from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.solver import (
     Solution,
     SolverFailureStatus,
 )
-from libecalc.process.process_units.choke import Choke
-from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
+from tests.libecalc.process.helpers import ProcessSolverSystem
 
 PRESSURE_TOLERANCE = 1e-3
 POWER_TOLERANCE = 0.1
@@ -326,14 +321,6 @@ PROCESS_XFAILS = (
     | {
         (
             "R5",
-            SolverPathMode.DOWNSTREAM_CHOKE,
-        ): "Common-ASV/new-process topology currently loses the flow-capacity failure event for this stonewall case.",
-        (
-            "R5",
-            SolverPathMode.UPSTREAM_CHOKE,
-        ): "Common-ASV/new-process topology currently loses the flow-capacity failure event for this stonewall case.",
-        (
-            "R5",
             SolverPathMode.COMMON_ASV,
         ): "Common-ASV/new-process topology currently loses the flow-capacity failure event for this stonewall case.",
         (
@@ -364,6 +351,14 @@ PRESSURE_CONTROL_BY_MODE = {
     SolverPathMode.INDIVIDUAL_ASV_RATE: FixedSpeedPressureControl.INDIVIDUAL_ASV_RATE,
     SolverPathMode.INDIVIDUAL_ASV_PRESSURE: FixedSpeedPressureControl.INDIVIDUAL_ASV_PRESSURE,
     SolverPathMode.COMMON_ASV: FixedSpeedPressureControl.COMMON_ASV,
+}
+
+PROCESS_PRESSURE_CONTROL_BY_MODE = {
+    SolverPathMode.DOWNSTREAM_CHOKE: "DOWNSTREAM_CHOKE",
+    SolverPathMode.UPSTREAM_CHOKE: "UPSTREAM_CHOKE",
+    SolverPathMode.INDIVIDUAL_ASV_RATE: "INDIVIDUAL_ASV_RATE",
+    SolverPathMode.INDIVIDUAL_ASV_PRESSURE: "INDIVIDUAL_ASV_PRESSURE",
+    SolverPathMode.COMMON_ASV: "COMMON_ASV",
 }
 
 
@@ -479,69 +474,18 @@ def _status_from_process_solution(
 
 
 @dataclass(frozen=True)
-class ProcessSolverSystem:
-    solver: OutletPressureSolver
-    runner: ProcessRunner
+class ProcessSolverCase:
+    system: ProcessSolverSystem
     inlet_stream: FluidStream
-    shaft: VariableSpeedShaft
-    recirculation_loops: tuple[RecirculationLoop, ...]
-    choke: Choke | None
-
-
-def _build_common_asv_units(
-    *,
-    stage_units: list[ProcessUnit],
-    compressor: Compressor,
-    shaft: VariableSpeedShaft,
-    with_common_asv,
-    process_runner_factory,
-    common_asv_anti_surge_strategy_factory,
-    configuration_handlers: list,
-    extra_units_before: Sequence[ProcessUnit] = (),
-    extra_units_after: Sequence[ProcessUnit] = (),
-):
-    recirculation_loop, process_units = with_common_asv(stage_units)
-    all_process_units = [*extra_units_before, *process_units, *extra_units_after]
-    runner = process_runner_factory(
-        units=all_process_units,
-        configuration_handlers=[shaft, recirculation_loop, *configuration_handlers],
-    )
-    anti_surge_strategy = common_asv_anti_surge_strategy_factory(
-        runner=runner,
-        recirculation_loop_id=recirculation_loop.get_id(),
-        first_compressor=compressor,
-    )
-    return runner, anti_surge_strategy, (recirculation_loop,), all_process_units
 
 
 @pytest.fixture
-def process_solver_system_factory(
-    stream_factory,
-    compressor_factory,
-    stage_units_factory,
-    with_common_asv,
-    with_individual_asv,
-    process_pipeline_factory,
-    process_runner_factory,
-    choke_factory,
-    choke_configuration_handler_factory,
-    common_asv_anti_surge_strategy_factory,
-    individual_asv_anti_surge_strategy_factory,
-    downstream_choke_pressure_control_strategy_factory,
-    upstream_choke_pressure_control_strategy_factory,
-    common_asv_pressure_control_strategy_factory,
-    individual_asv_rate_control_strategy_factory,
-    individual_asv_pressure_control_strategy_factory,
-    outlet_pressure_solver_factory,
-    pure_methane_fluid_model,
-):
-    def create_process_solver_system(chart_data: ChartData, cell: MatrixCell) -> ProcessSolverSystem:
-        shaft = VariableSpeedShaft()
-        compressor = compressor_factory(chart_data=chart_data)
-        stage_units = stage_units_factory(
-            compressor=compressor,
-            shaft=shaft,
-            temperature_kelvin=303.15,
+def process_solver_case_factory(stream_factory, build_solver_system, pure_methane_fluid_model):
+    def create_process_solver_case(chart_data: ChartData, cell: MatrixCell) -> ProcessSolverCase:
+        system = build_solver_system(
+            chart_data=chart_data,
+            pressure_control_type=PROCESS_PRESSURE_CONTROL_BY_MODE[cell.mode],
+            inlet_temperature_kelvin=303.15,
             remove_liquid_after_cooling=True,
         )
         inlet_stream = stream_factory(
@@ -550,110 +494,16 @@ def process_solver_system_factory(
             temperature_kelvin=303.15,
             fluid_model=pure_methane_fluid_model,
         )
-        choke = None
-        choke_handler = None
+        return ProcessSolverCase(system=system, inlet_stream=inlet_stream)
 
-        if cell.mode in {
-            SolverPathMode.INDIVIDUAL_ASV_RATE,
-            SolverPathMode.INDIVIDUAL_ASV_PRESSURE,
-        }:
-            process_units, recirculation_loops = with_individual_asv(stage_units)
-            runner = process_runner_factory(
-                units=process_units,
-                configuration_handlers=[shaft, *recirculation_loops],
-            )
-            anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
-                runner=runner,
-                recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
-                compressors=[compressor],
-            )
-            pressure_control_strategy = (
-                individual_asv_rate_control_strategy_factory(
-                    runner=runner,
-                    recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
-                    compressors=[compressor],
-                )
-                if cell.mode is SolverPathMode.INDIVIDUAL_ASV_RATE
-                else individual_asv_pressure_control_strategy_factory(
-                    runner=runner,
-                    recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
-                    compressors=[compressor],
-                )
-            )
-        else:
-            extra_before: list[ProcessUnit] = []
-            extra_after: list[ProcessUnit] = []
-            configuration_handlers = []
-            if cell.mode in {SolverPathMode.DOWNSTREAM_CHOKE, SolverPathMode.UPSTREAM_CHOKE}:
-                choke = choke_factory()
-                choke_handler = choke_configuration_handler_factory(choke=choke)
-                configuration_handlers.append(choke_handler)
-                if cell.mode is SolverPathMode.UPSTREAM_CHOKE:
-                    extra_before.append(choke)
-                else:
-                    extra_after.append(choke)
-
-            runner, anti_surge_strategy, recirculation_loops, process_units = _build_common_asv_units(
-                stage_units=stage_units,
-                compressor=compressor,
-                shaft=shaft,
-                with_common_asv=with_common_asv,
-                process_runner_factory=process_runner_factory,
-                common_asv_anti_surge_strategy_factory=common_asv_anti_surge_strategy_factory,
-                configuration_handlers=configuration_handlers,
-                extra_units_before=extra_before,
-                extra_units_after=extra_after,
-            )
-            process_pipeline = process_pipeline_factory(units=process_units)
-            if cell.mode is SolverPathMode.DOWNSTREAM_CHOKE:
-                assert choke_handler is not None
-                pressure_control_strategy = downstream_choke_pressure_control_strategy_factory(
-                    runner=runner,
-                    choke_id=choke_handler.get_id(),
-                )
-            elif cell.mode is SolverPathMode.UPSTREAM_CHOKE:
-                assert choke_handler is not None
-                pressure_control_strategy = upstream_choke_pressure_control_strategy_factory(
-                    runner=runner,
-                    choke_id=choke_handler.get_id(),
-                )
-            else:
-                first_loop = recirculation_loops[0]
-                pressure_control_strategy = common_asv_pressure_control_strategy_factory(
-                    runner=runner,
-                    recirculation_loop_id=first_loop.get_id(),
-                    first_compressor=compressor,
-                )
-
-        if cell.mode in {
-            SolverPathMode.INDIVIDUAL_ASV_RATE,
-            SolverPathMode.INDIVIDUAL_ASV_PRESSURE,
-        }:
-            process_pipeline = process_pipeline_factory(units=process_units)
-
-        solver = outlet_pressure_solver_factory(
-            shaft=shaft,
-            runner=runner,
-            anti_surge_strategy=anti_surge_strategy,
-            pressure_control_strategy=pressure_control_strategy,
-            process_pipeline_id=process_pipeline.get_id(),
-        )
-        return ProcessSolverSystem(
-            solver=solver,
-            runner=runner,
-            inlet_stream=inlet_stream,
-            shaft=shaft,
-            recirculation_loops=tuple(recirculation_loops),
-            choke=choke,
-        )
-
-    return create_process_solver_system
+    return create_process_solver_case
 
 
-def _process_observation(system: ProcessSolverSystem, cell: MatrixCell) -> MatrixObservation:
+def _process_observation(solver_case: ProcessSolverCase, cell: MatrixCell) -> MatrixObservation:
+    system = solver_case.system
     solution = system.solver.find_solution(
         pressure_constraint=FloatConstraint(cell.region.discharge_pressure_bara, abs_tol=PRESSURE_TOLERANCE),
-        inlet_stream=system.inlet_stream,
+        inlet_stream=solver_case.inlet_stream,
     )
     failure_status = _status_from_process_solution(solution)
     recirculation_rates = tuple(
@@ -684,16 +534,18 @@ def _process_observation(system: ProcessSolverSystem, cell: MatrixCell) -> Matri
 
     system.runner.apply_configurations(solution.configuration)
     try:
-        outlet_pressure = system.runner.run(inlet_stream=system.inlet_stream).pressure_bara
+        outlet_pressure = system.runner.run(inlet_stream=solver_case.inlet_stream).pressure_bara
+        power_mw = sum(compressor.power_megawatt for compressor in system.compressors)
     except RateTooHighError:
         outlet_pressure = np.nan
+        power_mw = None
 
     return MatrixObservation(
         is_valid=solution.success,
         failure_status=failure_status,
         outlet_pressure_bara=outlet_pressure,
         speed=speed,
-        power_mw=None,
+        power_mw=power_mw,
         chart_area_flag=None,
         recirculation_rates=recirculation_rates,
         anti_surge_recirculation_rates=anti_surge_recirculation_rates,
@@ -801,11 +653,11 @@ def _expected_legacy_chart_area(cell: MatrixCell) -> ChartAreaFlag | None:
 def test_process_solver_path_matrix(
     cell: MatrixCell,
     variable_speed_compressor_chart_data,
-    process_solver_system_factory,
+    process_solver_case_factory,
 ):
-    system = process_solver_system_factory(chart_data=variable_speed_compressor_chart_data, cell=cell)
+    solver_case = process_solver_case_factory(chart_data=variable_speed_compressor_chart_data, cell=cell)
 
-    observation = _process_observation(system=system, cell=cell)
+    observation = _process_observation(solver_case=solver_case, cell=cell)
 
     _assert_common_behavior(observation=observation, chart_data=variable_speed_compressor_chart_data, cell=cell)
     _assert_control_behavior(observation=observation, cell=cell)
