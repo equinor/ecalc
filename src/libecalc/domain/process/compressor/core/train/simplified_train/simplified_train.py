@@ -243,6 +243,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             raise IllegalStateException(error_message)
 
         maximum_rate_function = compressor_chart.get_maximum_rate
+        maximum_head_on_maximum_speed_curve = float(np.max(compressor_chart.maximum_speed_curve.head_values))
         polytropic_head = float(
             np.mean(compressor_chart.maximum_speed_curve.head_values)
         )  # Initial guess for polytropic head
@@ -279,7 +280,34 @@ class CompressorTrainSimplified(CompressorTrainModel):
             enthalpy_change_joule_per_kg = polytropic_head / polytropic_efficiency
 
             target_enthalpy = inlet_stream.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg
-            props = fluid_service.flash_ph(inlet_stream.fluid_model, outlet_pressure, target_enthalpy)
+            try:
+                props = fluid_service.flash_ph(
+                    inlet_stream.fluid_model,
+                    outlet_pressure,
+                    target_enthalpy,
+                    temperature_guess_kelvin=inlet_stream.temperature_kelvin,
+                )
+            except IllegalStateException:
+                if polytropic_head <= maximum_head_on_maximum_speed_curve:
+                    raise
+
+                logger.debug(
+                    "Simplified train: outlet PH flash failed while estimating maximum rate above chart maximum head. "
+                    "Using chart-limited maximum rate. pressure_ratio=%s, outlet_pressure=%s, polytropic_head=%s, "
+                    "maximum_head_on_maximum_speed_curve=%s",
+                    pressure_ratio,
+                    outlet_pressure,
+                    polytropic_head,
+                    maximum_head_on_maximum_speed_curve,
+                    exc_info=True,
+                )
+                maximum_actual_volume_rate = float(
+                    maximum_rate_function(
+                        heads=polytropic_head,  # type: ignore[arg-type]
+                        extrapolate_heads_below_minimum=False,
+                    )
+                )
+                break
             outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
             outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 

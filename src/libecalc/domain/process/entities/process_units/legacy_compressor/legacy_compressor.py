@@ -3,7 +3,10 @@ from dataclasses import dataclass
 from libecalc.common.errors.ecalc_validation_error import ProcessCompressorEfficiencyValidationException
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
+from libecalc.domain.process.compressor.core.train.utils.common import (
+    CompressorOutletCalculationError,
+    calculate_outlet_pressure_and_stream,
+)
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
@@ -130,9 +133,23 @@ class LegacyCompressor:
 
         assert self.operational_point is not None, "Operational point must be set before compression."
 
-        return calculate_outlet_pressure_and_stream(
-            polytropic_efficiency=self.operational_point.polytropic_efficiency,
-            polytropic_head_joule_per_kg=self.operational_point.polytropic_head_joule_per_kg,
-            inlet_stream=inlet_stream,
-            fluid_service=self._fluid_service,
-        )
+        try:
+            return calculate_outlet_pressure_and_stream(
+                polytropic_efficiency=self.operational_point.polytropic_efficiency,
+                polytropic_head_joule_per_kg=self.operational_point.polytropic_head_joule_per_kg,
+                inlet_stream=inlet_stream,
+                fluid_service=self._fluid_service,
+            )
+        except CompressorOutletCalculationError:
+            if self.operational_point.is_valid:
+                raise
+
+            logger.debug(
+                "Skipping compressor outlet flash for invalid chart point. "
+                "chart_area_flag=%s, speed=%s, rate_before_asv_m3_per_h=%s",
+                self.chart_area_flag,
+                self.speed,
+                self._rate_before_asv_m3_per_h,
+                exc_info=True,
+            )
+            return inlet_stream

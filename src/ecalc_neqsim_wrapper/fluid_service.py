@@ -10,10 +10,14 @@ The caches are automatically cleared when the JVM shuts down via CacheService.
 from __future__ import annotations
 
 import logging
+import math
 from typing import ClassVar
+
+from py4j.protocol import Py4JError, Py4JJavaError  # pyright: ignore[reportMissingTypeStubs]
 
 from ecalc_neqsim_wrapper.cache_service import CacheConfig, CacheName, CacheService, LRUCache
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.process.fluid_stream.constants import ThermodynamicConstants
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -36,6 +40,8 @@ _COMPOSITION_DECIMALS = 8
 # Standard conditions for reference fluids and standard density calculations
 _STANDARD_TEMPERATURE_KELVIN = 288.15
 _STANDARD_PRESSURE_BARA = 1.01325
+_PH_ENTHALPY_REL_TOLERANCE = 1e-4
+_PH_ENTHALPY_ABS_TOLERANCE_JOULE_PER_KG = 10.0
 
 
 def _make_composition_key(composition: FluidComposition) -> tuple:
@@ -209,6 +215,8 @@ class NeqSimFluidService(FluidService):
             ("PH", composition_key, eos_model, rounded_pressure, rounded_enthalpy)
 
             This ensures unique cache entries for each distinct thermodynamic state.
+            The temperature guess is intentionally not part of this key; it is
+            a convergence aid, not part of the PH target state.
         """
         return (
             "PH",
@@ -217,6 +225,48 @@ class NeqSimFluidService(FluidService):
             round(pressure, _PRESSURE_DECIMALS),
             round(target_enthalpy, _ENTHALPY_DECIMALS),
         )
+
+    @staticmethod
+    def _require_positive_finite(value: float, name: str, context: str) -> None:
+        if not math.isfinite(value) or value <= 0:
+            raise IllegalStateException(f"{context}: expected finite positive {name}, got {value}.")
+
+    @classmethod
+    def _validate_ph_result(
+        cls,
+        properties: FluidProperties,
+        target_enthalpy: float,
+        context: str,
+    ) -> None:
+        cls._require_positive_finite(properties.pressure_bara, "pressure_bara", context)
+        cls._require_positive_finite(properties.temperature_kelvin, "temperature_kelvin", context)
+        cls._require_positive_finite(properties.density, "density", context)
+        cls._require_positive_finite(properties.z, "z", context)
+        cls._require_positive_finite(properties.kappa, "kappa", context)
+        cls._require_positive_finite(properties.standard_density, "standard_density", context)
+
+        if not math.isfinite(properties.vapor_fraction_molar):
+            raise IllegalStateException(
+                f"{context}: expected finite vapor_fraction_molar, got {properties.vapor_fraction_molar}."
+            )
+        if not math.isfinite(properties.enthalpy_joule_per_kg):
+            raise IllegalStateException(
+                f"{context}: expected finite enthalpy_joule_per_kg, got {properties.enthalpy_joule_per_kg}."
+            )
+        if not math.isfinite(target_enthalpy):
+            raise IllegalStateException(f"{context}: expected finite target_enthalpy, got {target_enthalpy}.")
+
+        enthalpy_error = abs(properties.enthalpy_joule_per_kg - target_enthalpy)
+        enthalpy_tolerance = max(
+            _PH_ENTHALPY_ABS_TOLERANCE_JOULE_PER_KG,
+            abs(target_enthalpy) * _PH_ENTHALPY_REL_TOLERANCE,
+        )
+        if enthalpy_error > enthalpy_tolerance:
+            raise IllegalStateException(
+                f"{context}: PH flash did not satisfy target enthalpy. "
+                f"target={target_enthalpy}, result={properties.enthalpy_joule_per_kg}, "
+                f"error={enthalpy_error}, tolerance={enthalpy_tolerance}."
+            )
 
     def _get_standard_density(self, fluid_model: FluidModel) -> float:
         """Get gas-phase density at standard conditions for volumetric rate conversions.
@@ -311,6 +361,7 @@ class NeqSimFluidService(FluidService):
         fluid_model: FluidModel,
         pressure_bara: float,
         target_enthalpy: float,
+        temperature_guess_kelvin: float | None = None,
     ) -> FluidProperties:
         """PH flash to target pressure and enthalpy.
 
@@ -324,13 +375,21 @@ class NeqSimFluidService(FluidService):
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
             target_enthalpy: Target specific enthalpy in J/kg (must be from same EoS session)
+            temperature_guess_kelvin: Optional initial temperature for PH. When
+                provided, the cached reference fluid is first TP-flashed at the
+                target pressure and this temperature before PH is solved.
 
         Returns:
             FluidProperties at the specified conditions.
         """
         composition = fluid_model.composition.normalized()
         composition_key = _make_composition_key(composition)
-        cache_key = self._make_ph_cache_key(composition_key, fluid_model.eos_model, pressure_bara, target_enthalpy)
+        cache_key = self._make_ph_cache_key(
+            composition_key,
+            fluid_model.eos_model,
+            pressure_bara,
+            target_enthalpy,
+        )
 
         # Check cache first
         cached = self._flash_cache.get(cache_key)
@@ -338,12 +397,37 @@ class NeqSimFluidService(FluidService):
             return cached
 
         ref = self._get_reference_fluid(fluid_model)
-        flashed = ref.set_new_pressure_and_enthalpy(
-            new_pressure=pressure_bara,
-            new_enthalpy_joule_per_kg=target_enthalpy,
-        )
+        if temperature_guess_kelvin is not None:
+            try:
+                seeded_fluid = ref.set_new_pressure_and_temperature(
+                    new_pressure_bara=pressure_bara,
+                    new_temperature_kelvin=temperature_guess_kelvin,
+                )
+                flashed = seeded_fluid.set_new_pressure_and_enthalpy(
+                    new_pressure=pressure_bara,
+                    new_enthalpy_joule_per_kg=target_enthalpy,
+                )
+            except (Py4JJavaError, Py4JError) as error:
+                raise IllegalStateException(
+                    "NeqSim temperature-seeded PH flash failed. "
+                    f"pressure_bara={pressure_bara}, target_enthalpy_joule_per_kg={target_enthalpy}, "
+                    f"temperature_guess_kelvin={temperature_guess_kelvin}, eos_model={fluid_model.eos_model}."
+                ) from error
+        else:
+            try:
+                flashed = ref.set_new_pressure_and_enthalpy(
+                    new_pressure=pressure_bara,
+                    new_enthalpy_joule_per_kg=target_enthalpy,
+                )
+            except (Py4JJavaError, Py4JError) as error:
+                raise IllegalStateException(
+                    "NeqSim PH flash failed. "
+                    f"pressure_bara={pressure_bara}, target_enthalpy_joule_per_kg={target_enthalpy}, "
+                    f"eos_model={fluid_model.eos_model}."
+                ) from error
 
         result = self._extract_properties(flashed, fluid_model)
+        self._validate_ph_result(result, target_enthalpy, "NeqSimFluidService.flash_ph")
         self._flash_cache.put(cache_key, result)
         return result
 

@@ -1,8 +1,12 @@
+import math
+
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.numeric_methods import DampState, adaptive_pressure_update
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
 from libecalc.process.fluid_stream.fluid import Fluid
+from libecalc.process.fluid_stream.fluid_properties import FluidProperties
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
@@ -14,9 +18,78 @@ RATE_CALCULATION_TOLERANCE = 1e-3
 RECIRCULATION_BOUNDARY_TOLERANCE = 1e-6
 # -----------------------------------------------------------------------------
 # Impossible pressure sanity cap.  Protects the PH flash when the first
-# Campbell estimate is evaluated for an artificial max‑speed head in edge cases.
+# Campbell estimate is evaluated for an artificial max-speed head in edge cases.
 # -----------------------------------------------------------------------------
 MAX_FIRST_GUESS_BAR = 2_000.0  # [bara]
+COMPRESSOR_PH_ENTHALPY_REL_TOLERANCE = 1e-4
+COMPRESSOR_PH_ENTHALPY_ABS_TOLERANCE_JOULE_PER_KG = 10.0
+
+
+class CompressorOutletCalculationError(IllegalStateException):
+    """Raised when compressor outlet thermodynamics cannot produce a usable state."""
+
+
+def _require_positive_finite(value: float, name: str, context: str) -> None:
+    if not math.isfinite(value) or value <= 0:
+        raise CompressorOutletCalculationError(f"{context}: expected finite positive {name}, got {value}.")
+
+
+def _validate_compressor_ph_flash_result(
+    properties: FluidProperties,
+    target_pressure_bara: float,
+    target_enthalpy_joule_per_kg: float,
+    context: str,
+) -> None:
+    _require_positive_finite(properties.pressure_bara, "pressure_bara", context)
+    _require_positive_finite(properties.temperature_kelvin, "temperature_kelvin", context)
+    _require_positive_finite(properties.density, "density", context)
+    _require_positive_finite(properties.z, "z", context)
+    _require_positive_finite(properties.kappa, "kappa", context)
+    _require_positive_finite(properties.standard_density, "standard_density", context)
+    _require_positive_finite(target_pressure_bara, "target_pressure_bara", context)
+
+    if (
+        not math.isfinite(properties.vapor_fraction_molar)
+        or not -EPSILON <= properties.vapor_fraction_molar <= 1 + EPSILON
+    ):
+        raise CompressorOutletCalculationError(
+            f"{context}: expected finite vapor_fraction_molar in [0, 1], got {properties.vapor_fraction_molar}."
+        )
+
+    if not math.isfinite(target_enthalpy_joule_per_kg):
+        raise CompressorOutletCalculationError(
+            f"{context}: expected finite target_enthalpy_joule_per_kg, got {target_enthalpy_joule_per_kg}."
+        )
+
+    enthalpy_error = abs(properties.enthalpy_joule_per_kg - target_enthalpy_joule_per_kg)
+    enthalpy_tolerance = max(
+        COMPRESSOR_PH_ENTHALPY_ABS_TOLERANCE_JOULE_PER_KG,
+        abs(target_enthalpy_joule_per_kg) * COMPRESSOR_PH_ENTHALPY_REL_TOLERANCE,
+    )
+    if not math.isfinite(properties.enthalpy_joule_per_kg) or enthalpy_error > enthalpy_tolerance:
+        raise CompressorOutletCalculationError(
+            f"{context}: PH flash did not satisfy target enthalpy. "
+            f"target={target_enthalpy_joule_per_kg}, result={properties.enthalpy_joule_per_kg}, "
+            f"error={enthalpy_error}, tolerance={enthalpy_tolerance}."
+        )
+
+
+def _flash_ph_for_compressor_outlet(
+    fluid_service: FluidService,
+    inlet_stream: FluidStream,
+    outlet_pressure_bara: float,
+    target_enthalpy: float,
+    context: str,
+) -> FluidProperties:
+    try:
+        return fluid_service.flash_ph(
+            inlet_stream.fluid_model,
+            outlet_pressure_bara,
+            target_enthalpy,
+            temperature_guess_kelvin=inlet_stream.temperature_kelvin,
+        )
+    except IllegalStateException as error:
+        raise CompressorOutletCalculationError(f"{context}: PH flash failed.") from error
 
 
 def calculate_asv_corrected_rate(
@@ -99,8 +172,13 @@ def calculate_outlet_pressure_and_stream(
         inlet_temperature_K=inlet_stream.temperature_kelvin,
         inlet_pressure_bara=inlet_stream.pressure_bara,
     )
+    _require_positive_finite(
+        outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
+        "initial Campbell outlet pressure",
+        "calculate_outlet_pressure_and_stream",
+    )
 
-    # Hard cap to protect the PH flash / EOS (primarily during non‑physical max‑speed probe)
+    # Hard cap to protect the PH flash / EOS (primarily during non-physical max-speed probe)
     if outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa > MAX_FIRST_GUESS_BAR:
         logger.warning(
             "Campbell first guess %.0f bar discharge pressure exceeds cap of %.0f bar; "
@@ -115,10 +193,18 @@ def calculate_outlet_pressure_and_stream(
 
     enthalpy_change = polytropic_head_joule_per_kg / polytropic_efficiency
     target_enthalpy = inlet_stream.enthalpy_joule_per_kg + enthalpy_change
-    props = fluid_service.flash_ph(
-        inlet_stream.fluid_model,
-        float(outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa),
-        target_enthalpy,
+    props = _flash_ph_for_compressor_outlet(
+        fluid_service=fluid_service,
+        inlet_stream=inlet_stream,
+        outlet_pressure_bara=float(outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa),
+        target_enthalpy=target_enthalpy,
+        context="calculate_outlet_pressure_and_stream initial PH flash",
+    )
+    _validate_compressor_ph_flash_result(
+        props,
+        target_pressure_bara=float(outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa),
+        target_enthalpy_joule_per_kg=target_enthalpy,
+        context="calculate_outlet_pressure_and_stream initial PH flash",
     )
     outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
     outlet_stream_compressor_current_iteration = inlet_stream.with_new_fluid(outlet_fluid)
@@ -141,17 +227,35 @@ def calculate_outlet_pressure_and_stream(
             inlet_temperature_K=inlet_stream.temperature_kelvin,
             inlet_pressure_bara=inlet_stream.pressure_bara,
         )
+        _require_positive_finite(
+            p_raw,
+            "Campbell outlet pressure",
+            f"calculate_outlet_pressure_and_stream iteration {i}",
+        )
         # Adaptive damping for cases where needed (non-invasive for normal cases)
         outlet_pressure_this_stage_bara, state = adaptive_pressure_update(
             p_prev=outlet_pressure_this_stage_bara,
             p_raw=p_raw,
             state=state,
         )
-
-        props = fluid_service.flash_ph(
-            inlet_stream.fluid_model,
+        _require_positive_finite(
             outlet_pressure_this_stage_bara,
-            target_enthalpy,
+            "damped outlet pressure",
+            f"calculate_outlet_pressure_and_stream iteration {i}",
+        )
+
+        props = _flash_ph_for_compressor_outlet(
+            fluid_service=fluid_service,
+            inlet_stream=inlet_stream,
+            outlet_pressure_bara=outlet_pressure_this_stage_bara,
+            target_enthalpy=target_enthalpy,
+            context=f"calculate_outlet_pressure_and_stream iteration {i} PH flash",
+        )
+        _validate_compressor_ph_flash_result(
+            props,
+            target_pressure_bara=outlet_pressure_this_stage_bara,
+            target_enthalpy_joule_per_kg=target_enthalpy,
+            context=f"calculate_outlet_pressure_and_stream iteration {i} PH flash",
         )
         outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
         outlet_stream_compressor_current_iteration = inlet_stream.with_new_fluid(outlet_fluid)
