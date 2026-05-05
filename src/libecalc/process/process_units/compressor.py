@@ -24,6 +24,11 @@ class Compressor(ProcessUnit):
         self._compressor_chart = CompressorChart(compressor_chart)
         self._fluid_service = fluid_service
         self._speed: float | None = None
+        self._polytropic_head_joule_per_kg: float | None = None
+        self._polytropic_efficiency: float | None = None
+        self._enthalpy_change_joule_per_kg: float | None = None
+        self._power_megawatt: float | None = None
+        self._actual_rate_m3_per_hour: float | None = None
 
     def get_id(self) -> ProcessUnitId:
         return self._id
@@ -56,12 +61,20 @@ class Compressor(ProcessUnit):
                 rate=actual_rate,
             )
 
-        return calculate_outlet_pressure_and_stream(
+        self._polytropic_head_joule_per_kg = polytropic_head
+        self._polytropic_efficiency = polytropic_efficiency
+        self._actual_rate_m3_per_hour = actual_rate
+
+        outlet_stream = calculate_outlet_pressure_and_stream(
             polytropic_efficiency=polytropic_efficiency,
             polytropic_head_joule_per_kg=polytropic_head,
             inlet_stream=inlet_stream,
             fluid_service=self._fluid_service,
         )
+        enthalpy_change = polytropic_head / polytropic_efficiency
+        self._enthalpy_change_joule_per_kg = enthalpy_change
+        self._power_megawatt = enthalpy_change * inlet_stream.mass_rate_kg_per_h / 1e6 / 3600
+        return outlet_stream
 
     @property
     def compressor_chart(self) -> CompressorChart:
@@ -72,6 +85,38 @@ class Compressor(ProcessUnit):
         if self._speed is None:
             raise ValueError("Speed not set. Compressor must be registered on a Shaft.")
         return self._speed
+
+    @property
+    def polytropic_head_joule_per_kg(self) -> float:
+        if self._polytropic_head_joule_per_kg is None:
+            raise ValueError("No propagation result. Call propagate_stream() first.")
+        return self._polytropic_head_joule_per_kg
+
+    @property
+    def polytropic_efficiency(self) -> float:
+        if self._polytropic_efficiency is None:
+            raise ValueError("No propagation result. Call propagate_stream() first.")
+        return self._polytropic_efficiency
+
+    @property
+    def enthalpy_change_joule_per_kg(self) -> float:
+        if self._enthalpy_change_joule_per_kg is None:
+            raise ValueError("No propagation result. Call propagate_stream() first.")
+        return self._enthalpy_change_joule_per_kg
+
+    @property
+    def power_megawatt(self) -> float:
+        """Power consumed by this compressor stage [MW]."""
+        if self._power_megawatt is None:
+            raise ValueError("No propagation result. Call propagate_stream() first.")
+        return self._power_megawatt
+
+    @property
+    def actual_rate_m3_per_hour(self) -> float:
+        """Volumetric rate at inlet conditions [m3/h]."""
+        if self._actual_rate_m3_per_hour is None:
+            raise ValueError("No propagation result. Call propagate_stream() first.")
+        return self._actual_rate_m3_per_hour
 
     @property
     def minimum_flow_rate(self) -> float:
