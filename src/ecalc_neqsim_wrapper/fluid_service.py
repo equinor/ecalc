@@ -12,8 +12,11 @@ from __future__ import annotations
 import logging
 from typing import ClassVar
 
+from py4j.protocol import Py4JJavaError  # pyright: ignore[reportMissingTypeStubs]
+
 from ecalc_neqsim_wrapper.cache_service import CacheConfig, CacheName, CacheService, LRUCache
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.process.fluid_stream.constants import ThermodynamicConstants
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -338,10 +341,21 @@ class NeqSimFluidService(FluidService):
             return cached
 
         ref = self._get_reference_fluid(fluid_model)
-        flashed = ref.set_new_pressure_and_enthalpy(
-            new_pressure=pressure_bara,
-            new_enthalpy_joule_per_kg=target_enthalpy,
-        )
+        try:
+            flashed = ref.set_new_pressure_and_enthalpy(
+                new_pressure=pressure_bara,
+                new_enthalpy_joule_per_kg=target_enthalpy,
+            )
+        except Py4JJavaError as exc:
+            # NeqSim PHflash can blow up (IsNaNException) on dense / supercritical
+            # operating points produced by the speed solver's max-speed probes.
+            # Surface as IllegalStateException so the caller can fall back or
+            # mark the timestep as NOT_CALCULATED.
+            raise IllegalStateException(
+                f"NeqSim PHflash failed at pressure={pressure_bara} bara, "
+                f"target_enthalpy={target_enthalpy} J/kg: "
+                f"{exc.java_exception.getMessage() if exc.java_exception is not None else exc}"
+            ) from exc
 
         result = self._extract_properties(flashed, fluid_model)
         self._flash_cache.put(cache_key, result)
