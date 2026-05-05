@@ -16,7 +16,9 @@ class LiquidRemover(ProcessUnit):
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         """
-        Removes liquid from the fluid stream.
+        Removes liquid from the fluid stream. The new stream's mass rate is scaled
+        down by the gas mass fraction so the dropped-out liquid isn't re-injected
+        into the gas phase.
 
         Args:
             inlet_stream: The fluid stream to be scrubbed.
@@ -26,6 +28,12 @@ class LiquidRemover(ProcessUnit):
         """
         if inlet_stream.vapor_fraction_molar < ThermodynamicConstants.PURE_VAPOR_THRESHOLD:
             new_fluid = self._fluid_service.remove_liquid(inlet_stream.fluid)
-            return inlet_stream.with_new_fluid(new_fluid)
+            inlet_molar_mass = inlet_stream.fluid.molar_mass
+            if inlet_molar_mass > 0.0:
+                gas_mass_fraction = inlet_stream.vapor_fraction_molar * new_fluid.molar_mass / inlet_molar_mass
+            else:
+                gas_mass_fraction = 1.0
+            new_mass_rate = inlet_stream.mass_rate_kg_per_h * gas_mass_fraction
+            return inlet_stream.with_new_fluid(new_fluid).with_mass_rate(new_mass_rate)
         else:
             return inlet_stream

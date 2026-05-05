@@ -80,6 +80,33 @@ class CompressorTrainStageResultSingleTimeStep:
             point_is_valid=True,
         )
 
+    @classmethod
+    def create_infeasible(cls) -> CompressorTrainStageResultSingleTimeStep:
+        """Sentinel for an infeasible operating point (EOS / chart-extrapolation failure).
+
+        Differs from ``create_empty`` in that ``point_is_valid=False`` and
+        ``rate_exceeds_maximum=True``, so the train reports
+        ``within_capacity=False`` / ``is_valid=False`` and an upstream solver
+        treats the proposal as infeasible rather than as a zero-power success.
+        """
+        return cls(
+            inlet_stream=None,
+            outlet_stream=None,
+            inlet_stream_including_asv=None,
+            outlet_stream_including_asv=None,
+            polytropic_head_kJ_per_kg=0.0,
+            polytropic_efficiency=1.0,
+            polytropic_enthalpy_change_kJ_per_kg=0.0,
+            polytropic_enthalpy_change_before_choke_kJ_per_kg=0.0,
+            power_megawatt=0.0,
+            chart_area_flag=ChartAreaFlag.NOT_CALCULATED,
+            rate_has_recirculation=False,
+            rate_exceeds_maximum=True,
+            pressure_is_choked=False,
+            head_exceeds_maximum=True,
+            point_is_valid=False,
+        )
+
     @property
     def inlet_actual_rate_m3_per_hour(self) -> float:
         """Actual inlet rate in Am3/hour."""
@@ -574,5 +601,20 @@ class CompressorTrainResultSingleTimeStep:
             outlet_stream=None,
             speed=np.nan,
             stage_results=[CompressorTrainStageResultSingleTimeStep.create_empty()] * number_of_stages,
+            target_pressure_status=TargetPressureStatus.NOT_CALCULATED,
+        )
+
+    @classmethod
+    def create_infeasible(cls, number_of_stages: int) -> CompressorTrainResultSingleTimeStep:
+        """Train-level counterpart of :meth:`CompressorTrainStageResultSingleTimeStep.create_infeasible`.
+
+        Reports ``within_capacity=False`` and ``is_valid=False`` so an upstream
+        speed/rate solver treats the proposal as infeasible.
+        """
+        return cls(
+            inlet_stream=None,
+            outlet_stream=None,
+            speed=np.nan,
+            stage_results=[CompressorTrainStageResultSingleTimeStep.create_infeasible()] * max(number_of_stages, 1),
             target_pressure_status=TargetPressureStatus.NOT_CALCULATED,
         )

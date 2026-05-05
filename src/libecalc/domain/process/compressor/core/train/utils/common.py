@@ -1,5 +1,8 @@
+import math
+
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.common.numeric_methods import DampState, adaptive_pressure_update
+from libecalc.common.numeric_methods import DampState, adaptive_pressure_update, find_root
 from libecalc.common.units import UnitConstants
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import calculate_outlet_pressure_campbell
 from libecalc.process.fluid_stream.fluid import Fluid
@@ -76,7 +79,11 @@ def calculate_outlet_pressure_and_stream(
     inlet_stream: FluidStream,
     fluid_service: FluidService,
 ) -> FluidStream:
-    """Calculate outlet pressure and outlet stream(-properties) from compressor stage
+    """Calculate outlet pressure and outlet stream(-properties) from compressor stage.
+
+    Tries the legacy PH-flash fixed-point loop first; falls back to a more robust
+    TP-flash bracket+bisect on outlet pressure if the PH-flash loop refuses
+    (e.g. NeqSim PHflash IsNaNException on dense supercritical inputs).
 
     Args:
         polytropic_efficiency: Allowed values (0, 1]
@@ -86,10 +93,39 @@ def calculate_outlet_pressure_and_stream(
 
     Returns:
         Outlet fluid stream
+    """
+    try:
+        return _calculate_outlet_pressure_via_ph_flash_loop(
+            polytropic_efficiency=polytropic_efficiency,
+            polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
+            inlet_stream=inlet_stream,
+            fluid_service=fluid_service,
+        )
+    except IllegalStateException as ph_loop_exc:
+        logger.info(
+            "PH-flash outlet-pressure loop refused (%s). Falling back to TP-flash bracket+bisect on outlet pressure.",
+            ph_loop_exc,
+        )
+        return _calculate_outlet_pressure_via_tp_bracket_bisect(
+            polytropic_efficiency=polytropic_efficiency,
+            polytropic_head_joule_per_kg=polytropic_head_joule_per_kg,
+            inlet_stream=inlet_stream,
+            fluid_service=fluid_service,
+        )
 
+
+def _calculate_outlet_pressure_via_ph_flash_loop(
+    polytropic_efficiency: float,
+    polytropic_head_joule_per_kg: float,
+    inlet_stream: FluidStream,
+    fluid_service: FluidService,
+) -> FluidStream:
+    """Legacy PH-flash fixed-point iteration on outlet pressure.
+
+    Raises ``IllegalStateException`` for inputs the EOS can't handle so the
+    caller can fall back to a more robust solver.
     """
 
-    # Initial guess for pressure outlet
     outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa = calculate_outlet_pressure_campbell(
         kappa=inlet_stream.kappa,
         polytropic_efficiency=polytropic_efficiency,
@@ -100,21 +136,27 @@ def calculate_outlet_pressure_and_stream(
         inlet_pressure_bara=inlet_stream.pressure_bara,
     )
 
-    # Hard cap to protect the PH flash / EOS (primarily during non‑physical max‑speed probe)
-    if outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa > MAX_FIRST_GUESS_BAR:
-        logger.warning(
-            "Campbell first guess %.0f bar discharge pressure exceeds cap of %.0f bar; "
-            "capping to protect EOS (head %.0f J/kg, z_inlet: %.2f)."
-            "This is a non-physical case, but may happen during max-speed probe in compressor solver",
-            outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa,
-            MAX_FIRST_GUESS_BAR,
-            polytropic_head_joule_per_kg,
-            inlet_stream.z,
+    if not math.isfinite(outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa):
+        raise IllegalStateException(
+            "Refusing to call NeqSim PH flash with non-finite outlet pressure "
+            f"{outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa} bara "
+            f"(polytropic_head={polytropic_head_joule_per_kg} J/kg, z_inlet={inlet_stream.z}, "
+            f"kappa={inlet_stream.kappa})."
         )
+
+    if outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa > MAX_FIRST_GUESS_BAR:
         outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa = MAX_FIRST_GUESS_BAR
 
     enthalpy_change = polytropic_head_joule_per_kg / polytropic_efficiency
     target_enthalpy = inlet_stream.enthalpy_joule_per_kg + enthalpy_change
+    if not math.isfinite(target_enthalpy):
+        raise IllegalStateException(
+            "Refusing to call NeqSim PH flash with non-finite target enthalpy "
+            f"{target_enthalpy} J/kg (inlet_h={inlet_stream.enthalpy_joule_per_kg} J/kg, "
+            f"polytropic_head={polytropic_head_joule_per_kg} J/kg, "
+            f"polytropic_efficiency={polytropic_efficiency})."
+        )
+
     props = fluid_service.flash_ph(
         inlet_stream.fluid_model,
         float(outlet_pressure_this_stage_bara_based_on_inlet_z_and_kappa),
@@ -141,6 +183,13 @@ def calculate_outlet_pressure_and_stream(
             inlet_temperature_K=inlet_stream.temperature_kelvin,
             inlet_pressure_bara=inlet_stream.pressure_bara,
         )
+        if not math.isfinite(p_raw):
+            raise IllegalStateException(
+                f"Refusing non-finite Campbell outlet pressure {p_raw} during PH iteration "
+                f"(z_avg={z_average}, kappa_avg={kappa_average})."
+            )
+        if p_raw > MAX_FIRST_GUESS_BAR:
+            p_raw = MAX_FIRST_GUESS_BAR
         # Adaptive damping for cases where needed (non-invasive for normal cases)
         outlet_pressure_this_stage_bara, state = adaptive_pressure_update(
             p_prev=outlet_pressure_this_stage_bara,
@@ -179,3 +228,88 @@ def calculate_outlet_pressure_and_stream(
             )
 
     return outlet_stream_compressor_current_iteration
+
+
+def _calculate_outlet_pressure_via_tp_bracket_bisect(
+    polytropic_efficiency: float,
+    polytropic_head_joule_per_kg: float,
+    inlet_stream: FluidStream,
+    fluid_service: FluidService,
+) -> FluidStream:
+    """Robust fallback: bracket+bisect on outlet pressure with TP-flashes.
+
+    For a candidate ``P_out``, estimate ``T_out`` via the polytropic ideal-gas
+    relation ``T_out = T_in (P_out/P_in)^((κ-1)/κ)``, TP-flash there (much more
+    stable than PH-flash since P,T uniquely fix the EoS state), then solve
+
+        f(P_out) = Campbell(avg z, avg κ) - P_out = 0
+
+    for ``P_out`` with Brent's method on ``[inlet_p, MAX_FIRST_GUESS_BAR]``.
+    Finally, do a single PH-flash at ``P*`` for the true outlet fluid state.
+    """
+    enthalpy_change = polytropic_head_joule_per_kg / polytropic_efficiency
+    target_enthalpy = inlet_stream.enthalpy_joule_per_kg + enthalpy_change
+
+    if not math.isfinite(target_enthalpy):
+        raise IllegalStateException(
+            f"Non-finite target enthalpy {target_enthalpy} J/kg "
+            f"(inlet_h={inlet_stream.enthalpy_joule_per_kg}, "
+            f"head={polytropic_head_joule_per_kg}, eta={polytropic_efficiency})."
+        )
+
+    inlet_p = inlet_stream.pressure_bara
+    inlet_t = inlet_stream.temperature_kelvin
+    inlet_z = inlet_stream.z
+    inlet_k = inlet_stream.kappa
+    molar_mass = inlet_stream.molar_mass
+
+    def _campbell(z_avg: float, k_avg: float) -> float:
+        return calculate_outlet_pressure_campbell(
+            kappa=k_avg,
+            polytropic_efficiency=polytropic_efficiency,
+            polytropic_head_fluid_Joule_per_kg=polytropic_head_joule_per_kg,
+            molar_mass=molar_mass,
+            z_inlet=z_avg,
+            inlet_temperature_K=inlet_t,
+            inlet_pressure_bara=inlet_p,
+        )
+
+    def _residual(p_out_bara: float) -> float:
+        t_out_guess = inlet_t * (p_out_bara / inlet_p) ** ((inlet_k - 1.0) / inlet_k)
+        props = fluid_service.flash_pt(inlet_stream.fluid_model, p_out_bara, t_out_guess)
+        z_avg = 0.5 * (inlet_z + props.z)
+        k_avg = 0.5 * (inlet_k + props.kappa)
+        p_predicted = _campbell(z_avg, k_avg)
+        if not math.isfinite(p_predicted):
+            raise IllegalStateException(
+                f"Non-finite Campbell prediction at P_out={p_out_bara}: z_avg={z_avg}, kappa_avg={k_avg}."
+            )
+        if p_predicted > MAX_FIRST_GUESS_BAR:
+            p_predicted = MAX_FIRST_GUESS_BAR
+        return p_predicted - p_out_bara
+
+    p_low = inlet_p * (1.0 + EPSILON)
+    p_high = MAX_FIRST_GUESS_BAR
+
+    f_low = _residual(p_low)
+    f_high = _residual(p_high)
+
+    if f_low * f_high > 0:
+        raise IllegalStateException(
+            f"No bracket for outlet pressure root in [{p_low:.2f}, {p_high:.2f}] bara: "
+            f"f_low={f_low:.2e}, f_high={f_high:.2e}. Likely the chart head "
+            f"({polytropic_head_joule_per_kg:.0f} J/kg) is being extrapolated outside "
+            "its valid envelope."
+        )
+
+    p_star = find_root(
+        lower_bound=p_low,
+        upper_bound=p_high,
+        func=_residual,
+        relative_convergence_tolerance=PRESSURE_CALCULATION_TOLERANCE,
+        maximum_number_of_iterations=30,
+    )
+
+    props = fluid_service.flash_ph(inlet_stream.fluid_model, p_star, target_enthalpy)
+    outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
+    return inlet_stream.with_new_fluid(outlet_fluid)
