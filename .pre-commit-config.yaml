@@ -1,3 +1,6 @@
+auto_update:
+  cooldown_days: 3
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: 3e8a8703264a2f4a69428a0aa4dcb512790b2c8c  # frozen: v6.0.0
@@ -13,14 +16,14 @@ repos:
       - id: detect-private-key  # Checks for private keys
       - id: check-merge-conflict  # Check for merge conflict strings
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: '4924b0e01e032fea073ad04a1c5cfa7e4add0afb'  # frozen: v0.15.6
+    rev: '6fec9b7edb08fd9989088709d864a7826dc74e80'  # frozen: v0.15.12
     hooks:
       - id: ruff
         files: ^(src/.*\.py|tests/.*\.py)$
         exclude: gen/|\.git|\.hg|\.mypy_cache|\.tox|\.venv|_build|buck-out|build|dist
         args:
           - --fix
-#          - --unsafe-fixes # Enable this to allow potentially unsafe fixes, such as those that may change code behavior. Use with caution.
+      #          - --unsafe-fixes # Enable this to allow potentially unsafe fixes, such as those that may change code behavior. Use with caution.
       - id: ruff-format
 
   - repo: https://github.com/codespell-project/codespell
@@ -31,7 +34,7 @@ repos:
         additional_dependencies: [ tomli ]
         exclude: docs/docs/changelog/changelog.md|.*\.ipynb
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: 1f6454da22d006d5bb0d2e65c96c43c23c8a534f  # frozen: v9.24.0
+    rev: 1d7031e6d0bbfce76e5a625b0cec24fb22e517a0  # frozen: v9.25.0
 
     hooks:
       - id: commitlint
@@ -39,7 +42,7 @@ repos:
         additional_dependencies: [ '@commitlint/config-conventional' ]
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: 6c05c4a00b91aa542267d8e32a8254774799d68d  # frozen: v3.93.8
+    rev: 17456f8c7d042d8c82c9a8ca9e937231f9f42e26  # frozen: v3.95.2
     hooks:
       - id: trufflehog
         stages: [ "pre-commit" ]
