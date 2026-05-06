@@ -9,13 +9,12 @@ FluidService interface, which can be obtained from the infrastructure layer.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-
+from libecalc.common.ddd import value_object
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_properties import FluidProperties
 
 
-@dataclass(frozen=True)
+@value_object
 class Fluid:
     """A fluid at a specific thermodynamic state (T/P).
 
