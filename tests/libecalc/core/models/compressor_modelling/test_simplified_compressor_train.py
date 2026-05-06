@@ -260,6 +260,31 @@ def test_compressor_train_simplified_known_stages_no_indices_to_calculate(
     assert np.all(np.asarray(energy_result.energy_usage.values) == 0)
 
 
+def test_zero_rate_gives_zero_actual_rate_not_nan(simplified_compressor_train_factory, fluid_model_rich):
+    compressor_train = simplified_compressor_train_factory()
+    compressor_train.set_evaluation_input(
+        fluid_model=fluid_model_rich,
+        rate=np.asarray([5000000.0, 0.0]),
+        suction_pressure=np.asarray([30.0, 30.0]),
+        discharge_pressure=np.asarray([200.0, 200.0]),
+    )
+    results = compressor_train.evaluate()
+
+    inlet = results.inlet_stream_condition
+    assert inlet.actual_rate_m3_per_hr[0] > 0
+    assert inlet.actual_rate_m3_per_hr[1] == 0.0
+    assert not np.isnan(inlet.actual_rate_m3_per_hr[1])
+
+    assert inlet.standard_rate_sm3_per_day[0] > 0
+    assert inlet.standard_rate_sm3_per_day[1] == 0.0
+
+    stage_inlet = results.stage_results[0].inlet_stream_condition
+    assert stage_inlet.actual_rate_m3_per_hr[0] > 0
+    assert stage_inlet.actual_rate_m3_per_hr[1] == 0.0
+    assert stage_inlet.actual_rate_before_asv_m3_per_hr[1] == 0.0
+    assert stage_inlet.standard_rate_sm3_per_day[1] == 0.0
+
+
 def test_get_max_standard_rate_with_zero_pressure(simplified_compressor_train_factory, fluid_model_rich):
     compressor_train = simplified_compressor_train_factory()
     compressor_train.set_evaluation_input(

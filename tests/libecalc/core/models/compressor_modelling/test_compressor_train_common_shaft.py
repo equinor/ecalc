@@ -415,7 +415,7 @@ def test_calculate_single_speed_train_zero_mass_rate(single_speed_compressor_tra
     assert energy_result.energy_usage.values == pytest.approx([0.0], rel=0.00001)
     assert energy_result.power.values[0] == 0
 
-    assert np.isnan(result.mass_rate_kg_per_hr[0])
+    assert result.mass_rate_kg_per_hr[0] == 0.0
     assert np.isnan(result.inlet_stream.pressure[0])
     assert np.isnan(result.outlet_stream.pressure[0])
 
@@ -611,7 +611,7 @@ class TestCompressorTrainCommonShaftOneRateTwoPressures:
             CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         ]
 
-        assert np.isnan(result.mass_rate_kg_per_hr[0])
+        assert result.mass_rate_kg_per_hr[0] == 0.0
         assert np.isnan(result.inlet_stream.pressure[0])
         assert np.isnan(result.outlet_stream.pressure[0])
 

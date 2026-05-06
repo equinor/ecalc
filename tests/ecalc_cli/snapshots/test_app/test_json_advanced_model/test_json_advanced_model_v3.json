@@ -10057,11 +10057,11 @@
           },
           "unit": "Am3/h",
           "values": [
-            null,
-            null,
-            null,
-            null,
-            null
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         "density_kg_per_m3": {
@@ -10275,11 +10275,11 @@
           ],
           "unit": "Sm3/d",
           "values": [
-            null,
-            null,
-            null,
-            null,
-            null
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         "temperature_kelvin": {
@@ -10490,11 +10490,11 @@
           },
           "unit": "Am3/h",
           "values": [
-            null,
-            null,
-            null,
-            null,
-            null
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         "density_kg_per_m3": {
@@ -10708,11 +10708,11 @@
           ],
           "unit": "Sm3/d",
           "values": [
-            null,
-            null,
-            null,
-            null,
-            null
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         "temperature_kelvin": {
@@ -11039,11 +11039,11 @@
             ],
             "unit": "MW",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "chart": {
@@ -11231,11 +11231,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -11265,11 +11265,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -11441,11 +11441,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -11483,11 +11483,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -11620,11 +11620,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -11654,11 +11654,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "name": "Stage 1",
@@ -11690,11 +11690,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -11724,11 +11724,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -11900,11 +11900,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -11942,11 +11942,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -12401,11 +12401,11 @@
             ],
             "unit": "MW",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "chart": {
@@ -12593,11 +12593,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -12627,11 +12627,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -12803,11 +12803,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -12845,11 +12845,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -12982,11 +12982,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -13016,11 +13016,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "name": "Stage 2",
@@ -13052,11 +13052,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -13086,11 +13086,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -13262,11 +13262,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -13304,11 +13304,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -13763,11 +13763,11 @@
             ],
             "unit": "MW",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "chart": {
@@ -13955,11 +13955,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -13989,11 +13989,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -14165,11 +14165,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -14207,11 +14207,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -14344,11 +14344,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -14378,11 +14378,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "name": "Stage 3",
@@ -14414,11 +14414,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -14448,11 +14448,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -14624,11 +14624,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -14666,11 +14666,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -15243,7 +15243,7 @@
             2801.87,
             2801.87,
             3502.337,
-            null
+            0.0
           ]
         },
         "density_kg_per_m3": {
@@ -15461,7 +15461,7 @@
             1320000.0,
             1320000.0,
             1650000.0,
-            null
+            0.0
           ]
         },
         "temperature_kelvin": {
@@ -15676,7 +15676,7 @@
             395.418,
             395.418,
             494.2724,
-            null
+            0.0
           ]
         },
         "density_kg_per_m3": {
@@ -15894,7 +15894,7 @@
             1320000.0,
             1320000.0,
             1650000.0,
-            null
+            0.0
           ]
         },
         "temperature_kelvin": {
@@ -16225,7 +16225,7 @@
               1.30784,
               1.30784,
               0.600448,
-              null
+              0.0
             ]
           },
           "chart": {
@@ -16398,7 +16398,7 @@
                 2801.87,
                 2801.87,
                 3502.337,
-                null
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -16432,7 +16432,7 @@
                 4096.908,
                 4096.908,
                 4096.908,
-                null
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -16608,7 +16608,7 @@
                 1320000.0,
                 1320000.0,
                 1650000.0,
-                null
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -16650,7 +16650,7 @@
                 1930110.0,
                 1930110.0,
                 1930110.0,
-                null
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -16787,7 +16787,7 @@
               45372.67,
               45372.67,
               56715.84,
-              null
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -16821,7 +16821,7 @@
               66344.14,
               66344.14,
               66344.15,
-              null
+              0.0
             ]
           },
           "name": "Stage 1",
@@ -16857,7 +16857,7 @@
                 1263.457,
                 1263.457,
                 1579.321,
-                null
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -16891,7 +16891,7 @@
                 1847.433,
                 1847.433,
                 1847.433,
-                null
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -17067,7 +17067,7 @@
                 1320000.0,
                 1320000.0,
                 1650000.0,
-                null
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -17109,7 +17109,7 @@
                 1930110.0,
                 1930110.0,
                 1930110.0,
-                null
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -17568,7 +17568,7 @@
               11.17437,
               11.17437,
               10.46698,
-              null
+              0.0
             ]
           },
           "chart": {
@@ -17741,7 +17741,7 @@
                 827.8013,
                 827.8013,
                 1034.752,
-                null
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -17775,7 +17775,7 @@
                 4096.908,
                 4096.908,
                 4096.908,
-                null
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -17951,7 +17951,7 @@
                 1320000.0,
                 1320000.0,
                 1650000.0,
-                null
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -17993,7 +17993,7 @@
                 6532870.0,
                 6532870.0,
                 6532870.0,
-                null
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -18130,7 +18130,7 @@
               45372.67,
               45372.67,
               56715.84,
-              null
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -18164,7 +18164,7 @@
               224555.9,
               224555.9,
               224555.9,
-              null
+              0.0
             ]
           },
           "name": "Stage 2",
@@ -18200,7 +18200,7 @@
                 395.418,
                 395.418,
                 494.2724,
-                null
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -18234,7 +18234,7 @@
                 1956.98,
                 1956.98,
                 1956.981,
-                null
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -18410,7 +18410,7 @@
                 1320000.0,
                 1320000.0,
                 1650000.0,
-                null
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -18452,7 +18452,7 @@
                 6532870.0,
                 6532870.0,
                 6532870.0,
-                null
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -19331,7 +19331,7 @@
             2801.87,
             2801.87,
             3502.337,
-            null
+            0.0
           ]
         },
         "density_kg_per_m3": {
@@ -19549,7 +19549,7 @@
             1320000.0,
             1320000.0,
             1650000.0,
-            null
+            0.0
           ]
         },
         "temperature_kelvin": {
@@ -19764,7 +19764,7 @@
             395.418,
             395.418,
             494.2724,
-            null
+            0.0
           ]
         },
         "density_kg_per_m3": {
@@ -19982,7 +19982,7 @@
             1320000.0,
             1320000.0,
             1650000.0,
-            null
+            0.0
           ]
         },
         "temperature_kelvin": {
@@ -20313,7 +20313,7 @@
               1.30784,
               1.30784,
               0.600448,
-              null
+              0.0
             ]
           },
           "chart": {
@@ -20486,7 +20486,7 @@
                 2801.87,
                 2801.87,
                 3502.337,
-                null
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -20520,7 +20520,7 @@
                 4096.908,
                 4096.908,
                 4096.908,
-                null
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -20696,7 +20696,7 @@
                 1320000.0,
                 1320000.0,
                 1650000.0,
-                null
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -20738,7 +20738,7 @@
                 1930110.0,
                 1930110.0,
                 1930110.0,
-                null
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -20875,7 +20875,7 @@
               45372.67,
               45372.67,
               56715.84,
-              null
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -20909,7 +20909,7 @@
               66344.14,
               66344.14,
               66344.15,
-              null
+              0.0
             ]
           },
           "name": "Stage 1",
@@ -20945,7 +20945,7 @@
                 1263.457,
                 1263.457,
                 1579.321,
-                null
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -20979,7 +20979,7 @@
                 1847.433,
                 1847.433,
                 1847.433,
-                null
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -21155,7 +21155,7 @@
                 1320000.0,
                 1320000.0,
                 1650000.0,
-                null
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -21197,7 +21197,7 @@
                 1930110.0,
                 1930110.0,
                 1930110.0,
-                null
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -21656,7 +21656,7 @@
               11.17437,
               11.17437,
               10.46698,
-              null
+              0.0
             ]
           },
           "chart": {
@@ -21829,7 +21829,7 @@
                 827.8013,
                 827.8013,
                 1034.752,
-                null
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -21863,7 +21863,7 @@
                 4096.908,
                 4096.908,
                 4096.908,
-                null
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -22039,7 +22039,7 @@
                 1320000.0,
                 1320000.0,
                 1650000.0,
-                null
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -22081,7 +22081,7 @@
                 6532870.0,
                 6532870.0,
                 6532870.0,
-                null
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -22218,7 +22218,7 @@
               45372.67,
               45372.67,
               56715.84,
-              null
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -22252,7 +22252,7 @@
               224555.9,
               224555.9,
               224555.9,
-              null
+              0.0
             ]
           },
           "name": "Stage 2",
@@ -22288,7 +22288,7 @@
                 395.418,
                 395.418,
                 494.2724,
-                null
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -22322,7 +22322,7 @@
                 1956.98,
                 1956.98,
                 1956.981,
-                null
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -22498,7 +22498,7 @@
                 1320000.0,
                 1320000.0,
                 1650000.0,
-                null
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -22540,7 +22540,7 @@
                 6532870.0,
                 6532870.0,
                 6532870.0,
-                null
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -23415,11 +23415,11 @@
           },
           "unit": "Am3/h",
           "values": [
-            null,
-            null,
-            null,
-            null,
-            null
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         "density_kg_per_m3": {
@@ -23633,11 +23633,11 @@
           ],
           "unit": "Sm3/d",
           "values": [
-            null,
-            null,
-            null,
-            null,
-            null
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         "temperature_kelvin": {
@@ -23848,11 +23848,11 @@
           },
           "unit": "Am3/h",
           "values": [
-            null,
-            null,
-            null,
-            null,
-            null
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         "density_kg_per_m3": {
@@ -24066,11 +24066,11 @@
           ],
           "unit": "Sm3/d",
           "values": [
-            null,
-            null,
-            null,
-            null,
-            null
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
           ]
         },
         "temperature_kelvin": {
@@ -24397,11 +24397,11 @@
             ],
             "unit": "MW",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "chart": {
@@ -24570,11 +24570,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -24604,11 +24604,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -24780,11 +24780,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -24822,11 +24822,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -24959,11 +24959,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -24993,11 +24993,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "name": "Stage 1",
@@ -25029,11 +25029,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -25063,11 +25063,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -25239,11 +25239,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -25281,11 +25281,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -25740,11 +25740,11 @@
             ],
             "unit": "MW",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "chart": {
@@ -25913,11 +25913,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -25947,11 +25947,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -26123,11 +26123,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -26165,11 +26165,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
@@ -26302,11 +26302,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "mass_rate_kg_per_hr": {
@@ -26336,11 +26336,11 @@
             },
             "unit": "kg/h",
             "values": [
-              null,
-              null,
-              null,
-              null,
-              null
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
             ]
           },
           "name": "Stage 2",
@@ -26372,11 +26372,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "actual_rate_m3_per_hr": {
@@ -26406,11 +26406,11 @@
               },
               "unit": "Am3/h",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "density_kg_per_m3": {
@@ -26582,11 +26582,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "standard_rate_sm3_per_day": {
@@ -26624,11 +26624,11 @@
               ],
               "unit": "Sm3/d",
               "values": [
-                null,
-                null,
-                null,
-                null,
-                null
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
               ]
             },
             "temperature_kelvin": {
