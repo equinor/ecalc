@@ -27,10 +27,10 @@ jobs:
           enable-cache: true
 
       - name: Install pre-commit
-        run: uv sync --only-group dev -v
+        run: uv tool install prek
 
       - name: Run pre-commit
-        run: SKIP=trufflehog,no-commit-to-branch uv run pre-commit run --all-files --verbose
+        run: SKIP=trufflehog,no-commit-to-branch uv run prek run --all-files --verbose
 
   type-check:
     permissions:
@@ -49,7 +49,7 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
-        run: uv sync -v
+        run: uv tool install basedpyright
 
       - name: Run basedpyright
         run: uv run basedpyright src/
