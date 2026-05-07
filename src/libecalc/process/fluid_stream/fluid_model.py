@@ -55,6 +55,26 @@ class FluidComposition:
         normalized_data = {key: value / total for key, value in data.items()}
         return FluidComposition(**normalized_data)
 
+    @classmethod
+    def from_dict(cls, data: dict[str, float]) -> FluidComposition:
+        """Construct a FluidComposition from a dict of component name → mole fraction.
+
+        Safe to use this than directly unpacking with **data, will also yield a more
+        helpful description of which components that are valid
+
+        TODO: Should we allow different casing, but set to correct case?
+
+        Raises:
+            InvalidFluidCompositionException: If the dict contains unknown component names.
+        """
+        valid_fields = {f.name for f in dataclasses.fields(cls)}
+        unknown = set(data.keys()) - valid_fields
+        if unknown:
+            raise InvalidFluidCompositionException(
+                reason=f"Unknown component(s): {sorted(unknown)}. Valid components are: {sorted(valid_fields)}"
+            )
+        return cls(**data)
+
     def items(self) -> list[tuple[str, float]]:
         """Return a list of component names and their values."""
         return list(dataclasses.asdict(self).items())
