@@ -18,7 +18,7 @@ class EcalcError(Exception):
     def __init__(self, title: str | None, message: str, error_type: EcalcErrorType = EcalcErrorType.CLIENT_ERROR):
         super().__init__()
 
-        self.title: str = title
+        self.title: str | None = title
         self.message: str = message
         self.error_type = error_type
 
