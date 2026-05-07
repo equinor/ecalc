@@ -63,3 +63,7 @@ class IncompatibleThermoSystemProvidersException(StreamMixingException):
 
     def __init__(self, provider1: str, provider2: str):
         super().__init__(f"Cannot mix streams with different thermo system providers: {provider1} vs {provider2}")
+
+
+class FluidFlashCalculationError(Exception):
+    """Base exception for fluid-service flash calculation failures."""
