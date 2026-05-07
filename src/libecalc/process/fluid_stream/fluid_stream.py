@@ -9,6 +9,7 @@ FluidService interface, and a new FluidStream created with with_new_fluid().
 
 from __future__ import annotations
 
+import dataclasses
 from functools import cached_property
 
 from libecalc.common.ddd import value_object
@@ -139,7 +140,7 @@ class FluidStream:
         Returns:
             New FluidStream with updated rate
         """
-        return FluidStream(fluid=self.fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
+        return dataclasses.replace(self, mass_rate_kg_per_h=mass_rate_kg_per_h)
 
     def with_standard_rate(self, standard_rate_sm3_per_day: float) -> FluidStream:
         """Create new stream with same fluid but different standard rate."""
@@ -148,7 +149,7 @@ class FluidStream:
         mass_rate_kg_per_h = (
             standard_rate_sm3_per_day * self.standard_density_gas_phase_after_flash / UnitConstants.HOURS_PER_DAY
         )
-        return FluidStream(fluid=self.fluid, mass_rate_kg_per_h=mass_rate_kg_per_h)
+        return dataclasses.replace(self, mass_rate_kg_per_h=mass_rate_kg_per_h)
 
     def with_new_fluid(self, fluid: Fluid) -> FluidStream:
         """Create new stream with updated fluid but same mass rate.
@@ -169,7 +170,7 @@ class FluidStream:
             )
             new_stream = stream.with_new_fluid(new_fluid)
         """
-        return FluidStream(fluid=fluid, mass_rate_kg_per_h=self.mass_rate_kg_per_h)
+        return dataclasses.replace(self, fluid=fluid)
 
     @classmethod
     def from_standard_rate(
