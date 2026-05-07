@@ -5,7 +5,10 @@ from enum import StrEnum
 
 from libecalc.common.ddd import value_object
 from libecalc.process.fluid_stream.constants import ThermodynamicConstants
-from libecalc.process.fluid_stream.exceptions import NegativeComponentFractionException
+from libecalc.process.fluid_stream.exceptions import (
+    InvalidFluidCompositionException,
+    NegativeComponentFractionException,
+)
 
 
 @value_object
@@ -48,9 +51,9 @@ class FluidComposition:
         data = dataclasses.asdict(self)
         total = sum(data.values())
         if total == 0:
-            raise ValueError("Total composition is 0; cannot normalize.")
+            raise InvalidFluidCompositionException(reason="Total composition is 0; cannot normalize.")
         normalized_data = {key: value / total for key, value in data.items()}
-        return self.__class__(**normalized_data)
+        return FluidComposition(**normalized_data)
 
     def items(self) -> list[tuple[str, float]]:
         """Return a list of component names and their values."""
@@ -63,7 +66,7 @@ class FluidComposition:
         Returns:
             float: The molar mass of the mixture in kg/mol
         """
-        normalized_composition = self.normalized()
+        normalized_composition: FluidComposition = self.normalized()
         molar_mass = 0.0
         for component, mole_fraction in normalized_composition.items():
             if mole_fraction > 0:  # Skip zero components

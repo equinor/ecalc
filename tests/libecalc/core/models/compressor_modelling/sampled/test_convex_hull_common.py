@@ -295,7 +295,6 @@ def test_equation_of_plane():
 
 
 @pytest.mark.x86
-@pytest.mark.dockersnapshot
 def test_sampled_compressor_datedata2():
     testfile = Path(__file__).parent / "input" / "compressor_sampled_3d_vsd_testdata2.csv"
     df = pd.read_csv(testfile, comment="#")

@@ -1,6 +1,12 @@
 from libecalc.common.errors.exceptions import EcalcError
 
 
+### Fluid Composition Error
+class InvalidFluidCompositionException(EcalcError):
+    def __init__(self, title: str | None = None, reason: str | None = None):
+        super().__init__(title=f"Invalid fluid composition: {title or ''}", message=reason or "")
+
+
 ## Invalid Stream
 class InvalidStreamException(EcalcError):
     def __init__(self, title: str | None = None, reason: str | None = None):
@@ -16,7 +22,7 @@ class NegativeMassRateException(InvalidStreamException):
 
 class NegativeComponentFractionException(InvalidStreamException):
     def __init__(self, component_name: str, fraction: float):
-        super().__init__(reason=f"Component fractions must be non-negative. {component_name} was {fraction} < 0")
+        super().__init__(reason=f"Component mole fractions must be non-negative. {component_name} was {fraction} < 0")
 
 
 ## Stream Mixing Error
@@ -64,12 +70,12 @@ class InvalidProcessConditionsException(EcalcError):
 class NonPositiveTemperatureException(InvalidProcessConditionsException):
     """Exception raised when temperature is not positive."""
 
-    def __init__(self, temperature_kelvin: float):
-        super().__init__(reason=f"Temperature must be positive, got {temperature_kelvin} K")
+    def __init__(self, parameter_name: str, temperature_kelvin: float):
+        super().__init__(reason=f"Temperature for {parameter_name} must be positive, got {temperature_kelvin} K")
 
 
 class NonPositivePressureException(InvalidProcessConditionsException):
     """Exception raised when pressure is not positive."""
 
-    def __init__(self, pressure_bara: float):
-        super().__init__(reason=f"Pressure must be positive, got {pressure_bara} bara")
+    def __init__(self, parameter_name: str, pressure_bara: float):
+        super().__init__(reason=f"Pressure for {parameter_name} must be positive, got {pressure_bara} bara")
