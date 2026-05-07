@@ -2,6 +2,7 @@ import dataclasses
 
 import pytest
 
+from libecalc.process.fluid_stream.exceptions import InvalidFluidCompositionException
 from libecalc.process.fluid_stream.fluid_model import FluidComposition
 
 
@@ -25,7 +26,7 @@ def test_fluid_composition_normalized():
 
 def test_fluid_composition_normalized_zero_total():
     composition = FluidComposition()
-    with pytest.raises(ValueError, match="Total composition is 0; cannot normalize."):
+    with pytest.raises(InvalidFluidCompositionException, match="Total composition is 0; cannot normalize."):
         composition.normalized()
 
 
