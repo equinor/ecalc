@@ -77,14 +77,14 @@ class TestStream:
 
         new_pressure = 5.0
         enthalpy_change = -5000.0
-        target_enthalpy = stream.enthalpy_joule_per_kg + enthalpy_change
+        target_enthalpy_joule_per_kg = stream.enthalpy_joule_per_kg + enthalpy_change
         expected_temp = 300.0 + (enthalpy_change / 1000.0)
 
         # Create mock properties for the result
         new_props = mock_fluid_properties_factory(
             pressure_bara=new_pressure,
             temperature_kelvin=expected_temp,
-            enthalpy_joule_per_kg=target_enthalpy,
+            enthalpy_joule_per_kg=target_enthalpy_joule_per_kg,
         )
 
         # Mock the service
@@ -92,7 +92,11 @@ class TestStream:
         mock_service.flash_ph.return_value = new_props
 
         # Call the pattern: flash_ph + construct Fluid + with_new_fluid
-        result_props = mock_service.flash_ph(stream.fluid_model, new_pressure, target_enthalpy)
+        result_props = mock_service.flash_ph(
+            fluid_model=stream.fluid_model,
+            pressure_bara=new_pressure,
+            target_enthalpy_joule_per_kg=target_enthalpy_joule_per_kg,
+        )
         new_fluid = Fluid(fluid_model=stream.fluid_model, properties=result_props)
         new_stream = stream.with_new_fluid(new_fluid)
 
