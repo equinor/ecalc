@@ -1,5 +1,6 @@
 from typing import Final
 
+from libecalc.common.ddd import value_object
 from libecalc.domain.process.compressor.core.train.utils.common import (
     RECIRCULATION_BOUNDARY_TOLERANCE,
     calculate_outlet_pressure_and_stream,
@@ -13,7 +14,20 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessU
 from libecalc.process.process_solver.boundary import Boundary
 
 
-class Compressor(ProcessUnit):
+@value_object
+class OperatingPoint:
+    inlet_stream: FluidStream
+    speed: float
+
+
+@value_object
+class CompressorSnapshot:
+    outlet_stream: FluidStream
+    polytropic_head_joule_per_kg: float
+    polytropic_efficiency: float
+
+
+class Compressor(ProcessUnit[CompressorSnapshot]):
     def __init__(
         self,
         compressor_chart: ChartData,
@@ -25,10 +39,34 @@ class Compressor(ProcessUnit):
         self._fluid_service = fluid_service
         self._speed: float | None = None
 
+        # Both, for different purposes?
+        self._snapshots: dict[OperatingPoint, CompressorSnapshot] = {}
+        self._history: list[CompressorSnapshot] = []
+
     def get_id(self) -> ProcessUnitId:
         return self._id
 
+    def _record_snapshot(self, key: object, snapshot: CompressorSnapshot) -> None:
+        if not isinstance(key, OperatingPoint):
+            raise ValueError("Key must be of type OperatingPoint")
+        self._snapshots[key] = snapshot
+        self._history.append(snapshot)
+
+    def snapshot_for(self, key: object) -> CompressorSnapshot | None:
+        if not isinstance(key, OperatingPoint):
+            raise ValueError("Key must be of type OperatingPoint")
+        return self._snapshots.get(key, None)
+
+    @property
+    def history(self) -> list[CompressorSnapshot]:
+        return self._history
+
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
+        if (
+            cached_snapshot := self.snapshot_for(OperatingPoint(inlet_stream=inlet_stream, speed=self.speed))
+        ) is not None:
+            return cached_snapshot.outlet_stream
+
         actual_rate = inlet_stream.volumetric_rate_m3_per_hour
         if actual_rate < self.minimum_flow_rate:
             raise RateTooLowError(
@@ -56,12 +94,24 @@ class Compressor(ProcessUnit):
                 rate=actual_rate,
             )
 
-        return calculate_outlet_pressure_and_stream(
+        outlet_stream = calculate_outlet_pressure_and_stream(
             polytropic_efficiency=polytropic_efficiency,
             polytropic_head_joule_per_kg=polytropic_head,
             inlet_stream=inlet_stream,
             fluid_service=self._fluid_service,
         )
+
+        # Ok that it is explicit, or decorator?
+        self._record_snapshot(
+            key=OperatingPoint(inlet_stream=inlet_stream, speed=self.speed),
+            snapshot=CompressorSnapshot(
+                outlet_stream=outlet_stream,
+                polytropic_head_joule_per_kg=polytropic_head,
+                polytropic_efficiency=polytropic_efficiency,
+            ),
+        )
+
+        return outlet_stream
 
     @property
     def compressor_chart(self) -> CompressorChart:
