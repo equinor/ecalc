@@ -1,3 +1,4 @@
+import dataclasses
 from unittest.mock import patch
 
 import numpy as np
@@ -178,16 +179,16 @@ def test_fluid_remove_liquid(light_fluid: NeqsimFluid) -> None:
 def test_mix_neqsim_streams():
     """Test the mix_neqsim_streams function with a focus on composition calculation."""
     # Test case: Mix a methane-rich stream with a propane-rich stream
-    stream1_composition = FluidComposition.model_validate(
-        {
+    stream1_composition = FluidComposition(
+        **{
             "methane": 0.8,
             "ethane": 0.15,
             "propane": 0.05,
         }
     )
 
-    stream2_composition = FluidComposition.model_validate(
-        {
+    stream2_composition = FluidComposition(
+        **{
             "methane": 0.2,
             "ethane": 0.15,
             "propane": 0.6,
@@ -229,11 +230,11 @@ def test_mix_neqsim_streams():
     }
 
     # Check that the composition sums to 1.0 (within floating point precision)
-    composition_sum = sum(mixed_composition.model_dump().values())
+    composition_sum = sum(dataclasses.asdict(mixed_composition).values())
     assert np.isclose(composition_sum, 1.0), f"Composition sum is {composition_sum}, expected 1.0"
 
     # Check individual component fractions against known values
-    mixed_comp_dict = mixed_composition.model_dump()
+    mixed_comp_dict = dataclasses.asdict(mixed_composition)
 
     # Check primary components with specific values
     assert np.isclose(mixed_comp_dict.get("methane", 0.0), expected_values["methane"]), (
@@ -272,10 +273,10 @@ def test_fluid_composition(medium_fluid: NeqsimFluid) -> None:
     original_composition = MEDIUM_MW_19P4_COMPOSITION.normalized()
 
     # Check all components are present
-    for component in original_composition.model_dump():
-        assert component in composition.model_dump()
-        assert composition.model_dump()[component] == pytest.approx(
-            original_composition.model_dump()[component], rel=1e-5
+    for component in dataclasses.asdict(original_composition):
+        assert component in dataclasses.asdict(composition)
+        assert dataclasses.asdict(composition)[component] == pytest.approx(
+            dataclasses.asdict(original_composition)[component], rel=1e-5
         )
 
 
