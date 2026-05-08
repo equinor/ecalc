@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import dataclasses
 import logging
 import os
 from collections import defaultdict
@@ -508,8 +509,8 @@ def mix_neqsim_streams(
     component_molar_flow_rate: dict[str, float] = defaultdict(float)
 
     # eCalc composition dictionaries
-    comp_1_dict = normalized_comp_1.model_dump()
-    comp_2_dict = normalized_comp_2.model_dump()
+    comp_1_dict = dataclasses.asdict(normalized_comp_1)
+    comp_2_dict = dataclasses.asdict(normalized_comp_2)
 
     # Sum molar flow of each component across streams
     for composition, molar_rate in [(comp_1_dict, molar_flow_rate_1), (comp_2_dict, molar_flow_rate_2)]:
@@ -527,7 +528,7 @@ def mix_neqsim_streams(
 
     # Create final FluidComposition object from our ecalc component dictionary
     # and normalize it
-    ecalc_fluid_composition = FluidComposition.model_validate(mixed_composition_dict).normalized()
+    ecalc_fluid_composition = FluidComposition(**mixed_composition_dict).normalized()
 
     # Create NeqsimFluid
     final_neqsim_fluid = NeqsimFluid.create_thermo_system(

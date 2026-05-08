@@ -9,6 +9,7 @@ The caches are automatically cleared when the JVM shuts down via CacheService.
 
 from __future__ import annotations
 
+import dataclasses
 import logging
 from typing import ClassVar
 
@@ -45,7 +46,7 @@ def _make_composition_key(composition: FluidComposition) -> tuple:
 
     Rounds mole fractions to avoid floating point differences causing cache misses.
     """
-    return tuple((k, round(v, _COMPOSITION_DECIMALS)) for k, v in sorted(composition.model_dump().items()))
+    return tuple((k, round(v, _COMPOSITION_DECIMALS)) for k, v in sorted(dataclasses.asdict(composition).items()))
 
 
 class NeqSimFluidService(FluidService):

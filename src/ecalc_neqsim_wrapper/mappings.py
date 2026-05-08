@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import dataclasses
+
 from pydantic import Field
 
 from libecalc.common.ecalc_base_model import EcalcBaseModel
@@ -25,7 +27,7 @@ class NeqsimComposition(EcalcBaseModel):
 
     def items(self) -> list[tuple[str, float]]:
         """Return a list of component names and their values."""
-        return list(self.__dict__.items())
+        return list(self.model_dump().items())
 
 
 _map_fluid_component_to_neqsim = {
@@ -58,7 +60,7 @@ _map_fluid_component_from_neqsim = {
 
 def map_fluid_composition_to_neqsim(fluid_composition: FluidComposition) -> dict[str, float]:
     component_dict = {}
-    for component_name, value in fluid_composition.model_dump().items():
+    for component_name, value in dataclasses.asdict(fluid_composition).items():
         if value is not None and value > 0:
             neqsim_name = _map_fluid_component_to_neqsim[component_name]
             component_dict[neqsim_name] = float(value)
@@ -82,4 +84,4 @@ def map_fluid_composition_from_neqsim(neqsim_composition: NeqsimComposition) -> 
     """
     # The component names in NeqsimComposition are already matched to eCalc names
     # So we can directly validate with FluidComposition
-    return FluidComposition.model_validate(neqsim_composition.model_dump())
+    return FluidComposition(**neqsim_composition.model_dump())
