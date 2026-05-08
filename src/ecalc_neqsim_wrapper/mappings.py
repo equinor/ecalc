@@ -27,7 +27,7 @@ class NeqsimComposition(EcalcBaseModel):
 
     def items(self) -> list[tuple[str, float]]:
         """Return a list of component names and their values."""
-        return list(dataclasses.asdict(self).items())
+        return list(self.model_dump().items())
 
 
 _map_fluid_component_to_neqsim = {

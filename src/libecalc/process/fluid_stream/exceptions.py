@@ -7,6 +7,11 @@ class InvalidFluidCompositionException(EcalcError):
         super().__init__(title=f"Invalid fluid composition: {title or ''}", message=reason or "")
 
 
+class NegativeComponentFractionException(InvalidFluidCompositionException):
+    def __init__(self, component_name: str, fraction: float):
+        super().__init__(reason=f"Component mole fractions must be non-negative. {component_name} was {fraction} < 0")
+
+
 ## Invalid Stream
 class InvalidStreamException(EcalcError):
     def __init__(self, title: str | None = None, reason: str | None = None):
@@ -18,11 +23,6 @@ class NegativeMassRateException(InvalidStreamException):
 
     def __init__(self, mass_rate: float):
         super().__init__(reason=f"Mass rate must be non-negative, got {mass_rate}")
-
-
-class NegativeComponentFractionException(InvalidStreamException):
-    def __init__(self, component_name: str, fraction: float):
-        super().__init__(reason=f"Component mole fractions must be non-negative. {component_name} was {fraction} < 0")
 
 
 ## Stream Mixing Error
