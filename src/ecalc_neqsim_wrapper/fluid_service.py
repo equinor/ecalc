@@ -14,11 +14,13 @@ import logging
 from typing import ClassVar
 
 from ecalc_neqsim_wrapper.cache_service import CacheConfig, CacheName, CacheService, LRUCache
+from ecalc_neqsim_wrapper.exceptions import NeqsimFlashCalculationError
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 from libecalc.process.fluid_stream.constants import ThermodynamicConstants
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_properties import FluidProperties
+from libecalc.process.fluid_stream.fluid_property_validation import validate_ph_flash_result
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
@@ -57,7 +59,7 @@ class NeqSimFluidService(FluidService):
     Usage:
         service = NeqSimFluidService.instance()
         props = service.flash_pt(fluid_model, pressure_bara, temperature_kelvin)
-        props = service.flash_ph(fluid_model, pressure_bara, target_enthalpy)
+        props = service.flash_ph(fluid_model, pressure_bara, target_enthalpy_joule_per_kg)
     """
 
     _instance: ClassVar[NeqSimFluidService | None] = None
@@ -201,7 +203,7 @@ class NeqSimFluidService(FluidService):
         )
 
     def _make_ph_cache_key(
-        self, composition_key: tuple, eos_model: EoSModel, pressure: float, target_enthalpy: float
+        self, composition_key: tuple, eos_model: EoSModel, pressure: float, target_enthalpy_joule_per_kg: float
     ) -> tuple:
         """Create cache key for PH flash with proper rounding.
 
@@ -210,13 +212,15 @@ class NeqSimFluidService(FluidService):
             ("PH", composition_key, eos_model, rounded_pressure, rounded_enthalpy)
 
             This ensures unique cache entries for each distinct thermodynamic state.
+            The temperature guess is intentionally not part of this key; it is
+            a convergence aid, not part of the PH target state.
         """
         return (
             "PH",
             composition_key,
             eos_model,
             round(pressure, _PRESSURE_DECIMALS),
-            round(target_enthalpy, _ENTHALPY_DECIMALS),
+            round(target_enthalpy_joule_per_kg, _ENTHALPY_DECIMALS),
         )
 
     def _get_standard_density(self, fluid_model: FluidModel) -> float:
@@ -311,12 +315,13 @@ class NeqSimFluidService(FluidService):
         self,
         fluid_model: FluidModel,
         pressure_bara: float,
-        target_enthalpy: float,
+        target_enthalpy_joule_per_kg: float,
+        temperature_guess_kelvin: float | None = None,
     ) -> FluidProperties:
         """PH flash to target pressure and enthalpy.
 
-        Note: The target_enthalpy is reference-state dependent. NeqSim uses an arbitrary
-        enthalpy reference state, so the caller must ensure that target_enthalpy was
+        Note: The target_enthalpy_joule_per_kg is reference-state dependent. NeqSim uses an arbitrary
+        enthalpy reference state, so the caller must ensure that target_enthalpy_joule_per_kg was
         computed from enthalpy values obtained from the same EoS/fluid model session.
         Mixing enthalpy values from different thermodynamic packages or sessions may
         produce incorrect results.
@@ -324,14 +329,24 @@ class NeqSimFluidService(FluidService):
         Args:
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
-            target_enthalpy: Target specific enthalpy in J/kg (must be from same EoS session)
-
+            target_enthalpy_joule_per_kg: Target specific enthalpy in J/kg (must be from same EoS session)
+            temperature_guess_kelvin: Optional initial temperature for PH. When provided, the cached reference fluid is
+                first TP-flashed at the target pressure and this temperature before the same PH target is solved. This
+                is a convergence aid for callers with a physically relevant temperature estimate
+                (or a T closer to target T than T_standard at least); it will not change
+                a correctly converged PH result and is intentionally not part of the PH cache key.
+                note: this can avoid some bad initial states for the PH flash in some edge cases
         Returns:
             FluidProperties at the specified conditions.
         """
         composition = fluid_model.composition.normalized()
         composition_key = _make_composition_key(composition)
-        cache_key = self._make_ph_cache_key(composition_key, fluid_model.eos_model, pressure_bara, target_enthalpy)
+        cache_key = self._make_ph_cache_key(
+            composition_key,
+            fluid_model.eos_model,
+            pressure_bara,
+            target_enthalpy_joule_per_kg,
+        )
 
         # Check cache first
         cached = self._flash_cache.get(cache_key)
@@ -339,12 +354,28 @@ class NeqSimFluidService(FluidService):
             return cached
 
         ref = self._get_reference_fluid(fluid_model)
-        flashed = ref.set_new_pressure_and_enthalpy(
-            new_pressure=pressure_bara,
-            new_enthalpy_joule_per_kg=target_enthalpy,
-        )
+        if temperature_guess_kelvin is not None:
+            seeded_fluid = ref.set_new_pressure_and_temperature(
+                new_pressure_bara=pressure_bara,
+                new_temperature_kelvin=temperature_guess_kelvin,
+            )
+            flashed = seeded_fluid.set_new_pressure_and_enthalpy(
+                new_pressure=pressure_bara,
+                new_enthalpy_joule_per_kg=target_enthalpy_joule_per_kg,
+            )
+        else:
+            flashed = ref.set_new_pressure_and_enthalpy(
+                new_pressure=pressure_bara,
+                new_enthalpy_joule_per_kg=target_enthalpy_joule_per_kg,
+            )
 
         result = self._extract_properties(flashed, fluid_model)
+        validate_ph_flash_result(
+            result,
+            target_enthalpy_joule_per_kg,
+            "NeqSimFluidService.flash_ph",
+            error_factory=NeqsimFlashCalculationError,
+        )
         self._flash_cache.put(cache_key, result)
         return result
 

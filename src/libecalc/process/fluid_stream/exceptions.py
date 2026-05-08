@@ -51,7 +51,6 @@ class IncompatibleEoSModelsException(StreamMixingException):
     def __init__(self, model1_name: str, model2_name: str):
         super().__init__(reason=f"Cannot mix streams with different EoS models: {model1_name} vs {model2_name}")
 
-
 class IncompatibleThermoSystemProvidersException(StreamMixingException):
     """Exception raised when mixing streams with different thermo system providers."""
 
@@ -59,7 +58,6 @@ class IncompatibleThermoSystemProvidersException(StreamMixingException):
         super().__init__(
             reason=f"Cannot mix streams with different thermo system providers: {provider1} vs {provider2}"
         )
-
 
 ## Invalid Process Conditions
 class InvalidProcessConditionsException(EcalcError):
@@ -79,3 +77,8 @@ class NonPositivePressureException(InvalidProcessConditionsException):
 
     def __init__(self, parameter_name: str, pressure_bara: float):
         super().__init__(reason=f"Pressure for {parameter_name} must be positive, got {pressure_bara} bara")
+        
+
+
+class FluidFlashCalculationError(Exception):
+    """Base exception for fluid-service flash calculation failures."""

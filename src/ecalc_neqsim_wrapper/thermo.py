@@ -7,12 +7,17 @@ from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import Protocol, assert_never
+from typing import Any, Protocol, assert_never
 
 from pydantic import BaseModel
 
 from ecalc_neqsim_wrapper.components import COMPONENTS
-from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimPhaseError
+from ecalc_neqsim_wrapper.exceptions import (
+    JAVA_ERRORS,
+    NeqsimComponentError,
+    NeqsimFlashCalculationError,
+    NeqsimPhaseError,
+)
 from ecalc_neqsim_wrapper.java_service import NeqsimService
 from ecalc_neqsim_wrapper.mappings import (
     NeqsimComposition,
@@ -32,7 +37,7 @@ NEQSIM_MIXING_RULE = 2
 
 
 class ThermodynamicSystem(Protocol):
-    pass
+    def clone(self) -> Any: ...
 
 
 class ThermodynamicOperations(Protocol):
@@ -369,14 +374,20 @@ class NeqsimFluid:
 
         Use clone_gas_phase() on the result if you need gas phase only.
         """
-        new_thermodynamic_system = self._thermodynamic_system.clone()
-        new_thermodynamic_system.setPressure(float(new_pressure), "bara")
+        try:
+            new_thermodynamic_system = self._thermodynamic_system.clone()
+            new_thermodynamic_system.setPressure(float(new_pressure), "bara")
 
-        new_thermodynamic_system = NeqsimFluid._ph_flash(
-            thermodynamic_system=new_thermodynamic_system,
-            enthalpy=new_enthalpy_joule_per_kg,
-            use_gerg=self._use_gerg,
-        )
+            new_thermodynamic_system = NeqsimFluid._ph_flash(
+                thermodynamic_system=new_thermodynamic_system,
+                enthalpy=new_enthalpy_joule_per_kg,
+                use_gerg=self._use_gerg,
+            )
+        except JAVA_ERRORS as error:
+            raise NeqsimFlashCalculationError(
+                "NeqSim PH flash failed. "
+                f"pressure_bara={new_pressure}, target_enthalpy_joule_per_kg={new_enthalpy_joule_per_kg}."
+            ) from error
 
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 
@@ -388,13 +399,19 @@ class NeqsimFluid:
 
         Use clone_gas_phase() on the result if you need gas phase only.
         """
-        new_thermodynamic_system = self._thermodynamic_system.clone()
-        new_thermodynamic_system.setPressure(float(new_pressure_bara), "bara")
-        new_thermodynamic_system.setTemperature(float(new_temperature_kelvin), "K")
+        try:
+            new_thermodynamic_system = self._thermodynamic_system.clone()
+            new_thermodynamic_system.setPressure(float(new_pressure_bara), "bara")
+            new_thermodynamic_system.setTemperature(float(new_temperature_kelvin), "K")
 
-        new_thermodynamic_system = NeqsimFluid._tp_flash(
-            thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg
-        )
+            new_thermodynamic_system = NeqsimFluid._tp_flash(
+                thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg
+            )
+        except JAVA_ERRORS as error:
+            raise NeqsimFlashCalculationError(
+                "NeqSim TP flash failed. "
+                f"pressure_bara={new_pressure_bara}, temperature_kelvin={new_temperature_kelvin}."
+            ) from error
 
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 

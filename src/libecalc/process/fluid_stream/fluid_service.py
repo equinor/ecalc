@@ -52,20 +52,27 @@ class FluidService(abc.ABC):
         self,
         fluid_model: FluidModel,
         pressure_bara: float,
-        target_enthalpy: float,
+        target_enthalpy_joule_per_kg: float,
+        temperature_guess_kelvin: float | None = None,
     ) -> FluidProperties:
         """PH flash to target pressure and enthalpy.
 
-        Note: The target_enthalpy is reference-state dependent. Thermodynamic packages
+        Note: The target_enthalpy_joule_per_kg is reference-state dependent. Thermodynamic packages
         may use arbitrary enthalpy reference states, so the caller must ensure that
-        target_enthalpy was computed from enthalpy values obtained from the same
+        target_enthalpy_joule_per_kg was computed from enthalpy values obtained from the same
         EoS/fluid model session. Mixing enthalpy values from different thermodynamic
         packages or sessions may produce incorrect results.
 
         Args:
             fluid_model: The fluid model (composition + EoS)
             pressure_bara: Target pressure in bara
-            target_enthalpy: Target specific enthalpy in J/kg (must be from same EoS session)
+            target_enthalpy_joule_per_kg: Target specific enthalpy in J/kg (must be from same EoS session)
+            temperature_guess_kelvin: Optional initial temperature for the PH flash. Implementations may use this
+                as a convergence aid by preconditioning the underlying thermodynamic system at
+                (pressure_bara, temperature_guess_kelvin) before solving the same PH target. Use it when the caller
+                has a physically relevant temperature estimate closer to the expected final state than the reference
+                fluid temperature. It should not change a correctly converged PH result, but may improve robustness
+                for difficult states by avoiding intermediate low-temperature/high-pressure guesses.
 
         Returns:
             FluidProperties at the specified conditions.
