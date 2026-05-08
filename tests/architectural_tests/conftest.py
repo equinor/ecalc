@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
@@ -16,6 +17,11 @@ def src_dir(root_dir) -> Path:
 
 
 @pytest.fixture(scope="session")
-def libecalc_architecture(root_dir, src_dir: Path) -> EvaluableArchitecture:
-    arch = get_evaluable_architecture(str(root_dir), str(src_dir))
-    return arch
+def libecalc_architecture(root_dir, src_dir: Path) -> Callable[..., EvaluableArchitecture]:
+    def __evaluable_architecture(exclude_external_libraries: bool = True):
+        arch = get_evaluable_architecture(
+            str(root_dir), str(src_dir), exclude_external_libraries=exclude_external_libraries
+        )
+        return arch
+
+    return __evaluable_architecture

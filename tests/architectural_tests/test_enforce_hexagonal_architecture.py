@@ -15,7 +15,7 @@ def test_common_to_not_import_process(libecalc_architecture):
         )  # TODO: What to do with expression? Is it a part of ecalc_model "domain" only?
     )
 
-    rule.assert_applies(libecalc_architecture)
+    rule.assert_applies(libecalc_architecture())
 
 
 @pytest.mark.arch
@@ -33,7 +33,12 @@ def test_process_to_import_process_or_common_only(libecalc_architecture):
         .import_modules_that()
         .are_named(allowed_process_dependencies)
     )
-    rule.assert_applies(libecalc_architecture)
+    rule.assert_applies(libecalc_architecture())
+
+    rule_excl = (
+        Rule().modules_that().are_named("libecalc.process").should_not().import_modules_that().are_named("pydantic")
+    )
+    rule_excl.assert_applies(libecalc_architecture(exclude_external_libraries=False))
 
 
 @pytest.mark.arch
@@ -51,4 +56,4 @@ def test_ecalc_model_to_import_ecalc_model_or_common_only(libecalc_architecture)
         .import_modules_that()
         .are_named(allowed_process_dependencies)
     )
-    rule.assert_applies(libecalc_architecture)
+    rule.assert_applies(libecalc_architecture())
