@@ -3,12 +3,14 @@ import numpy as np
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
+from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.domain.process.compressor.core.train.utils.common import flash_ph_for_compressor_calculation
 from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
     calculate_polytropic_head_campbell,
 )
@@ -243,6 +245,7 @@ class CompressorTrainSimplified(CompressorTrainModel):
             raise IllegalStateException(error_message)
 
         maximum_rate_function = compressor_chart.get_maximum_rate
+        maximum_head_on_maximum_speed_curve = float(np.max(compressor_chart.maximum_speed_curve.head_values))
         polytropic_head = float(
             np.mean(compressor_chart.maximum_speed_curve.head_values)
         )  # Initial guess for polytropic head
@@ -278,8 +281,44 @@ class CompressorTrainSimplified(CompressorTrainModel):
             )
             enthalpy_change_joule_per_kg = polytropic_head / polytropic_efficiency
 
-            target_enthalpy = inlet_stream.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg
-            props = fluid_service.flash_ph(inlet_stream.fluid_model, outlet_pressure, target_enthalpy)
+            target_enthalpy_joule_per_kg = inlet_stream.enthalpy_joule_per_kg + enthalpy_change_joule_per_kg
+            try:
+                props = flash_ph_for_compressor_calculation(
+                    fluid_service=fluid_service,
+                    inlet_stream=inlet_stream,
+                    outlet_pressure_bara=outlet_pressure,
+                    target_enthalpy_joule_per_kg=target_enthalpy_joule_per_kg,
+                    operation="simplified compressor train maximum-rate PH flash",
+                    details={
+                        "pressure_ratio": pressure_ratio,
+                        "polytropic_head_joule_per_kg": polytropic_head,
+                        "polytropic_efficiency": polytropic_efficiency,
+                        "maximum_head_on_maximum_speed_curve": maximum_head_on_maximum_speed_curve,
+                    },
+                )
+            except CompressorThermodynamicCalculationError:
+                is_above_chart_maximum_head = polytropic_head > maximum_head_on_maximum_speed_curve
+                if not is_above_chart_maximum_head:
+                    raise
+
+                logger.debug(
+                    "Simplified train: outlet PH flash failed while estimating maximum rate above chart maximum head. "
+                    "Using chart-limited maximum rate. pressure_ratio=%s, outlet_pressure=%s, polytropic_head=%s, "
+                    "maximum_head_on_maximum_speed_curve=%s",
+                    pressure_ratio,
+                    outlet_pressure,
+                    polytropic_head,
+                    maximum_head_on_maximum_speed_curve,
+                    exc_info=True,
+                )
+                chart_limited_maximum_actual_volume_rate = float(
+                    maximum_rate_function(
+                        heads=polytropic_head,  # type: ignore[arg-type]
+                        extrapolate_heads_below_minimum=False,
+                    )
+                )
+                maximum_actual_volume_rate = chart_limited_maximum_actual_volume_rate
+                break
             outlet_fluid = Fluid(fluid_model=inlet_stream.fluid_model, properties=props)
             outlet_stream = inlet_stream.with_new_fluid(outlet_fluid)
 

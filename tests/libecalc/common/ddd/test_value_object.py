@@ -1,3 +1,4 @@
+import dataclasses
 from dataclasses import FrozenInstanceError, asdict, is_dataclass
 from enum import StrEnum
 
@@ -57,15 +58,15 @@ class TestIsDataclass:
         assert p.value == 10.0
         assert p.unit == PressureUnit.BARA
 
-    def test_uses_slots(self):
-        assert hasattr(Pressure, "__slots__")
-        assert "value" in Pressure.__slots__
-        assert "unit" in Pressure.__slots__
+    def test_uses_dict(self):
+        assert hasattr(Pressure, "__dict__")
+        assert "value" in {field.name for field in dataclasses.fields(Pressure)}
+        assert "unit" in {field.name for field in dataclasses.fields(Pressure)}
 
-    def test_no_instance_dict(self):
-        """Slots-based classes have no __dict__ per instance."""
+    def test_no_instance_slots(self):
+        """Slots-based classes have no __slots__ per instance."""
         p = Pressure(value=10.0, unit=PressureUnit.BARA)
-        assert not hasattr(p, "__dict__")
+        assert not hasattr(p, "__slots__")
 
 
 class TestImmutability:

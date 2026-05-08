@@ -735,8 +735,12 @@ def test_calculate_enthalpy_change_head_iteration_and_outlet_stream(fluid_servic
     )
     outlet_streams = []
     for stream, pressure, enthalpy_change in zip(inlet_streams, outlet_pressure, enthalpy_change_joule_per_kg):
-        target_enthalpy = stream.enthalpy_joule_per_kg + enthalpy_change
-        props = fluid_service.flash_ph(stream.fluid_model, pressure, target_enthalpy)
+        target_enthalpy_joule_per_kg = stream.enthalpy_joule_per_kg + enthalpy_change
+        props = fluid_service.flash_ph(
+            fluid_model=stream.fluid_model,
+            pressure_bara=pressure,
+            target_enthalpy_joule_per_kg=target_enthalpy_joule_per_kg,
+        )
         outlet_fluid = Fluid(fluid_model=stream.fluid_model, properties=props)
         outlet_streams.append(stream.with_new_fluid(outlet_fluid))
 

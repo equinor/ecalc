@@ -38,4 +38,6 @@ def value_object[T](cls: type[T]) -> type[T]:
     Returns:
 
     """
-    return dataclass(cls, frozen=True, eq=True, slots=True)
+    # We might want to enable slots later, but then we cannot use cachedproperty
+    # lets wait and see what matters for us before we enforce it
+    return dataclass(cls, frozen=True, eq=True, slots=False)

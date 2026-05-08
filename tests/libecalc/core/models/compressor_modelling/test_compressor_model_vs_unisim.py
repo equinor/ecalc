@@ -266,11 +266,11 @@ def test_fluid_streams(unisim_test_data):
     fluid_service = NeqSimFluidService.instance()
     outlet_streams_enthalpy = []
     for index, s in enumerate(inlet_streams):
-        target_enthalpy = s.enthalpy_joule_per_kg + compressor_data_enthalpy_change_joule_per_kg[index]
+        target_enthalpy_joule_per_kg = s.enthalpy_joule_per_kg + compressor_data_enthalpy_change_joule_per_kg[index]
         props = fluid_service.flash_ph(
-            s.fluid_model,
-            unisim_test_data.output_stream_data.pressures[index],
-            target_enthalpy,
+            fluid_model=s.fluid_model,
+            pressure_bara=unisim_test_data.output_stream_data.pressures[index],
+            target_enthalpy_joule_per_kg=target_enthalpy_joule_per_kg,
         )
         outlet_fluid = Fluid(fluid_model=s.fluid_model, properties=props)
         outlet_streams_enthalpy.append(s.with_new_fluid(outlet_fluid))

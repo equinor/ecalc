@@ -1,3 +1,4 @@
+import dataclasses
 from collections import defaultdict
 
 from libecalc.process.fluid_stream.exceptions import (
@@ -67,14 +68,14 @@ class SimplifiedStreamMixer:
         mix_component_molar_rate_dict: defaultdict[str, float] = defaultdict(float)
         for s, total_molar_rate in zip(streams, stream_total_molar_rates):
             normalized_comp = s.fluid_model.composition.normalized()
-            for component, mole_fraction in normalized_comp.model_dump().items():
+            for component, mole_fraction in dataclasses.asdict(normalized_comp).items():
                 mix_component_molar_rate_dict[component] += total_molar_rate * mole_fraction
 
         # Convert to final mole fractions
         mix_composition_dict = {
             comp: (m_rate / mix_total_molar_rate) for comp, m_rate in mix_component_molar_rate_dict.items()
         }
-        mix_composition = FluidComposition.model_validate(mix_composition_dict).normalized()
+        mix_composition = FluidComposition(**mix_composition_dict).normalized()
 
         # Create the mixed fluid model
         mix_fluid_model = FluidModel(

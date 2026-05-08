@@ -1,10 +1,11 @@
+import dataclasses
 from unittest.mock import patch
 
 import numpy as np
 import pytest
 
 from ecalc_neqsim_wrapper import NeqsimService
-from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError
+from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimFlashCalculationError
 from ecalc_neqsim_wrapper.java_service import NeqsimPy4JService
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid, mix_neqsim_streams
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition
@@ -178,16 +179,16 @@ def test_fluid_remove_liquid(light_fluid: NeqsimFluid) -> None:
 def test_mix_neqsim_streams():
     """Test the mix_neqsim_streams function with a focus on composition calculation."""
     # Test case: Mix a methane-rich stream with a propane-rich stream
-    stream1_composition = FluidComposition.model_validate(
-        {
+    stream1_composition = FluidComposition(
+        **{
             "methane": 0.8,
             "ethane": 0.15,
             "propane": 0.05,
         }
     )
 
-    stream2_composition = FluidComposition.model_validate(
-        {
+    stream2_composition = FluidComposition(
+        **{
             "methane": 0.2,
             "ethane": 0.15,
             "propane": 0.6,
@@ -229,11 +230,11 @@ def test_mix_neqsim_streams():
     }
 
     # Check that the composition sums to 1.0 (within floating point precision)
-    composition_sum = sum(mixed_composition.model_dump().values())
+    composition_sum = sum(dataclasses.asdict(mixed_composition).values())
     assert np.isclose(composition_sum, 1.0), f"Composition sum is {composition_sum}, expected 1.0"
 
     # Check individual component fractions against known values
-    mixed_comp_dict = mixed_composition.model_dump()
+    mixed_comp_dict = dataclasses.asdict(mixed_composition)
 
     # Check primary components with specific values
     assert np.isclose(mixed_comp_dict.get("methane", 0.0), expected_values["methane"]), (
@@ -272,10 +273,10 @@ def test_fluid_composition(medium_fluid: NeqsimFluid) -> None:
     original_composition = MEDIUM_MW_19P4_COMPOSITION.normalized()
 
     # Check all components are present
-    for component in original_composition.model_dump():
-        assert component in composition.model_dump()
-        assert composition.model_dump()[component] == pytest.approx(
-            original_composition.model_dump()[component], rel=1e-5
+    for component in dataclasses.asdict(original_composition):
+        assert component in dataclasses.asdict(composition)
+        assert dataclasses.asdict(composition)[component] == pytest.approx(
+            dataclasses.asdict(original_composition)[component], rel=1e-5
         )
 
 
@@ -298,3 +299,91 @@ def test_neqsim_component_error() -> None:
                     assert "unknown_component" in str(exc_info.value)
     else:
         assert True
+
+
+class TestJavaBridgeErrorHandling:
+    """Tests that Java exceptions from both Py4J and JPype backends
+    are caught and wrapped as NeqsimFlashCalculationError."""
+
+    @staticmethod
+    def _make_java_error_subclass(name: str = "MockJavaError") -> type[Exception]:
+        """Create a fresh Exception subclass to simulate a Java bridge error.
+
+        We can't instantiate jpype.JException without a running JVM targeting a
+        real Java class, so we dynamically inject a test subclass into JAVA_ERRORS
+        to prove the except clause catches it.
+        """
+        return type(name, (Exception,), {})
+
+    def test_ph_flash_wraps_py4j_error(self, medium_fluid: NeqsimFluid) -> None:
+        """Py4JError from PH flash is wrapped as NeqsimFlashCalculationError."""
+        from py4j.protocol import Py4JError
+
+        with patch.object(NeqsimFluid, "_ph_flash", side_effect=Py4JError("test")):
+            with pytest.raises(NeqsimFlashCalculationError, match="PH flash failed"):
+                medium_fluid.set_new_pressure_and_enthalpy(
+                    new_pressure=50.0,
+                    new_enthalpy_joule_per_kg=medium_fluid.enthalpy_joule_per_kg,
+                )
+
+    def test_tp_flash_wraps_py4j_error(self, medium_fluid: NeqsimFluid) -> None:
+        """Py4JError from TP flash is wrapped as NeqsimFlashCalculationError."""
+        from py4j.protocol import Py4JError
+
+        with patch.object(NeqsimFluid, "_tp_flash", side_effect=Py4JError("test")):
+            with pytest.raises(NeqsimFlashCalculationError, match="TP flash failed"):
+                medium_fluid.set_new_pressure_and_temperature(
+                    new_pressure_bara=50.0,
+                    new_temperature_kelvin=300.0,
+                )
+
+    def test_ph_flash_wraps_dynamic_java_error(self, medium_fluid: NeqsimFluid) -> None:
+        """Any exception type in JAVA_ERRORS is caught by the PH flash handler.
+
+        Verifies the catch clause works for dynamically added error types,
+        which is how JException (JPype) is included alongside Py4J errors.
+        """
+        import ecalc_neqsim_wrapper.exceptions as exc_mod
+        import ecalc_neqsim_wrapper.thermo as thermo_mod
+
+        MockJavaError = self._make_java_error_subclass()
+        extended_errors = (*exc_mod.JAVA_ERRORS, MockJavaError)
+
+        with (
+            patch.object(exc_mod, "JAVA_ERRORS", extended_errors),
+            patch.object(thermo_mod, "JAVA_ERRORS", extended_errors),
+            patch.object(NeqsimFluid, "_ph_flash", side_effect=MockJavaError("simulated Java error")),
+        ):
+            with pytest.raises(NeqsimFlashCalculationError, match="PH flash failed"):
+                medium_fluid.set_new_pressure_and_enthalpy(
+                    new_pressure=50.0,
+                    new_enthalpy_joule_per_kg=medium_fluid.enthalpy_joule_per_kg,
+                )
+
+    def test_tp_flash_wraps_dynamic_java_error(self, medium_fluid: NeqsimFluid) -> None:
+        """Any exception type in JAVA_ERRORS is caught by the TP flash handler."""
+        import ecalc_neqsim_wrapper.exceptions as exc_mod
+        import ecalc_neqsim_wrapper.thermo as thermo_mod
+
+        MockJavaError = self._make_java_error_subclass()
+        extended_errors = (*exc_mod.JAVA_ERRORS, MockJavaError)
+
+        with (
+            patch.object(exc_mod, "JAVA_ERRORS", extended_errors),
+            patch.object(thermo_mod, "JAVA_ERRORS", extended_errors),
+            patch.object(NeqsimFluid, "_tp_flash", side_effect=MockJavaError("simulated Java error")),
+        ):
+            with pytest.raises(NeqsimFlashCalculationError, match="TP flash failed"):
+                medium_fluid.set_new_pressure_and_temperature(
+                    new_pressure_bara=50.0,
+                    new_temperature_kelvin=300.0,
+                )
+
+    def test_non_java_exception_not_swallowed(self, medium_fluid: NeqsimFluid) -> None:
+        """Python exceptions (e.g. ValueError) must NOT be caught by the Java error handler."""
+        with patch.object(NeqsimFluid, "_ph_flash", side_effect=ValueError("pure Python bug")):
+            with pytest.raises(ValueError, match="pure Python bug"):
+                medium_fluid.set_new_pressure_and_enthalpy(
+                    new_pressure=50.0,
+                    new_enthalpy_joule_per_kg=medium_fluid.enthalpy_joule_per_kg,
+                )

@@ -9,8 +9,8 @@ uv sync --group dev --locked
 
 # Install Pre-commit hooks
 echo "Installing Pre-commit hooks..."
-uv tool install pre-commit
-pre-commit install
+uv tool install prek
+prek install
 
 
 echo "Post-create script completed successfully."

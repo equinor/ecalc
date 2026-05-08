@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
+from libecalc.common.ddd import value_object
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.process.fluid_stream.exceptions import (
     NonPositivePressureException,
@@ -9,7 +8,7 @@ from libecalc.process.fluid_stream.exceptions import (
 )
 
 
-@dataclass(frozen=True)
+@value_object
 class ProcessConditions:
     """
     Represents the physical conditions of a process stream.
@@ -25,9 +24,11 @@ class ProcessConditions:
     def __post_init__(self):
         """Validate conditions"""
         if self.temperature_kelvin <= 0:
-            raise NonPositiveTemperatureException(self.temperature_kelvin)
+            raise NonPositiveTemperatureException(
+                parameter_name="temperature in Kelvin", temperature_kelvin=self.temperature_kelvin
+            )
         if self.pressure_bara <= 0:
-            raise NonPositivePressureException(self.pressure_bara)
+            raise NonPositivePressureException(parameter_name="pressure in BarA", pressure_bara=self.pressure_bara)
 
     @property
     def temperature_celsius(self) -> float:

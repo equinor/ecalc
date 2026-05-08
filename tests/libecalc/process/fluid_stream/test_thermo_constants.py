@@ -1,10 +1,12 @@
+import dataclasses
+
 from libecalc.process.fluid_stream.constants import ThermodynamicConstants
 from libecalc.process.fluid_stream.fluid_model import FluidComposition
 
 
 def validate_components():
     """Validate that all components defined in FluidComposition have their properties defined."""
-    fluid_composition_fields = set(FluidComposition.model_fields.keys())
+    fluid_composition_fields = {fc.name for fc in dataclasses.fields(FluidComposition)}
     missing_components = fluid_composition_fields - ThermodynamicConstants.COMPONENTS.keys()
     if missing_components:
         raise ValueError(f"Missing component properties for: {missing_components}")

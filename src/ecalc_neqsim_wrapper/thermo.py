@@ -1,17 +1,23 @@
 from __future__ import annotations
 
+import dataclasses
 import logging
 import os
 from collections import defaultdict
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
-from typing import Protocol, assert_never
+from typing import Any, Protocol, assert_never
 
 from pydantic import BaseModel
 
 from ecalc_neqsim_wrapper.components import COMPONENTS
-from ecalc_neqsim_wrapper.exceptions import NeqsimComponentError, NeqsimPhaseError
+from ecalc_neqsim_wrapper.exceptions import (
+    JAVA_ERRORS,
+    NeqsimComponentError,
+    NeqsimFlashCalculationError,
+    NeqsimPhaseError,
+)
 from ecalc_neqsim_wrapper.java_service import NeqsimService
 from ecalc_neqsim_wrapper.mappings import (
     NeqsimComposition,
@@ -31,7 +37,7 @@ NEQSIM_MIXING_RULE = 2
 
 
 class ThermodynamicSystem(Protocol):
-    pass
+    def clone(self) -> Any: ...
 
 
 class ThermodynamicOperations(Protocol):
@@ -368,14 +374,20 @@ class NeqsimFluid:
 
         Use clone_gas_phase() on the result if you need gas phase only.
         """
-        new_thermodynamic_system = self._thermodynamic_system.clone()
-        new_thermodynamic_system.setPressure(float(new_pressure), "bara")
+        try:
+            new_thermodynamic_system = self._thermodynamic_system.clone()
+            new_thermodynamic_system.setPressure(float(new_pressure), "bara")
 
-        new_thermodynamic_system = NeqsimFluid._ph_flash(
-            thermodynamic_system=new_thermodynamic_system,
-            enthalpy=new_enthalpy_joule_per_kg,
-            use_gerg=self._use_gerg,
-        )
+            new_thermodynamic_system = NeqsimFluid._ph_flash(
+                thermodynamic_system=new_thermodynamic_system,
+                enthalpy=new_enthalpy_joule_per_kg,
+                use_gerg=self._use_gerg,
+            )
+        except JAVA_ERRORS as error:
+            raise NeqsimFlashCalculationError(
+                "NeqSim PH flash failed. "
+                f"pressure_bara={new_pressure}, target_enthalpy_joule_per_kg={new_enthalpy_joule_per_kg}."
+            ) from error
 
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 
@@ -387,13 +399,19 @@ class NeqsimFluid:
 
         Use clone_gas_phase() on the result if you need gas phase only.
         """
-        new_thermodynamic_system = self._thermodynamic_system.clone()
-        new_thermodynamic_system.setPressure(float(new_pressure_bara), "bara")
-        new_thermodynamic_system.setTemperature(float(new_temperature_kelvin), "K")
+        try:
+            new_thermodynamic_system = self._thermodynamic_system.clone()
+            new_thermodynamic_system.setPressure(float(new_pressure_bara), "bara")
+            new_thermodynamic_system.setTemperature(float(new_temperature_kelvin), "K")
 
-        new_thermodynamic_system = NeqsimFluid._tp_flash(
-            thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg
-        )
+            new_thermodynamic_system = NeqsimFluid._tp_flash(
+                thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg
+            )
+        except JAVA_ERRORS as error:
+            raise NeqsimFlashCalculationError(
+                "NeqSim TP flash failed. "
+                f"pressure_bara={new_pressure_bara}, temperature_kelvin={new_temperature_kelvin}."
+            ) from error
 
         return NeqsimFluid(thermodynamic_system=new_thermodynamic_system, use_gerg=self._use_gerg)
 
@@ -491,8 +509,8 @@ def mix_neqsim_streams(
     component_molar_flow_rate: dict[str, float] = defaultdict(float)
 
     # eCalc composition dictionaries
-    comp_1_dict = normalized_comp_1.model_dump()
-    comp_2_dict = normalized_comp_2.model_dump()
+    comp_1_dict = dataclasses.asdict(normalized_comp_1)
+    comp_2_dict = dataclasses.asdict(normalized_comp_2)
 
     # Sum molar flow of each component across streams
     for composition, molar_rate in [(comp_1_dict, molar_flow_rate_1), (comp_2_dict, molar_flow_rate_2)]:
@@ -510,7 +528,7 @@ def mix_neqsim_streams(
 
     # Create final FluidComposition object from our ecalc component dictionary
     # and normalize it
-    ecalc_fluid_composition = FluidComposition.model_validate(mixed_composition_dict).normalized()
+    ecalc_fluid_composition = FluidComposition(**mixed_composition_dict).normalized()
 
     # Create NeqsimFluid
     final_neqsim_fluid = NeqsimFluid.create_thermo_system(

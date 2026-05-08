@@ -396,38 +396,6 @@
             {
                 "code": "reportAttributeAccessIssue",
                 "range": {
-                    "startColumn": 36,
-                    "endColumn": 41,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
-                    "startColumn": 75,
-                    "endColumn": 80,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
-                    "startColumn": 62,
-                    "endColumn": 67,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
-                    "startColumn": 62,
-                    "endColumn": 67,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
                     "startColumn": 35,
                     "endColumn": 42,
                     "lineCount": 1
@@ -469,14 +437,6 @@
             }
         ],
         "./src/libecalc/common/errors/exceptions.py": [
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
-                    "startColumn": 26,
-                    "endColumn": 31,
-                    "lineCount": 1
-                }
-            },
             {
                 "code": "reportArgumentType",
                 "range": {
@@ -1020,22 +980,6 @@
                 "range": {
                     "startColumn": 33,
                     "endColumn": 46,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 19,
-                    "endColumn": 37,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 19,
-                    "endColumn": 37,
                     "lineCount": 1
                 }
             }
@@ -3477,46 +3421,6 @@
             }
         ],
         "./src/libecalc/presentation/yaml/mappers/fluid_mapper.py": [
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 20,
-                    "endColumn": 1,
-                    "lineCount": 12
-                }
-            },
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 14,
-                    "endColumn": 1,
-                    "lineCount": 12
-                }
-            },
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 17,
-                    "endColumn": 1,
-                    "lineCount": 12
-                }
-            },
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 15,
-                    "endColumn": 1,
-                    "lineCount": 12
-                }
-            },
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 21,
-                    "endColumn": 1,
-                    "lineCount": 12
-                }
-            },
             {
                 "code": "reportArgumentType",
                 "range": {

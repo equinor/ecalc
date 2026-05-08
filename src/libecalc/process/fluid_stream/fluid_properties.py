@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
+from libecalc.common.ddd import value_object
 from libecalc.process.fluid_stream.process_conditions import ProcessConditions
 
 
-@dataclass(frozen=True)
+@value_object
 class FluidProperties:
     """All thermodynamic properties at a given state - pure data, no JVM references.
 

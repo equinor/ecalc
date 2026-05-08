@@ -1,16 +1,19 @@
+import dataclasses
+
 import pytest
 
+from libecalc.process.fluid_stream.exceptions import InvalidFluidCompositionException
 from libecalc.process.fluid_stream.fluid_model import FluidComposition
 
 
 def test_fluid_composition_normalized():
     # Dynamically build a dictionary with each field set to 1.0,
     # so the test is agnostic to the number and names of components.
-    init_data = dict.fromkeys(FluidComposition.model_fields, 1.0)
+    init_data = dict.fromkeys({field.name for field in dataclasses.fields(FluidComposition)}, 1.0)
     composition = FluidComposition(**init_data)
 
     normalized_composition = composition.normalized()
-    data = normalized_composition.model_dump()
+    data = dataclasses.asdict(normalized_composition)
     total = sum(data.values())
 
     # Check that the total sum is 1 (within a tolerance)
@@ -23,7 +26,7 @@ def test_fluid_composition_normalized():
 
 def test_fluid_composition_normalized_zero_total():
     composition = FluidComposition()
-    with pytest.raises(ValueError, match="Total composition is 0; cannot normalize."):
+    with pytest.raises(InvalidFluidCompositionException, match="Total composition is 0; cannot normalize."):
         composition.normalized()
 
 
