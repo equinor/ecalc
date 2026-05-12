@@ -347,9 +347,11 @@ class NeqsimFluid:
         return thermodynamic_system
 
     @staticmethod
-    def _remove_liquid(thermodynamic_system: ThermodynamicSystem) -> ThermodynamicSystem:
-        """Remove liquid part of thermodynamic_system, return new NeqsimFluid object with only gas part."""
-        return thermodynamic_system.clone().phaseToSystem("gas")
+    def _remove_liquid(thermodynamic_system: ThermodynamicSystem, use_gerg: bool) -> ThermodynamicSystem:
+        """Return a gas-only thermodynamic system, re-flashed at the current (P, T)."""
+        gas_only_system = thermodynamic_system.clone().phaseToSystem("gas")
+        gas_only_system = NeqsimFluid._tp_flash(thermodynamic_system=gas_only_system, use_gerg=use_gerg)
+        return gas_only_system
 
     def clone_gas_phase(self) -> NeqsimFluid:
         """Clone this fluid, extracting only the gas phase.
@@ -360,7 +362,7 @@ class NeqsimFluid:
         Returns:
             New NeqsimFluid with gas phase only.
         """
-        gas_only_system = NeqsimFluid._remove_liquid(self._thermodynamic_system)
+        gas_only_system = NeqsimFluid._remove_liquid(self._thermodynamic_system, use_gerg=self._use_gerg)
         return NeqsimFluid(thermodynamic_system=gas_only_system, use_gerg=self._use_gerg)
 
     def copy(self) -> NeqsimFluid:

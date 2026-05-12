@@ -122,5 +122,49 @@ def test_liquid_takeoff(inlet_fluid, outlet_fluid) -> None:
     assert math.isclose(outlet_fluid.pressure_bara, fluid_after_liquid_takeoff.pressure_bara, rel_tol=0.01)
     assert math.isclose(outlet_fluid.molar_mass, fluid_after_liquid_takeoff.molar_mass, rel_tol=0.01)
     assert math.isclose(
-        outlet_fluid.enthalpy_joule_per_kg, fluid_after_liquid_takeoff.enthalpy_joule_per_kg, rel_tol=0.5
+        outlet_fluid.enthalpy_joule_per_kg, fluid_after_liquid_takeoff.enthalpy_joule_per_kg, rel_tol=0.02
     )
+
+
+# Propane-rich composition that is ~97% liquid at the probe (P, T) below.
+DENSE_LIQUID_COMPOSITION = FluidComposition(
+    water=0.003,
+    nitrogen=2.447,
+    CO2=0.64,
+    methane=41.91,
+    ethane=19.9,
+    propane=24.29,
+    i_butane=3.64,
+    n_butane=5.40,
+    i_pentane=0.83,
+    n_pentane=0.68,
+    n_hexane=0.26,
+).normalized()
+
+
+def test_clone_gas_phase_returns_initialized_properties() -> None:
+    """clone_gas_phase() on a two-phase fluid must return properties matching a clean PT-flash of the gas-only composition."""
+    two_phase = NeqsimFluid.create_thermo_system(
+        composition=DENSE_LIQUID_COMPOSITION,
+        temperature_kelvin=301.45,
+        pressure_bara=91.476,
+    )
+    assert two_phase.vapor_fraction_molar < 0.1, (
+        f"Test precondition: expected mostly-liquid state, got vap={two_phase.vapor_fraction_molar}"
+    )
+
+    gas_only = two_phase.clone_gas_phase()
+
+    assert math.isclose(gas_only.vapor_fraction_molar, 1.0, rel_tol=1e-3)
+    # Uninitialized systems return the sentinel kappa==1.0.
+    assert gas_only.kappa > 1.02, f"Suspicious kappa (uninitialized?): {gas_only.kappa}"
+
+    reference = NeqsimFluid.create_thermo_system(
+        composition=gas_only.composition,
+        temperature_kelvin=gas_only.temperature_kelvin,
+        pressure_bara=gas_only.pressure_bara,
+    )
+    assert math.isclose(gas_only.kappa, reference.kappa, rel_tol=1e-3)
+    assert math.isclose(gas_only.z, reference.z, rel_tol=1e-3)
+    assert math.isclose(gas_only.density, reference.density, rel_tol=1e-3)
+    assert math.isclose(gas_only.enthalpy_joule_per_kg, reference.enthalpy_joule_per_kg, rel_tol=1e-3)
