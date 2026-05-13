@@ -1,43 +1,50 @@
-from dataclasses import dataclass
+from collections.abc import Sequence
 from typing import Final, Literal, NewType, Self, assert_never
 from uuid import UUID
 
+from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.ecalc_model.time_series_configuration import (
+    TimeSeriesChokeConfiguration,
+    TimeSeriesTemperatureSetterConfiguration,
+)
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_solver.configuration import ConfigurationHandlerId
+from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
 
 
-@dataclass
+@value_object
 class CommonStreamSettings:
     rate_fractions: list[TimeSeriesExpression]
     overflow: list[Overflow]
 
 
-@dataclass
+@value_object
 class CommonStreamDistributionConfig:  # TODO: Rather a strategy that splits a stream in a method according to a policy?
     inlet_stream: TimeSeriesStream
     settings: list[CommonStreamSettings]
 
 
-@dataclass
+@value_object
 class IndividualStreamDistributionConfig:
     inlet_streams: list[TimeSeriesStream]
 
 
-@dataclass
+@value_object
 class Constraint:  # should this instead be more flexible wrt. matching one or more stream conditions?
     outlet_pressure: TimeSeriesExpression
 
 
-@dataclass
+@value_object
 class PressureControlConfig:  # Spec
     type: Literal["UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE", "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE"]
 
 
-@dataclass
+@value_object
 class AntiSurgeConfig:
     type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"]
 
@@ -55,13 +62,20 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
         pressure_control_strategy: PressureControlConfig,
         anti_surge_strategy: AntiSurgeConfig,
         constraint: Constraint,
+        configuration_handlers: Sequence[ConfigurationHandler],
         process_pipeline_id: ProcessPipelineId,
+        configurations: dict[
+            ConfigurationHandlerId, TimeSeriesChokeConfiguration | TimeSeriesTemperatureSetterConfiguration
+        ]
+        | None = None,
         process_problem_id: ProcessProblemId | None = None,
     ):
         self.pressure_control_strategy = pressure_control_strategy
         self.anti_surge_strategy = anti_surge_strategy
         self.constraint = constraint
         self.process_pipeline_id = process_pipeline_id
+        self.configuration_handlers = configuration_handlers
+        self.configurations = configurations or []
         self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:

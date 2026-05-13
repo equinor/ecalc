@@ -40,6 +40,11 @@ class ChokeConfiguration:
 
 
 @dataclass
+class TemperatureSetterConfiguration:
+    temperature: float
+
+
+@dataclass
 class RecirculationConfiguration:
     recirculation_rate: float
 

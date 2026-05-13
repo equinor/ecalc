@@ -8,8 +8,8 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessU
 class TemperatureSetter(ProcessUnit):
     def __init__(
         self,
-        required_temperature_kelvin: float,
         fluid_service: FluidService,
+        required_temperature_kelvin: float = 0,
         process_unit_id: ProcessUnitId | None = None,
     ):
         self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
@@ -18,6 +18,9 @@ class TemperatureSetter(ProcessUnit):
 
     def get_id(self) -> ProcessUnitId:
         return self._id
+
+    def set_temperature(self, temperature_kelvin: float) -> None:
+        self._required_temperature_kelvin = temperature_kelvin
 
     @property
     def required_temperature_kelvin(self) -> float:
