@@ -48,7 +48,10 @@ _PROCESS_SYSTEMS_KEY = "PROCESS_SYSTEMS"
 _INLET_STREAMS_KEY = "INLET_STREAMS"
 _FLUID_MODELS_KEY = "FLUID_MODELS"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
-
+_NEW_SECTIONS_WITH_FILE_REFS: tuple[str, ...] = (
+    "PROCESS_UNITS",
+    "PROCESS_SYSTEMS",
+)
 dt_adapter = TypeAdapter(datetime.datetime)
 
 
@@ -310,10 +313,16 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             if isinstance(model.get(model_curves), dict)
         ]
         resource_data = facility_input_data + model_curves_data
-        resource_names = [
+        resource_names: list[str] = [
             data.get(EcalcYamlKeywords.file) for data in resource_data if data.get(EcalcYamlKeywords.file) is not None
         ]
-        return resource_names
+
+        # Pick up FILE references nested in the new YAML sections (PROCESS_UNITS, PROCESS_SYSTEMS, ...).
+        for section in _NEW_SECTIONS_WITH_FILE_REFS:
+            resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
+
+        # Dedup while preserving order — the same CSV may be referenced by multiple charts.
+        return list(dict.fromkeys(resource_names))
 
     @property
     def timeseries_resource_names(self) -> list[str]:
@@ -627,3 +636,23 @@ def find_date_keys_in_yaml(yaml_object: list | dict) -> list[datetime.datetime]:
             output.extend(find_date_keys_in_yaml(yaml_object[index]))
 
     return output
+
+
+def _find_file_references(node: dict | list | None) -> list[str]:
+    """Recursively collect all string values under a `FILE` key in a parsed YAML datamodel.
+
+    Structure-agnostic so we don't have to hard-code each section's nesting
+    (e.g. CURVES inside COMPRESSOR_MODEL inside COMPRESSOR inside PROCESS_UNITS).
+    Only string values are returned; anything else under FILE is ignored.
+    """
+    references: list[str] = []
+    if isinstance(node, dict):
+        for key, value in node.items():
+            if key == EcalcYamlKeywords.file and isinstance(value, str):
+                references.append(value)
+            else:
+                references.extend(_find_file_references(value))
+    elif isinstance(node, list):
+        for item in node:
+            references.extend(_find_file_references(item))
+    return references
