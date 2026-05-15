@@ -1,4 +1,5 @@
 from collections.abc import Sequence
+from datetime import datetime
 from typing import Literal, assert_never
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
@@ -287,7 +288,7 @@ class ProcessSimulationMapper:
                 assert_never(recirculation_type)
 
     def map_process_simulation(
-        self, yaml_process_simulation: YamlProcessSimulation
+        self, yaml_process_simulation: YamlProcessSimulation, process_timesteps: list[datetime]
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         process_pipelines: list[ProcessPipeline] = []
         constraints: dict[ProcessPipelineId, Constraint] = {}
@@ -496,5 +497,6 @@ class ProcessSimulationMapper:
             ProcessSimulation(
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
+                process_timesteps=process_timesteps,  # TODO: Parse or resolve or find relevant timesteps ...
             ),
         )
