@@ -172,12 +172,16 @@ class ProcessSimulationMapper:
             resource = self._resources.get(resource_name)
             if resource is None:
                 raise EcalcValidationException(f"Resource '{resource_name}' not found for variable speed chart.")
+            if "SPEED" not in resource.get_headers():
+                raise EcalcValidationException(
+                    f"Chart resource '{resource_name}' is missing required 'SPEED' column. "
+                    f"For single-speed charts, use the same speed value for all rows."
+                )
             try:
-                is_single_speed = "SPEED" not in resource.get_headers()
                 return UserDefinedChartData.from_resource(
                     resource,
                     units=yaml_chart.units,
-                    is_single_speed=is_single_speed,
+                    is_single_speed=False,
                     control_margin=control_margin_fraction,
                 )
             except InvalidResourceException as e:
