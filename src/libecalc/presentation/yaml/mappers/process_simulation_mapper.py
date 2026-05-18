@@ -497,6 +497,6 @@ class ProcessSimulationMapper:
             ProcessSimulation(
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
-                process_timesteps=process_timesteps,  # TODO: Parse or resolve or find relevant timesteps ...
+                process_timesteps=process_timesteps,
             ),
         )

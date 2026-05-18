@@ -164,7 +164,7 @@ class YamlModel:
         return process_pipelines, process_simulations
 
     def get_timesteps(self) -> list[datetime]:
-        """ "
+        """
         Get the global timevector for this model
         """
         self.validate_for_run()
