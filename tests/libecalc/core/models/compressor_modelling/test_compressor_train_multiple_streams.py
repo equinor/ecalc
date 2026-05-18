@@ -417,7 +417,7 @@ def test_zero_rate_zero_pressure_multiple_streams(
         CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
         CompressorTrainCommonShaftFailureStatus.NO_FAILURE,
     ]
-    assert np.isnan(result.mass_rate_kg_per_hr[0])
+    assert result.mass_rate_kg_per_hr[0] == 0.0
 
 
 def test_different_volumes_of_ingoing_and_outgoing_streams(
