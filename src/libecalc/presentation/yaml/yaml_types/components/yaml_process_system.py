@@ -1,3 +1,4 @@
+import enum
 from typing import Annotated, Literal, TypeVar
 
 from pydantic import Field
@@ -10,6 +11,43 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import Yaml
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
 StreamRef = str
+PortName = str
+PortReference = str  # hierarchical: "target.stage.port" or "stage.port" (single-target case)
+
+
+class YamlPortType(enum.StrEnum):
+    INLET = "INLET"
+    OUTLET = "OUTLET"
+
+
+class YamlPort(YamlBase):
+    type: Annotated[
+        YamlPortType,
+        Field(
+            title="TYPE",
+            description="Port direction: INLET (stream enters the stage) or OUTLET (stream leaves the stage).",
+        ),
+    ]
+
+
+class YamlStreamConnection(YamlBase):
+    port: Annotated[
+        PortReference,
+        Field(
+            title="PORT",
+            description=(
+                "Hierarchical reference to a port declared on a stage: 'target.stage.port'. "
+                "The 'target.' prefix may be omitted when the simulation has a single target."
+            ),
+        ),
+    ]
+    stream: Annotated[
+        StreamRef,
+        Field(
+            title="STREAM",
+            description="Reference to a stream declared in INLET_STREAMS.",
+        ),
+    ]
 
 
 class YamlControlMargin(YamlBase):
@@ -73,6 +111,17 @@ class YamlCompressorStageProcessSystem(YamlBase):
         ),
     ] = 0.0
     compressor: CompressorReference | YamlCompressor
+    ports: Annotated[
+        dict[PortName, YamlPort] | None,
+        Field(
+            title="PORTS",
+            description=(
+                "Optional mapping of port name → port specification. Declares physical interstage "
+                "connection points where fluid streams can be added (INLET) or extracted (OUTLET). "
+                "Wired to streams via STREAM_CONNECTIONS on the PROCESS_SIMULATION."
+            ),
+        ),
+    ] = None
 
 
 TTarget = TypeVar("TTarget")
@@ -131,6 +180,17 @@ class YamlProcessSimulation(YamlBase):
         Field(title="TARGETS"),
     ]
     stream_distribution: YamlStreamDistribution
+    stream_connections: Annotated[
+        list[YamlStreamConnection] | None,
+        Field(
+            title="STREAM_CONNECTIONS",
+            description=(
+                "Optional list of port-to-stream mappings. Each entry connects a port "
+                "(declared on a stage via PORTS) to a stream (declared in INLET_STREAMS). "
+                "INLET ports receive a stream into the train; OUTLET ports extract a stream."
+            ),
+        ),
+    ] = None
     pressure_control: Annotated[
         dict[
             ProcessSystemReference,
