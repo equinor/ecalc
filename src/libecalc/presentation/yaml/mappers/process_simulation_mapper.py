@@ -224,15 +224,14 @@ class ProcessSimulationMapper:
             return ref
 
     def _map_conditions(
-        self, condition: YamlExpressionType | None, conditions: list[YamlExpressionType] | None
+        self, conditions: YamlExpressionType | list[YamlExpressionType] | None
     ) -> YamlExpressionType | None:
-        if condition is not None:
-            assert isinstance(condition, ExpressionType)
-            return condition
-        if conditions is not None:
-            assert isinstance(conditions, list)
+        if conditions is None:
+            return None
+        if isinstance(conditions, list):
             return handle_condition_list(conditions)
-        return None
+        assert isinstance(conditions, ExpressionType)
+        return conditions
 
     def _get_regularity(self) -> Regularity:
         return Regularity(
@@ -247,7 +246,9 @@ class ProcessSimulationMapper:
             time_series_expression=TimeSeriesExpression(
                 expression_evaluator=self._expression_evaluator,
                 expression=yaml_rate.value,
-                condition=self._map_conditions(yaml_rate.condition, yaml_rate.conditions),
+                condition=self._map_conditions(
+                    yaml_rate.conditions if yaml_rate.conditions is not None else yaml_rate.condition
+                ),
             ),
             consumption_rate_type=yaml_rate.type,
             regularity=self._get_regularity(),
