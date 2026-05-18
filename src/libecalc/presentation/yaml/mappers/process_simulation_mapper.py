@@ -211,7 +211,9 @@ class ProcessSimulationMapper:
         else:
             return ref
 
-    def _map_conditions(self, condition: YamlExpressionType | None, conditions: list[YamlExpressionType] | None):
+    def _map_conditions(
+        self, condition: YamlExpressionType | None, conditions: list[YamlExpressionType] | None
+    ) -> YamlExpressionType | None:
         if condition is not None:
             assert isinstance(condition, ExpressionType)
             return condition
