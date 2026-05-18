@@ -180,9 +180,17 @@ class ProcessSimulationMapper:
             resource = self._resources.get(resource_name)
             if resource is None:
                 raise EcalcValidationException(f"Resource '{resource_name}' not found for variable speed chart.")
+            if "SPEED" not in resource.get_headers():
+                raise EcalcValidationException(
+                    f"Chart resource '{resource_name}' is missing required 'SPEED' column. "
+                    f"For single-speed charts, use the same speed value for all rows."
+                )
             try:
                 return UserDefinedChartData.from_resource(
-                    resource, units=yaml_chart.units, is_single_speed=False, control_margin=control_margin_fraction
+                    resource,
+                    units=yaml_chart.units,
+                    is_single_speed=False,
+                    control_margin=control_margin_fraction,
                 )
             except InvalidResourceException as e:
                 raise InvalidChartResourceException(
@@ -215,13 +223,16 @@ class ProcessSimulationMapper:
         else:
             return ref
 
-    def _map_conditions(self, condition: YamlExpressionType | None, conditions: list[YamlExpressionType] | None):
-        if condition:
+    def _map_conditions(
+        self, condition: YamlExpressionType | None, conditions: list[YamlExpressionType] | None
+    ) -> YamlExpressionType | None:
+        if condition is not None:
             assert isinstance(condition, ExpressionType)
             return condition
-        else:
+        if conditions is not None:
             assert isinstance(conditions, list)
             return handle_condition_list(conditions)
+        return None
 
     def _get_regularity(self) -> Regularity:
         return Regularity(

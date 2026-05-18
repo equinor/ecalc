@@ -123,6 +123,13 @@ class YamlReferenceService(ReferenceService):
             references[process_simulation.name] = process_simulation
             reference_yaml_context[process_simulation.name] = process_simulation_path
 
+        fluid_models_path = YamlPath(keys=("FLUID_MODELS",))
+
+        for fluid_model_key, fluid_model in configuration.fluid_models.items():
+            fluid_model_path = fluid_models_path.append(fluid_model_key)
+            references[fluid_model_key] = fluid_model
+            reference_yaml_context[fluid_model_key] = fluid_model_path
+
         self._references = references
         self._references_yaml_context = reference_yaml_context
 
