@@ -112,7 +112,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def dates(self):
+    def dates(self) -> list[datetime.datetime]:
         pass
 
     @abc.abstractmethod

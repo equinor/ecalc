@@ -156,12 +156,19 @@ class YamlModel:
         process_pipelines = []
         for yaml_process_simulation in self._configuration.process_simulations:
             process_pipeline, process_simulation = mapper.map_process_simulation(
-                yaml_process_simulation=yaml_process_simulation
+                yaml_process_simulation=yaml_process_simulation, process_timesteps=self.get_timesteps()
             )
             process_pipelines.extend(process_pipeline)
             process_simulations.append(process_simulation)
 
         return process_pipelines, process_simulations
+
+    def get_timesteps(self) -> list[datetime]:
+        """
+        Get the global timevector for this model
+        """
+        self.validate_for_run()
+        return self._global_time_vector
 
     def get_emitter(self, container_id: uuid.UUID) -> Emitter | None:
         for installation in self.get_installations():
@@ -262,8 +269,10 @@ class YamlModel:
                 time_series_time_vector=time_series_time_vector,
                 start=self._configuration.start,
                 end=self._configuration.end,
-                additional_dates=self._configuration.dates,
+                additional_dates=set(self._configuration.dates),
             )
+            # Temporary side effect to set the global time vector in parsing
+            self._global_time_vector = time_vector
             return Periods.create_periods(time_vector, include_before=False, include_after=False)
         except InvalidEndDate as e:
             location_keys = ("END",)

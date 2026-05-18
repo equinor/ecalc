@@ -482,7 +482,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return TypeAdapter(YamlDefaultDatetime).validate_python(end_value) if end_value is not None else None
 
     @property
-    def dates(self):
+    def dates(self) -> set[datetime.datetime]:
         """All dates in the yaml."""
         return set(find_date_keys_in_yaml(self._internal_datamodel))
 
