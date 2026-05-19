@@ -1,5 +1,6 @@
 from typing import Final
 
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import (
     Configuration,
     ConfigurationHandlerId,
@@ -18,6 +19,9 @@ class TemperatureSetterConfigurationHandler(ConfigurationHandler):
 
     def get_id(self) -> ConfigurationHandlerId:
         return self._id
+
+    def get_temperature_setter_id(self) -> ProcessUnitId:
+        return self._temperature_setter.get_id()
 
     def handle_configuration(self, configuration: Configuration) -> None:
         assert configuration.configuration_handler_id == self._id, (

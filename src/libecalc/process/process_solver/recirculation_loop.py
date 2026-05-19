@@ -1,5 +1,6 @@
 from typing import Final
 
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import (
     Configuration,
     ConfigurationHandlerId,
@@ -23,6 +24,12 @@ class RecirculationLoop(ConfigurationHandler):
 
     def get_id(self) -> ConfigurationHandlerId:
         return self._id
+
+    def get_mixer_id(self) -> ProcessUnitId:
+        return self._mixer.get_id()
+
+    def get_splitter_id(self) -> ProcessUnitId:
+        return self._splitter.get_id()
 
     def set_recirculation_rate(self, rate: float):
         self._mixer.set_mix_rate(rate)

@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Final
 
 from libecalc.common.errors.exceptions import ProgrammingError
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId, SpeedConfiguration
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
@@ -39,6 +40,9 @@ class Shaft(ConfigurationHandler, ABC):
 
     def reset(self) -> None:
         self.reset_speed()
+
+    def get_compressor_ids(self) -> list[ProcessUnitId]:
+        return [compressor.get_id() for compressor in self._compressors]
 
     @abstractmethod
     def set_speed(self, value: float) -> None:
