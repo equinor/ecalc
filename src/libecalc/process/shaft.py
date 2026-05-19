@@ -19,10 +19,11 @@ class Shaft(ConfigurationHandler, ABC):
         self,
         configuration_handler_id: ConfigurationHandlerId | None = None,
         speed_rpm: float | None = None,
+        compressors: list[Compressor] | None = None,
     ):
         self._id: Final[ConfigurationHandlerId] = configuration_handler_id or ConfigurationHandler._create_id()
         self._speed_rpm = speed_rpm
-        self._compressors: list[Compressor] = []
+        self._compressors: list[Compressor] = compressors or []
 
     def get_id(self) -> ConfigurationHandlerId:
         return self._id
