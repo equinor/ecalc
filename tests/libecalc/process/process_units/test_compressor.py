@@ -1,6 +1,13 @@
+from unittest.mock import patch
+
 import pytest
 
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
+from libecalc.process.process_pipeline.process_error import (
+    OutletFluidNotAchievableError,
+    RateTooHighError,
+    RateTooLowError,
+)
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
 
@@ -82,6 +89,30 @@ class TestCompressorPropagation:
         inlet = _inlet_at_midpoint(stream_factory, compressor)
         outlet = compressor.propagate_stream(inlet_stream=inlet)
         assert outlet.standard_rate_sm3_per_day == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
+
+    def test_wraps_thermodynamic_calculation_error(self, stream_factory, compressor, shaft):
+        speed = (shaft.get_speed_boundary().min + shaft.get_speed_boundary().max) / 2
+        shaft.set_speed(speed)
+        inlet = _inlet_at_midpoint(stream_factory, compressor)
+
+        with (
+            patch(
+                "libecalc.process.process_units.compressor.calculate_outlet_pressure_and_stream",
+                side_effect=CompressorThermodynamicCalculationError(
+                    operation="test",
+                    reason="failed",
+                ),
+            ),
+            pytest.raises(OutletFluidNotAchievableError) as error_info,
+        ):
+            compressor.propagate_stream(inlet_stream=inlet)
+
+        operating_point = error_info.value.unachievable_operating_point
+        assert error_info.value.process_unit_id == compressor.get_id()
+        assert operating_point.inlet_pressure_bara == inlet.pressure_bara
+        assert operating_point.inlet_temperature_kelvin == inlet.temperature_kelvin
+        assert operating_point.actual_rate_m3_per_hour == pytest.approx(inlet.volumetric_rate_m3_per_hour)
+        assert operating_point.speed == speed
 
 
 class TestCompressorRecirculationRange:

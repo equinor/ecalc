@@ -21,6 +21,50 @@ REJECT_AND_GO_HIGHER = BinarySearchResult(search_higher=True, accepted=False)
 REJECT_AND_GO_LOWER = BinarySearchResult(search_higher=False, accepted=False)
 
 
+def find_lowest_true(
+    func: Callable[[float], bool],
+    low: float,
+    high: float,
+    tolerance: float = CONVERGENCE_TOLERANCE,
+    max_iterations: int = 30,
+) -> float | None:
+    if func(low):
+        return low
+    if not func(high):
+        return None
+    for _ in range(max_iterations):
+        if (high - low) / max(abs(low), abs(high), 1.0) < tolerance:
+            break
+        mid = (low + high) / 2
+        if func(mid):
+            high = mid
+        else:
+            low = mid
+    return high
+
+
+def find_highest_true(
+    func: Callable[[float], bool],
+    low: float,
+    high: float,
+    tolerance: float = CONVERGENCE_TOLERANCE,
+    max_iterations: int = 30,
+) -> float | None:
+    if func(high):
+        return high
+    if not func(low):
+        return None
+    for _ in range(max_iterations):
+        if (high - low) / max(abs(low), abs(high), 1.0) < tolerance:
+            break
+        mid = (low + high) / 2
+        if func(mid):
+            low = mid
+        else:
+            high = mid
+    return low
+
+
 class DidNotConvergeError(EcalcError):
     def __init__(
         self,

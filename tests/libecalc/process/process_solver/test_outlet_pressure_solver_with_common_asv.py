@@ -78,6 +78,7 @@ def test_outlet_pressure_solver_with_common_asv(
     assert solution.success
     assert speed_configuration.speed == pytest.approx(94.40, rel=1e-3)
 
+    assert recirculation_at_capacity_solution is not None
     recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration[0].value.recirculation_rate
 
     recirculation_configuration = [
