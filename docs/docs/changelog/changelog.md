@@ -1,5 +1,12 @@
 # Changelog
 
+## [13.7.4](https://github.com/equinor/ecalc/compare/v13.7.3...v13.7.4) (2026-05-19)
+
+
+### Miscellaneous Chores
+
+* expose properties explicitly ([#1564](https://github.com/equinor/ecalc/issues/1564)) ([aadaa12](https://github.com/equinor/ecalc/commit/aadaa128987bf42fea78bbe6ae259fcde9c3dd24))
+
 ## [13.7.3](https://github.com/equinor/ecalc/compare/v13.7.2...v13.7.3) (2026-05-19)
 
 
