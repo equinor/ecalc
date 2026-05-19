@@ -1,5 +1,6 @@
 from typing import Final
 
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import ChokeConfiguration, Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_units.choke import Choke
@@ -12,6 +13,9 @@ class ChokeConfigurationHandler(ConfigurationHandler):
 
     def get_id(self) -> ConfigurationHandlerId:
         return self._id
+
+    def get_choke_id(self) -> ProcessUnitId:
+        return self._choke.get_id()
 
     def handle_configuration(self, configuration: Configuration) -> None:
         assert configuration.configuration_handler_id == self._id, (
