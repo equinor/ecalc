@@ -107,11 +107,13 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
 
     def __init__(
         self,
+        name: str,
         stream_distribution: CommonStreamDistributionConfig | IndividualStreamDistributionConfig,
         process_problems: list[ProcessProblem],
         process_timesteps: Sequence[datetime],
         process_simulation_id: ProcessSimulationId | None = None,
     ):
+        self._name = name
         self.stream_distribution = stream_distribution
         self.process_problems = process_problems
         self.process_timesteps = process_timesteps
@@ -119,6 +121,9 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
 
     def get_id(self) -> ProcessSimulationId:
         return self._id
+
+    def get_name(self) -> str:
+        return self._name
 
     def get_process_timesteps(self) -> Sequence[datetime]:
         return self.process_timesteps

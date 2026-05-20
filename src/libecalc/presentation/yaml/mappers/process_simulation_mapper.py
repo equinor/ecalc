@@ -389,6 +389,7 @@ class ProcessSimulationMapper:
                 process_units = [choke, *process_units]
 
             process_pipeline = ProcessPipeline(
+                name=item.name,
                 stream_propagators=process_units,
             )
 
@@ -507,6 +508,7 @@ class ProcessSimulationMapper:
         return (
             process_pipelines,
             ProcessSimulation(
+                name=yaml_process_simulation.name,
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
                 process_timesteps=process_timesteps,

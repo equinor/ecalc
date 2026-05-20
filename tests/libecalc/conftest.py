@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import pandas as pd
 import pytest
 
@@ -224,16 +226,21 @@ def shaft_factory():
     return create_shaft
 
 
-@pytest.fixture
-def process_pipeline_factory():
-    """
-    A simple test pipeline with process units only
-    Returns:
+@pytest.fixture(scope="session")
+def name_factory():
+    name_counters = defaultdict(int)
 
-    """
+    def create_name(prefix: str) -> str:
+        name_counters[prefix] += 1
+        return f"{prefix} {name_counters[prefix]}"
 
-    def create_process_pipeline(units: list[ProcessUnit]) -> ProcessPipeline:
-        return ProcessPipeline(stream_propagators=units)
+    return create_name
+
+
+@pytest.fixture(scope="session")
+def process_pipeline_factory(name_factory):
+    def create_process_pipeline(units: list[ProcessUnit], name: str = None) -> ProcessPipeline:
+        return ProcessPipeline(stream_propagators=units, name=name or name_factory("Pipeline"))
 
     return create_process_pipeline
 
