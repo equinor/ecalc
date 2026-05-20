@@ -17,36 +17,12 @@ PortReference = str  # hierarchical: "target.stage.port" or "stage.port" (single
 
 class YamlPortType(enum.StrEnum):
     INLET = "INLET"
-    OUTLET = "OUTLET"
 
 
 class YamlPort(YamlBase):
     type: Annotated[
         YamlPortType,
-        Field(
-            title="TYPE",
-            description="Port direction: INLET (stream enters the stage) or OUTLET (stream leaves the stage).",
-        ),
-    ]
-
-
-class YamlStreamConnection(YamlBase):
-    port: Annotated[
-        PortReference,
-        Field(
-            title="PORT",
-            description=(
-                "Hierarchical reference to a port declared on a stage: 'target.stage.port'. "
-                "The 'target.' prefix may be omitted when the simulation has a single target."
-            ),
-        ),
-    ]
-    stream: Annotated[
-        StreamRef,
-        Field(
-            title="STREAM",
-            description="Reference to a stream declared in INLET_STREAMS.",
-        ),
+        Field(title="TYPE", description="Port direction. Currently only INLET is supported (stream enters the stage)."),
     ]
 
 
@@ -137,9 +113,102 @@ class YamlSerialProcessSystem(YamlBase):
     items: list[YamlItem[YamlCompressorStageProcessSystem]]
 
 
+class YamlRateDistributionEntry(YamlBase):
+    port: Annotated[
+        PortReference,
+        Field(
+            title="PORT",
+            description="Hierarchical reference to a port: 'target.stage.port'. The 'target.' prefix may be omitted when the simulation has a single target.",
+        ),
+    ]
+    rate_fraction: Annotated[
+        float,
+        Field(
+            title="RATE_FRACTION",
+            description="Fraction of the source stream's rate routed to this port. Fractions across all entries in a RATE_DISTRIBUTION must sum to 1.0.",
+        ),
+    ]
+
+
 class YamlOverflow(YamlBase):
     from_reference: ProcessSystemReference
     to_reference: ProcessSystemReference
+
+
+class YamlPortOverflow(YamlBase):
+    from_reference: Annotated[
+        PortReference,
+        Field(
+            title="FROM_REFERENCE",
+            description="Source port from which excess rate is redirected when its capacity is exceeded.",
+        ),
+    ]
+    to_reference: Annotated[
+        PortReference,
+        Field(
+            title="TO_REFERENCE",
+            description="Destination port that receives the redirected excess rate.",
+        ),
+    ]
+
+
+class YamlIndividualStreamConnection(YamlBase):
+    type: Literal["INDIVIDUAL_STREAM"]
+    stream: Annotated[
+        StreamRef,
+        Field(
+            title="STREAM",
+            description="Reference to a stream declared in INLET_STREAMS. The full stream is routed to the specified port.",
+        ),
+    ]
+    port: Annotated[
+        PortReference,
+        Field(
+            title="PORT",
+            description="Hierarchical reference to a port that receives the stream: 'target.stage.port'. The 'target.' prefix may be omitted when the simulation has a single target.",
+        ),
+    ]
+
+
+class YamlCommonStreamConnection(YamlBase):
+    type: Literal["COMMON_STREAM"]
+    stream: Annotated[
+        StreamRef,
+        Field(
+            title="STREAM",
+            description="Reference to a stream declared in INLET_STREAMS. The stream is distributed across the ports listed in RATE_DISTRIBUTION.",
+        ),
+    ]
+    rate_distribution: Annotated[
+        list[YamlRateDistributionEntry],
+        Field(
+            title="RATE_DISTRIBUTION",
+            description="Distribution of the source stream across one or more destination ports. Each entry specifies a port and the fraction of the stream's rate routed to it.",
+        ),
+    ]
+    overflow: Annotated[
+        list[YamlPortOverflow] | None,
+        Field(
+            title="OVERFLOW",
+            description="Optional rules for redirecting excess rate between ports when a destination's capacity is exceeded.",
+        ),
+    ] = None
+
+
+YamlConnection = Annotated[
+    YamlIndividualStreamConnection | YamlCommonStreamConnection,
+    Field(discriminator="type"),
+]
+
+
+class YamlStreamDistributionPriority(YamlBase):
+    connections: Annotated[
+        list[YamlConnection],
+        Field(
+            title="CONNECTIONS",
+            description="Set of stream connections that together make up one complete stream-distribution configuration. Each entry routes one stream to one or more ports.",
+        ),
+    ]
 
 
 class YamlCommonStreamSetting(YamlBase):
@@ -180,17 +249,6 @@ class YamlProcessSimulation(YamlBase):
         Field(title="TARGETS"),
     ]
     stream_distribution: YamlStreamDistribution
-    stream_connections: Annotated[
-        list[YamlStreamConnection] | None,
-        Field(
-            title="STREAM_CONNECTIONS",
-            description=(
-                "Optional list of port-to-stream mappings. Each entry connects a port "
-                "(declared on a stage via PORTS) to a stream (declared in INLET_STREAMS). "
-                "INLET ports receive a stream into the train; OUTLET ports extract a stream."
-            ),
-        ),
-    ] = None
     pressure_control: Annotated[
         dict[
             ProcessSystemReference,
