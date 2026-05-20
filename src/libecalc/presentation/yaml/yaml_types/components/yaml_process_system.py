@@ -154,7 +154,7 @@ class YamlPortOverflow(YamlBase):
 class YamlIndividualStreamConnection(YamlBase):
     type: Literal["INDIVIDUAL_STREAM"]
     stream: Annotated[
-        StreamRef,
+        StreamRef | YamlInletStream,
         Field(
             title="STREAM",
             description="Reference to a stream declared in INLET_STREAMS. The full stream is routed to the specified port.",
@@ -172,7 +172,7 @@ class YamlIndividualStreamConnection(YamlBase):
 class YamlCommonStreamConnection(YamlBase):
     type: Literal["COMMON_STREAM"]
     stream: Annotated[
-        StreamRef,
+        StreamRef | YamlInletStream,
         Field(
             title="STREAM",
             description="Reference to a stream declared in INLET_STREAMS. The stream is distributed across the ports listed in RATE_DISTRIBUTION.",
