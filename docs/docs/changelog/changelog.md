@@ -1,5 +1,12 @@
 # Changelog
 
+## [13.7.5](https://github.com/equinor/ecalc/compare/v13.7.4...v13.7.5) (2026-05-20)
+
+
+### Miscellaneous Chores
+
+* add names to process simulation, process pipeline ([d44d7f8](https://github.com/equinor/ecalc/commit/d44d7f89641504a52fefb60f7c238684c47cdf3b))
+
 ## [13.7.4](https://github.com/equinor/ecalc/compare/v13.7.3...v13.7.4) (2026-05-19)
 
 
