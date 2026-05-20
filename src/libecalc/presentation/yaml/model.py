@@ -156,7 +156,7 @@ class YamlModel:
         process_pipelines = []
         for yaml_process_simulation in self._configuration.process_simulations:
             process_pipeline, process_simulation = mapper.map_process_simulation(
-                yaml_process_simulation=yaml_process_simulation, process_timesteps=self.get_periods().start_dates
+                yaml_process_simulation=yaml_process_simulation, process_periods=self.get_periods()
             )
             process_pipelines.extend(process_pipeline)
             process_simulations.append(process_simulation)

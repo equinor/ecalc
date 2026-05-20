@@ -1,10 +1,10 @@
 from collections.abc import Sequence
-from datetime import datetime
 from typing import Final, Literal, NewType, Self, assert_never
 from uuid import UUID
 
 from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
+from libecalc.common.time_utils import Periods
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesPressureDropperConfiguration,
@@ -105,7 +105,7 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
         name: str,
         stream_distribution: CommonStreamDistributionConfig | IndividualStreamDistributionConfig,
         process_problems: list[ProcessProblem],
-        process_timesteps: Sequence[datetime],
+        process_periods: Periods,
         process_simulation_id: ProcessSimulationId | None = None,
         process_configurations: dict[
             ProcessPipelineId,
@@ -116,18 +116,17 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
         self._name = name
         self.stream_distribution = stream_distribution
         self.process_problems = process_problems
-        self.process_timesteps = process_timesteps
+        self.process_periods = process_periods
         self.process_configurations = process_configurations
         self._id: Final[ProcessSimulationId] = process_simulation_id or ProcessSimulation._create_id()
 
     def get_id(self) -> ProcessSimulationId:
         return self._id
 
+    def get_process_periods(self) -> Periods:
+        return self.process_periods
     def get_name(self) -> str:
         return self._name
-
-    def get_process_timesteps(self) -> Sequence[datetime]:
-        return self.process_timesteps
 
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessSimulationId:
