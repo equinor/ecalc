@@ -334,7 +334,7 @@ class ProcessSimulationMapper:
                 problem_time_series_configurations[
                     temperature_setter_configuration_handler.get_temperature_setter_id()
                 ] = TimeSeriesTemperatureSetterConfiguration(
-                    temperature=self._map_temperature(yaml_compressor_stage.inlet_temperature)
+                    temperature_in_celsius=self._map_temperature(yaml_compressor_stage.inlet_temperature)
                 )
                 problem_configuration_handlers.append(temperature_setter_configuration_handler)
 

@@ -9,4 +9,4 @@ class TimeSeriesChokeConfiguration:
 
 @value_object
 class TimeSeriesTemperatureSetterConfiguration:
-    temperature: TimeSeriesExpression
+    temperature_in_celsius: TimeSeriesExpression
