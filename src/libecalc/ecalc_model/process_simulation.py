@@ -13,6 +13,7 @@ from libecalc.ecalc_model.time_series_configuration import (
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import ConfigurationHandlerId
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
@@ -112,11 +113,14 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
         process_problems: list[ProcessProblem],
         process_timesteps: Sequence[datetime],
         process_simulation_id: ProcessSimulationId | None = None,
+        process_configurations: dict[ProcessPipelineId, dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration]]
+        | None = None,
     ):
         self._name = name
         self.stream_distribution = stream_distribution
         self.process_problems = process_problems
         self.process_timesteps = process_timesteps
+        self.process_configurations = process_configurations
         self._id: Final[ProcessSimulationId] = process_simulation_id or ProcessSimulation._create_id()
 
     def get_id(self) -> ProcessSimulationId:

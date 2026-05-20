@@ -21,7 +21,6 @@ from libecalc.ecalc_model.process_simulation import (
     ProcessSimulation,
 )
 from libecalc.ecalc_model.time_series_configuration import (
-    TimeSeriesChokeConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
@@ -309,20 +308,18 @@ class ProcessSimulationMapper:
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
         configurations: dict[
             ProcessPipelineId,
-            dict[ConfigurationHandlerId, TimeSeriesChokeConfiguration | TimeSeriesTemperatureSetterConfiguration],
+            dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration],
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
         for yaml_compressor_train_item in yaml_process_simulation.targets:
+            problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
             compressor_stages: list[list[ProcessUnitId]] = []
             compressor_ids: list[ProcessUnitId] = []
-            problem_configuration_handlers = []
-            problem_time_series_configurations: dict[
-                ConfigurationHandlerId, TimeSeriesChokeConfiguration | TimeSeriesTemperatureSetterConfiguration
-            ] = {}
+            problem_time_series_configurations: dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration] = {}
             for yaml_serial_item in item.items:
                 yaml_compressor_stage = self._resolve_compressor_stage_reference(yaml_serial_item.target)
                 compressor = self._get_compressor(yaml_compressor_stage=yaml_compressor_stage)
@@ -334,17 +331,17 @@ class ProcessSimulationMapper:
                 temperature_setter_configuration_handler = TemperatureSetterConfigurationHandler(
                     temperature_setter=temperature_setter
                 )
-                problem_time_series_configurations[temperature_setter_configuration_handler.get_id()] = (
-                    TimeSeriesTemperatureSetterConfiguration(
-                        temperature=self._map_temperature(yaml_compressor_stage.inlet_temperature)
-                    )
+                problem_time_series_configurations[
+                    temperature_setter_configuration_handler.get_temperature_setter_id()
+                ] = TimeSeriesTemperatureSetterConfiguration(
+                    temperature=self._map_temperature(yaml_compressor_stage.inlet_temperature)
                 )
                 problem_configuration_handlers.append(temperature_setter_configuration_handler)
 
                 choke, choke_configuration_handler = choke_factory(fluid_service=self._fluid_service)
-                problem_time_series_configurations[choke_configuration_handler.get_id()] = TimeSeriesChokeConfiguration(
-                    delta_pressure=self._map_pressure(yaml_compressor_stage.pressure_drop_ahead_of_stage)
-                )
+                # problem_time_series_configurations[choke_configuration_handler.get_id()] = TimeSeriesChokeConfiguration(
+                #    delta_pressure=self._map_pressure(yaml_compressor_stage.pressure_drop_ahead_of_stage)
+                # )
                 problem_configuration_handlers.append(choke_configuration_handler)
 
                 liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
@@ -362,17 +359,18 @@ class ProcessSimulationMapper:
                 assert isinstance(compressor, Compressor)
                 shaft.connect(compressor)
 
+            problem_configuration_handlers.append(shaft)
+
             try:
                 pressure_control = yaml_process_simulation.pressure_control[item.name]
             except KeyError as e:
                 raise EcalcValidationException(f"Missing pressure control for process system '{item.name}'") from e
 
+            process_units = []
             if pressure_control == "COMMON_ASV":
                 recirculation_loop, process_units = with_asv(units=list(process_unit_map.values()))
                 problem_configuration_handlers.append(recirculation_loop)
-            else:
-                process_units = []
-                problem_configuration_handlers = []
+            else:  # INDIVIDUAL ASV (ASV per stage) assumed if not COMMON ASV explicitly set
                 for compressor_stage_ids in compressor_stages:
                     stage_units = [process_unit_map[stage_unit_id] for stage_unit_id in compressor_stage_ids]
                     recirculation_loop, stage_process_units = with_asv(units=stage_units)
@@ -500,7 +498,6 @@ class ProcessSimulationMapper:
                 anti_surge_strategy=anti_surge_configs[process_pipeline.get_id()],
                 pressure_control_strategy=pressure_control_configs[process_pipeline.get_id()],
                 configuration_handlers=configuration_handlers[process_pipeline.get_id()],
-                configurations=configurations[process_pipeline.get_id()],
             )
             for process_pipeline in process_pipelines
         ]
@@ -512,5 +509,6 @@ class ProcessSimulationMapper:
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
                 process_timesteps=process_timesteps,
+                process_configurations=configurations,
             ),
         )
