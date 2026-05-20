@@ -93,8 +93,7 @@ class YamlCompressorStageProcessSystem(YamlBase):
             title="PORTS",
             description=(
                 "Optional mapping of port name → port specification. Declares physical interstage "
-                "connection points where fluid streams can be added (INLET) or extracted (OUTLET). "
-                "Wired to streams via STREAM_CONNECTIONS on the PROCESS_SIMULATION."
+                "connection points where fluid streams can enter the stage."
             ),
         ),
     ] = None
