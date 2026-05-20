@@ -7,14 +7,13 @@ from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.ecalc_model.time_series_configuration import (
-    TimeSeriesChokeConfiguration,
+    TimeSeriesPressureDropperConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
-from libecalc.process.process_solver.configuration import ConfigurationHandlerId
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
 
@@ -66,10 +65,6 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
         constraint: Constraint,
         configuration_handlers: Sequence[ConfigurationHandler],
         process_pipeline_id: ProcessPipelineId,
-        configurations: dict[
-            ConfigurationHandlerId, TimeSeriesChokeConfiguration | TimeSeriesTemperatureSetterConfiguration
-        ]
-        | None = None,
         process_problem_id: ProcessProblemId | None = None,
     ):
         self.pressure_control_strategy = pressure_control_strategy
@@ -77,7 +72,6 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
         self.constraint = constraint
         self.process_pipeline_id = process_pipeline_id
         self.configuration_handlers = configuration_handlers
-        self.configurations = configurations or []
         self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:
@@ -113,7 +107,10 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
         process_problems: list[ProcessProblem],
         process_timesteps: Sequence[datetime],
         process_simulation_id: ProcessSimulationId | None = None,
-        process_configurations: dict[ProcessPipelineId, dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration]]
+        process_configurations: dict[
+            ProcessPipelineId,
+            dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
+        ]
         | None = None,
     ):
         self._name = name

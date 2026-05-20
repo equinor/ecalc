@@ -21,6 +21,7 @@ from libecalc.ecalc_model.process_simulation import (
     ProcessSimulation,
 )
 from libecalc.ecalc_model.time_series_configuration import (
+    TimeSeriesPressureDropperConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
@@ -75,6 +76,7 @@ from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.process.stream_distribution.common_stream_distribution import (
@@ -308,7 +310,7 @@ class ProcessSimulationMapper:
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
         configurations: dict[
             ProcessPipelineId,
-            dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration],
+            dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
@@ -319,7 +321,9 @@ class ProcessSimulationMapper:
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
             compressor_stages: list[list[ProcessUnitId]] = []
             compressor_ids: list[ProcessUnitId] = []
-            problem_time_series_configurations: dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration] = {}
+            problem_time_series_configurations: dict[
+                ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration
+            ] = {}
             for yaml_serial_item in item.items:
                 yaml_compressor_stage = self._resolve_compressor_stage_reference(yaml_serial_item.target)
                 compressor = self._get_compressor(yaml_compressor_stage=yaml_compressor_stage)
@@ -331,27 +335,33 @@ class ProcessSimulationMapper:
                 temperature_setter_configuration_handler = TemperatureSetterConfigurationHandler(
                     temperature_setter=temperature_setter
                 )
-                problem_time_series_configurations[
-                    temperature_setter_configuration_handler.get_temperature_setter_id()
-                ] = TimeSeriesTemperatureSetterConfiguration(
-                    temperature_in_celsius=self._map_temperature(yaml_compressor_stage.inlet_temperature)
+                problem_time_series_configurations[temperature_setter.get_id()] = (
+                    TimeSeriesTemperatureSetterConfiguration(
+                        temperature_in_celsius=self._map_temperature(yaml_compressor_stage.inlet_temperature)
+                    )
                 )
+                # TODO: Needed?
                 problem_configuration_handlers.append(temperature_setter_configuration_handler)
 
-                choke, choke_configuration_handler = choke_factory(fluid_service=self._fluid_service)
-                # problem_time_series_configurations[choke_configuration_handler.get_id()] = TimeSeriesChokeConfiguration(
-                #    delta_pressure=self._map_pressure(yaml_compressor_stage.pressure_drop_ahead_of_stage)
-                # )
-                problem_configuration_handlers.append(choke_configuration_handler)
+                pressure_dropper = PressureDropper(fluid_service=self._fluid_service)
+                problem_time_series_configurations[pressure_dropper.get_id()] = TimeSeriesPressureDropperConfiguration(
+                    pressure_drop_in_bara=self._map_pressure(yaml_compressor_stage.pressure_drop_ahead_of_stage)
+                )
 
                 liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
                 process_unit_map[temperature_setter.get_id()] = temperature_setter
-                process_unit_map[choke.get_id()] = choke
+                process_unit_map[pressure_dropper.get_id()] = pressure_dropper
                 process_unit_map[liquid_remover.get_id()] = liquid_remover
                 process_unit_map[compressor.get_id()] = compressor
 
+                # TODO: Pressure dropper AFTER temperature setter. Correct? Should not it be before? Does it matter?
                 compressor_stages.append(
-                    [temperature_setter.get_id(), choke.get_id(), liquid_remover.get_id(), compressor.get_id()]
+                    [
+                        temperature_setter.get_id(),
+                        pressure_dropper.get_id(),
+                        liquid_remover.get_id(),
+                        compressor.get_id(),
+                    ]
                 )
 
             for compressor_id in compressor_ids:
