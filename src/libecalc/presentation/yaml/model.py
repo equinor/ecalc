@@ -163,7 +163,7 @@ class YamlModel:
 
         return process_pipelines, process_simulations
 
-    def get_periods(self) -> Periods:
+    def get_periods(self) -> list[Period]:
         """
         Get the global timevector for this model
         """
@@ -272,7 +272,7 @@ class YamlModel:
                 additional_dates=set(self._configuration.dates),
             )
             periods = Periods.create_periods(time_vector, include_before=False, include_after=False)
-            self._global_periods = periods
+            self._global_periods = periods.periods
             return periods
         except InvalidEndDate as e:
             location_keys = ("END",)

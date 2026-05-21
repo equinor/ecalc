@@ -4,7 +4,7 @@ from uuid import UUID
 
 from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
-from libecalc.common.time_utils import Periods
+from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesPressureDropperConfiguration,
@@ -105,7 +105,7 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
         name: str,
         stream_distribution: CommonStreamDistributionConfig | IndividualStreamDistributionConfig,
         process_problems: list[ProcessProblem],
-        process_periods: Periods,
+        process_periods: list[Period],
         process_simulation_id: ProcessSimulationId | None = None,
         process_configurations: dict[
             ProcessPipelineId,
@@ -123,7 +123,12 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
     def get_id(self) -> ProcessSimulationId:
         return self._id
 
-    def get_process_periods(self) -> Periods:
+    def get_process_periods(self) -> list[Period]:
+        """
+        Get the global period vector - where START, END is taken into account, all temporal events (in legacy YAML) and relevant timeseries.
+        Returns:
+
+        """
         return self.process_periods
 
     def get_name(self) -> str:
