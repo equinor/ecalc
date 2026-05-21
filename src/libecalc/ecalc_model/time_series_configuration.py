@@ -3,10 +3,10 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 
 
 @value_object
-class TimeSeriesChokeConfiguration:
-    delta_pressure: TimeSeriesExpression
+class TimeSeriesPressureDropperConfiguration:
+    pressure_drop_in_bara: TimeSeriesExpression
 
 
 @value_object
 class TimeSeriesTemperatureSetterConfiguration:
-    temperature: TimeSeriesExpression
+    temperature_in_celsius: TimeSeriesExpression

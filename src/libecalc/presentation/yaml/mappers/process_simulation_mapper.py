@@ -1,10 +1,9 @@
 from collections.abc import Sequence
-from datetime import datetime
 from typing import Literal, assert_never
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException
-from libecalc.common.time_utils import Period
+from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.process.value_objects.chart.chart import ChartData
@@ -21,7 +20,7 @@ from libecalc.ecalc_model.process_simulation import (
     ProcessSimulation,
 )
 from libecalc.ecalc_model.time_series_configuration import (
-    TimeSeriesChokeConfiguration,
+    TimeSeriesPressureDropperConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
@@ -76,6 +75,7 @@ from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.process.stream_distribution.common_stream_distribution import (
@@ -300,7 +300,7 @@ class ProcessSimulationMapper:
                 assert_never(recirculation_type)
 
     def map_process_simulation(
-        self, yaml_process_simulation: YamlProcessSimulation, process_timesteps: list[datetime]
+        self, yaml_process_simulation: YamlProcessSimulation, process_periods: Periods
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         process_pipelines: list[ProcessPipeline] = []
         constraints: dict[ProcessPipelineId, Constraint] = {}
@@ -309,19 +309,19 @@ class ProcessSimulationMapper:
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
         configurations: dict[
             ProcessPipelineId,
-            dict[ConfigurationHandlerId, TimeSeriesChokeConfiguration | TimeSeriesTemperatureSetterConfiguration],
+            dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
         for yaml_compressor_train_item in yaml_process_simulation.targets:
+            problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
             compressor_stages: list[list[ProcessUnitId]] = []
             compressor_ids: list[ProcessUnitId] = []
-            problem_configuration_handlers = []
             problem_time_series_configurations: dict[
-                ConfigurationHandlerId, TimeSeriesChokeConfiguration | TimeSeriesTemperatureSetterConfiguration
+                ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration
             ] = {}
             for yaml_serial_item in item.items:
                 yaml_compressor_stage = self._resolve_compressor_stage_reference(yaml_serial_item.target)
@@ -334,27 +334,32 @@ class ProcessSimulationMapper:
                 temperature_setter_configuration_handler = TemperatureSetterConfigurationHandler(
                     temperature_setter=temperature_setter
                 )
-                problem_time_series_configurations[temperature_setter_configuration_handler.get_id()] = (
+                problem_time_series_configurations[temperature_setter.get_id()] = (
                     TimeSeriesTemperatureSetterConfiguration(
-                        temperature=self._map_temperature(yaml_compressor_stage.inlet_temperature)
+                        temperature_in_celsius=self._map_temperature(yaml_compressor_stage.inlet_temperature)
                     )
                 )
+                # TODO: Needed?
                 problem_configuration_handlers.append(temperature_setter_configuration_handler)
 
-                choke, choke_configuration_handler = choke_factory(fluid_service=self._fluid_service)
-                problem_time_series_configurations[choke_configuration_handler.get_id()] = TimeSeriesChokeConfiguration(
-                    delta_pressure=self._map_pressure(yaml_compressor_stage.pressure_drop_ahead_of_stage)
+                pressure_dropper = PressureDropper(fluid_service=self._fluid_service)
+                problem_time_series_configurations[pressure_dropper.get_id()] = TimeSeriesPressureDropperConfiguration(
+                    pressure_drop_in_bara=self._map_pressure(yaml_compressor_stage.pressure_drop_ahead_of_stage)
                 )
-                problem_configuration_handlers.append(choke_configuration_handler)
 
                 liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
                 process_unit_map[temperature_setter.get_id()] = temperature_setter
-                process_unit_map[choke.get_id()] = choke
+                process_unit_map[pressure_dropper.get_id()] = pressure_dropper
                 process_unit_map[liquid_remover.get_id()] = liquid_remover
                 process_unit_map[compressor.get_id()] = compressor
 
                 compressor_stages.append(
-                    [temperature_setter.get_id(), choke.get_id(), liquid_remover.get_id(), compressor.get_id()]
+                    [
+                        pressure_dropper.get_id(),
+                        temperature_setter.get_id(),
+                        liquid_remover.get_id(),
+                        compressor.get_id(),
+                    ]
                 )
 
             for compressor_id in compressor_ids:
@@ -362,17 +367,18 @@ class ProcessSimulationMapper:
                 assert isinstance(compressor, Compressor)
                 shaft.connect(compressor)
 
+            problem_configuration_handlers.append(shaft)
+
             try:
                 pressure_control = yaml_process_simulation.pressure_control[item.name]
             except KeyError as e:
                 raise EcalcValidationException(f"Missing pressure control for process system '{item.name}'") from e
 
+            process_units = []
             if pressure_control == "COMMON_ASV":
                 recirculation_loop, process_units = with_asv(units=list(process_unit_map.values()))
                 problem_configuration_handlers.append(recirculation_loop)
-            else:
-                process_units = []
-                problem_configuration_handlers = []
+            else:  # INDIVIDUAL ASV (ASV per stage) assumed if not COMMON ASV explicitly set
                 for compressor_stage_ids in compressor_stages:
                     stage_units = [process_unit_map[stage_unit_id] for stage_unit_id in compressor_stage_ids]
                     recirculation_loop, stage_process_units = with_asv(units=stage_units)
@@ -500,7 +506,6 @@ class ProcessSimulationMapper:
                 anti_surge_strategy=anti_surge_configs[process_pipeline.get_id()],
                 pressure_control_strategy=pressure_control_configs[process_pipeline.get_id()],
                 configuration_handlers=configuration_handlers[process_pipeline.get_id()],
-                configurations=configurations[process_pipeline.get_id()],
             )
             for process_pipeline in process_pipelines
         ]
@@ -511,6 +516,7 @@ class ProcessSimulationMapper:
                 name=yaml_process_simulation.name,
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
-                process_timesteps=process_timesteps,
+                process_periods=process_periods,
+                process_configurations=configurations,
             ),
         )
