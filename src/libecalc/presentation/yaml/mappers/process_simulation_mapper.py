@@ -353,11 +353,10 @@ class ProcessSimulationMapper:
                 process_unit_map[liquid_remover.get_id()] = liquid_remover
                 process_unit_map[compressor.get_id()] = compressor
 
-                # TODO: Pressure dropper AFTER temperature setter. Correct? Should not it be before? Does it matter?
                 compressor_stages.append(
                     [
-                        temperature_setter.get_id(),
                         pressure_dropper.get_id(),
+                        temperature_setter.get_id(),
                         liquid_remover.get_id(),
                         compressor.get_id(),
                     ]
