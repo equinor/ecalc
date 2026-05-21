@@ -125,6 +125,7 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
 
     def get_process_periods(self) -> Periods:
         return self.process_periods
+
     def get_name(self) -> str:
         return self._name
 
