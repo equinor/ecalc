@@ -70,7 +70,7 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
     solver = MultiShaftEqualRatioSolver(process_pipelines=solver_pipelines)
     solution = solver.find_solution(FloatConstraint(_P_OUT_BARA, abs_tol=1.0), inlet_stream)
 
-    assert solution.success, f"Solver failed: {solution.failure_event}"
+    assert solution.success, f"Solver failed: {solution.failure}"
 
     current = inlet_stream
     for pipeline in solver_pipelines:

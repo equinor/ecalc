@@ -16,7 +16,11 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
-from libecalc.process.process_solver.solver import Solution, SolverFailureStatus, TargetNotAchievableEvent
+from libecalc.process.process_solver.solver import (
+    Solution,
+    TargetDirection,
+    TargetPressureUnreachableFailure,
+)
 from libecalc.process.process_solver.solvers.speed_solver import SpeedSolver
 
 
@@ -142,7 +146,7 @@ class OutletPressureSolver:
             return Solution(
                 success=False,
                 configuration=list(configurations.values()),
-                failure_event=self._anti_surge_solution.failure_event,
+                failure=self._anti_surge_solution.failure,
             )
 
         outlet_at_chosen_speed = self._get_outlet_stream(
@@ -151,15 +155,12 @@ class OutletPressureSolver:
         )
 
         if outlet_at_chosen_speed.pressure_bara < pressure_constraint:
-            return Solution(
-                success=False,
+            return Solution.target_pressure_unreachable(
                 configuration=list(configurations.values()),
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
-                    achievable_value=outlet_at_chosen_speed.pressure_bara,
-                    target_value=pressure_constraint.value,
-                    source_id=self._process_pipeline_id,
-                ),
+                achievable_pressure_bara=outlet_at_chosen_speed.pressure_bara,
+                target_pressure_bara=pressure_constraint.value,
+                source_id=self._process_pipeline_id,
+                direction=TargetDirection.MAX_BELOW_TARGET,
             )
 
         pressure_control_solution = self._pressure_control_strategy.apply(
@@ -170,12 +171,12 @@ class OutletPressureSolver:
         for pressure_control_configuration in pressure_control_solution.configuration:
             configurations[pressure_control_configuration.configuration_handler_id] = pressure_control_configuration
 
-        failure_event = pressure_control_solution.failure_event
-        if isinstance(failure_event, TargetNotAchievableEvent) and failure_event.source_id is None:
-            failure_event = failure_event.with_source_id(self._process_pipeline_id)
+        failure = pressure_control_solution.failure
+        if isinstance(failure, TargetPressureUnreachableFailure) and failure.source_id is None:
+            failure = failure.with_source_id(self._process_pipeline_id)
 
         return Solution(
             success=pressure_control_solution.success,
             configuration=list(configurations.values()),
-            failure_event=failure_event,
+            failure=failure,
         )
