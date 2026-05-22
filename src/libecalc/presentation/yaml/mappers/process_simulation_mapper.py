@@ -3,7 +3,7 @@ from typing import Literal, assert_never
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException
-from libecalc.common.time_utils import Period, Periods
+from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.process.value_objects.chart.chart import ChartData
@@ -300,7 +300,7 @@ class ProcessSimulationMapper:
                 assert_never(recirculation_type)
 
     def map_process_simulation(
-        self, yaml_process_simulation: YamlProcessSimulation, process_periods: Periods
+        self, yaml_process_simulation: YamlProcessSimulation, process_periods: list[Period]
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         process_pipelines: list[ProcessPipeline] = []
         constraints: dict[ProcessPipelineId, Constraint] = {}

@@ -1,5 +1,6 @@
 import numpy as np
 
+from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.dto.utils.validators import convert_expression
 from libecalc.expression.expression import Expression, ExpressionType
@@ -68,3 +69,12 @@ class TimeSeriesExpression:
     def get_condition_mask(self) -> TimeSeriesMask:
         mask = self.expression_evaluator.evaluate(expression=self._condition) if self._condition is not None else None
         return TimeSeriesMask.from_array(mask)
+
+    def get_periods(self) -> list[Period]:
+        """
+        Returns the periods where this expression is evaluated for
+
+        Returns:
+
+        """
+        return self.expression_evaluator.get_periods().periods
