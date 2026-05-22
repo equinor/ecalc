@@ -32,11 +32,8 @@ class SpeedSolver(Solver[SpeedConfiguration]):
         self._root_finding_strategy = root_finding_strategy
 
     def solve(self, func: Callable[[SpeedConfiguration], FluidStream]) -> Solution[SpeedConfiguration]:
-        def get_outlet_stream(speed: float) -> FluidStream:
-            return func(SpeedConfiguration(speed=speed))
-
-        max_speed_configuration = SpeedConfiguration(speed=self._boundary.max)
         try:
+            max_speed_configuration = SpeedConfiguration(speed=self._boundary.max)
             maximum_speed_outlet_stream = func(max_speed_configuration)
         except RateTooHighError as e:
             logger.debug(f"No solution found for maximum speed: {max_speed_configuration}", exc_info=e)
@@ -64,28 +61,7 @@ class SpeedSolver(Solver[SpeedConfiguration]):
                 ),
             )
 
-        try:
-            minimum_speed_configuration = SpeedConfiguration(speed=self._boundary.min)
-            minimum_speed_outlet_stream = func(minimum_speed_configuration)
-        except RateTooHighError as e:
-            logger.debug(f"No solution found for minimum speed: {self._boundary.min}", exc_info=e)
-
-            # rate is above maximum rate for minimum speed. Find the lowest minimum speed which gives a valid result
-            def bool_speed_func(x: float):
-                try:
-                    get_outlet_stream(speed=x)
-                    return False, True
-                except RateTooHighError:
-                    return True, False
-                except RateTooLowError:
-                    return False, False
-
-            minimum_speed_within_capacity = self._search_strategy.search(
-                boundary=self._boundary,
-                func=bool_speed_func,
-            )
-            minimum_speed_configuration = SpeedConfiguration(speed=minimum_speed_within_capacity)
-            minimum_speed_outlet_stream = func(minimum_speed_configuration)
+        minimum_speed_configuration, minimum_speed_outlet_stream = self._find_min_within_capacity_speed(func)
 
         if minimum_speed_outlet_stream.pressure_bara > self._target_pressure:
             # Solution 2, target pressure is too low
@@ -109,7 +85,7 @@ class SpeedSolver(Solver[SpeedConfiguration]):
         def root_speed_func(x: float) -> float:
             # We should be able to produce an outlet stream since we adjust minimum speed above,
             # or exit if max speed is not enough
-            out = get_outlet_stream(speed=x)
+            out = func(SpeedConfiguration(speed=x))
             return out.pressure_bara - self._target_pressure
 
         speed = self._root_finding_strategy.find_root(
@@ -117,3 +93,33 @@ class SpeedSolver(Solver[SpeedConfiguration]):
             func=root_speed_func,
         )
         return Solution(success=True, configuration=SpeedConfiguration(speed=speed))
+
+    def _find_min_within_capacity_speed(
+        self, func: Callable[[SpeedConfiguration], FluidStream]
+    ) -> tuple[SpeedConfiguration, FluidStream]:
+        """Return the lowest speed configuration within flow capacity, and its outlet stream.
+
+        ``RateTooHighError`` at the boundary minimum is recoverable: higher speed raises the
+        stonewall limit; search upward.
+        """
+        minimum_speed_configuration = SpeedConfiguration(speed=self._boundary.min)
+        try:
+            return minimum_speed_configuration, func(minimum_speed_configuration)
+        except RateTooHighError as e:
+            logger.debug(f"No solution found for minimum speed: {self._boundary.min}", exc_info=e)
+
+            def bool_speed_func(x: float) -> tuple[bool, bool]:
+                try:
+                    func(SpeedConfiguration(speed=x))
+                    return False, True
+                except RateTooHighError:
+                    return True, False
+                except RateTooLowError:
+                    return False, False
+
+            minimum_speed_within_capacity = self._search_strategy.search(
+                boundary=self._boundary,
+                func=bool_speed_func,
+            )
+            minimum_speed_configuration = SpeedConfiguration(speed=minimum_speed_within_capacity)
+            return minimum_speed_configuration, func(minimum_speed_configuration)
