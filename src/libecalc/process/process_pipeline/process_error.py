@@ -13,6 +13,18 @@ class OutsideCapacityError(ProcessError):
         super().__init__(reason)
 
 
+class InfeasiblePressureError(OutsideCapacityError):
+    def __init__(
+        self,
+        process_unit_id: ProcessUnitId,
+        achieved_pressure_bara: float | None = None,
+        reason: str = "Computed outlet pressure is non-positive.",
+    ):
+        self.process_unit_id = process_unit_id
+        self.achieved_pressure_bara = achieved_pressure_bara
+        super().__init__(reason)
+
+
 class RateTooLowError(OutsideCapacityError):
     def __init__(
         self,

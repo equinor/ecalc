@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import InfeasiblePressureError
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
@@ -40,7 +41,10 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
 
         # 1) Baseline (no choking)
         baseline_config = ChokeConfiguration(delta_pressure=0.0)
-        baseline_outlet_stream = outlet_with_choke(baseline_config)
+        try:
+            baseline_outlet_stream = outlet_with_choke(baseline_config)
+        except InfeasiblePressureError as e:
+            return Solution.from_infeasible_pressure(e, configuration=[])
 
         # If already at/below target, don't choke (can't increase pressure anyway).
         if baseline_outlet_stream.pressure_bara <= target_pressure:

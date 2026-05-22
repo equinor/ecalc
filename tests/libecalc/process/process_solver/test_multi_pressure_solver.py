@@ -176,9 +176,11 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     assert solution.success
     assert interstage_stream.pressure_bara == pytest.approx(interstage_pressure_target, rel=0.001)
     assert new_outlet_stream.pressure_bara == pytest.approx(target_pressure, rel=0.001)
+    assert old_result.stage_results[0].outlet_stream is not None
     assert interstage_stream.pressure_bara == pytest.approx(
         old_result.stage_results[0].outlet_stream.pressure_bara, rel=0.001
     )
+    assert old_result.outlet_stream is not None
     assert new_outlet_stream.pressure_bara == pytest.approx(old_result.outlet_stream.pressure_bara, rel=0.001)
 
 

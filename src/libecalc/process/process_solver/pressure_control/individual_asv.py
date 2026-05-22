@@ -2,6 +2,7 @@ from collections.abc import Sequence
 
 from libecalc.common.numeric_methods import find_root
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import InfeasiblePressureError
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
@@ -41,22 +42,34 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         self._compressors = compressors
         self._root_finding_strategy = root_finding_strategy
 
+    def _compute_minimum_achievable_pressure(
+        self, inlet_stream: FluidStream
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+        """Compute maximum-recirculation configurations, catching InfeasiblePressureError."""
+        try:
+            configurations = _minimum_achievable_pressure(
+                simulator=self._simulator,
+                recirculation_loop_ids=self._recirculation_loop_ids,
+                compressors=self._compressors,
+                inlet_stream=inlet_stream,
+            )
+            return Solution(success=True, configuration=configurations)
+        except InfeasiblePressureError as e:
+            return Solution.from_infeasible_pressure(e, configuration=[])
+
     def apply(
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
-        minimum_achievable_pressure_configurations = _minimum_achievable_pressure(
-            simulator=self._simulator,
-            recirculation_loop_ids=self._recirculation_loop_ids,
-            compressors=self._compressors,
-            inlet_stream=inlet_stream,
-        )
+        min_pressure_solution = self._compute_minimum_achievable_pressure(inlet_stream)
+        if not min_pressure_solution.success:
+            return Solution(success=False, configuration=[], failure=min_pressure_solution.failure)
+
+        minimum_achievable_pressure_configurations = min_pressure_solution.configuration
         self._simulator.apply_configurations(minimum_achievable_pressure_configurations)
         minimum_achievable_pressure_stream = self._simulator.run(inlet_stream=inlet_stream)
         if minimum_achievable_pressure_stream.pressure_bara > target_pressure.value:
-            # Even at maximum recirculation, the outlet pressure is still above the target.
-            # The compressor train cannot deliver a pressure this low at the current speed.
             return Solution(
                 success=False,
                 configuration=minimum_achievable_pressure_configurations,
@@ -73,7 +86,6 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         configurations: list[Configuration[RecirculationConfiguration | ChokeConfiguration]] = []
 
         for i, (recirculation_loop_id, compressor) in enumerate(zip(self._recirculation_loop_ids, self._compressors)):
-            # Target pressure for this stage: cumulative from original inlet
             stage_target_pressure = inlet_stream.pressure_bara * (pressure_ratio_per_stage ** (i + 1))
 
             self._simulator.apply_configuration(
@@ -82,7 +94,10 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
                     value=RecirculationConfiguration(recirculation_rate=0.0),
                 )
             )
-            current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
+            try:
+                current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
+            except InfeasiblePressureError as e:
+                return Solution.from_infeasible_pressure(e, configuration=configurations)
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
 
             def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
@@ -163,22 +178,34 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
             )
         return configurations
 
+    def _compute_minimum_achievable_pressure(
+        self, inlet_stream: FluidStream
+    ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
+        """Compute maximum-recirculation configurations, catching InfeasiblePressureError."""
+        try:
+            configurations = _minimum_achievable_pressure(
+                simulator=self._simulator,
+                recirculation_loop_ids=self._recirculation_loop_ids,
+                compressors=self._compressors,
+                inlet_stream=inlet_stream,
+            )
+            return Solution(success=True, configuration=configurations)
+        except InfeasiblePressureError as e:
+            return Solution.from_infeasible_pressure(e, configuration=[])
+
     def apply(
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
-        minimum_achievable_pressure_configurations = _minimum_achievable_pressure(
-            simulator=self._simulator,
-            recirculation_loop_ids=self._recirculation_loop_ids,
-            compressors=self._compressors,
-            inlet_stream=inlet_stream,
-        )
+        min_pressure_solution = self._compute_minimum_achievable_pressure(inlet_stream)
+        if not min_pressure_solution.success:
+            return Solution(success=False, configuration=[], failure=min_pressure_solution.failure)
+
+        minimum_achievable_pressure_configurations = min_pressure_solution.configuration
         self._simulator.apply_configurations(minimum_achievable_pressure_configurations)
         minimum_achievable_pressure_stream = self._simulator.run(inlet_stream=inlet_stream)
         if minimum_achievable_pressure_stream.pressure_bara > target_pressure.value:
-            # Even at maximum recirculation, the outlet pressure is still above the target.
-            # The compressor train cannot deliver a pressure this low at the current speed.
             return Solution(
                 success=False,
                 configuration=minimum_achievable_pressure_configurations,

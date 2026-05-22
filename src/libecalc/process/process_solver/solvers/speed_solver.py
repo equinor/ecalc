@@ -2,11 +2,16 @@ import logging
 from collections.abc import Callable
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import (
+    InfeasiblePressureError,
+    RateTooHighError,
+    RateTooLowError,
+)
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
 from libecalc.process.process_solver.solver import (
+    InfeasiblePressureFailure,
     RateTooHighFailure,
     RateTooLowFailure,
     Solution,
@@ -32,9 +37,53 @@ class SpeedSolver(Solver[SpeedConfiguration]):
         self._root_finding_strategy = root_finding_strategy
 
     def solve(self, func: Callable[[SpeedConfiguration], FluidStream]) -> Solution[SpeedConfiguration]:
+        max_speed_configuration = SpeedConfiguration(speed=self._boundary.max)
         try:
-            max_speed_configuration = SpeedConfiguration(speed=self._boundary.max)
             maximum_speed_outlet_stream = func(max_speed_configuration)
+
+            if maximum_speed_outlet_stream.pressure_bara < self._target_pressure:
+                return Solution(
+                    success=False,
+                    configuration=max_speed_configuration,
+                    failure=TargetPressureUnreachableFailure(
+                        achievable_pressure_bara=maximum_speed_outlet_stream.pressure_bara,
+                        target_pressure_bara=self._target_pressure,
+                        direction=TargetDirection.MAX_BELOW_TARGET,
+                    ),
+                )
+
+            minimum_speed_configuration, minimum_speed_outlet_stream = self._find_min_within_capacity_speed(func)
+
+            if minimum_speed_outlet_stream.pressure_bara > self._target_pressure:
+                # Solution 2, target pressure is too low
+                return Solution(
+                    success=False,
+                    configuration=minimum_speed_configuration,
+                    failure=TargetPressureUnreachableFailure(
+                        achievable_pressure_bara=minimum_speed_outlet_stream.pressure_bara,
+                        target_pressure_bara=self._target_pressure,
+                        direction=TargetDirection.MIN_ABOVE_TARGET,
+                    ),
+                )
+
+            assert (
+                minimum_speed_outlet_stream.pressure_bara
+                <= self._target_pressure
+                <= maximum_speed_outlet_stream.pressure_bara
+            )
+
+            # Solution 1, iterate on speed until target discharge pressure is found
+            def root_speed_func(x: float) -> float:
+                # We should be able to produce an outlet stream since we adjust minimum speed above,
+                # or exit if max speed is not enough
+                out = func(SpeedConfiguration(speed=x))
+                return out.pressure_bara - self._target_pressure
+
+            speed = self._root_finding_strategy.find_root(
+                boundary=Boundary(min=minimum_speed_configuration.speed, max=self._boundary.max),
+                func=root_speed_func,
+            )
+            return Solution(success=True, configuration=SpeedConfiguration(speed=speed))
         except RateTooHighError as e:
             logger.debug(f"No solution found for maximum speed: {max_speed_configuration}", exc_info=e)
             return Solution(
@@ -49,50 +98,13 @@ class SpeedSolver(Solver[SpeedConfiguration]):
                 configuration=max_speed_configuration,
                 failure=RateTooLowFailure.from_error(e),
             )
-
-        if maximum_speed_outlet_stream.pressure_bara < self._target_pressure:
+        except InfeasiblePressureError as e:
+            logger.debug(f"Infeasible pressure encountered in SpeedSolver: {e}", exc_info=e)
             return Solution(
                 success=False,
-                configuration=SpeedConfiguration(self._boundary.max),
-                failure=TargetPressureUnreachableFailure(
-                    achievable_pressure_bara=maximum_speed_outlet_stream.pressure_bara,
-                    target_pressure_bara=self._target_pressure,
-                    direction=TargetDirection.MAX_BELOW_TARGET,
-                ),
+                configuration=SpeedConfiguration(speed=self._boundary.min),
+                failure=InfeasiblePressureFailure.from_error(e),
             )
-
-        minimum_speed_configuration, minimum_speed_outlet_stream = self._find_min_within_capacity_speed(func)
-
-        if minimum_speed_outlet_stream.pressure_bara > self._target_pressure:
-            # Solution 2, target pressure is too low
-            return Solution(
-                success=False,
-                configuration=minimum_speed_configuration,
-                failure=TargetPressureUnreachableFailure(
-                    achievable_pressure_bara=minimum_speed_outlet_stream.pressure_bara,
-                    target_pressure_bara=self._target_pressure,
-                    direction=TargetDirection.MIN_ABOVE_TARGET,
-                ),
-            )
-
-        assert (
-            minimum_speed_outlet_stream.pressure_bara
-            <= self._target_pressure
-            <= maximum_speed_outlet_stream.pressure_bara
-        )
-
-        # Solution 1, iterate on speed until target discharge pressure is found
-        def root_speed_func(x: float) -> float:
-            # We should be able to produce an outlet stream since we adjust minimum speed above,
-            # or exit if max speed is not enough
-            out = func(SpeedConfiguration(speed=x))
-            return out.pressure_bara - self._target_pressure
-
-        speed = self._root_finding_strategy.find_root(
-            boundary=Boundary(min=minimum_speed_configuration.speed, max=self._boundary.max),
-            func=root_speed_func,
-        )
-        return Solution(success=True, configuration=SpeedConfiguration(speed=speed))
 
     def _find_min_within_capacity_speed(
         self, func: Callable[[SpeedConfiguration], FluidStream]

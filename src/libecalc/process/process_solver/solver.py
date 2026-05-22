@@ -8,7 +8,11 @@ from enum import Enum
 from typing import Self, TypeVar
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import (
+    InfeasiblePressureError,
+    RateTooHighError,
+    RateTooLowError,
+)
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import (
@@ -65,6 +69,13 @@ class InfeasiblePressureFailure(SolverFailure):
     source_id: ProcessUnitId
     achieved_pressure_bara: float | None = None
 
+    @classmethod
+    def from_error(cls, e: InfeasiblePressureError) -> Self:
+        return cls(
+            source_id=e.process_unit_id,
+            achieved_pressure_bara=e.achieved_pressure_bara,
+        )
+
 
 class TargetDirection(Enum):
     """Which side of the target pressure the achievable boundary lies on."""
@@ -89,6 +100,17 @@ class Solution[TConfiguration]:
     success: bool
     configuration: TConfiguration
     failure: SolverFailure | None = field(default=None)
+
+    @classmethod
+    def from_infeasible_pressure(
+        cls, e: InfeasiblePressureError, configuration: TConfiguration
+    ) -> Solution[TConfiguration]:
+        """Build an unsuccessful Solution carrying an InfeasiblePressureFailure."""
+        return cls(
+            success=False,
+            configuration=configuration,
+            failure=InfeasiblePressureFailure.from_error(e),
+        )
 
     def get_configuration(
         self: Solution[Sequence[Configuration[OperatingConfiguration]]],

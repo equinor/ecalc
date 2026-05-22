@@ -2,11 +2,12 @@ from collections.abc import Sequence
 from typing import override
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError
+from libecalc.process.process_pipeline.process_error import InfeasiblePressureError, RateTooHighError
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.solver import (
+    InfeasiblePressureFailure,
     RateTooHighFailure,
     Solution,
 )
@@ -64,6 +65,12 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
                     success=False,
                     configuration=configurations,
                     failure=RateTooHighFailure.from_error(e),
+                )
+            except InfeasiblePressureError as e:
+                return Solution(
+                    success=False,
+                    configuration=configurations,
+                    failure=InfeasiblePressureFailure.from_error(e),
                 )
             boundary = compressor.get_recirculation_range(inlet_stream=inlet_stream_compressor)
             configuration: Configuration[RecirculationConfiguration] = Configuration(

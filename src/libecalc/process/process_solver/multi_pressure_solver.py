@@ -95,7 +95,7 @@ class MultiPressureSolver:
 
             anti_surge_solution = segment.anti_surge_strategy.apply(inlet_stream=current_inlet)
             segment.runner.apply_configurations(anti_surge_solution.configuration)
-            solution = solution.combine(anti_surge_solution)
+            solution = solution.combine(anti_surge_solution)  # type: ignore[arg-type]
 
             outlet = segment.runner.run(inlet_stream=current_inlet)
 

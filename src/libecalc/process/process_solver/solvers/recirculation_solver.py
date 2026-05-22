@@ -2,12 +2,17 @@ from collections.abc import Callable
 from typing import Literal
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import (
+    InfeasiblePressureError,
+    RateTooHighError,
+    RateTooLowError,
+)
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
 from libecalc.process.process_solver.solver import (
+    InfeasiblePressureFailure,
     RateTooHighFailure,
     Solution,
     Solver,
@@ -32,6 +37,54 @@ class RecirculationSolver(Solver):
     def solve(self, func: Callable[[RecirculationConfiguration], FluidStream]) -> Solution[RecirculationConfiguration]:
         try:
             minimum_rate = self._find_min_within_capacity_rate(func)
+
+            target_pressure = self._target_pressure
+            if target_pressure is None:
+                # Recirc used to get within capacity, but not to meet constraints
+                return Solution(success=True, configuration=RecirculationConfiguration(recirculation_rate=minimum_rate))
+
+            maximum_rate = self._find_max_within_capacity_rate(func)
+
+            minimum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=minimum_rate))
+            if minimum_outlet_stream.pressure_bara <= target_pressure:
+                # Highest possible pressure is too low
+                is_success = minimum_outlet_stream.pressure_bara == target_pressure
+                return Solution(
+                    success=is_success,
+                    configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
+                    failure=None
+                    if is_success
+                    else TargetPressureUnreachableFailure(
+                        achievable_pressure_bara=minimum_outlet_stream.pressure_bara,
+                        target_pressure_bara=target_pressure.value,
+                        direction=TargetDirection.MAX_BELOW_TARGET,
+                    ),
+                )
+            maximum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=maximum_rate))
+            if maximum_outlet_stream.pressure_bara >= target_pressure:
+                # Lowest possible pressure is too high
+                is_success = maximum_outlet_stream.pressure_bara == self._target_pressure
+                return Solution(
+                    success=is_success,
+                    configuration=RecirculationConfiguration(recirculation_rate=maximum_rate),
+                    failure=None
+                    if is_success
+                    else TargetPressureUnreachableFailure(
+                        achievable_pressure_bara=maximum_outlet_stream.pressure_bara,
+                        target_pressure_bara=target_pressure.value,
+                        direction=TargetDirection.MIN_ABOVE_TARGET,
+                    ),
+                )
+
+            recirculation_rate = self._root_finding_strategy.find_root(
+                boundary=Boundary(min=minimum_rate, max=maximum_rate),
+                func=lambda x: (
+                    func(RecirculationConfiguration(recirculation_rate=x)).pressure_bara - target_pressure.value
+                ),
+            )
+            return Solution(
+                success=True, configuration=RecirculationConfiguration(recirculation_rate=recirculation_rate)
+            )
         except RateTooHighError as e:
             # Flow is above stonewall at zero recirculation; adding recirculation cannot help.
             return Solution(
@@ -39,50 +92,12 @@ class RecirculationSolver(Solver):
                 configuration=RecirculationConfiguration(recirculation_rate=self._recirculation_rate_boundary.min),
                 failure=RateTooHighFailure.from_error(e),
             )
-
-        target_pressure = self._target_pressure
-        if target_pressure is None:
-            # Recirc used to get within capacity, but not to meet constraints
-            return Solution(success=True, configuration=RecirculationConfiguration(recirculation_rate=minimum_rate))
-
-        maximum_rate = self._find_max_within_capacity_rate(func)
-
-        minimum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=minimum_rate))
-        if minimum_outlet_stream.pressure_bara <= target_pressure:
-            # Highest possible pressure is too low
-            is_success = minimum_outlet_stream.pressure_bara == target_pressure
+        except InfeasiblePressureError as e:
             return Solution(
-                success=is_success,
-                configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
-                failure=None
-                if is_success
-                else TargetPressureUnreachableFailure(
-                    achievable_pressure_bara=minimum_outlet_stream.pressure_bara,
-                    target_pressure_bara=target_pressure.value,
-                    direction=TargetDirection.MAX_BELOW_TARGET,
-                ),
+                success=False,
+                configuration=RecirculationConfiguration(recirculation_rate=self._recirculation_rate_boundary.min),
+                failure=InfeasiblePressureFailure.from_error(e),
             )
-        maximum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=maximum_rate))
-        if maximum_outlet_stream.pressure_bara >= target_pressure:
-            # Lowest possible pressure is too high
-            is_success = maximum_outlet_stream.pressure_bara == self._target_pressure
-            return Solution(
-                success=is_success,
-                configuration=RecirculationConfiguration(recirculation_rate=maximum_rate),
-                failure=None
-                if is_success
-                else TargetPressureUnreachableFailure(
-                    achievable_pressure_bara=maximum_outlet_stream.pressure_bara,
-                    target_pressure_bara=target_pressure.value,
-                    direction=TargetDirection.MIN_ABOVE_TARGET,
-                ),
-            )
-
-        recirculation_rate = self._root_finding_strategy.find_root(
-            boundary=Boundary(min=minimum_rate, max=maximum_rate),
-            func=lambda x: func(RecirculationConfiguration(recirculation_rate=x)).pressure_bara - target_pressure.value,
-        )
-        return Solution(success=True, configuration=RecirculationConfiguration(recirculation_rate=recirculation_rate))
 
     def _find_min_within_capacity_rate(self, func: Callable[[RecirculationConfiguration], FluidStream]) -> float:
         """Return the smallest recirculation rate that keeps every stage within flow capacity.

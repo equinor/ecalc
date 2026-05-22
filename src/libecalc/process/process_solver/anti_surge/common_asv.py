@@ -1,11 +1,12 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import InfeasiblePressureError
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
-from libecalc.process.process_solver.solver import Solution
+from libecalc.process.process_solver.solver import InfeasiblePressureFailure, Solution
 from libecalc.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
     RecirculationSolver,
@@ -38,7 +39,6 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self._simulator = simulator
 
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
-        # Increase recirculation to give minimum feasible flow and return outlet.
         recirculation_solution = self._increase_recirculation_to_minimum_feasible(inlet_stream)
         return Solution(
             success=recirculation_solution.success,
@@ -48,6 +48,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
                     value=recirculation_solution.configuration,
                 )
             ],
+            failure=recirculation_solution.failure,
         )
 
     def _apply_configuration(self, cfg: RecirculationConfiguration):
@@ -59,7 +60,16 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self, inlet_stream: FluidStream
     ) -> Solution[RecirculationConfiguration]:
         # The recirculation boundary depends on the inlet stream (and implicitly current speed).
-        compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
+        try:
+            compressor_inlet_stream = self._simulator.run(
+                inlet_stream=inlet_stream, to_id=self._first_compressor.get_id()
+            )
+        except InfeasiblePressureError as e:
+            return Solution(
+                success=False,
+                configuration=RecirculationConfiguration(recirculation_rate=0),
+                failure=InfeasiblePressureFailure.from_error(e),
+            )
         boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
 
         def recirculation_func(cfg: RecirculationConfiguration) -> FluidStream:

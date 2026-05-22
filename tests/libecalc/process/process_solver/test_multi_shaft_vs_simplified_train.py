@@ -53,6 +53,7 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
         )
     )
     legacy_outlet = legacy_result.outlet_stream
+    assert legacy_outlet is not None
 
     # New: MultiShaftEqualRatioSolver
     solver_pipelines = [
