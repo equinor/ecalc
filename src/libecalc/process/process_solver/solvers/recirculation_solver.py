@@ -29,36 +29,12 @@ class RecirculationSolver(Solver):
         self._root_finding_strategy = root_finding_strategy
 
     def solve(self, func: Callable[[RecirculationConfiguration], FluidStream]) -> Solution[RecirculationConfiguration]:
-        def bool_func(x: float, mode: Literal["minimize", "maximize"]) -> tuple[bool, bool]:
-            """
-            Return a tuple where first bool is True for higher value,
-            the second bool says if the solution is accepted or not.
-
-            Need to separate these to avoid accepting a solution which is outside capacity. I.e. when minimizing we
-            want to return True for a higher value, but we don't want to accept the solution.
-            """
-            try:
-                func(RecirculationConfiguration(recirculation_rate=x))
-                return False if mode == "minimize" else True, True
-            except RateTooLowError:
-                return True, False
-            except RateTooHighError:
-                return False, False
-
         try:
-            minimum_rate = self._recirculation_rate_boundary.min
-            func(RecirculationConfiguration(recirculation_rate=minimum_rate))
-            # No error for minimum rate, no need to find min boundary
-        except RateTooLowError:
-            # Min boundary is too low, find solution
-            minimum_rate = self._search_strategy.search(
-                boundary=self._recirculation_rate_boundary,
-                func=lambda x: bool_func(x, mode="minimize"),
-            )
+            minimum_rate = self._find_min_within_capacity_rate(func)
         except RateTooHighError as e:
             # Flow is above stonewall at zero recirculation; adding recirculation cannot help.
             return Solution.from_rate_too_high(
-                e, configuration=RecirculationConfiguration(recirculation_rate=minimum_rate)
+                e, configuration=RecirculationConfiguration(recirculation_rate=self._recirculation_rate_boundary.min)
             )
 
         target_pressure = self._target_pressure
@@ -66,16 +42,7 @@ class RecirculationSolver(Solver):
             # Recirc used to get within capacity, but not to meet constraints
             return Solution(success=True, configuration=RecirculationConfiguration(recirculation_rate=minimum_rate))
 
-        try:
-            maximum_rate = self._recirculation_rate_boundary.max
-            func(RecirculationConfiguration(recirculation_rate=maximum_rate))
-            # No error for max rate, no need to find max boundary
-        except RateTooHighError:
-            # Max boundary is too high, find solution
-            maximum_rate = self._search_strategy.search(
-                boundary=self._recirculation_rate_boundary,
-                func=lambda x: bool_func(x, mode="maximize"),
-            )
+        maximum_rate = self._find_max_within_capacity_rate(func)
 
         minimum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=minimum_rate))
         if minimum_outlet_stream.pressure_bara <= target_pressure:
@@ -113,3 +80,54 @@ class RecirculationSolver(Solver):
             func=lambda x: func(RecirculationConfiguration(recirculation_rate=x)).pressure_bara - target_pressure.value,
         )
         return Solution(success=True, configuration=RecirculationConfiguration(recirculation_rate=recirculation_rate))
+
+    def _find_min_within_capacity_rate(self, func: Callable[[RecirculationConfiguration], FluidStream]) -> float:
+        """Return the smallest recirculation rate that keeps every stage within flow capacity.
+
+        ``RateTooLowError`` at the boundary minimum is recoverable (more recirculation adds
+        flow); ``RateTooHighError`` is not (more recirculation only adds more flow) and
+        propagates.
+        """
+        minimum_rate = self._recirculation_rate_boundary.min
+        try:
+            func(RecirculationConfiguration(recirculation_rate=minimum_rate))
+            return minimum_rate
+        except RateTooLowError:
+            return self._search_strategy.search(
+                boundary=self._recirculation_rate_boundary,
+                func=lambda x: self._bool_func(func, x, mode="minimize"),
+            )
+
+    def _find_max_within_capacity_rate(self, func: Callable[[RecirculationConfiguration], FluidStream]) -> float:
+        """Return the largest recirculation rate that keeps every stage within flow capacity.
+
+        ``RateTooHighError`` at the boundary maximum is recoverable: search downward.
+        """
+        maximum_rate = self._recirculation_rate_boundary.max
+        try:
+            func(RecirculationConfiguration(recirculation_rate=maximum_rate))
+            return maximum_rate
+        except RateTooHighError:
+            return self._search_strategy.search(
+                boundary=self._recirculation_rate_boundary,
+                func=lambda x: self._bool_func(func, x, mode="maximize"),
+            )
+
+    @staticmethod
+    def _bool_func(
+        func: Callable[[RecirculationConfiguration], FluidStream],
+        x: float,
+        mode: Literal["minimize", "maximize"],
+    ) -> tuple[bool, bool]:
+        """Probe a candidate rate for the search strategy.
+
+        Returns ``(is_higher, is_accepted)``. The two booleans are decoupled so an
+        out-of-capacity candidate can never be accepted as a solution.
+        """
+        try:
+            func(RecirculationConfiguration(recirculation_rate=x))
+            return False if mode == "minimize" else True, True
+        except RateTooLowError:
+            return True, False
+        except RateTooHighError:
+            return False, False
