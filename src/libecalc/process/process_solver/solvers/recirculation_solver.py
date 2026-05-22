@@ -8,11 +8,11 @@ from libecalc.process.process_solver.configuration import RecirculationConfigura
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
 from libecalc.process.process_solver.solver import (
-    OutsideCapacityEvent,
+    RateTooHighFailure,
     Solution,
     Solver,
-    SolverFailureStatus,
-    TargetNotAchievableEvent,
+    TargetDirection,
+    TargetPressureUnreachableFailure,
 )
 
 
@@ -61,12 +61,7 @@ class RecirculationSolver(Solver):
             return Solution(
                 success=False,
                 configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
-                failure_event=OutsideCapacityEvent(
-                    status=SolverFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
-                    actual_value=e.actual_rate,
-                    boundary_value=e.boundary_rate,
-                    source_id=e.process_unit_id,
-                ),
+                failure=RateTooHighFailure.from_error(e),
             )
 
         target_pressure = self._target_pressure
@@ -92,12 +87,12 @@ class RecirculationSolver(Solver):
             return Solution(
                 success=is_success,
                 configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
-                failure_event=None
+                failure=None
                 if is_success
-                else TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
-                    achievable_value=minimum_outlet_stream.pressure_bara,
-                    target_value=target_pressure.value,
+                else TargetPressureUnreachableFailure(
+                    achievable_pressure_bara=minimum_outlet_stream.pressure_bara,
+                    target_pressure_bara=target_pressure.value,
+                    direction=TargetDirection.MAX_BELOW_TARGET,
                 ),
             )
         maximum_outlet_stream = func(RecirculationConfiguration(recirculation_rate=maximum_rate))
@@ -107,12 +102,12 @@ class RecirculationSolver(Solver):
             return Solution(
                 success=is_success,
                 configuration=RecirculationConfiguration(recirculation_rate=maximum_rate),
-                failure_event=None
+                failure=None
                 if is_success
-                else TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
-                    achievable_value=maximum_outlet_stream.pressure_bara,
-                    target_value=target_pressure.value,
+                else TargetPressureUnreachableFailure(
+                    achievable_pressure_bara=maximum_outlet_stream.pressure_bara,
+                    target_pressure_bara=target_pressure.value,
+                    direction=TargetDirection.MIN_ABOVE_TARGET,
                 ),
             )
 

@@ -34,7 +34,7 @@ def test_empty_pipelines(stream_factory):
 
     assert solution.success
     assert solution.configuration == []
-    assert solution.failure_event is None
+    assert solution.failure is None
 
 
 def test_unreachable_target_reports_failure(stream_factory, fluid_service, root_finding_strategy):
@@ -57,11 +57,11 @@ def test_unreachable_target_reports_failure(stream_factory, fluid_service, root_
     solution = solver.find_solution([FloatConstraint(9000.0)], inlet)
 
     assert not solution.success
-    assert solution.failure_event is not None
+    assert solution.failure is not None
 
 
 def test_second_pipeline_failure_preserves_first_failure(stream_factory, fluid_service, root_finding_strategy):
-    """When multiple pipelines fail, the first failure_event is preserved."""
+    """When multiple pipelines fail, the first failure is preserved."""
     pipelines = [
         make_process_pipeline(
             min_rate=200,
@@ -89,6 +89,6 @@ def test_second_pipeline_failure_preserves_first_failure(stream_factory, fluid_s
     solution = solver.find_solution([FloatConstraint(9000.0), FloatConstraint(90000.0)], inlet)
 
     assert not solution.success
-    assert solution.failure_event is not None
+    assert solution.failure is not None
     # Configurations are still collected (best-effort from each pipeline)
     assert len(solution.configuration) > 0

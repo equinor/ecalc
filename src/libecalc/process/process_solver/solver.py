@@ -4,10 +4,11 @@ import abc
 import dataclasses
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
-from enum import StrEnum
+from enum import Enum
 from typing import Self, TypeVar
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import (
@@ -20,40 +21,74 @@ from libecalc.process.process_solver.configuration import (
 TConfiguration = TypeVar("TConfiguration", covariant=True)
 
 
-class SolverFailureStatus(StrEnum):
-    ABOVE_MAXIMUM_FLOW_RATE = "ABOVE_MAXIMUM_FLOW_RATE"
-    BELOW_MINIMUM_FLOW_RATE = "BELOW_MINIMUM_FLOW_RATE"
-    MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET = "MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET"
-    MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET = "MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET"
+class SolverFailure:
+    """Typed cause for an unsuccessful ``Solution``.
+
+    Subclasses carry the data relevant to a specific failure mode (e.g. above stonewall,
+    below surge, target pressure unreachable). Consumers should branch on subclass with
+    ``isinstance`` or ``match`` rather than inspecting flag fields.
+    """
 
 
 @dataclass
-class OutsideCapacityEvent:
-    status: SolverFailureStatus
+class RateTooHighFailure(SolverFailure):
     source_id: ProcessUnitId
-    actual_value: float | None = None
-    boundary_value: float | None = None
+    actual_rate_m3_per_hour: float | None = None
+    maximum_rate_m3_per_hour: float | None = None
+
+    @classmethod
+    def from_error(cls, e: RateTooHighError) -> Self:
+        return cls(
+            source_id=e.process_unit_id,
+            actual_rate_m3_per_hour=e.actual_rate,
+            maximum_rate_m3_per_hour=e.boundary_rate,
+        )
 
 
 @dataclass
-class TargetNotAchievableEvent:
-    status: SolverFailureStatus
-    achievable_value: float
-    target_value: float
+class RateTooLowFailure(SolverFailure):
+    source_id: ProcessUnitId
+    actual_rate_m3_per_hour: float | None = None
+    minimum_rate_m3_per_hour: float | None = None
+
+    @classmethod
+    def from_error(cls, e: RateTooLowError) -> Self:
+        return cls(
+            source_id=e.process_unit_id,
+            actual_rate_m3_per_hour=e.actual_rate,
+            minimum_rate_m3_per_hour=e.boundary_rate,
+        )
+
+
+@dataclass
+class InfeasiblePressureFailure(SolverFailure):
+    source_id: ProcessUnitId
+    achieved_pressure_bara: float | None = None
+
+
+class TargetDirection(Enum):
+    """Which side of the target pressure the achievable boundary lies on."""
+
+    MAX_BELOW_TARGET = "max_below_target"
+    MIN_ABOVE_TARGET = "min_above_target"
+
+
+@dataclass
+class TargetPressureUnreachableFailure(SolverFailure):
+    achievable_pressure_bara: float
+    target_pressure_bara: float
+    direction: TargetDirection
     source_id: ProcessPipelineId | None = None
 
     def with_source_id(self, source_id: ProcessPipelineId) -> Self:
         return dataclasses.replace(self, source_id=source_id)
 
 
-SolverFailureEvent = OutsideCapacityEvent | TargetNotAchievableEvent
-
-
 @dataclass(frozen=True)
 class Solution[TConfiguration]:
     success: bool
     configuration: TConfiguration
-    failure_event: SolverFailureEvent | None = field(default=None)
+    failure: SolverFailure | None = field(default=None)
 
     def get_configuration(
         self: Solution[Sequence[Configuration[OperatingConfiguration]]],

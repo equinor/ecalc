@@ -8,8 +8,8 @@ from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
     Solution,
-    SolverFailureStatus,
-    TargetNotAchievableEvent,
+    TargetDirection,
+    TargetPressureUnreachableFailure,
 )
 from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.process.process_solver.solvers.recirculation_solver import (
@@ -74,10 +74,10 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                         value=min_configuration,
                     )
                 ],
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
-                    achievable_value=min_pressure_stream.pressure_bara,
-                    target_value=target_pressure.value,
+                failure=TargetPressureUnreachableFailure(
+                    achievable_pressure_bara=min_pressure_stream.pressure_bara,
+                    target_pressure_bara=target_pressure.value,
+                    direction=TargetDirection.MIN_ABOVE_TARGET,
                 ),
             )
 

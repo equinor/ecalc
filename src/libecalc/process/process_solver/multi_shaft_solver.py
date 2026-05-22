@@ -35,11 +35,11 @@ class MultiShaftSolver:
         )
 
         if not self._process_pipelines:
-            return Solution(success=True, configuration=[], failure_event=None)
+            return Solution(success=True, configuration=[], failure=None)
 
         current_inlet = inlet_stream
         all_configurations: list[Configuration[OperatingConfiguration]] = []
-        failure_event = None
+        failure = None
         overall_success = True
 
         for i, (pipeline, target) in enumerate(zip(self._process_pipelines, pressure_targets)):
@@ -48,8 +48,8 @@ class MultiShaftSolver:
 
             if not solution.success:
                 overall_success = False
-                if failure_event is None:
-                    failure_event = solution.failure_event
+                if failure is None:
+                    failure = solution.failure
                 logger.debug("Process pipeline %d failed to reach target %.1f bara.", i, target.value)
 
             pipeline.runner.apply_configurations(solution.configuration)
@@ -58,5 +58,5 @@ class MultiShaftSolver:
         return Solution(
             success=overall_success,
             configuration=all_configurations,
-            failure_event=failure_event,
+            failure=failure,
         )

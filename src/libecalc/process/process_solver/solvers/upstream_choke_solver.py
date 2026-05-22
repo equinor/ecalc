@@ -6,7 +6,12 @@ from libecalc.process.process_pipeline.process_error import RateTooHighError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import ChokeConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy
-from libecalc.process.process_solver.solver import Solution, Solver, SolverFailureStatus, TargetNotAchievableEvent
+from libecalc.process.process_solver.solver import (
+    Solution,
+    Solver,
+    TargetDirection,
+    TargetPressureUnreachableFailure,
+)
 
 
 class UpstreamChokeSolver(Solver):
@@ -38,10 +43,10 @@ class UpstreamChokeSolver(Solver):
             return Solution(
                 success=False,
                 configuration=ChokeConfiguration(delta_pressure=search_boundary.max),
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
-                    achievable_value=max_pressure,
-                    target_value=self._target_pressure,
+                failure=TargetPressureUnreachableFailure(
+                    achievable_pressure_bara=max_pressure,
+                    target_pressure_bara=self._target_pressure,
+                    direction=TargetDirection.MIN_ABOVE_TARGET,
                 ),
             )
 

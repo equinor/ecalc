@@ -7,11 +7,12 @@ from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
 from libecalc.process.process_solver.solver import (
-    OutsideCapacityEvent,
+    RateTooHighFailure,
+    RateTooLowFailure,
     Solution,
     Solver,
-    SolverFailureStatus,
-    TargetNotAchievableEvent,
+    TargetDirection,
+    TargetPressureUnreachableFailure,
 )
 
 logger = logging.getLogger(__name__)
@@ -42,34 +43,24 @@ class SpeedSolver(Solver[SpeedConfiguration]):
             return Solution(
                 success=False,
                 configuration=max_speed_configuration,
-                failure_event=OutsideCapacityEvent(
-                    status=SolverFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
-                    actual_value=e.actual_rate,
-                    boundary_value=e.boundary_rate,
-                    source_id=e.process_unit_id,
-                ),
+                failure=RateTooHighFailure.from_error(e),
             )
         except RateTooLowError as e:
             logger.debug(f"No solution found for maximum speed: {max_speed_configuration}", exc_info=e)
             return Solution(
                 success=False,
                 configuration=max_speed_configuration,
-                failure_event=OutsideCapacityEvent(
-                    status=SolverFailureStatus.BELOW_MINIMUM_FLOW_RATE,
-                    actual_value=e.actual_rate,
-                    boundary_value=e.boundary_rate,
-                    source_id=e.process_unit_id,
-                ),
+                failure=RateTooLowFailure.from_error(e),
             )
 
         if maximum_speed_outlet_stream.pressure_bara < self._target_pressure:
             return Solution(
                 success=False,
                 configuration=SpeedConfiguration(self._boundary.max),
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
-                    achievable_value=maximum_speed_outlet_stream.pressure_bara,
-                    target_value=self._target_pressure,
+                failure=TargetPressureUnreachableFailure(
+                    achievable_pressure_bara=maximum_speed_outlet_stream.pressure_bara,
+                    target_pressure_bara=self._target_pressure,
+                    direction=TargetDirection.MAX_BELOW_TARGET,
                 ),
             )
 
@@ -101,10 +92,10 @@ class SpeedSolver(Solver[SpeedConfiguration]):
             return Solution(
                 success=False,
                 configuration=minimum_speed_configuration,
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
-                    achievable_value=minimum_speed_outlet_stream.pressure_bara,
-                    target_value=self._target_pressure,
+                failure=TargetPressureUnreachableFailure(
+                    achievable_pressure_bara=minimum_speed_outlet_stream.pressure_bara,
+                    target_pressure_bara=self._target_pressure,
+                    direction=TargetDirection.MIN_ABOVE_TARGET,
                 ),
             )
 
