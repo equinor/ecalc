@@ -2,7 +2,7 @@ from typing import Final
 
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import OutsideCapacityError
+from libecalc.process.process_pipeline.process_error import InfeasiblePressureError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
@@ -33,7 +33,16 @@ class PressureDropper(ProcessUnit):
         if self._pressure_drop_bara > 0.0:
             new_pressure_bara = inlet_stream.pressure_bara - self._pressure_drop_bara
             if new_pressure_bara < 0.0:
-                raise OutsideCapacityError(f"Pressure cannot drop below 0 (Given: {new_pressure_bara})")
+                raise InfeasiblePressureError(
+                    process_unit_id=self.get_id(),
+                    achieved_pressure_bara=new_pressure_bara,
+                    reason=(
+                        f"PressureDropper would drop pressure below 0 bara "
+                        f"(inlet={inlet_stream.pressure_bara}, "
+                        f"drop={self._pressure_drop_bara}, "
+                        f"result={new_pressure_bara})."
+                    ),
+                )
         else:
             # Delta pressure = 0, i.e. don't do anything
             return inlet_stream

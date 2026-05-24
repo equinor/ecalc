@@ -8,7 +8,7 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
 from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
-from libecalc.process.process_solver.solver import Solution, SolverFailureStatus, TargetNotAchievableEvent
+from libecalc.process.process_solver.solver import Solution, TargetDirection, TargetPressureUnreachableFailure
 
 
 class MultiPressureSolver:
@@ -95,7 +95,7 @@ class MultiPressureSolver:
 
             anti_surge_solution = segment.anti_surge_strategy.apply(inlet_stream=current_inlet)
             segment.runner.apply_configurations(anti_surge_solution.configuration)
-            solution = solution.combine(anti_surge_solution)
+            solution = solution.combine(anti_surge_solution)  # type: ignore[arg-type]
 
             outlet = segment.runner.run(inlet_stream=current_inlet)
 
@@ -111,11 +111,11 @@ class MultiPressureSolver:
                 solution = Solution(
                     success=False,
                     configuration=solution.configuration,
-                    failure_event=TargetNotAchievableEvent(
-                        status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
-                        achievable_value=outlet.pressure_bara,
-                        target_value=target.value,
+                    failure=TargetPressureUnreachableFailure(
+                        achievable_pressure_bara=outlet.pressure_bara,
+                        target_pressure_bara=target.value,
                         source_id=segment.process_pipeline_id,
+                        direction=TargetDirection.MAX_BELOW_TARGET,
                     ),
                 )
 

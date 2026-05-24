@@ -5,6 +5,7 @@ from libecalc.process.process_pipeline.process_error import RateTooHighError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
+from libecalc.process.process_solver.solver import TargetPressureUnreachableFailure
 from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 
@@ -111,9 +112,10 @@ def test_upstream_choke_solver_reports_failure_when_rate_capacity_prevents_reach
     solution = upstream_choke_solver.solve(choke_func)
 
     assert not solution.success
-    assert solution.failure_event is not None
-    assert solution.failure_event.target_value == target_pressure
-    assert solution.failure_event.achievable_value > target_pressure
+    assert solution.failure is not None
+    assert isinstance(solution.failure, TargetPressureUnreachableFailure)
+    assert solution.failure.target_pressure_bara == target_pressure
+    assert solution.failure.achievable_pressure_bara > target_pressure
 
 
 def test_upstream_choke_solver_reports_failure_when_max_choke_still_above_target(
@@ -140,6 +142,7 @@ def test_upstream_choke_solver_reports_failure_when_max_choke_still_above_target
     solution = upstream_choke_solver.solve(choke_func)
 
     assert not solution.success
-    assert solution.failure_event is not None
-    assert solution.failure_event.target_value == target_pressure
-    assert solution.failure_event.achievable_value > target_pressure
+    assert solution.failure is not None
+    assert isinstance(solution.failure, TargetPressureUnreachableFailure)
+    assert solution.failure.target_pressure_bara == target_pressure
+    assert solution.failure.achievable_pressure_bara > target_pressure

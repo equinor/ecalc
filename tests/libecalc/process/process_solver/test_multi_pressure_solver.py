@@ -6,7 +6,7 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
-from libecalc.process.process_solver.solver import TargetNotAchievableEvent
+from libecalc.process.process_solver.solver import TargetPressureUnreachableFailure
 from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.splitter import Splitter
 from libecalc.process.shaft import VariableSpeedShaft
@@ -176,9 +176,11 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     assert solution.success
     assert interstage_stream.pressure_bara == pytest.approx(interstage_pressure_target, rel=0.001)
     assert new_outlet_stream.pressure_bara == pytest.approx(target_pressure, rel=0.001)
+    assert old_result.stage_results[0].outlet_stream is not None
     assert interstage_stream.pressure_bara == pytest.approx(
         old_result.stage_results[0].outlet_stream.pressure_bara, rel=0.001
     )
+    assert old_result.outlet_stream is not None
     assert new_outlet_stream.pressure_bara == pytest.approx(old_result.outlet_stream.pressure_bara, rel=0.001)
 
 
@@ -360,7 +362,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
     root_finding_strategy,
     variable_speed_chart_data_factory,
 ):
-    """TargetNotAchievableEvent.source_id should identify the second segment when it fails."""
+    """TargetPressureUnreachableFailure.source_id should identify the second segment when it fails."""
 
     temperature = 300.0
     q0 = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
@@ -433,8 +435,8 @@ def test_target_not_achievable_event_identifies_failing_segment(
     )
 
     assert not solution.success
-    assert isinstance(solution.failure_event, TargetNotAchievableEvent)
-    assert solution.failure_event.source_id == hp_process_pipeline.get_id()
+    assert isinstance(solution.failure, TargetPressureUnreachableFailure)
+    assert solution.failure.source_id == hp_process_pipeline.get_id()
 
 
 def test_target_not_achievable_event_when_first_segment_fails(
@@ -451,7 +453,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
     root_finding_strategy,
     variable_speed_chart_data_factory,
 ):
-    """TargetNotAchievableEvent.source_id should identify the first segment when it fails."""
+    """TargetPressureUnreachableFailure.source_id should identify the first segment when it fails."""
     temperature = 300.0
     q0 = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
     q0_vol = float(q0.volumetric_rate_m3_per_hour)
@@ -523,5 +525,5 @@ def test_target_not_achievable_event_when_first_segment_fails(
     )
 
     assert not solution.success
-    assert isinstance(solution.failure_event, TargetNotAchievableEvent)
-    assert solution.failure_event.source_id == lp_process_pipeline.get_id()
+    assert isinstance(solution.failure, TargetPressureUnreachableFailure)
+    assert solution.failure.source_id == lp_process_pipeline.get_id()

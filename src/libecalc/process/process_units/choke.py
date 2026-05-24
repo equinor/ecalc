@@ -2,7 +2,7 @@ from typing import Final
 
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import OutsideCapacityError
+from libecalc.process.process_pipeline.process_error import InfeasiblePressureError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
@@ -33,7 +33,16 @@ class Choke(ProcessUnit):
         if self._pressure_change > 0.0:
             pressure_bara = inlet_stream.pressure_bara - self._pressure_change
             if pressure_bara < 0.0:
-                raise OutsideCapacityError("Trying to choke to negative pressure.")
+                raise InfeasiblePressureError(
+                    process_unit_id=self.get_id(),
+                    achieved_pressure_bara=pressure_bara,
+                    reason=(
+                        f"Choke would reduce pressure below 0 bara "
+                        f"(inlet={inlet_stream.pressure_bara}, "
+                        f"change={self._pressure_change}, "
+                        f"result={pressure_bara})."
+                    ),
+                )
         else:
             # Delta pressure = 0, i.e. don't do anything
             return inlet_stream

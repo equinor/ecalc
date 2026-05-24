@@ -1,15 +1,18 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import InfeasiblePressureError
+from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
+    InfeasiblePressureFailure,
     Solution,
-    SolverFailureStatus,
-    TargetNotAchievableEvent,
+    TargetDirection,
+    TargetPressureUnreachableFailure,
 )
 from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.process.process_solver.solvers.recirculation_solver import (
@@ -50,7 +53,6 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
             )
             return self._simulator.run(inlet_stream=inlet_stream)
 
-        # Check feasibility: can we reach target pressure at maximum recirculation?
         # Reset recirculation before computing the boundary — the mixer may carry
         # residual state from anti-surge, which inflates the inlet rate and
         # shrinks the recirculation range.
@@ -60,8 +62,12 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                 value=RecirculationConfiguration(recirculation_rate=0.0),
             )
         )
-        compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
-        boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
+
+        boundary_solution = self._compute_recirculation_boundary(inlet_stream)
+        if not boundary_solution.success:
+            return Solution(success=False, configuration=[], failure=boundary_solution.failure)
+        boundary = boundary_solution.configuration
+
         min_configuration = RecirculationConfiguration(recirculation_rate=boundary.max)
         min_pressure_stream = recirculation_func(min_configuration)
 
@@ -74,10 +80,10 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                         value=min_configuration,
                     )
                 ],
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
-                    achievable_value=min_pressure_stream.pressure_bara,
-                    target_value=target_pressure.value,
+                failure=TargetPressureUnreachableFailure(
+                    achievable_pressure_bara=min_pressure_stream.pressure_bara,
+                    target_pressure_bara=target_pressure.value,
+                    direction=TargetDirection.MIN_ABOVE_TARGET,
                 ),
             )
 
@@ -97,4 +103,19 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                     value=solution.configuration,
                 )
             ],
+            failure=solution.failure,
         )
+
+    def _compute_recirculation_boundary(self, inlet_stream: FluidStream) -> Solution[Boundary]:
+        try:
+            compressor_inlet_stream = self._simulator.run(
+                inlet_stream=inlet_stream, to_id=self._first_compressor.get_id()
+            )
+        except InfeasiblePressureError as e:
+            return Solution(
+                success=False,
+                configuration=Boundary(min=0, max=0),
+                failure=InfeasiblePressureFailure.from_error(e),
+            )
+        boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
+        return Solution(success=True, configuration=boundary)
