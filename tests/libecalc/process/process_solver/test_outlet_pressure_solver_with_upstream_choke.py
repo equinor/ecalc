@@ -64,6 +64,7 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
     pressure_control_strategy = upstream_choke_pressure_control_strategy_factory(
         runner=runner,
         choke_id=upstream_choke_configuration_handler.get_id(),
+        anti_surge_strategy=anti_surge_strategy,
     )
     solver = outlet_pressure_solver_factory(
         shaft=shaft,

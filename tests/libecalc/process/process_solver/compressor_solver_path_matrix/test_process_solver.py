@@ -51,8 +51,6 @@ PROCESS_XFAILS: dict[tuple[str, str], str] = {
     ("R1", "INDIVIDUAL_ASV_RATE"): "SpeedSolver bracketing failure at min-speed.",
     ("R1", "INDIVIDUAL_ASV_PRESSURE"): "SpeedSolver bracketing failure at min-speed.",
     ("R1", "COMMON_ASV"): "SpeedSolver bracketing failure at min-speed.",
-    # R3 — upstream choke power mismatch
-    ("R3", "UPSTREAM_CHOKE"): "Process solver finds different upstream choke ΔP → power mismatch (2.41 vs 2.23 MW).",
     # R5 — Common-ASV loses flow-capacity failure
     ("R5", "COMMON_ASV"): "Common-ASV topology loses flow-capacity failure for stonewall case.",
     # R6 — similar SpeedSolver convergence issue near max-speed boundary

@@ -26,3 +26,12 @@ class AntiSurgeStrategy(ABC):
             Outlet stream after applying anti-surge adjustments (e.g. setting ASV recirculation).
         """
         ...
+
+    @abstractmethod
+    def reset(self) -> None:
+        """Zero all recirculation managed by this strategy.
+
+        Called before re-evaluating anti-surge in contexts where stale recirculation
+        from a previous evaluation would corrupt the result (e.g. upstream-choke search).
+        """
+        ...
