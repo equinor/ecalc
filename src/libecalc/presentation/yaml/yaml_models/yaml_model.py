@@ -16,8 +16,8 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import Y
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
     YamlProcessSimulation,
     YamlProcessSystem,
-    YamlProcessUnit,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
