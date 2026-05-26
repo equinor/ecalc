@@ -7,6 +7,7 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_shaft_equal_ratio_solver import MultiShaftEqualRatioSolver
 from tests.libecalc.process.process_solver.test_multi_shaft_equal_ratio_solver import (
@@ -74,7 +75,9 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
 
     current = inlet_stream
     for pipeline in solver_pipelines:
-        current = pipeline.runner.run(current)
+        next_stream = pipeline.runner.run(current)
+        assert isinstance(next_stream, FluidStream)
+        current = next_stream
     new_outlet = current
 
     assert new_outlet.pressure_bara == pytest.approx(legacy_outlet.pressure_bara, rel=0.01)

@@ -1,8 +1,12 @@
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.process.process_pipeline.propagation_failure import (
+    PropagationFailure,
+    RateTooHigh,
+    TargetPressureUnreachable,
+)
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
@@ -27,13 +31,13 @@ def test_upstream_choke_solver(
         delta_pressure_boundary=Boundary(min=EPSILON, max=inlet_stream.pressure_bara - EPSILON),
     )
 
-    def choke_func(configuration: ChokeConfiguration) -> FluidStream:
+    def choke_func(configuration: ChokeConfiguration) -> FluidStream | PropagationFailure:
         choke.set_pressure_change(configuration.delta_pressure)
         return propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
     assert upstream_choke_solver.solve(choke_func)
     outlet_stream = propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
-
+    assert isinstance(outlet_stream, FluidStream)
     assert outlet_stream.pressure_bara == 70
 
 
@@ -61,11 +65,11 @@ def test_upstream_choke_solver_handles_rate_too_high_at_max_choke(
         delta_pressure_boundary=Boundary(min=EPSILON, max=inlet_pressure - EPSILON),
     )
 
-    def choke_func(configuration: ChokeConfiguration) -> FluidStream:
+    def choke_func(configuration: ChokeConfiguration) -> FluidStream | PropagationFailure:
         suction_pressure = inlet_pressure - configuration.delta_pressure
         if suction_pressure < feasible_suction_pressure:
             # TODO: Should get ID from owning choke?
-            raise RateTooHighError(process_unit_id=ProcessUnitId(ecalc_id_generator()))
+            return RateTooHigh(source_id=ProcessUnitId(ecalc_id_generator()))
         return stream_factory(
             standard_rate_m3_per_day=1000,
             pressure_bara=suction_pressure + pressure_added,
@@ -99,10 +103,10 @@ def test_upstream_choke_solver_reports_failure_when_rate_capacity_prevents_reach
         delta_pressure_boundary=Boundary(min=EPSILON, max=inlet_pressure - EPSILON),
     )
 
-    def choke_func(configuration: ChokeConfiguration) -> FluidStream:
+    def choke_func(configuration: ChokeConfiguration) -> FluidStream | PropagationFailure:
         suction_pressure = inlet_pressure - configuration.delta_pressure
         if suction_pressure < feasible_suction_minimum:
-            raise RateTooHighError(process_unit_id=ProcessUnitId(ecalc_id_generator()))
+            return RateTooHigh(source_id=ProcessUnitId(ecalc_id_generator()))
         return stream_factory(
             standard_rate_m3_per_day=1000,
             pressure_bara=suction_pressure + pressure_added,
@@ -111,7 +115,7 @@ def test_upstream_choke_solver_reports_failure_when_rate_capacity_prevents_reach
     solution = upstream_choke_solver.solve(choke_func)
 
     assert not solution.success
-    assert solution.failure is not None
+    assert isinstance(solution.failure, TargetPressureUnreachable)
     assert solution.failure.target_pressure_bara == target_pressure
     assert solution.failure.achievable_pressure_bara > target_pressure
 
@@ -140,6 +144,6 @@ def test_upstream_choke_solver_reports_failure_when_max_choke_still_above_target
     solution = upstream_choke_solver.solve(choke_func)
 
     assert not solution.success
-    assert solution.failure is not None
+    assert isinstance(solution.failure, TargetPressureUnreachable)
     assert solution.failure.target_pressure_bara == target_pressure
     assert solution.failure.achievable_pressure_bara > target_pressure

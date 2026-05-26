@@ -6,6 +6,7 @@ import logging
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
@@ -53,7 +54,13 @@ class MultiShaftSolver:
                 logger.debug("Process pipeline %d failed to reach target %.1f bara.", i, target.value)
 
             pipeline.runner.apply_configurations(solution.configuration)
-            current_inlet = pipeline.runner.run(current_inlet)
+            next_inlet = pipeline.runner.run(current_inlet)
+            if isinstance(next_inlet, PropagationFailure):
+                overall_success = False
+                if failure is None:
+                    failure = next_inlet
+                break
+            current_inlet = next_inlet
 
         return Solution(
             success=overall_success,

@@ -2,7 +2,7 @@ from collections.abc import Sequence
 from typing import override
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure, RateTooHigh
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.process_runner import ProcessRunner
@@ -47,17 +47,19 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         configurations: Sequence[Configuration[RecirculationConfiguration]] = []
         for loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors, strict=True):
-            try:
-                inlet_stream_compressor = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
-                max_actual_rate = compressor.maximum_flow_rate
-                if inlet_stream_compressor.volumetric_rate_m3_per_hour > max_actual_rate:
-                    raise RateTooHighError(
-                        process_unit_id=compressor.get_id(),
-                        actual_rate=inlet_stream_compressor.volumetric_rate_m3_per_hour,
-                        boundary_rate=max_actual_rate,
-                    )
-            except RateTooHighError as e:
-                return Solution.from_rate_too_high(e, configuration=configurations)
+            inlet_stream_compressor = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
+            if isinstance(inlet_stream_compressor, PropagationFailure):
+                return Solution.failed(configuration=configurations, failure=inlet_stream_compressor)
+            max_actual_rate = compressor.maximum_flow_rate
+            if inlet_stream_compressor.volumetric_rate_m3_per_hour > max_actual_rate:
+                return Solution.failed(
+                    configuration=configurations,
+                    failure=RateTooHigh(
+                        source_id=compressor.get_id(),
+                        actual_rate_m3_per_hour=inlet_stream_compressor.volumetric_rate_m3_per_hour,
+                        maximum_rate_m3_per_hour=max_actual_rate,
+                    ),
+                )
             boundary = compressor.get_recirculation_range(inlet_stream=inlet_stream_compressor)
             configuration: Configuration[RecirculationConfiguration] = Configuration(
                 configuration_handler_id=loop_id,
@@ -65,7 +67,9 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
                     recirculation_rate=boundary.min,
                 ),
             )
-            configurations.append(configuration)
+            # Rebind instead of .append: configurations is typed Sequence (read-only),
+            # so we produce a new sequence rather than mutating in place.
+            configurations = [*configurations, configuration]
             self._simulator.apply_configuration(configuration)
 
         return Solution(

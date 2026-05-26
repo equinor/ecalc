@@ -1,13 +1,9 @@
-from collections.abc import Callable
-
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
-from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError
-from libecalc.process.process_pipeline.propagation_failure import TargetDirection
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure, RateTooHigh, TargetDirection
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import ChokeConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy
-from libecalc.process.process_solver.solver import Solution, Solver
+from libecalc.process.process_solver.solver import InfeasibleDuringSearch, PropagationCallback, Solution, Solver
 
 
 class UpstreamChokeSolver(Solver):
@@ -26,14 +22,27 @@ class UpstreamChokeSolver(Solver):
         self._boundary = delta_pressure_boundary
         self._root_finding_strategy = root_finding_strategy
 
-    def solve(self, func: Callable[[ChokeConfiguration], FluidStream]) -> Solution[ChokeConfiguration]:
+    def solve(self, func: PropagationCallback[ChokeConfiguration]) -> Solution[ChokeConfiguration]:
         def outlet_pressure(delta_pressure: float) -> float:
-            return func(ChokeConfiguration(delta_pressure=delta_pressure)).pressure_bara
+            result = func(ChokeConfiguration(delta_pressure=delta_pressure))
+            if isinstance(result, PropagationFailure):
+                raise InfeasibleDuringSearch(result)
+            return result.pressure_bara
 
-        assert outlet_pressure(0) > self._target_pressure
+        try:
+            unchoked = outlet_pressure(0)
+        except InfeasibleDuringSearch as exc:
+            return Solution.failed(configuration=ChokeConfiguration(delta_pressure=0), failure=exc.failure)
+        assert unchoked > self._target_pressure
 
         search_boundary = self._feasible_boundary(func)
-        max_pressure = outlet_pressure(search_boundary.max)
+        try:
+            max_pressure = outlet_pressure(search_boundary.max)
+        except InfeasibleDuringSearch as exc:
+            return Solution.failed(
+                configuration=ChokeConfiguration(delta_pressure=search_boundary.max),
+                failure=exc.failure,
+            )
 
         if max_pressure > self._target_pressure:
             return Solution.target_pressure_unreachable(
@@ -43,30 +52,32 @@ class UpstreamChokeSolver(Solver):
                 direction=TargetDirection.MIN_ABOVE_TARGET,
             )
 
-        delta_pressure = self._root_finding_strategy.find_root(
-            boundary=search_boundary,
-            func=lambda x: outlet_pressure(x) - self._target_pressure,
-        )
+        try:
+            delta_pressure = self._root_finding_strategy.find_root(
+                boundary=search_boundary,
+                func=lambda x: outlet_pressure(x) - self._target_pressure,
+            )
+        except InfeasibleDuringSearch as exc:
+            return Solution.failed(
+                configuration=ChokeConfiguration(delta_pressure=search_boundary.min),
+                failure=exc.failure,
+            )
         return Solution(success=True, configuration=ChokeConfiguration(delta_pressure=delta_pressure))
 
-    def _feasible_boundary(self, func: Callable[[ChokeConfiguration], FluidStream]) -> Boundary:
-        """Return the search boundary narrowed to the feasible region (no RateTooHighError).
+    def _feasible_boundary(self, func: PropagationCallback[ChokeConfiguration]) -> Boundary:
+        """Return the search boundary narrowed to the feasible region (no RateTooHigh).
 
         Probes the upper bound first; if feasible, returns the original boundary immediately.
         Otherwise bisects for the largest ΔP before rate capacity is exceeded.
         """
-        try:
-            func(ChokeConfiguration(delta_pressure=self._boundary.max))
+        if not isinstance(func(ChokeConfiguration(delta_pressure=self._boundary.max)), RateTooHigh):
             return self._boundary
-        except RateTooHighError:
-            pass
 
         lo, hi = self._boundary.min, self._boundary.max
         while hi - lo > PRESSURE_CALCULATION_TOLERANCE:
             mid = (lo + hi) / 2
-            try:
-                func(ChokeConfiguration(delta_pressure=mid))
-                lo = mid
-            except RateTooHighError:
+            if isinstance(func(ChokeConfiguration(delta_pressure=mid)), RateTooHigh):
                 hi = mid
+            else:
+                lo = mid
         return Boundary(min=self._boundary.min, max=lo)

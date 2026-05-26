@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.float_constraint import FloatConstraint
@@ -52,7 +53,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
             delta_pressure_boundary=delta_pressure_boundary,
         )
 
-        def choke_func(config: ChokeConfiguration) -> FluidStream:
+        def choke_func(config: ChokeConfiguration) -> FluidStream | PropagationFailure:
             # The runner is responsible for interpreting upstream ΔP as reduced suction pressure
             # seen by the downstream process system.
             self._simulator.apply_configuration(
@@ -66,6 +67,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
 
         return Solution(
             success=solution.success,
+            failure=solution.failure,
             configuration=[
                 Configuration(
                     configuration_handler_id=self._choke_configuration_handler_id, value=solution.configuration

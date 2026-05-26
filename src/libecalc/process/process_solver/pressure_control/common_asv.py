@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.propagation_failure import TargetDirection
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure, TargetDirection
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
@@ -41,7 +41,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
-        def recirculation_func(config: RecirculationConfiguration) -> FluidStream:
+        def recirculation_func(config: RecirculationConfiguration) -> FluidStream | PropagationFailure:
             self._simulator.apply_configuration(
                 Configuration(configuration_handler_id=self._recirculation_loop_id, value=config)
             )
@@ -57,20 +57,28 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                 value=RecirculationConfiguration(recirculation_rate=0.0),
             )
         )
-        compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
-        boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
-        min_configuration = RecirculationConfiguration(recirculation_rate=boundary.max)
-        min_pressure_stream = recirculation_func(min_configuration)
-
-        if min_pressure_stream.pressure_bara > target_pressure.value:
-            return Solution.target_pressure_unreachable(
+        compressor_inlet = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
+        if isinstance(compressor_inlet, PropagationFailure):
+            return Solution.failed(
                 configuration=[
                     Configuration(
                         configuration_handler_id=self._recirculation_loop_id,
-                        value=min_configuration,
+                        value=RecirculationConfiguration(recirculation_rate=0.0),
                     )
                 ],
-                achievable_pressure_bara=min_pressure_stream.pressure_bara,
+                failure=compressor_inlet,
+            )
+        boundary = self._first_compressor.get_recirculation_range(compressor_inlet)
+        min_configuration = RecirculationConfiguration(recirculation_rate=boundary.max)
+        min_pressure_result = recirculation_func(min_configuration)
+        min_config_list = [Configuration(configuration_handler_id=self._recirculation_loop_id, value=min_configuration)]
+        if isinstance(min_pressure_result, PropagationFailure):
+            return Solution.failed(configuration=min_config_list, failure=min_pressure_result)
+
+        if min_pressure_result.pressure_bara > target_pressure.value:
+            return Solution.target_pressure_unreachable(
+                configuration=min_config_list,
+                achievable_pressure_bara=min_pressure_result.pressure_bara,
                 target_pressure_bara=target_pressure.value,
                 direction=TargetDirection.MIN_ABOVE_TARGET,
             )
@@ -85,6 +93,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         solution = solver.solve(recirculation_func)
         return Solution(
             success=solution.success,
+            failure=solution.failure,
             configuration=[
                 Configuration(
                     configuration_handler_id=self._recirculation_loop_id,

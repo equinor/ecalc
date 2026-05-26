@@ -6,12 +6,9 @@ from dataclasses import dataclass, field
 from typing import TypeVar
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.propagation_failure import (
     PropagationFailure,
-    RateTooHigh,
-    RateTooLow,
     TargetDirection,
     TargetPressureUnreachable,
 )
@@ -24,6 +21,24 @@ from libecalc.process.process_solver.configuration import (
 
 TConfiguration = TypeVar("TConfiguration", covariant=True)
 
+PropagationCallback = Callable[[TConfiguration], "FluidStream | PropagationFailure"]
+"""A function that takes a configuration and returns either an outlet
+stream or a structured reason none was produced."""
+
+
+class InfeasibleDuringSearch(Exception):
+    """Carries a PropagationFailure out of a closure invoked by a numeric solver.
+
+    Scipy / binary-search callbacks must return ``float``; they have no channel
+    for the typed PropagationFailure values produced by the underlying process
+    units. Solver closures raise this at the boundary, and the caller catches
+    it to translate back into a failed Solution.
+    """
+
+    def __init__(self, failure: PropagationFailure) -> None:
+        super().__init__(failure)
+        self.failure = failure
+
 
 @dataclass(frozen=True)
 class Solution[TConfiguration]:
@@ -32,14 +47,9 @@ class Solution[TConfiguration]:
     failure: PropagationFailure | None = field(default=None)
 
     @classmethod
-    def from_rate_too_high[T](cls, e: RateTooHighError, configuration: T) -> Solution[T]:
-        """Build an unsuccessful Solution carrying a RateTooHigh result."""
-        return Solution(success=False, configuration=configuration, failure=RateTooHigh.from_error(e))
-
-    @classmethod
-    def from_rate_too_low[T](cls, e: RateTooLowError, configuration: T) -> Solution[T]:
-        """Build an unsuccessful Solution carrying a RateTooLow result."""
-        return Solution(success=False, configuration=configuration, failure=RateTooLow.from_error(e))
+    def failed[T](cls, configuration: T, failure: PropagationFailure) -> Solution[T]:
+        """Build an unsuccessful Solution carrying the given PropagationFailure."""
+        return Solution(success=False, configuration=configuration, failure=failure)
 
     @classmethod
     def target_pressure_unreachable[T](
@@ -85,4 +95,4 @@ class Solution[TConfiguration]:
 
 class Solver[TConfiguration](abc.ABC):
     @abc.abstractmethod
-    def solve(self, func: Callable[[TConfiguration], FluidStream]) -> Solution[TConfiguration]: ...
+    def solve(self, func: PropagationCallback[TConfiguration]) -> Solution[TConfiguration]: ...

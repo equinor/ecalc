@@ -13,7 +13,6 @@ from enum import Enum
 from typing import Self
 
 from libecalc.process.process_pipeline.ids import ProcessPipelineId, ProcessUnitId
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 
 
 class PropagationFailure:
@@ -32,28 +31,12 @@ class RateTooHigh(PropagationFailure):
     actual_rate_m3_per_hour: float | None = None
     maximum_rate_m3_per_hour: float | None = None
 
-    @classmethod
-    def from_error(cls, e: RateTooHighError) -> Self:
-        return cls(
-            source_id=e.process_unit_id,
-            actual_rate_m3_per_hour=e.actual_rate,
-            maximum_rate_m3_per_hour=e.boundary_rate,
-        )
-
 
 @dataclass
 class RateTooLow(PropagationFailure):
     source_id: ProcessUnitId
     actual_rate_m3_per_hour: float | None = None
     minimum_rate_m3_per_hour: float | None = None
-
-    @classmethod
-    def from_error(cls, e: RateTooLowError) -> Self:
-        return cls(
-            source_id=e.process_unit_id,
-            actual_rate_m3_per_hour=e.actual_rate,
-            minimum_rate_m3_per_hour=e.boundary_rate,
-        )
 
 
 @dataclass
