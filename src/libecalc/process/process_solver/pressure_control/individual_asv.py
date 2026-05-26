@@ -9,8 +9,7 @@ from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
     Solution,
-    SolverFailureStatus,
-    TargetNotAchievableEvent,
+    TargetDirection,
 )
 from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.process.process_solver.solvers.recirculation_solver import (
@@ -57,14 +56,11 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         if minimum_achievable_pressure_stream.pressure_bara > target_pressure.value:
             # Even at maximum recirculation, the outlet pressure is still above the target.
             # The compressor train cannot deliver a pressure this low at the current speed.
-            return Solution(
-                success=False,
+            return Solution.target_pressure_unreachable(
                 configuration=minimum_achievable_pressure_configurations,
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
-                    achievable_value=minimum_achievable_pressure_stream.pressure_bara,
-                    target_value=target_pressure.value,
-                ),
+                achievable_pressure_bara=minimum_achievable_pressure_stream.pressure_bara,
+                target_pressure_bara=target_pressure.value,
+                direction=TargetDirection.MIN_ABOVE_TARGET,
             )
 
         n_stages = len(self._recirculation_loop_ids)
@@ -109,7 +105,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
                 return Solution(
                     success=False,
                     configuration=configurations,
-                    failure_event=solution.failure_event,
+                    failure=solution.failure,
                 )
 
         return Solution(
@@ -179,14 +175,11 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         if minimum_achievable_pressure_stream.pressure_bara > target_pressure.value:
             # Even at maximum recirculation, the outlet pressure is still above the target.
             # The compressor train cannot deliver a pressure this low at the current speed.
-            return Solution(
-                success=False,
+            return Solution.target_pressure_unreachable(
                 configuration=minimum_achievable_pressure_configurations,
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
-                    achievable_value=minimum_achievable_pressure_stream.pressure_bara,
-                    target_value=target_pressure.value,
-                ),
+                achievable_pressure_bara=minimum_achievable_pressure_stream.pressure_bara,
+                target_pressure_bara=target_pressure.value,
+                direction=TargetDirection.MIN_ABOVE_TARGET,
             )
 
         def get_outlet_stream(rate_fraction: float) -> FluidStream:

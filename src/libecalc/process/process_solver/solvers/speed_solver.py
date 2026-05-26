@@ -7,11 +7,9 @@ from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
 from libecalc.process.process_solver.solver import (
-    OutsideCapacityEvent,
     Solution,
     Solver,
-    SolverFailureStatus,
-    TargetNotAchievableEvent,
+    TargetDirection,
 )
 
 logger = logging.getLogger(__name__)
@@ -39,38 +37,17 @@ class SpeedSolver(Solver[SpeedConfiguration]):
             maximum_speed_outlet_stream = func(max_speed_configuration)
         except RateTooHighError as e:
             logger.debug(f"No solution found for maximum speed: {max_speed_configuration}", exc_info=e)
-            return Solution(
-                success=False,
-                configuration=max_speed_configuration,
-                failure_event=OutsideCapacityEvent(
-                    status=SolverFailureStatus.ABOVE_MAXIMUM_FLOW_RATE,
-                    actual_value=e.actual_rate,
-                    boundary_value=e.boundary_rate,
-                    source_id=e.process_unit_id,
-                ),
-            )
+            return Solution.from_rate_too_high(e, configuration=max_speed_configuration)
         except RateTooLowError as e:
             logger.debug(f"No solution found for maximum speed: {max_speed_configuration}", exc_info=e)
-            return Solution(
-                success=False,
-                configuration=max_speed_configuration,
-                failure_event=OutsideCapacityEvent(
-                    status=SolverFailureStatus.BELOW_MINIMUM_FLOW_RATE,
-                    actual_value=e.actual_rate,
-                    boundary_value=e.boundary_rate,
-                    source_id=e.process_unit_id,
-                ),
-            )
+            return Solution.from_rate_too_low(e, configuration=max_speed_configuration)
 
         if maximum_speed_outlet_stream.pressure_bara < self._target_pressure:
-            return Solution(
-                success=False,
+            return Solution.target_pressure_unreachable(
                 configuration=SpeedConfiguration(self._boundary.max),
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MAXIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_BELOW_TARGET,
-                    achievable_value=maximum_speed_outlet_stream.pressure_bara,
-                    target_value=self._target_pressure,
-                ),
+                achievable_pressure_bara=maximum_speed_outlet_stream.pressure_bara,
+                target_pressure_bara=self._target_pressure,
+                direction=TargetDirection.MAX_BELOW_TARGET,
             )
 
         try:
@@ -98,14 +75,11 @@ class SpeedSolver(Solver[SpeedConfiguration]):
 
         if minimum_speed_outlet_stream.pressure_bara > self._target_pressure:
             # Solution 2, target pressure is too low
-            return Solution(
-                success=False,
+            return Solution.target_pressure_unreachable(
                 configuration=minimum_speed_configuration,
-                failure_event=TargetNotAchievableEvent(
-                    status=SolverFailureStatus.MINIMUM_ACHIEVABLE_DISCHARGE_PRESSURE_ABOVE_TARGET,
-                    achievable_value=minimum_speed_outlet_stream.pressure_bara,
-                    target_value=self._target_pressure,
-                ),
+                achievable_pressure_bara=minimum_speed_outlet_stream.pressure_bara,
+                target_pressure_bara=self._target_pressure,
+                direction=TargetDirection.MIN_ABOVE_TARGET,
             )
 
         assert (

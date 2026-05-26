@@ -123,7 +123,7 @@ def test_three_shaft_train_hits_target_pressure(stream_factory, pipeline_kwargs)
 
     solution = solver.find_solution(FloatConstraint(270.0, abs_tol=5.0), inlet)
 
-    assert solution.success, f"Expected success; failure: {solution.failure_event}"
+    assert solution.success, f"Expected success; failure: {solution.failure}"
 
 
 def test_each_shaft_runs_at_different_speed(stream_factory, pipeline_kwargs):
@@ -180,7 +180,7 @@ def test_empty_pipelines(stream_factory):
 
     assert solution.success
     assert solution.configuration == []
-    assert solution.failure_event is None
+    assert solution.failure is None
 
 
 def test_single_pipeline_hits_exact_target(stream_factory, pipeline_kwargs):

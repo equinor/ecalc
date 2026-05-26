@@ -111,9 +111,9 @@ def test_upstream_choke_solver_reports_failure_when_rate_capacity_prevents_reach
     solution = upstream_choke_solver.solve(choke_func)
 
     assert not solution.success
-    assert solution.failure_event is not None
-    assert solution.failure_event.target_value == target_pressure
-    assert solution.failure_event.achievable_value > target_pressure
+    assert solution.failure is not None
+    assert solution.failure.target_pressure_bara == target_pressure
+    assert solution.failure.achievable_pressure_bara > target_pressure
 
 
 def test_upstream_choke_solver_reports_failure_when_max_choke_still_above_target(
@@ -140,6 +140,6 @@ def test_upstream_choke_solver_reports_failure_when_max_choke_still_above_target
     solution = upstream_choke_solver.solve(choke_func)
 
     assert not solution.success
-    assert solution.failure_event is not None
-    assert solution.failure_event.target_value == target_pressure
-    assert solution.failure_event.achievable_value > target_pressure
+    assert solution.failure is not None
+    assert solution.failure.target_pressure_bara == target_pressure
+    assert solution.failure.achievable_pressure_bara > target_pressure

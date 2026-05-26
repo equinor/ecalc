@@ -29,7 +29,7 @@ class MultiShaftEqualRatioSolver:
         """Split overall pressure target into equal per-pipeline ratios and delegate."""
         n = len(self._process_pipelines)
         if n == 0:
-            return Solution(success=True, configuration=[], failure_event=None)
+            return Solution(success=True, configuration=[], failure=None)
 
         pressure_ratio = (pressure_constraint.value / inlet_stream.pressure_bara) ** (1.0 / n)
 
