@@ -1,10 +1,10 @@
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.propagation_failure import DidNotConverge
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.search_strategies import (
     BinarySearchStrategy,
-    DidNotConvergeError,
     SearchStrategy,
 )
 
@@ -58,19 +58,16 @@ class FeasibilitySolver:
         upper_bound_sm3_per_day: float,
     ) -> float:
         boundary = Boundary(min=0.0, max=upper_bound_sm3_per_day)
-        try:
-            return self._search_strategy.search(
-                boundary=boundary,
-                func=lambda rate: (
-                    self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure),
-                    True,
-                ),
-            )
-        except DidNotConvergeError:
+        result = self._search_strategy.search(
+            boundary=boundary,
+            func=lambda rate: (
+                self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure),
+                True,
+            ),
+        )
+        if isinstance(result, DidNotConverge):
             return 0.0
+        return result
 
     def _is_feasible(self, inlet_stream: FluidStream, target_pressure: FloatConstraint) -> bool:
-        try:
-            return self._solver.find_solution(target_pressure, inlet_stream).success
-        except DidNotConvergeError:
-            return False
+        return self._solver.find_solution(target_pressure, inlet_stream).success

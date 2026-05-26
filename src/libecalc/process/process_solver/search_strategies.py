@@ -3,29 +3,15 @@ from collections.abc import Callable
 
 from scipy.optimize import root_scalar
 
-from libecalc.common.errors.exceptions import EcalcError
+from libecalc.process.process_pipeline.propagation_failure import DidNotConverge
 from libecalc.process.process_solver.boundary import Boundary
 
 CONVERGENCE_TOLERANCE = 1e-5
 
 
-class DidNotConvergeError(EcalcError):
-    def __init__(
-        self,
-        boundary: Boundary,
-        tolerance: float,
-        iterations: int,
-    ):
-        super().__init__(
-            title="No solution found",
-            message=f"Did not reach convergence after maximum number of iterations: {iterations}."
-            f" lower bound: {boundary.min}, upper bound: {boundary.max}, convergence_tolerance: {tolerance}.",
-        )
-
-
 class SearchStrategy(abc.ABC):
     @abc.abstractmethod
-    def search(self, boundary: Boundary, func: Callable[[float], tuple[bool, bool]]) -> float: ...
+    def search(self, boundary: Boundary, func: Callable[[float], tuple[bool, bool]]) -> float | DidNotConverge: ...
 
 
 class BinarySearchStrategy(SearchStrategy):
@@ -39,7 +25,7 @@ class BinarySearchStrategy(SearchStrategy):
         self._tolerance = tolerance
         self._max_iterations = max_iterations
 
-    def search(self, boundary: Boundary, func: Callable[[float], tuple[bool, bool]]) -> float:
+    def search(self, boundary: Boundary, func: Callable[[float], tuple[bool, bool]]) -> float | DidNotConverge:
         """Binary search until we reach the maximum x value constrained by x_min and x_max
         where we have a boolean constraint condition given as a function.
 
@@ -69,10 +55,11 @@ class BinarySearchStrategy(SearchStrategy):
             i += 1
 
         if i >= self._max_iterations:
-            raise DidNotConvergeError(
-                boundary=boundary,
-                tolerance=self._tolerance,
+            return DidNotConverge(
                 iterations=self._max_iterations,
+                tolerance=self._tolerance,
+                lower_bound=boundary.min,
+                upper_bound=boundary.max,
             )
         return x2
 
@@ -83,7 +70,7 @@ class RootFindingStrategy(abc.ABC):
         self,
         boundary: Boundary,
         func: Callable[[float], float],
-    ) -> float: ...
+    ) -> float | DidNotConverge: ...
 
 
 class ScipyRootFindingStrategy(RootFindingStrategy):
@@ -102,7 +89,7 @@ class ScipyRootFindingStrategy(RootFindingStrategy):
         self,
         boundary: Boundary,
         func: Callable[[float], float],
-    ) -> float:
+    ) -> float | DidNotConverge:
         """Root finding using scipy´s implementation of the brenth method.
 
         This will try to solve for the root: f(x) = 0. Another way to say this is "what x makes the function return 0"...
@@ -124,9 +111,10 @@ class ScipyRootFindingStrategy(RootFindingStrategy):
             rtol=self._tolerance,
         )
         if not result.converged:
-            raise DidNotConvergeError(
-                boundary=boundary,
-                tolerance=self._tolerance,
+            return DidNotConverge(
                 iterations=self._max_iterations,
+                tolerance=self._tolerance,
+                lower_bound=boundary.min,
+                upper_bound=boundary.max,
             )
         return result.root

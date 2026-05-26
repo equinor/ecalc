@@ -1,6 +1,7 @@
 from typing import Literal
 
 from libecalc.process.process_pipeline.propagation_failure import (
+    DidNotConverge,
     PropagationFailure,
     RateTooHigh,
     RateTooLow,
@@ -48,10 +49,16 @@ class RecirculationSolver(Solver):
         minimum_result = func(RecirculationConfiguration(recirculation_rate=minimum_rate))
         if isinstance(minimum_result, RateTooLow):
             # Min boundary is too low, find solution
-            minimum_rate = self._search_strategy.search(
+            search_result = self._search_strategy.search(
                 boundary=self._recirculation_rate_boundary,
                 func=lambda x: bool_func(x, mode="minimize"),
             )
+            if isinstance(search_result, DidNotConverge):
+                return Solution.failed(
+                    configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
+                    failure=search_result,
+                )
+            minimum_rate = search_result
         elif isinstance(minimum_result, RateTooHigh):
             # Flow is above stonewall at zero recirculation; adding recirculation cannot help.
             return Solution.failed(
@@ -73,10 +80,16 @@ class RecirculationSolver(Solver):
         maximum_result = func(RecirculationConfiguration(recirculation_rate=maximum_rate))
         if isinstance(maximum_result, RateTooHigh):
             # Max boundary is too high, find solution
-            maximum_rate = self._search_strategy.search(
+            search_result = self._search_strategy.search(
                 boundary=self._recirculation_rate_boundary,
                 func=lambda x: bool_func(x, mode="maximize"),
             )
+            if isinstance(search_result, DidNotConverge):
+                return Solution.failed(
+                    configuration=RecirculationConfiguration(recirculation_rate=maximum_rate),
+                    failure=search_result,
+                )
+            maximum_rate = search_result
 
         minimum_outlet = func(RecirculationConfiguration(recirculation_rate=minimum_rate))
         if isinstance(minimum_outlet, PropagationFailure):
@@ -134,5 +147,10 @@ class RecirculationSolver(Solver):
             return Solution.failed(
                 configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
                 failure=exc.failure,
+            )
+        if isinstance(recirculation_rate, DidNotConverge):
+            return Solution.failed(
+                configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
+                failure=recirculation_rate,
             )
         return Solution(success=True, configuration=RecirculationConfiguration(recirculation_rate=recirculation_rate))

@@ -1,5 +1,10 @@
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
-from libecalc.process.process_pipeline.propagation_failure import PropagationFailure, RateTooHigh, TargetDirection
+from libecalc.process.process_pipeline.propagation_failure import (
+    DidNotConverge,
+    PropagationFailure,
+    RateTooHigh,
+    TargetDirection,
+)
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import ChokeConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy
@@ -61,6 +66,11 @@ class UpstreamChokeSolver(Solver):
             return Solution.failed(
                 configuration=ChokeConfiguration(delta_pressure=search_boundary.min),
                 failure=exc.failure,
+            )
+        if isinstance(delta_pressure, DidNotConverge):
+            return Solution.failed(
+                configuration=ChokeConfiguration(delta_pressure=search_boundary.min),
+                failure=delta_pressure,
             )
         return Solution(success=True, configuration=ChokeConfiguration(delta_pressure=delta_pressure))
 

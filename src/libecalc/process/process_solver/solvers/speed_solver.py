@@ -1,6 +1,7 @@
 import logging
 
 from libecalc.process.process_pipeline.propagation_failure import (
+    DidNotConverge,
     PropagationFailure,
     RateTooHigh,
     RateTooLow,
@@ -61,6 +62,11 @@ class SpeedSolver(Solver[SpeedConfiguration]):
                 boundary=self._boundary,
                 func=bool_speed_func,
             )
+            if isinstance(minimum_speed_within_capacity, DidNotConverge):
+                return Solution.failed(
+                    configuration=SpeedConfiguration(speed=self._boundary.min),
+                    failure=minimum_speed_within_capacity,
+                )
             minimum_speed_configuration = SpeedConfiguration(speed=minimum_speed_within_capacity)
             minimum_speed_outlet = func(minimum_speed_configuration)
             if isinstance(minimum_speed_outlet, PropagationFailure):
@@ -98,4 +104,6 @@ class SpeedSolver(Solver[SpeedConfiguration]):
             )
         except InfeasibleDuringSearch as exc:
             return Solution.failed(configuration=minimum_speed_configuration, failure=exc.failure)
+        if isinstance(speed, DidNotConverge):
+            return Solution.failed(configuration=minimum_speed_configuration, failure=speed)
         return Solution(success=True, configuration=SpeedConfiguration(speed=speed))

@@ -61,3 +61,21 @@ class TargetPressureUnreachable(PropagationFailure):
 
     def with_source_id(self, source_id: ProcessPipelineId) -> Self:
         return dataclasses.replace(self, source_id=source_id)
+
+
+@dataclass
+class DidNotConverge(PropagationFailure):
+    """Numerical root-finder exhausted its iteration budget without bracketing
+    a solution within tolerance.
+
+    This is a *numerical outcome*, not a programmer mistake: the operating
+    point may have no solution in the bracket given the requested tolerance.
+    Callers should react (tighten tolerance, widen bracket, accept that this
+    time-step has no solution), not catch-and-translate an exception.
+    """
+
+    iterations: int
+    tolerance: float
+    lower_bound: float | None = None
+    upper_bound: float | None = None
+    source_id: ProcessUnitId | ProcessPipelineId | None = None
