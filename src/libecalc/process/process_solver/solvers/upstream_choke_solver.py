@@ -3,14 +3,11 @@ from collections.abc import Callable
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError
+from libecalc.process.process_pipeline.propagation_failure import TargetDirection
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import ChokeConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy
-from libecalc.process.process_solver.solver import (
-    Solution,
-    Solver,
-    TargetDirection,
-)
+from libecalc.process.process_solver.solver import Solution, Solver
 
 
 class UpstreamChokeSolver(Solver):

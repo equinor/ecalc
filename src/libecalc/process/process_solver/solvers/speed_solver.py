@@ -3,14 +3,11 @@ from collections.abc import Callable
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.propagation_failure import TargetDirection
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
-from libecalc.process.process_solver.solver import (
-    Solution,
-    Solver,
-    TargetDirection,
-)
+from libecalc.process.process_solver.solver import Solution, Solver
 
 logger = logging.getLogger(__name__)
 

@@ -1,12 +1,10 @@
 from collections.abc import Sequence
-from typing import Final, NewType, Self
-from uuid import UUID
+from typing import Final, Self
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.process.process_pipeline.ids import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
-
-ProcessPipelineId = NewType("ProcessPipelineId", UUID)
 
 
 class ProcessPipeline(Entity[ProcessPipelineId]):

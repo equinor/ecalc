@@ -4,6 +4,7 @@ from typing import Final
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooLowError
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.propagation_failure import TargetDirection, TargetPressureUnreachable
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import (
@@ -16,11 +17,7 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
-from libecalc.process.process_solver.solver import (
-    Solution,
-    TargetDirection,
-    TargetPressureUnreachableFailure,
-)
+from libecalc.process.process_solver.solver import Solution
 from libecalc.process.process_solver.solvers.speed_solver import SpeedSolver
 
 
@@ -172,7 +169,7 @@ class OutletPressureSolver:
             configurations[pressure_control_configuration.configuration_handler_id] = pressure_control_configuration
 
         failure = pressure_control_solution.failure
-        if isinstance(failure, TargetPressureUnreachableFailure) and failure.source_id is None:
+        if isinstance(failure, TargetPressureUnreachable) and failure.source_id is None:
             failure = failure.with_source_id(self._process_pipeline_id)
 
         return Solution(
