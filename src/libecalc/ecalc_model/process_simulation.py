@@ -40,9 +40,18 @@ class Constraint:  # should this instead be more flexible wrt. matching one or m
     outlet_pressure: TimeSeriesExpression
 
 
+PressureControlType = Literal[
+    "UPSTREAM_CHOKE",
+    "DOWNSTREAM_CHOKE",
+    "COMMON_ASV",
+    "INDIVIDUAL_ASV_RATE",
+    "INDIVIDUAL_ASV_PRESSURE",
+]
+
+
 @value_object
 class PressureControlConfig:  # Spec
-    type: Literal["UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE", "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE"]
+    type: PressureControlType
 
 
 @value_object
