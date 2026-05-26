@@ -1,6 +1,7 @@
 import pytest
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.process.process_solver.solvers.downstream_choke_solver import (
     ChokeConfiguration,
@@ -31,12 +32,12 @@ def test_downstream_choke_solver(
 
     downstream_choke_solver = DownstreamChokeSolver(target_pressure=target_pressure)
 
-    def choke_func(config: ChokeConfiguration) -> FluidStream:
+    def choke_func(config: ChokeConfiguration) -> FluidStream | PropagationFailure:
         downstream_choke.set_pressure_change(pressure_change=config.delta_pressure)
         return propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
     choke_solution = downstream_choke_solver.solve(func=choke_func)
 
     outlet_stream = choke_func(choke_solution.configuration)
-
+    assert isinstance(outlet_stream, FluidStream)
     assert outlet_stream.pressure_bara == expected_pressure

@@ -3,7 +3,7 @@ from typing import Final
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.propagation_failure import TargetDirection
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure, TargetDirection
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
@@ -79,7 +79,14 @@ class MultiPressureSolver:
             assert isinstance(speed_configuration, SpeedConfiguration)
             speed_configurations.append(speed_configuration)
             segment.runner.apply_configurations(solution_for_segment.configuration)
-            current_inlet = segment.runner.run(inlet_stream=current_inlet)
+            next_inlet = segment.runner.run(inlet_stream=current_inlet)
+            if isinstance(next_inlet, PropagationFailure):
+                return Solution(
+                    success=False,
+                    configuration=solution_for_segment.configuration,
+                    failure=next_inlet,
+                )
+            current_inlet = next_inlet
 
         shaft_config = Configuration(
             configuration_handler_id=self._shaft_id,
@@ -99,6 +106,12 @@ class MultiPressureSolver:
             solution = solution.combine(anti_surge_solution)
 
             outlet = segment.runner.run(inlet_stream=current_inlet)
+            if isinstance(outlet, PropagationFailure):
+                return Solution(
+                    success=False,
+                    configuration=solution.configuration,
+                    failure=outlet,
+                )
 
             if outlet.pressure_bara > target:
                 pressure_control_solution = segment.pressure_control_strategy.apply(
@@ -107,7 +120,14 @@ class MultiPressureSolver:
                 )
                 solution = solution.combine(pressure_control_solution)
                 segment.runner.apply_configurations(pressure_control_solution.configuration)
-                outlet = segment.runner.run(inlet_stream=current_inlet)
+                next_outlet = segment.runner.run(inlet_stream=current_inlet)
+                if isinstance(next_outlet, PropagationFailure):
+                    return Solution(
+                        success=False,
+                        configuration=solution.configuration,
+                        failure=next_outlet,
+                    )
+                outlet = next_outlet
             elif outlet.pressure_bara < target:
                 solution = Solution.target_pressure_unreachable(
                     configuration=solution.configuration,

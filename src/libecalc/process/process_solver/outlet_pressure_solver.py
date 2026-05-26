@@ -2,9 +2,13 @@ from collections.abc import Sequence
 from typing import Final
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooLowError
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
-from libecalc.process.process_pipeline.propagation_failure import TargetDirection, TargetPressureUnreachable
+from libecalc.process.process_pipeline.propagation_failure import (
+    PropagationFailure,
+    RateTooLow,
+    TargetDirection,
+    TargetPressureUnreachable,
+)
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import (
@@ -89,22 +93,24 @@ class OutletPressureSolver:
             target_pressure=pressure_constraint.value,
         )
 
-        def speed_func(configuration: SpeedConfiguration) -> FluidStream:
+        def speed_func(configuration: SpeedConfiguration) -> FluidStream | PropagationFailure:
             self._simulator.reset_to(
                 configurations=[Configuration(configuration_handler_id=self._shaft_id, value=configuration)],
             )
-            try:
+            result = self._simulator.run(inlet_stream=inlet_stream)
+            if isinstance(result, RateTooLow):
+                anti_surge_solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
+                self._simulator.apply_configurations(anti_surge_solution.configuration)
                 return self._simulator.run(inlet_stream=inlet_stream)
-            except RateTooLowError:
-                solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
-                self._simulator.apply_configurations(solution.configuration)
-                return self._simulator.run(inlet_stream=inlet_stream)
+            return result
 
         speed_solution = speed_solver.solve(speed_func)
 
         return speed_solution
 
-    def _get_outlet_stream(self, inlet_stream: FluidStream, configurations: Sequence[Configuration]):
+    def _get_outlet_stream(
+        self, inlet_stream: FluidStream, configurations: Sequence[Configuration]
+    ) -> FluidStream | PropagationFailure:
         self._simulator.apply_configurations(configurations)
         return self._simulator.run(inlet_stream=inlet_stream)
 
@@ -150,6 +156,13 @@ class OutletPressureSolver:
             inlet_stream=inlet_stream,
             configurations=list(configurations.values()),
         )
+
+        if isinstance(outlet_at_chosen_speed, PropagationFailure):
+            return Solution(
+                success=False,
+                configuration=list(configurations.values()),
+                failure=outlet_at_chosen_speed,
+            )
 
         if outlet_at_chosen_speed.pressure_bara < pressure_constraint:
             return Solution.target_pressure_unreachable(

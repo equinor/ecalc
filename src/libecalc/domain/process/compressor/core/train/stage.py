@@ -22,6 +22,7 @@ from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAre
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
@@ -130,7 +131,11 @@ class CompressorTrainStage:
 
         # Then the stream passes through the PressureModifier (if defined),
         if self.choke is not None:
-            inlet_stream_after_choke = self.choke.propagate_stream(inlet_stream_after_mixer)
+            choke_result = self.choke.propagate_stream(inlet_stream_after_mixer)
+            if isinstance(choke_result, PropagationFailure):
+                # Legacy compressor train code has no PropagationFailure channel; surface as an exception
+                raise IllegalStateException(f"Choke could not propagate stream: {choke_result}")
+            inlet_stream_after_choke = choke_result
         else:
             inlet_stream_after_choke = inlet_stream_after_mixer
 

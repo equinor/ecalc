@@ -4,8 +4,12 @@ import pytest
 
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import ProcessError, RateTooHighError, RateTooLowError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_pipeline.propagation_failure import (
+    PropagationFailure,
+    RateTooHigh,
+    RateTooLow,
+)
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.process.process_solver.solvers.recirculation_solver import (
@@ -30,11 +34,11 @@ class RateCompressor(ProcessUnit):
     def get_id(self) -> ProcessUnitId:
         return self._id
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | PropagationFailure:
         if inlet_stream.volumetric_rate_m3_per_hour < self._minimum_rate:
-            raise RateTooLowError(process_unit_id=self._id)
+            return RateTooLow(source_id=self._id)
         if inlet_stream.volumetric_rate_m3_per_hour > self._maximum_rate:
-            raise RateTooHighError(process_unit_id=self._id)
+            return RateTooHigh(source_id=self._id)
         return self._fluid_service.create_stream_from_standard_rate(
             fluid_model=inlet_stream.fluid_model,
             pressure_bara=inlet_stream.pressure_bara + inlet_stream.standard_rate_sm3_per_day,
@@ -84,8 +88,9 @@ def test_single(
     assert inlet_stream.volumetric_rate_m3_per_hour == 19.96851794096588
 
     if expected_recirculation_rate != 0:
-        with pytest.raises(ProcessError):
-            propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
+        assert isinstance(
+            propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream), PropagationFailure
+        )
 
     recirculation_solver = RecirculationSolver(
         search_strategy=search_strategy_factory(tolerance=10e-3),
@@ -103,6 +108,7 @@ def test_single(
 
     # TODO: Verify inlet_standard_rate + recirc_rate = compressor_rate
     assert recirculation_solution.success
+    assert isinstance(outlet_stream, FluidStream)
     assert inlet_stream.standard_rate_sm3_per_day == pytest.approx(outlet_stream.standard_rate_sm3_per_day)
     assert recirculation_solution.configuration.recirculation_rate == expected_recirculation_rate
 

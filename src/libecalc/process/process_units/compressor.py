@@ -8,8 +8,8 @@ from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure, RateTooHigh, RateTooLow
 from libecalc.process.process_solver.boundary import Boundary
 
 
@@ -28,19 +28,19 @@ class Compressor(ProcessUnit):
     def get_id(self) -> ProcessUnitId:
         return self._id
 
-    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
+    def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream | PropagationFailure:
         actual_rate = inlet_stream.volumetric_rate_m3_per_hour
         if actual_rate < self.minimum_flow_rate:
-            raise RateTooLowError(
-                actual_rate=actual_rate,
-                boundary_rate=self.minimum_flow_rate,
-                process_unit_id=self._id,
+            return RateTooLow(
+                source_id=self._id,
+                actual_rate_m3_per_hour=actual_rate,
+                minimum_rate_m3_per_hour=self.minimum_flow_rate,
             )
         if actual_rate > self.maximum_flow_rate:
-            raise RateTooHighError(
-                actual_rate=actual_rate,
-                boundary_rate=self.maximum_flow_rate,
-                process_unit_id=self._id,
+            return RateTooHigh(
+                source_id=self._id,
+                actual_rate_m3_per_hour=actual_rate,
+                maximum_rate_m3_per_hour=self.maximum_flow_rate,
             )
 
         chart_curve_at_given_speed = self.compressor_chart.get_curve_by_speed(speed=self.speed)

@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.process_runner import ProcessRunner
@@ -59,10 +60,15 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self, inlet_stream: FluidStream
     ) -> Solution[RecirculationConfiguration]:
         # The recirculation boundary depends on the inlet stream (and implicitly current speed).
-        compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
-        boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
+        compressor_inlet = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
+        if isinstance(compressor_inlet, PropagationFailure):
+            return Solution.failed(
+                configuration=RecirculationConfiguration(recirculation_rate=0.0),
+                failure=compressor_inlet,
+            )
+        boundary = self._first_compressor.get_recirculation_range(compressor_inlet)
 
-        def recirculation_func(cfg: RecirculationConfiguration) -> FluidStream:
+        def recirculation_func(cfg: RecirculationConfiguration) -> FluidStream | PropagationFailure:
             self._apply_configuration(cfg)
             return self._simulator.run(inlet_stream=inlet_stream)
 

@@ -3,6 +3,7 @@ from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.process.process_pipeline.propagation_failure import PropagationFailure
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration
 
 
@@ -34,14 +35,14 @@ class ProcessRunner(abc.ABC):
         ...
 
     @abc.abstractmethod
-    def run(self, inlet_stream: FluidStream, to_id: ProcessUnitId | None = None) -> FluidStream:
+    def run(self, inlet_stream: FluidStream, to_id: ProcessUnitId | None = None) -> FluidStream | PropagationFailure:
         """
         Simulate the process
         Args:
             inlet_stream: inlet stream to the process.
             to_id: If provided, simulates the process up to, not including, the specified simulation unit id. If None, simulates the entire process.
 
-        Returns: The outlet stream
+        Returns: The outlet stream, or a PropagationFailure describing why no outlet stream was produced.
 
         """
         ...

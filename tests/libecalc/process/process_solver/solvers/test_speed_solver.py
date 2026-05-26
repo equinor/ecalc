@@ -84,4 +84,5 @@ def test_speed_solver(
 
     assert solution.configuration.speed == expected_speed
     outlet_stream = speed_func(solution.configuration)
+    assert isinstance(outlet_stream, FluidStream)
     assert outlet_stream.pressure_bara == expected_pressure

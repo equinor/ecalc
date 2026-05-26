@@ -4,6 +4,7 @@ import pytest
 
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
@@ -194,6 +195,7 @@ def test_single_pipeline_hits_exact_target(stream_factory, pipeline_kwargs):
     assert solution.success
     pipeline.runner.apply_configurations(solution.configuration)
     outlet = pipeline.runner.run(inlet)
+    assert isinstance(outlet, FluidStream)
     assert outlet.pressure_bara == pytest.approx(60.0, abs=0.5)
 
 
@@ -211,4 +213,5 @@ def test_two_pipeline_intermediate_target_is_geometric_mean(stream_factory, pipe
     assert solution.success
     # First pipeline should target sqrt(30 * 120) ≈ 60 bara
     intermediate = pipelines[0].runner.run(inlet)
+    assert isinstance(intermediate, FluidStream)
     assert intermediate.pressure_bara == pytest.approx(60.0, abs=1.0)
