@@ -11,7 +11,7 @@ from libecalc.presentation.yaml.yaml_entities import MemoryResource
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
     YamlCompressor,
     YamlCompressorStageProcessSystem,
-    YamlSerialProcessSystem,
+    YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlGeneratorSetModel,
@@ -57,7 +57,7 @@ class DirectReferenceService(ReferenceService):
     def get_tabulated_model(self, reference: str) -> YamlTabularModel:
         raise NotImplementedError()
 
-    def get_process_system(self, reference: str) -> YamlSerialProcessSystem:
+    def get_process_system(self, reference: str) -> YamlProcessPipeline:
         raise NotImplementedError()
 
     def get_compressor_stage(self, reference: str) -> YamlCompressorStageProcessSystem:

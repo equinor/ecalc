@@ -37,12 +37,11 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
-    YamlCompressor,
-    YamlCompressorModelChart,
     YamlCompressorStageProcessSystem,
+    YamlProcessPipeline,
     YamlProcessSimulation,
-    YamlSerialProcessSystem,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_units import YamlCompressor, YamlCompressorModelChart
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
@@ -146,7 +145,7 @@ class ProcessSimulationMapper:
         self._reference_service = reference_service
         self._resources = resources
 
-    def _resolve_train_reference(self, ref: str | YamlSerialProcessSystem) -> YamlSerialProcessSystem:
+    def _resolve_train_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
             return self._reference_service.get_process_system(reference=ref)
         else:

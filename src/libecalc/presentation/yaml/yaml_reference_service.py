@@ -10,13 +10,12 @@ from libecalc.presentation.yaml.domain.reference_service import (
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
-    YamlCompressor,
     YamlCompressorStageProcessSystem,
+    YamlProcessPipeline,
     YamlProcessSimulation,
     YamlProcessSystem,
-    YamlProcessUnit,
-    YamlSerialProcessSystem,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_units import YamlCompressor, YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
     YamlGeneratorSetModel,
@@ -108,8 +107,9 @@ class YamlReferenceService(ReferenceService):
         process_units_path = YamlPath(keys=("PROCESS_UNITS",))
         for process_unit_key, process_unit in configuration.process_units.items():
             process_unit_path = process_units_path.append(process_unit_key)
-            references[process_unit.name] = process_unit
-            reference_yaml_context[process_unit.name] = process_unit_path
+            if isinstance(process_unit, YamlCompressor):
+                references[process_unit.name] = process_unit
+                reference_yaml_context[process_unit.name] = process_unit_path
 
         process_systems_path = YamlPath(keys=("PROCESS_SYSTEMS",))
         for process_system_key, process_system in configuration.process_systems.items():
@@ -192,9 +192,9 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("tabulated", reference)
         return model
 
-    def get_process_system(self, reference: str) -> YamlSerialProcessSystem:
+    def get_process_system(self, reference: str) -> YamlProcessPipeline:
         model = self._resolve_yaml_reference(reference, "process system")
-        if not isinstance(model, YamlSerialProcessSystem):
+        if not isinstance(model, YamlProcessPipeline):
             raise InvalidReferenceException("process system", reference)
         return model
 

@@ -4,50 +4,13 @@ from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import UnitsField, YamlCurve, YamlUnits
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
+from libecalc.presentation.yaml.yaml_types.components.yaml_process_units import (
+    ProcessUnitReference,
+    YamlCompressor,
+)
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
-from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
 StreamRef = str
-
-
-class YamlControlMargin(YamlBase):
-    unit: YamlControlMarginUnits
-    value: float
-
-
-class YamlCompressorChart(YamlBase):
-    curves: Annotated[
-        DataOrFile[list[YamlCurve]],
-        Field(description="Compressor chart curves, one per speed.", title="CURVES"),
-    ]
-    units: YamlUnits = UnitsField()
-
-
-class YamlCompressorModelChart(YamlBase):
-    type: Literal["COMPRESSOR_CHART"]
-    chart: YamlCompressorChart
-    control_margin: YamlControlMargin
-
-
-ProcessUnitReference = str
-
-
-class YamlCompressor(YamlBase):
-    """
-    A Compressor process unit
-    """
-
-    type: Literal["COMPRESSOR"]
-    name: Annotated[
-        ProcessUnitReference,
-        Field(
-            description="Name of the model. See documentation for more information.",
-            title="NAME",
-        ),
-    ]
-    compressor_model: YamlCompressorModelChart
 
 
 type ProcessSystemReference = str  # TODO: validate correct reference
@@ -82,7 +45,7 @@ class YamlItem[TTarget](YamlBase):
     target: TTarget | ProcessSystemReference
 
 
-class YamlSerialProcessSystem(YamlBase):
+class YamlProcessPipeline(YamlBase):
     type: Literal["SERIAL"]
     name: ProcessSystemReference
     items: list[YamlItem[YamlCompressorStageProcessSystem]]
@@ -127,7 +90,7 @@ class YamlProcessConstraints(YamlBase):
 class YamlProcessSimulation(YamlBase):
     name: str
     targets: Annotated[
-        list[YamlItem[YamlSerialProcessSystem]],
+        list[YamlItem[YamlProcessPipeline]],
         Field(title="TARGETS"),
     ]
     stream_distribution: YamlStreamDistribution
@@ -152,12 +115,7 @@ class YamlProcessSimulation(YamlBase):
     ]
 
 
-YamlProcessUnit = Annotated[
-    YamlCompressor,
-    Field(discriminator="type"),
-]
-
 YamlProcessSystem = Annotated[
-    YamlSerialProcessSystem | YamlCompressorStageProcessSystem,
+    YamlProcessPipeline | YamlCompressorStageProcessSystem,
     Field(discriminator="type"),
 ]

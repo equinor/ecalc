@@ -7,7 +7,7 @@ from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
     YamlCompressor,
     YamlCompressorStageProcessSystem,
-    YamlSerialProcessSystem,
+    YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
@@ -80,7 +80,7 @@ class ReferenceService(Protocol):
     def get_tabulated_model(self, reference: str) -> YamlTabularModel: ...
 
     @abc.abstractmethod
-    def get_process_system(self, reference: str) -> YamlSerialProcessSystem: ...
+    def get_process_system(self, reference: str) -> YamlProcessPipeline: ...
 
     @abc.abstractmethod
     def get_compressor_stage(self, reference: str) -> YamlCompressorStageProcessSystem: ...
