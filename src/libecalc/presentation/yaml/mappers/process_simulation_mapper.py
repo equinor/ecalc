@@ -66,9 +66,6 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import ScipyRootFindingStrategy
-from libecalc.process.process_solver.temperature_setter_configuration_handler import (
-    TemperatureSetterConfigurationHandler,
-)
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
@@ -306,7 +303,9 @@ class ProcessSimulationMapper:
         pressure_control_configs: dict[ProcessPipelineId, PressureControlConfig] = {}
         anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
-        configurations: dict[
+
+        # Some configurations are not found/set by the solver, but set by user upon process_simulation creation
+        predefined_configurations: dict[
             ProcessPipelineId,
             dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
         ] = {}
@@ -327,26 +326,23 @@ class ProcessSimulationMapper:
                 compressor = self._get_compressor(yaml_compressor_stage=yaml_compressor_stage)
                 compressor_ids.append(compressor.get_id())
 
+                # Predefined process unit configurations
                 temperature_setter = TemperatureSetter(
                     fluid_service=self._fluid_service,
-                )
-                temperature_setter_configuration_handler = TemperatureSetterConfigurationHandler(
-                    temperature_setter=temperature_setter
                 )
                 problem_time_series_configurations[temperature_setter.get_id()] = (
                     TimeSeriesTemperatureSetterConfiguration(
                         temperature_in_celsius=self._map_temperature(yaml_compressor_stage.inlet_temperature)
                     )
                 )
-                # TODO: Needed?
-                problem_configuration_handlers.append(temperature_setter_configuration_handler)
-
                 pressure_dropper = PressureDropper(fluid_service=self._fluid_service)
                 problem_time_series_configurations[pressure_dropper.get_id()] = TimeSeriesPressureDropperConfiguration(
                     pressure_drop_in_bara=self._map_pressure(yaml_compressor_stage.pressure_drop_ahead_of_stage)
                 )
 
+                # No configuration
                 liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
+
                 process_unit_map[temperature_setter.get_id()] = temperature_setter
                 process_unit_map[pressure_dropper.get_id()] = pressure_dropper
                 process_unit_map[liquid_remover.get_id()] = liquid_remover
@@ -399,7 +395,7 @@ class ProcessSimulationMapper:
             )
 
             configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
-            configurations[process_pipeline.get_id()] = problem_time_series_configurations
+            predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
             pressure_control_configs[process_pipeline.get_id()] = PressureControlConfig(
                 type=pressure_control,
@@ -516,6 +512,6 @@ class ProcessSimulationMapper:
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
                 process_periods=process_periods,
-                process_configurations=configurations,
+                process_configurations=predefined_configurations,
             ),
         )
