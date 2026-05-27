@@ -7,6 +7,7 @@ from libecalc.ecalc_model.process_simulation import PressureControlConfig, Press
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
@@ -87,6 +88,7 @@ class ProcessSolverBuilder:
             recirculation_loops=recirculation_loops,
             compressors=compressors,
             choke_configuration_handler=choke_configuration_handler,
+            anti_surge_strategy=anti_surge_strategy,
         )
         solver = OutletPressureSolver(
             shaft_id=shaft.get_id(),
@@ -191,6 +193,7 @@ class ProcessSolverBuilder:
         recirculation_loops: Sequence[RecirculationLoop],
         compressors: Sequence[Compressor],
         choke_configuration_handler: ChokeConfigurationHandler | None,
+        anti_surge_strategy: AntiSurgeStrategy,
     ) -> PressureControlStrategy:
         match self._pressure_control_config.type:
             case "DOWNSTREAM_CHOKE":
@@ -205,6 +208,7 @@ class ProcessSolverBuilder:
                     simulator=runner,
                     choke_configuration_handler_id=choke_configuration_handler.get_id(),
                     root_finding_strategy=self._root_finding_strategy,
+                    anti_surge_strategy=anti_surge_strategy,
                 )
             case "COMMON_ASV":
                 return CommonASVPressureControlStrategy(

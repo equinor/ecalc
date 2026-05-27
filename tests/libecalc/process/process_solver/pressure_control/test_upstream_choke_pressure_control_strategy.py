@@ -4,6 +4,7 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.upstream_choke import (
     UpstreamChokePressureControlStrategy,
 )
+from libecalc.testing.no_asv import NoASVAntiSurgeStrategy
 
 
 def test_upstream_choke_strategy_asserts_when_baseline_below_target(
@@ -24,6 +25,7 @@ def test_upstream_choke_strategy_asserts_when_baseline_below_target(
         simulator=runner,
         choke_configuration_handler_id=upstream_choke_configuration_handler.get_id(),
         root_finding_strategy=root_finding_strategy,
+        anti_surge_strategy=NoASVAntiSurgeStrategy(),
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=50)
@@ -51,6 +53,7 @@ def test_upstream_choke_strategy_baseline_above_target_chokes_to_target(
         simulator=runner,
         choke_configuration_handler_id=upstream_choke_configuration_handler.get_id(),
         root_finding_strategy=root_finding_strategy,
+        anti_surge_strategy=NoASVAntiSurgeStrategy(),
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=100)

@@ -27,6 +27,7 @@ from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import Shaft
+from libecalc.testing.no_asv import NoASVAntiSurgeStrategy
 from tests.libecalc.process.helpers import ProcessSolverBuilder, ProcessSolverSystem, StageConfig
 
 
@@ -210,11 +211,13 @@ def upstream_choke_pressure_control_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
         choke_id: ProcessUnitId,
+        anti_surge_strategy: AntiSurgeStrategy | None = None,
     ) -> UpstreamChokePressureControlStrategy:
         return UpstreamChokePressureControlStrategy(
             simulator=runner,
             choke_configuration_handler_id=choke_id,
             root_finding_strategy=root_finding_strategy,
+            anti_surge_strategy=anti_surge_strategy or NoASVAntiSurgeStrategy(),
         )
 
     return create

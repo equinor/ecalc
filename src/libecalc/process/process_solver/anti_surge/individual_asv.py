@@ -45,6 +45,10 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
             )
         )
 
+    def reset(self) -> None:
+        for loop_id in self._recirculation_loop_ids:
+            self._apply_recirculation_configuration(loop_id=loop_id, recirculation_rate=0.0)
+
     @override
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         configurations: Sequence[Configuration[RecirculationConfiguration]] = []
