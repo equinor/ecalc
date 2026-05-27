@@ -45,7 +45,7 @@ class YamlItem[TTarget](YamlBase):
     target: TTarget | ProcessSystemReference
 
 
-class YamlSerialProcessSystem(YamlBase):
+class YamlProcessPipeline(YamlBase):
     type: Literal["SERIAL"]
     name: ProcessSystemReference
     items: list[YamlItem[YamlCompressorStageProcessSystem]]
@@ -90,7 +90,7 @@ class YamlProcessConstraints(YamlBase):
 class YamlProcessSimulation(YamlBase):
     name: str
     targets: Annotated[
-        list[YamlItem[YamlSerialProcessSystem]],
+        list[YamlItem[YamlProcessPipeline]],
         Field(title="TARGETS"),
     ]
     stream_distribution: YamlStreamDistribution
@@ -116,6 +116,6 @@ class YamlProcessSimulation(YamlBase):
 
 
 YamlProcessSystem = Annotated[
-    YamlSerialProcessSystem | YamlCompressorStageProcessSystem,
+    YamlProcessPipeline | YamlCompressorStageProcessSystem,
     Field(discriminator="type"),
 ]

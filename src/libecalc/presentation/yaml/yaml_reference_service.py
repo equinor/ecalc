@@ -11,9 +11,9 @@ from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
     YamlCompressorStageProcessSystem,
+    YamlProcessPipeline,
     YamlProcessSimulation,
     YamlProcessSystem,
-    YamlSerialProcessSystem,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_process_units import YamlCompressor, YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
@@ -192,9 +192,9 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("tabulated", reference)
         return model
 
-    def get_process_system(self, reference: str) -> YamlSerialProcessSystem:
+    def get_process_system(self, reference: str) -> YamlProcessPipeline:
         model = self._resolve_yaml_reference(reference, "process system")
-        if not isinstance(model, YamlSerialProcessSystem):
+        if not isinstance(model, YamlProcessPipeline):
             raise InvalidReferenceException("process system", reference)
         return model
 
