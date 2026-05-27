@@ -3,6 +3,8 @@ from collections.abc import Sequence
 import pytest
 
 from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.ecalc_model.process_simulation import PressureControlType
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
@@ -25,6 +27,37 @@ from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import Shaft
+from tests.libecalc.process.helpers import ProcessSolverBuilder, ProcessSolverSystem, StageConfig
+
+
+@pytest.fixture
+def build_solver_system(fluid_service):
+    def create(
+        *,
+        chart_data: ChartData | None = None,
+        stages: Sequence[StageConfig] | None = None,
+        pressure_control_type: PressureControlType,
+        inlet_temperature_kelvin: float = 303.15,
+        remove_liquid_after_cooling: bool = True,
+    ) -> ProcessSolverSystem:
+        if stages is None:
+            if chart_data is None:
+                raise ValueError("Either chart_data or stages must be provided")
+            stages = [
+                StageConfig(
+                    chart_data=chart_data,
+                    inlet_temperature_kelvin=inlet_temperature_kelvin,
+                    remove_liquid_after_cooling=remove_liquid_after_cooling,
+                )
+            ]
+
+        return ProcessSolverBuilder(
+            stages=stages,
+            pressure_control_type=pressure_control_type,
+            fluid_service=fluid_service,
+        ).build()
+
+    return create
 
 
 @pytest.fixture

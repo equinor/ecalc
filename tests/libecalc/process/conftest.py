@@ -2,7 +2,6 @@ from typing import Final
 
 import pytest
 
-from ecalc_neqsim_wrapper import NeqSimFluidService
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
@@ -189,7 +188,6 @@ def stage_units_factory(fluid_service):
         remove_liquid_after_cooling: bool = False,
     ) -> list[ProcessUnit]:
         assert isinstance(compressor, Compressor)
-        fluid_service = NeqSimFluidService.instance()
         units: list[ProcessUnit] = []
 
         if pressure_drop_ahead_of_stage:
