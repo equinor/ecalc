@@ -36,14 +36,14 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
 )
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
-    YamlCompressorStageProcessSystem,
-    YamlProcessPipeline,
-    YamlProcessSimulation,
-)
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorStageProcessSystem,
+    YamlProcessPipeline,
+)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor, YamlCompressorModelChart
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
