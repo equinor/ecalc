@@ -4,7 +4,7 @@ from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.components.yaml_process_units import (
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     ProcessUnitReference,
     YamlCompressor,
 )
