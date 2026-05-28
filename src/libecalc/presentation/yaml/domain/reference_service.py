@@ -25,7 +25,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor, YamlProcessUnit
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
@@ -81,9 +81,6 @@ class ReferenceService(Protocol):
 
     @abc.abstractmethod
     def get_process_unit(self, reference: str) -> YamlProcessUnit: ...
-
-    @abc.abstractmethod
-    def get_compressor(self, reference: str) -> YamlCompressor: ...
 
     @abc.abstractmethod
     def get_stream(self, reference: str) -> YamlInletStream: ...

@@ -16,7 +16,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor, YamlProcessUnit
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
@@ -58,9 +58,6 @@ class DirectReferenceService(ReferenceService):
         raise NotImplementedError()
 
     def get_process_unit(self, reference: str) -> YamlProcessUnit:
-        raise NotImplementedError()
-
-    def get_compressor(self, reference: str) -> YamlCompressor:
         raise NotImplementedError()
 
     def get_stream(self, reference: str) -> YamlInletStream:

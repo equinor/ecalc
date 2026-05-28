@@ -27,7 +27,7 @@ from libecalc.presentation.yaml.yaml_types.models import (
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor, YamlProcessUnit
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 logger = logging.getLogger(__name__)
@@ -196,12 +196,6 @@ class YamlReferenceService(ReferenceService):
         model = self._resolve_yaml_reference(reference, "process system")
         if not isinstance(model, YamlProcessPipeline):
             raise InvalidReferenceException("process system", reference)
-        return model
-
-    def get_compressor(self, reference: str) -> YamlCompressor:
-        model = self._resolve_yaml_reference(reference, "compressor")
-        if not isinstance(model, YamlCompressor):
-            raise InvalidReferenceException("compressor", reference)
         return model
 
     def get_stream(self, reference: str) -> YamlInletStream:
