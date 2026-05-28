@@ -98,3 +98,59 @@ def test_common_asv_anti_surge_uses_compressor_inlet_for_boundary(
         f"expected compressor-inlet stream at T={stage_inlet_temperature_kelvin:.1f} K "
         f"(train-inlet was T={train_inlet_temperature_kelvin:.1f} K)."
     )
+
+
+def test_common_asv_apply_result_independent_of_prior_simulator_state(
+    stream_factory,
+    chart_data_factory,
+    fluid_service,
+    compressor_factory,
+    stage_units_factory,
+    with_common_asv,
+    process_runner_factory,
+    common_asv_anti_surge_strategy_factory,
+):
+    inlet_stream = stream_factory(
+        standard_rate_m3_per_day=500_000.0,
+        pressure_bara=30.0,
+        temperature_kelvin=303.15,
+    )
+    q0 = float(inlet_stream.volumetric_rate_m3_per_hour)
+
+    chart_data = chart_data_factory.from_curves(
+        curves=[
+            ChartCurve(
+                speed_rpm=75.0,
+                rate_actual_m3_hour=[q0 * 2, q0 * 8],
+                polytropic_head_joule_per_kg=[150_000.0, 40_000.0],
+                efficiency_fraction=[0.75, 0.75],
+            ),
+        ],
+        control_margin=0.0,
+    )
+
+    shaft = VariableSpeedShaft()
+    compressor = compressor_factory(chart_data=chart_data)
+    units = stage_units_factory(compressor=compressor, shaft=shaft)
+    shaft.set_speed(75.0)
+
+    recirculation_loop, wrapped_units = with_common_asv(units)
+    runner = process_runner_factory(units=wrapped_units, configuration_handlers=[shaft, recirculation_loop])
+
+    strategy = common_asv_anti_surge_strategy_factory(
+        runner=runner,
+        recirculation_loop_id=recirculation_loop.get_id(),
+        first_compressor=compressor,
+    )
+
+    first = strategy.apply(inlet_stream=inlet_stream)
+    second = strategy.apply(inlet_stream=inlet_stream)
+
+    first_rate = first.configuration[0].value.recirculation_rate
+    second_rate = second.configuration[0].value.recirculation_rate
+
+    assert first_rate > 0.0, "Test setup error: anti-surge did not recirculate on the first call"
+    assert second_rate == pytest.approx(first_rate, rel=1e-6), (
+        f"apply() result depends on prior simulator state: first call set recirculation "
+        f"rate {first_rate:.3f}, second call set {second_rate:.3f} with the same arguments."
+    )

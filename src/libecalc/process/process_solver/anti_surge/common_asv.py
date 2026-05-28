@@ -46,7 +46,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         )
 
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
-        # Increase recirculation to give minimum feasible flow and return outlet.
+        self.reset()
         recirculation_solution = self._increase_recirculation_to_minimum_feasible(inlet_stream)
         return Solution(
             success=recirculation_solution.success,

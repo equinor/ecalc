@@ -65,9 +65,6 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
             self._simulator.apply_configuration(
                 Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=config)
             )
-            # Reset and re-evaluate anti-surge at the current choke setting so that
-            # recirculation reflects the actual (post-choke) compressor inlet conditions.
-            self._anti_surge_strategy.reset()
             anti_surge_solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
             for anti_surge_configuration in anti_surge_solution.configuration:
                 self._simulator.apply_configuration(anti_surge_configuration)

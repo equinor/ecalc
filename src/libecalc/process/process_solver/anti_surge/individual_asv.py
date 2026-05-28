@@ -51,6 +51,7 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
 
     @override
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
+        self.reset()
         configurations: Sequence[Configuration[RecirculationConfiguration]] = []
         for loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors, strict=True):
             try:
