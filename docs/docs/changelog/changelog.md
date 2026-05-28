@@ -1,5 +1,25 @@
 # Changelog
 
+## [13.7.8](https://github.com/equinor/ecalc/compare/v13.7.7...v13.7.8) (2026-05-28)
+
+
+### Bug Fixes
+
+* **process:** short-circuit RateTooHigh before anti-surge in OutletPressureSolver ([#1588](https://github.com/equinor/ecalc/issues/1588)) ([78bd2de](https://github.com/equinor/ecalc/commit/78bd2deac4bc4ec3cddaa0b7efa55864640e641c))
+* recompute anti-surge recirculation at each upstream-choke probe ([#1583](https://github.com/equinor/ecalc/issues/1583)) ([204bf4b](https://github.com/equinor/ecalc/commit/204bf4bdc3244d1ec7f1423e14c60b4cb6447f53))
+
+
+### Miscellaneous Chores
+
+* predefined configurations ([#1586](https://github.com/equinor/ecalc/issues/1586)) ([cf1e886](https://github.com/equinor/ecalc/commit/cf1e88649fed1d140f577a54a28253e11306001a))
+
+
+### Code Refactoring
+
+* introduce YamlProcessUnit types and rename to YamlProcessPipeline ([#1581](https://github.com/equinor/ecalc/issues/1581)) ([7b46cb9](https://github.com/equinor/ecalc/commit/7b46cb9f9000d9d6978e9b9d0107da6a2404c90d))
+* move new YAML process model into yaml_types/process/ ([#1587](https://github.com/equinor/ecalc/issues/1587)) ([d8a40b4](https://github.com/equinor/ecalc/commit/d8a40b45425e95bd70b1e6ac8fad91e72c2c686e))
+* **solver:** extract rate-recovery helpers ([#1577](https://github.com/equinor/ecalc/issues/1577)) ([43a477a](https://github.com/equinor/ecalc/commit/43a477a652a5a828052a1c07c9d092b75b363c7a))
+
 ## [13.7.7](https://github.com/equinor/ecalc/compare/v13.7.6...v13.7.7) (2026-05-27)
 
 
