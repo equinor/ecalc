@@ -1,12 +1,10 @@
 import abc
-from typing import NewType, Self
-from uuid import UUID
+from typing import Self
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.process.process_pipeline.ids import ProcessUnitId
 from libecalc.process.process_pipeline.stream_propagator import StreamPropagator
-
-ProcessUnitId = NewType("ProcessUnitId", UUID)
 
 
 class ProcessUnit(Entity[ProcessUnitId], StreamPropagator, abc.ABC):

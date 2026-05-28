@@ -6,9 +6,7 @@ from libecalc.process.process_pipeline.process_error import RateTooHighError
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.process_runner import ProcessRunner
-from libecalc.process.process_solver.solver import (
-    Solution,
-)
+from libecalc.process.process_solver.solver import Solution
 from libecalc.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.process.process_units.compressor import Compressor
 

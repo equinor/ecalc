@@ -3,16 +3,12 @@ from typing import Literal
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.propagation_failure import TargetDirection, TargetPressureUnreachable
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
-from libecalc.process.process_solver.solver import (
-    Solution,
-    Solver,
-    TargetDirection,
-    TargetPressureUnreachableFailure,
-)
+from libecalc.process.process_solver.solver import Solution, Solver
 
 
 class RecirculationSolver(Solver):
@@ -86,7 +82,7 @@ class RecirculationSolver(Solver):
                 configuration=RecirculationConfiguration(recirculation_rate=minimum_rate),
                 failure=None
                 if is_success
-                else TargetPressureUnreachableFailure(
+                else TargetPressureUnreachable(
                     achievable_pressure_bara=minimum_outlet_stream.pressure_bara,
                     target_pressure_bara=target_pressure.value,
                     direction=TargetDirection.MAX_BELOW_TARGET,
@@ -101,7 +97,7 @@ class RecirculationSolver(Solver):
                 configuration=RecirculationConfiguration(recirculation_rate=maximum_rate),
                 failure=None
                 if is_success
-                else TargetPressureUnreachableFailure(
+                else TargetPressureUnreachable(
                     achievable_pressure_bara=maximum_outlet_stream.pressure_bara,
                     target_pressure_bara=target_pressure.value,
                     direction=TargetDirection.MIN_ABOVE_TARGET,

@@ -3,12 +3,13 @@ from typing import Final
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.propagation_failure import TargetDirection
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
 from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
-from libecalc.process.process_solver.solver import Solution, TargetDirection
+from libecalc.process.process_solver.solver import Solution
 
 
 class MultiPressureSolver:
