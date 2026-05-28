@@ -52,6 +52,7 @@ class BinarySearchStrategy(SearchStrategy):
         """
         x0, x1 = boundary.min, boundary.max
         x2 = (x0 + x1) / 2  # Initial value x2.
+        last_accepted: float | None = None
         i = 0
         rel_diff = 100.0
 
@@ -60,6 +61,8 @@ class BinarySearchStrategy(SearchStrategy):
             higher, accepted = func(x2)
             if higher:
                 x0, x1 = x2, x1  # x2 is valid. We can now search to the right in the binary three.
+                if accepted:
+                    last_accepted = x2
             else:
                 x0, x1 = x0, x2  # x2 is invalid. We can now search to the left in the binary three
 
@@ -74,7 +77,7 @@ class BinarySearchStrategy(SearchStrategy):
                 tolerance=self._tolerance,
                 iterations=self._max_iterations,
             )
-        return x2
+        return last_accepted if last_accepted is not None else x2
 
 
 class RootFindingStrategy(abc.ABC):
