@@ -9,8 +9,6 @@ from typing import Any, Self
 import numpy as np
 import pandas as pd
 from numpy.typing import ArrayLike, NDArray
-from pydantic import GetCoreSchemaHandler
-from pydantic_core import core_schema
 
 from libecalc.common.errors.exceptions import (
     InvalidDateException,
@@ -32,26 +30,6 @@ class Period:
 
     def __str__(self) -> str:
         return f"{self.start};{self.end}"  #  need something other than : to be able to split a string into two dates
-
-    # TODO: Temporary pydantic hack to make it automatic to deserialize non-pydantic Period w Pydantic
-    # since it defined the __str__ for some reason
-    @classmethod
-    def __get_pydantic_core_schema__(cls, source_type, handler: GetCoreSchemaHandler):
-        return core_schema.no_info_plain_validator_function(cls._validate)
-
-    @classmethod
-    def _validate(cls, value):
-        if isinstance(value, cls):
-            return value
-        if isinstance(value, str):
-            start, end = value.split(";")
-            return cls(start=datetime.fromisoformat(start.strip()), end=datetime.fromisoformat(end.strip()))
-        if isinstance(value, dict):
-            return cls(
-                start=datetime.fromisoformat(value["start"]),
-                end=datetime.fromisoformat(value["end"]),
-            )
-        raise ValueError(f"Cannot parse Period from {value!r}")
 
     def __contains__(self, date_or_period: datetime | Period) -> bool:
         """
