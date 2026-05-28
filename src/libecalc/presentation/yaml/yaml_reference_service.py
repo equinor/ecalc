@@ -9,13 +9,6 @@ from libecalc.presentation.yaml.domain.reference_service import (
 )
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
-from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
-    YamlCompressorStageProcessSystem,
-    YamlProcessPipeline,
-    YamlProcessSimulation,
-    YamlProcessSystem,
-)
-from libecalc.presentation.yaml.yaml_types.components.yaml_process_units import YamlCompressor, YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
     YamlGeneratorSetModel,
@@ -32,6 +25,13 @@ from libecalc.presentation.yaml.yaml_types.models import (
     YamlTurbine,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorStageProcessSystem,
+    YamlProcessPipeline,
+    YamlProcessSystem,
+)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor, YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 logger = logging.getLogger(__name__)

@@ -4,11 +4,6 @@ from typing import Protocol
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
-from libecalc.presentation.yaml.yaml_types.components.yaml_process_system import (
-    YamlCompressor,
-    YamlCompressorStageProcessSystem,
-    YamlProcessPipeline,
-)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlGeneratorSetModel,
@@ -29,6 +24,11 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
     YamlVariableSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorStageProcessSystem,
+    YamlProcessPipeline,
+)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
