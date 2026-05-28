@@ -8,7 +8,7 @@ from enum import Enum
 from typing import Self, TypeVar
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorOperatingPoint, RateTooHighError, RateTooLowError
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import (
@@ -82,6 +82,12 @@ class TargetPressureUnreachableFailure(SolverFailure):
 
     def with_source_id(self, source_id: ProcessPipelineId) -> Self:
         return dataclasses.replace(self, source_id=source_id)
+
+
+@dataclass
+class OutletFluidNotAchievableFailure(SolverFailure):
+    source_id: ProcessUnitId
+    unachievable_operating_point: CompressorOperatingPoint
 
 
 @dataclass(frozen=True)

@@ -17,6 +17,7 @@ from libecalc.process.process_solver.pressure_control.pressure_control_strategy 
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
+    OutletFluidNotAchievableFailure,
     RateTooHighFailure,
     Solution,
     TargetDirection,
@@ -131,8 +132,8 @@ class OutletPressureSolver:
             value=speed_solution.configuration,
         )
 
-        # Short-circuit: if rate exceeds compressor capacity at all speeds, anti-surge cannot help
-        if isinstance(speed_solution.failure, RateTooHighFailure):
+        # Short-circuit: failures that anti-surge cannot help with
+        if isinstance(speed_solution.failure, (RateTooHighFailure, OutletFluidNotAchievableFailure)):
             return Solution(
                 success=False,
                 configuration=list(configurations.values()),

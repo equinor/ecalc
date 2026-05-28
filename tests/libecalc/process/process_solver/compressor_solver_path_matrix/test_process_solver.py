@@ -45,18 +45,6 @@ from .cases import TEST_CASES, ExpectedOutcome, TrialCase
 # Expected failures — remove entries as the process solver improves
 # ---------------------------------------------------------------------------
 PROCESS_XFAILS: dict[tuple[str, str], str] = {
-    # R1 — SpeedSolver does not converge when min-speed point starts above stonewall
-    ("R1", "UPSTREAM_CHOKE"): "SpeedSolver bracketing failure at min-speed.",
-    ("R1", "DOWNSTREAM_CHOKE"): "SpeedSolver bracketing failure at min-speed.",
-    ("R1", "INDIVIDUAL_ASV_RATE"): "SpeedSolver bracketing failure at min-speed.",
-    ("R1", "INDIVIDUAL_ASV_PRESSURE"): "SpeedSolver bracketing failure at min-speed.",
-    ("R1", "COMMON_ASV"): "SpeedSolver bracketing failure at min-speed.",
-    # R6 — similar SpeedSolver convergence issue near max-speed boundary
-    ("R6", "UPSTREAM_CHOKE"): "SpeedSolver convergence issue near max-speed boundary.",
-    ("R6", "DOWNSTREAM_CHOKE"): "SpeedSolver convergence issue near max-speed boundary.",
-    ("R6", "INDIVIDUAL_ASV_RATE"): "SpeedSolver convergence issue near max-speed boundary.",
-    ("R6", "INDIVIDUAL_ASV_PRESSURE"): "SpeedSolver convergence issue near max-speed boundary.",
-    ("R6", "COMMON_ASV"): "SpeedSolver convergence issue near max-speed boundary.",
     # R8 — process solver does not implement legacy zero-rate short-circuit
     ("R8", "UPSTREAM_CHOKE"): "No zero-rate short-circuit in process solver.",
     ("R8", "DOWNSTREAM_CHOKE"): "No zero-rate short-circuit in process solver.",

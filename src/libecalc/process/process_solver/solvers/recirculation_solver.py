@@ -6,7 +6,7 @@ from libecalc.process.process_pipeline.process_error import RateTooHighError, Ra
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
+from libecalc.process.process_solver.search_strategies import BinarySearchResult, RootFindingStrategy, SearchStrategy
 from libecalc.process.process_solver.solver import (
     Solution,
     Solver,
@@ -118,16 +118,16 @@ class RecirculationSolver(Solver):
         func: Callable[[RecirculationConfiguration], FluidStream],
         x: float,
         mode: Literal["minimize", "maximize"],
-    ) -> tuple[bool, bool]:
+    ) -> BinarySearchResult:
         """Probe a candidate rate for the search strategy.
 
-        Returns ``(is_higher, is_accepted)``. The two booleans are decoupled so an
+        Returns a BinarySearchResult. The two fields are decoupled so an
         out-of-capacity candidate can never be accepted as a solution.
         """
         try:
             func(RecirculationConfiguration(recirculation_rate=x))
-            return False if mode == "minimize" else True, True
+            return BinarySearchResult(search_higher=mode != "minimize", accepted=True)
         except RateTooLowError:
-            return True, False
+            return BinarySearchResult(search_higher=True, accepted=False)
         except RateTooHighError:
-            return False, False
+            return BinarySearchResult(search_higher=False, accepted=False)

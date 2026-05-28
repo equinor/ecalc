@@ -1,5 +1,6 @@
 from typing import Final
 
+from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.domain.process.compressor.core.train.utils.common import (
     RECIRCULATION_BOUNDARY_TOLERANCE,
     calculate_outlet_pressure_and_stream,
@@ -8,7 +9,12 @@ from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import (
+    CompressorOperatingPoint,
+    OutletFluidNotAchievableError,
+    RateTooHighError,
+    RateTooLowError,
+)
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
 
@@ -56,12 +62,25 @@ class Compressor(ProcessUnit):
                 rate=actual_rate,
             )
 
-        return calculate_outlet_pressure_and_stream(
-            polytropic_efficiency=polytropic_efficiency,
-            polytropic_head_joule_per_kg=polytropic_head,
-            inlet_stream=inlet_stream,
-            fluid_service=self._fluid_service,
-        )
+        try:
+            return calculate_outlet_pressure_and_stream(
+                polytropic_efficiency=polytropic_efficiency,
+                polytropic_head_joule_per_kg=polytropic_head,
+                inlet_stream=inlet_stream,
+                fluid_service=self._fluid_service,
+            )
+        except CompressorThermodynamicCalculationError as exc:
+            raise OutletFluidNotAchievableError(
+                process_unit_id=self._id,
+                unachievable_operating_point=CompressorOperatingPoint(
+                    inlet_pressure_bara=inlet_stream.pressure_bara,
+                    inlet_temperature_kelvin=inlet_stream.temperature_kelvin,
+                    actual_rate_m3_per_hour=actual_rate,
+                    polytropic_head_joule_per_kg=polytropic_head,
+                    polytropic_efficiency=polytropic_efficiency,
+                    speed=self.speed,
+                ),
+            ) from exc
 
     @property
     def compressor_chart(self) -> CompressorChart:

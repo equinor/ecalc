@@ -4,6 +4,9 @@ from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.search_strategies import (
+    ACCEPT_AND_GO_HIGHER,
+    ACCEPT_AND_GO_LOWER,
+    BinarySearchResult,
     BinarySearchStrategy,
     DidNotConvergeError,
     SearchStrategy,
@@ -59,13 +62,16 @@ class FeasibilitySolver:
         upper_bound_sm3_per_day: float,
     ) -> float:
         boundary = Boundary(min=0.0, max=upper_bound_sm3_per_day)
+
+        def rate_search(rate: float) -> BinarySearchResult:
+            if self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure):
+                return ACCEPT_AND_GO_HIGHER
+            return ACCEPT_AND_GO_LOWER
+
         try:
             return self._search_strategy.search(
                 boundary=boundary,
-                func=lambda rate: (
-                    self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure),
-                    True,
-                ),
+                func=rate_search,
             )
         except DidNotConvergeError:
             return 0.0
