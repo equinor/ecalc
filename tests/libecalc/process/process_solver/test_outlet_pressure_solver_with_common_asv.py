@@ -73,6 +73,7 @@ def test_outlet_pressure_solver_with_common_asv(
     speed_configuration = config_dict[shaft.get_id()]
 
     recirculation_at_capacity_solution = common_asv_solver.get_anti_surge_solution()
+    assert recirculation_at_capacity_solution is not None
 
     assert solution.success
     assert speed_configuration.speed == pytest.approx(94.40, rel=1e-3)

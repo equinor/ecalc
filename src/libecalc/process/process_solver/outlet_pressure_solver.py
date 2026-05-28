@@ -17,6 +17,7 @@ from libecalc.process.process_solver.pressure_control.pressure_control_strategy 
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
+    RateTooHighFailure,
     Solution,
     TargetDirection,
     TargetPressureUnreachableFailure,
@@ -111,8 +112,7 @@ class OutletPressureSolver:
         self._simulator.apply_configurations(configurations)
         return self._simulator.run(inlet_stream=inlet_stream)
 
-    def get_anti_surge_solution(self) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
-        assert self._anti_surge_solution is not None
+    def get_anti_surge_solution(self) -> Solution[Sequence[Configuration[RecirculationConfiguration]]] | None:
         return self._anti_surge_solution
 
     def find_solution(
@@ -130,6 +130,14 @@ class OutletPressureSolver:
             configuration_handler_id=self._shaft_id,
             value=speed_solution.configuration,
         )
+
+        # Short-circuit: if rate exceeds compressor capacity at all speeds, anti-surge cannot help
+        if isinstance(speed_solution.failure, RateTooHighFailure):
+            return Solution(
+                success=False,
+                configuration=list(configurations.values()),
+                failure=speed_solution.failure,
+            )
 
         self._simulator.reset_to(configurations=list(configurations.values()))
         self._anti_surge_solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)

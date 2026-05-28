@@ -51,8 +51,6 @@ PROCESS_XFAILS: dict[tuple[str, str], str] = {
     ("R1", "INDIVIDUAL_ASV_RATE"): "SpeedSolver bracketing failure at min-speed.",
     ("R1", "INDIVIDUAL_ASV_PRESSURE"): "SpeedSolver bracketing failure at min-speed.",
     ("R1", "COMMON_ASV"): "SpeedSolver bracketing failure at min-speed.",
-    # R5 — Common-ASV loses flow-capacity failure
-    ("R5", "COMMON_ASV"): "Common-ASV topology loses flow-capacity failure for stonewall case.",
     # R6 — similar SpeedSolver convergence issue near max-speed boundary
     ("R6", "UPSTREAM_CHOKE"): "SpeedSolver convergence issue near max-speed boundary.",
     ("R6", "DOWNSTREAM_CHOKE"): "SpeedSolver convergence issue near max-speed boundary.",
@@ -172,7 +170,11 @@ def test_process_solver_path(
         None,
     )
     anti_surge_solution = system.solver.get_anti_surge_solution()
-    anti_surge_recirculation_rates = tuple(c.value.recirculation_rate for c in anti_surge_solution.configuration)
+    anti_surge_recirculation_rates = (
+        tuple(c.value.recirculation_rate for c in anti_surge_solution.configuration)
+        if anti_surge_solution is not None
+        else ()
+    )
     assert_control_behavior(
         case,
         recirculation_rates=recirculation_rates,
