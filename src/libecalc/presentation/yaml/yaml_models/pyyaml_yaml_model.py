@@ -31,7 +31,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import Y
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessSystem
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
@@ -42,13 +42,13 @@ from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidati
 
 # Top-level YAML keywords used only by experimental/new sections
 _PROCESS_UNITS_KEY = "PROCESS_UNITS"
-_PROCESS_SYSTEMS_KEY = "PROCESS_SYSTEMS"
+_PROCESS_PIPELINES_KEY = "PROCESS_PIPELINES"
 _INLET_STREAMS_KEY = "INLET_STREAMS"
 _FLUID_MODELS_KEY = "FLUID_MODELS"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _NEW_SECTIONS_WITH_FILE_REFS: tuple[str, ...] = (
     "PROCESS_UNITS",
-    "PROCESS_SYSTEMS",
+    "PROCESS_PIPELINES",
 )
 dt_adapter = TypeAdapter(datetime.datetime)
 
@@ -315,7 +315,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             data.get(EcalcYamlKeywords.file) for data in resource_data if data.get(EcalcYamlKeywords.file) is not None
         ]
 
-        # Pick up FILE references nested in the new YAML sections (PROCESS_UNITS, PROCESS_SYSTEMS, ...).
+        # Pick up FILE references nested in the new YAML sections (PROCESS_UNITS, PROCESS_PIPELINES, ...).
         for section in _NEW_SECTIONS_WITH_FILE_REFS:
             resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
 
@@ -455,17 +455,17 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return process_units
 
     @property
-    def process_systems(self) -> dict[str, YamlProcessSystem]:
-        process_systems: dict[str, YamlProcessSystem] = {}
-        raw = self._get_yaml_dict_or_empty(_PROCESS_SYSTEMS_KEY)
+    def process_pipelines(self) -> dict[str, YamlProcessPipeline]:
+        process_pipelines: dict[str, YamlProcessPipeline] = {}
+        raw = self._get_yaml_dict_or_empty(_PROCESS_PIPELINES_KEY)
 
-        for name, process_system in raw.items():
+        for name, process_pipeline in raw.items():
             try:
-                process_systems[name] = TypeAdapter(YamlProcessSystem).validate_python(process_system)
+                process_pipelines[name] = TypeAdapter(YamlProcessPipeline).validate_python(process_pipeline)
             except PydanticValidationError:
                 pass
 
-        return process_systems
+        return process_pipelines
 
     @property
     def process_simulations(self) -> list[YamlProcessSimulation]:

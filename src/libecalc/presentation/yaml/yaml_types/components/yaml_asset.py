@@ -7,7 +7,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import Y
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessSystem
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
@@ -67,12 +67,12 @@ class YamlAsset(YamlBase):
     process_units: dict[str, YamlProcessUnit] = Field(
         default_factory=dict,
         title="PROCESS_UNITS",
-        description="Defines process units used in PROCESS_SYSTEMS.",
+        description="Defines process units used in PROCESS_PIPELINES.",
     )
-    process_systems: dict[str, YamlProcessSystem] = Field(
+    process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
-        title="PROCESS_SYSTEMS",
-        description="Defines process systems to use in process simulations.",
+        title="PROCESS_PIPELINES",
+        description="Defines process pipelines to use in process simulations.",
     )
     process_simulations: list[YamlProcessSimulation] = Field(
         default_factory=list,
@@ -165,8 +165,8 @@ class YamlAsset(YamlBase):
             for fuel_type in self.fuel_types:
                 references.append(fuel_type.name)
 
-        if self.process_systems is not None:
-            references.extend(self.process_systems.keys())
+        if self.process_pipelines is not None:
+            references.extend(self.process_pipelines.keys())
 
         if self.process_units is not None:
             references.extend(self.process_units.keys())

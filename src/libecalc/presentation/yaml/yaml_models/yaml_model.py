@@ -16,7 +16,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import Y
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessSystem
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
@@ -90,7 +90,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def process_systems(self) -> dict[str, YamlProcessSystem]:
+    def process_pipelines(self) -> dict[str, YamlProcessPipeline]:
         pass
 
     @property

@@ -39,12 +39,15 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlCompressorStageProcessSystem,
-    YamlProcessPipeline,
-)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor, YamlCompressorModelChart
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
+    YamlCompressor,
+    YamlCompressorModelChart,
+    YamlLiquidRemover,
+    YamlPressureDropper,
+    YamlTemperatureSetter,
+)
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.process.fluid_stream.fluid_model import FluidModel
@@ -66,6 +69,9 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import ScipyRootFindingStrategy
+from libecalc.process.process_solver.temperature_setter_configuration_handler import (
+    TemperatureSetterConfigurationHandler,
+)
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
@@ -144,21 +150,7 @@ class ProcessSimulationMapper:
 
     def _resolve_train_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
-            return self._reference_service.get_process_system(reference=ref)
-        else:
-            return ref
-
-    def _resolve_compressor_stage_reference(
-        self, ref: str | YamlCompressorStageProcessSystem
-    ) -> YamlCompressorStageProcessSystem:
-        if isinstance(ref, str):
-            return self._reference_service.get_compressor_stage(reference=ref)
-        else:
-            return ref
-
-    def _resolve_compressor_reference(self, ref: str | YamlCompressor) -> YamlCompressor:
-        if isinstance(ref, str):
-            return self._reference_service.get_compressor(reference=ref)
+            return self._reference_service.get_process_pipeline(reference=ref)
         else:
             return ref
 
@@ -197,11 +189,8 @@ class ProcessSimulationMapper:
                 yaml_curves, units=yaml_chart.units, control_margin=control_margin_fraction
             )
 
-    def _get_compressor(self, yaml_compressor_stage: YamlCompressorStageProcessSystem) -> Compressor:
-        yaml_compressor = self._resolve_compressor_reference(yaml_compressor_stage.compressor)
-
+    def _get_compressor(self, yaml_compressor: YamlCompressor) -> Compressor:
         chart: ChartData = self._get_compressor_chart(yaml_compressor_model_chart=yaml_compressor.compressor_model)
-
         return Compressor(
             compressor_chart=chart,
             fluid_service=self._fluid_service,
@@ -303,9 +292,7 @@ class ProcessSimulationMapper:
         pressure_control_configs: dict[ProcessPipelineId, PressureControlConfig] = {}
         anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
-
-        # Some configurations are not found/set by the solver, but set by user upon process_simulation creation
-        predefined_configurations: dict[
+        configurations: dict[
             ProcessPipelineId,
             dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
         ] = {}
@@ -316,45 +303,71 @@ class ProcessSimulationMapper:
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
-            compressor_stages: list[list[ProcessUnitId]] = []
+            compressor_segments: list[list[ProcessUnitId]] = []
             compressor_ids: list[ProcessUnitId] = []
             problem_time_series_configurations: dict[
                 ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration
             ] = {}
-            for yaml_serial_item in item.items:
-                yaml_compressor_stage = self._resolve_compressor_stage_reference(yaml_serial_item.target)
-                compressor = self._get_compressor(yaml_compressor_stage=yaml_compressor_stage)
-                compressor_ids.append(compressor.get_id())
 
-                # Predefined process unit configurations
-                temperature_setter = TemperatureSetter(
-                    fluid_service=self._fluid_service,
-                )
-                problem_time_series_configurations[temperature_setter.get_id()] = (
-                    TimeSeriesTemperatureSetterConfiguration(
-                        temperature_in_celsius=self._map_temperature(yaml_compressor_stage.inlet_temperature)
-                    )
-                )
-                pressure_dropper = PressureDropper(fluid_service=self._fluid_service)
-                problem_time_series_configurations[pressure_dropper.get_id()] = TimeSeriesPressureDropperConfiguration(
-                    pressure_drop_in_bara=self._map_pressure(yaml_compressor_stage.pressure_drop_ahead_of_stage)
-                )
+            # Group units into compressor segments: each segment contains the units leading up to
+            # (and including) one compressor. Used downstream to wrap each segment in its own ASV
+            # recirculation loop when pressure_control is INDIVIDUAL_ASV.
+            current_segment_unit_ids: list[ProcessUnitId] = []
+            for yaml_pipeline_item in item.items:
+                yaml_process_unit = yaml_pipeline_item.target
+                if isinstance(yaml_process_unit, str):
+                    yaml_process_unit = self._reference_service.get_process_unit(yaml_process_unit)
 
-                # No configuration
-                liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
+                match yaml_process_unit:
+                    case YamlCompressor():
+                        compressor = self._get_compressor(yaml_process_unit)
+                        process_unit_map[compressor.get_id()] = compressor
+                        compressor_ids.append(compressor.get_id())
+                        current_segment_unit_ids.append(compressor.get_id())
+                        # Compressor closes the current segment
+                        compressor_segments.append(current_segment_unit_ids)
+                        current_segment_unit_ids = []
 
-                process_unit_map[temperature_setter.get_id()] = temperature_setter
-                process_unit_map[pressure_dropper.get_id()] = pressure_dropper
-                process_unit_map[liquid_remover.get_id()] = liquid_remover
-                process_unit_map[compressor.get_id()] = compressor
+                    case YamlPressureDropper():
+                        pressure_dropper = PressureDropper(fluid_service=self._fluid_service)
+                        problem_time_series_configurations[pressure_dropper.get_id()] = (
+                            TimeSeriesPressureDropperConfiguration(
+                                pressure_drop_in_bara=self._map_pressure(yaml_process_unit.pressure_drop)
+                            )
+                        )
+                        process_unit_map[pressure_dropper.get_id()] = pressure_dropper
+                        current_segment_unit_ids.append(pressure_dropper.get_id())
 
-                compressor_stages.append(
-                    [
-                        pressure_dropper.get_id(),
-                        temperature_setter.get_id(),
-                        liquid_remover.get_id(),
-                        compressor.get_id(),
-                    ]
+                    case YamlTemperatureSetter():
+                        temperature_setter = TemperatureSetter(fluid_service=self._fluid_service)
+                        temperature_setter_configuration_handler = TemperatureSetterConfigurationHandler(
+                            temperature_setter=temperature_setter
+                        )
+                        problem_time_series_configurations[temperature_setter.get_id()] = (
+                            TimeSeriesTemperatureSetterConfiguration(
+                                temperature_in_celsius=self._map_temperature(yaml_process_unit.temperature)
+                            )
+                        )
+                        problem_configuration_handlers.append(temperature_setter_configuration_handler)
+                        process_unit_map[temperature_setter.get_id()] = temperature_setter
+                        current_segment_unit_ids.append(temperature_setter.get_id())
+
+                    case YamlLiquidRemover():
+                        liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
+                        process_unit_map[liquid_remover.get_id()] = liquid_remover
+                        current_segment_unit_ids.append(liquid_remover.get_id())
+
+                    case _:
+                        assert_never(yaml_process_unit)
+
+            # Trailing units (units after the last compressor) are not supported: each segment
+            # must end with a compressor so it can be wrapped in an ASV recirculation loop.
+            # Units placed after the last compressor would otherwise be silently dropped from
+            # the simulated pipeline.
+            if current_segment_unit_ids:
+                raise EcalcValidationException(
+                    f"Process pipeline '{item.name}' has {len(current_segment_unit_ids)} unit(s) "
+                    f"after the last compressor. Each compressor segment must end with a compressor."
                 )
 
             for compressor_id in compressor_ids:
@@ -374,9 +387,9 @@ class ProcessSimulationMapper:
                 recirculation_loop, process_units = with_asv(units=list(process_unit_map.values()))
                 problem_configuration_handlers.append(recirculation_loop)
             else:  # INDIVIDUAL ASV (ASV per stage) assumed if not COMMON ASV explicitly set
-                for compressor_stage_ids in compressor_stages:
-                    stage_units = [process_unit_map[stage_unit_id] for stage_unit_id in compressor_stage_ids]
-                    recirculation_loop, stage_process_units = with_asv(units=stage_units)
+                for compressor_segment_ids in compressor_segments:
+                    segment_units = [process_unit_map[segment_unit_id] for segment_unit_id in compressor_segment_ids]
+                    recirculation_loop, stage_process_units = with_asv(units=segment_units)
                     problem_configuration_handlers.append(recirculation_loop)
                     process_units.extend(stage_process_units)
 
@@ -395,7 +408,7 @@ class ProcessSimulationMapper:
             )
 
             configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
-            predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
+            configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
             pressure_control_configs[process_pipeline.get_id()] = PressureControlConfig(
                 type=pressure_control,
@@ -512,6 +525,6 @@ class ProcessSimulationMapper:
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
                 process_periods=process_periods,
-                process_configurations=predefined_configurations,
+                process_configurations=configurations,
             ),
         )

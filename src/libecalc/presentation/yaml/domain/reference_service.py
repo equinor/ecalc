@@ -24,11 +24,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
     YamlVariableSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlCompressorStageProcessSystem,
-    YamlProcessPipeline,
-)
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor, YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
@@ -80,10 +77,10 @@ class ReferenceService(Protocol):
     def get_tabulated_model(self, reference: str) -> YamlTabularModel: ...
 
     @abc.abstractmethod
-    def get_process_system(self, reference: str) -> YamlProcessPipeline: ...
+    def get_process_pipeline(self, reference: str) -> YamlProcessPipeline: ...
 
     @abc.abstractmethod
-    def get_compressor_stage(self, reference: str) -> YamlCompressorStageProcessSystem: ...
+    def get_process_unit(self, reference: str) -> YamlProcessUnit: ...
 
     @abc.abstractmethod
     def get_compressor(self, reference: str) -> YamlCompressor: ...
