@@ -69,9 +69,6 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import ScipyRootFindingStrategy
-from libecalc.process.process_solver.temperature_setter_configuration_handler import (
-    TemperatureSetterConfigurationHandler,
-)
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
@@ -340,15 +337,11 @@ class ProcessSimulationMapper:
 
                     case YamlTemperatureSetter():
                         temperature_setter = TemperatureSetter(fluid_service=self._fluid_service)
-                        temperature_setter_configuration_handler = TemperatureSetterConfigurationHandler(
-                            temperature_setter=temperature_setter
-                        )
                         problem_time_series_configurations[temperature_setter.get_id()] = (
                             TimeSeriesTemperatureSetterConfiguration(
                                 temperature_in_celsius=self._map_temperature(yaml_process_unit.temperature)
                             )
                         )
-                        problem_configuration_handlers.append(temperature_setter_configuration_handler)
                         process_unit_map[temperature_setter.get_id()] = temperature_setter
                         current_segment_unit_ids.append(temperature_setter.get_id())
 
