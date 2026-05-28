@@ -292,7 +292,7 @@ class ProcessSimulationMapper:
         pressure_control_configs: dict[ProcessPipelineId, PressureControlConfig] = {}
         anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
-        configurations: dict[
+        predefined_configurations: dict[
             ProcessPipelineId,
             dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
         ] = {}
@@ -408,7 +408,7 @@ class ProcessSimulationMapper:
             )
 
             configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
-            configurations[process_pipeline.get_id()] = problem_time_series_configurations
+            predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
             pressure_control_configs[process_pipeline.get_id()] = PressureControlConfig(
                 type=pressure_control,
@@ -525,6 +525,6 @@ class ProcessSimulationMapper:
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
                 process_periods=process_periods,
-                process_configurations=configurations,
+                process_configurations=predefined_configurations,
             ),
         )
