@@ -40,25 +40,31 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         self._compressors = compressors
         self._root_finding_strategy = root_finding_strategy
 
+    def reset(self) -> None:
+        for recirculation_loop_id in self._recirculation_loop_ids:
+            self._simulator.apply_configuration(
+                Configuration(
+                    configuration_handler_id=recirculation_loop_id,
+                    value=RecirculationConfiguration(recirculation_rate=0.0),
+                )
+            )
+
     def apply(
         self,
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
-        minimum_achievable_pressure_configurations = _minimum_achievable_pressure(
+        self.reset()
+        min_configurations, min_pressure_bara = compute_minimum_achievable_pressure(
             simulator=self._simulator,
             recirculation_loop_ids=self._recirculation_loop_ids,
             compressors=self._compressors,
             inlet_stream=inlet_stream,
         )
-        self._simulator.apply_configurations(minimum_achievable_pressure_configurations)
-        minimum_achievable_pressure_stream = self._simulator.run(inlet_stream=inlet_stream)
-        if minimum_achievable_pressure_stream.pressure_bara > target_pressure.value:
-            # Even at maximum recirculation, the outlet pressure is still above the target.
-            # The compressor train cannot deliver a pressure this low at the current speed.
+        if min_pressure_bara > target_pressure.value:
             return Solution.target_pressure_unreachable(
-                configuration=minimum_achievable_pressure_configurations,
-                achievable_pressure_bara=minimum_achievable_pressure_stream.pressure_bara,
+                configuration=min_configurations,
+                achievable_pressure_bara=min_pressure_bara,
                 target_pressure_bara=target_pressure.value,
                 direction=TargetDirection.MIN_ABOVE_TARGET,
             )
@@ -69,15 +75,8 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
         configurations: list[Configuration[RecirculationConfiguration | ChokeConfiguration]] = []
 
         for i, (recirculation_loop_id, compressor) in enumerate(zip(self._recirculation_loop_ids, self._compressors)):
-            # Target pressure for this stage: cumulative from original inlet
             stage_target_pressure = inlet_stream.pressure_bara * (pressure_ratio_per_stage ** (i + 1))
 
-            self._simulator.apply_configuration(
-                Configuration(
-                    configuration_handler_id=recirculation_loop_id,
-                    value=RecirculationConfiguration(recirculation_rate=0.0),
-                )
-            )
             current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
 
@@ -132,20 +131,24 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         self._recirculation_loop_ids = recirculation_loop_ids
         self._compressors = compressors
 
-    def _get_configurations_from_fraction(
-        self,
-        inlet_stream: FluidStream,
-        asv_rate_fraction: float,
-    ) -> Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
-        """Propagate stream through all stages, interpolating recirculation between min and max per stage."""
-        configurations: list[Configuration[RecirculationConfiguration | ChokeConfiguration]] = []
-        for recirculation_loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors):
+    def reset(self) -> None:
+        for recirculation_loop_id in self._recirculation_loop_ids:
             self._simulator.apply_configuration(
                 Configuration(
                     configuration_handler_id=recirculation_loop_id,
                     value=RecirculationConfiguration(recirculation_rate=0.0),
                 )
             )
+
+    def _get_configurations_from_fraction(
+        self,
+        inlet_stream: FluidStream,
+        asv_rate_fraction: float,
+    ) -> Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
+        """Propagate stream through all stages, interpolating recirculation between min and max per stage."""
+        self.reset()
+        configurations: list[Configuration[RecirculationConfiguration | ChokeConfiguration]] = []
+        for recirculation_loop_id, compressor in zip(self._recirculation_loop_ids, self._compressors):
             current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
             recirculation_rate = boundary.min + asv_rate_fraction * (boundary.max - boundary.min)
@@ -164,20 +167,17 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         target_pressure: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]]:
-        minimum_achievable_pressure_configurations = _minimum_achievable_pressure(
+        self.reset()
+        min_configurations, min_pressure_bara = compute_minimum_achievable_pressure(
             simulator=self._simulator,
             recirculation_loop_ids=self._recirculation_loop_ids,
             compressors=self._compressors,
             inlet_stream=inlet_stream,
         )
-        self._simulator.apply_configurations(minimum_achievable_pressure_configurations)
-        minimum_achievable_pressure_stream = self._simulator.run(inlet_stream=inlet_stream)
-        if minimum_achievable_pressure_stream.pressure_bara > target_pressure.value:
-            # Even at maximum recirculation, the outlet pressure is still above the target.
-            # The compressor train cannot deliver a pressure this low at the current speed.
+        if min_pressure_bara > target_pressure.value:
             return Solution.target_pressure_unreachable(
-                configuration=minimum_achievable_pressure_configurations,
-                achievable_pressure_bara=minimum_achievable_pressure_stream.pressure_bara,
+                configuration=min_configurations,
+                achievable_pressure_bara=min_pressure_bara,
                 target_pressure_bara=target_pressure.value,
                 direction=TargetDirection.MIN_ABOVE_TARGET,
             )
@@ -209,21 +209,18 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         )
 
 
-def _minimum_achievable_pressure(
+def compute_minimum_achievable_pressure(
     simulator: ProcessRunner,
     recirculation_loop_ids: Sequence[ConfigurationHandlerId],
     compressors: Sequence[Compressor],
     inlet_stream: FluidStream,
-) -> Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]]:
-    """Propagate with maximum recirculation on every stage to find the lowest achievable pressure."""
+) -> tuple[Sequence[Configuration[RecirculationConfiguration | ChokeConfiguration]], float]:
+    """Apply maximum recirculation on every stage and return (configurations, outlet pressure bara).
+
+    Assumes all recirculation loops start at zero. Resets all loops to zero on exit.
+    """
     configurations: list[Configuration[RecirculationConfiguration | ChokeConfiguration]] = []
     for loop, compressor in zip(recirculation_loop_ids, compressors):
-        simulator.apply_configuration(
-            Configuration(
-                configuration_handler_id=loop,
-                value=RecirculationConfiguration(recirculation_rate=0.0),
-            )
-        )
         current_stream = simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
         boundary = compressor.get_recirculation_range(current_stream)
         configuration: Configuration[RecirculationConfiguration | ChokeConfiguration] = Configuration(
@@ -232,4 +229,9 @@ def _minimum_achievable_pressure(
         simulator.apply_configuration(configuration)
         configurations.append(configuration)
 
-    return configurations
+    pressure_bara = simulator.run(inlet_stream=inlet_stream).pressure_bara
+    for loop in recirculation_loop_ids:
+        simulator.apply_configuration(
+            Configuration(configuration_handler_id=loop, value=RecirculationConfiguration(recirculation_rate=0.0))
+        )
+    return configurations, pressure_bara
