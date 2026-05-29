@@ -15,11 +15,8 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlCompressorStageProcessSystem,
-    YamlProcessPipeline,
-)
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
@@ -57,13 +54,10 @@ class DirectReferenceService(ReferenceService):
     def get_tabulated_model(self, reference: str) -> YamlTabularModel:
         raise NotImplementedError()
 
-    def get_process_system(self, reference: str) -> YamlProcessPipeline:
+    def get_process_pipeline(self, reference: str) -> YamlProcessPipeline:
         raise NotImplementedError()
 
-    def get_compressor_stage(self, reference: str) -> YamlCompressorStageProcessSystem:
-        raise NotImplementedError()
-
-    def get_compressor(self, reference: str) -> YamlCompressor:
+    def get_process_unit(self, reference: str) -> YamlProcessUnit:
         raise NotImplementedError()
 
     def get_stream(self, reference: str) -> YamlInletStream:

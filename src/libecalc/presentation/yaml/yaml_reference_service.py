@@ -25,20 +25,18 @@ from libecalc.presentation.yaml.yaml_types.models import (
     YamlTurbine,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlCompressorStageProcessSystem,
-    YamlProcessPipeline,
-    YamlProcessSystem,
-)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressor, YamlProcessUnit
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 logger = logging.getLogger(__name__)
 
 YamlModel = YamlConsumerModel | YamlFacilityModel
 
-ReferenceType = YamlModel | YamlFuelType | YamlInletStream | YamlProcessSystem | YamlProcessSimulation | YamlProcessUnit
+ReferenceType = (
+    YamlModel | YamlFuelType | YamlInletStream | YamlProcessPipeline | YamlProcessSimulation | YamlProcessUnit
+)
 
 # Some models are referenced by other models, for example a compressor model will reference compressor chart models
 # and fluid models. A compressor with turbine model will reference a compressor model and a turbine model
@@ -106,16 +104,18 @@ class YamlReferenceService(ReferenceService):
 
         process_units_path = YamlPath(keys=("PROCESS_UNITS",))
         for process_unit_key, process_unit in configuration.process_units.items():
+            name = getattr(process_unit, "name", None)
+            if name is None:
+                continue
             process_unit_path = process_units_path.append(process_unit_key)
-            if isinstance(process_unit, YamlCompressor):
-                references[process_unit.name] = process_unit
-                reference_yaml_context[process_unit.name] = process_unit_path
+            references[name] = process_unit
+            reference_yaml_context[name] = process_unit_path
 
-        process_systems_path = YamlPath(keys=("PROCESS_SYSTEMS",))
-        for process_system_key, process_system in configuration.process_systems.items():
-            process_system_path = process_systems_path.append(process_system_key)
-            references[process_system.name] = process_system
-            reference_yaml_context[process_system.name] = process_system_path
+        process_pipelines_path = YamlPath(keys=("PROCESS_PIPELINES",))
+        for process_pipeline_key, process_pipeline in configuration.process_pipelines.items():
+            process_pipeline_path = process_pipelines_path.append(process_pipeline_key)
+            references[process_pipeline.name] = process_pipeline
+            reference_yaml_context[process_pipeline.name] = process_pipeline_path
 
         process_simulations_path = YamlPath(keys=("PROCESS_SIMULATIONS",))
         for process_simulation_index, process_simulation in enumerate(configuration.process_simulations):
@@ -192,26 +192,20 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("tabulated", reference)
         return model
 
-    def get_process_system(self, reference: str) -> YamlProcessPipeline:
+    def get_process_pipeline(self, reference: str) -> YamlProcessPipeline:
         model = self._resolve_yaml_reference(reference, "process system")
         if not isinstance(model, YamlProcessPipeline):
             raise InvalidReferenceException("process system", reference)
-        return model
-
-    def get_compressor_stage(self, reference: str) -> YamlCompressorStageProcessSystem:
-        model = self._resolve_yaml_reference(reference, "compressor stage")
-        if not isinstance(model, YamlCompressorStageProcessSystem):
-            raise InvalidReferenceException("compressor stage", reference)
-        return model
-
-    def get_compressor(self, reference: str) -> YamlCompressor:
-        model = self._resolve_yaml_reference(reference, "compressor")
-        if not isinstance(model, YamlCompressor):
-            raise InvalidReferenceException("compressor", reference)
         return model
 
     def get_stream(self, reference: str) -> YamlInletStream:
         model = self._resolve_yaml_reference(reference, "stream")
         if not isinstance(model, YamlInletStream):
             raise InvalidReferenceException("stream", reference)
+        return model
+
+    def get_process_unit(self, reference: str) -> YamlProcessUnit:
+        model = self._resolve_yaml_reference(reference, "process unit")
+        if not isinstance(model, get_args(get_args(YamlProcessUnit)[0])):
+            raise InvalidReferenceException("process unit", reference)
         return model
