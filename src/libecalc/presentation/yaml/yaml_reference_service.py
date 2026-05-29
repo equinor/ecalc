@@ -104,12 +104,11 @@ class YamlReferenceService(ReferenceService):
 
         process_units_path = YamlPath(keys=("PROCESS_UNITS",))
         for process_unit_key, process_unit in configuration.process_units.items():
-            name = getattr(process_unit, "name", None)
-            if name is None:
-                continue
+            # TODO: We have both a name attribute (on compressor only) and they key in the dict
+            # It is unnecessary to have both atm, so just using key for now
             process_unit_path = process_units_path.append(process_unit_key)
-            references[name] = process_unit
-            reference_yaml_context[name] = process_unit_path
+            references[process_unit_key] = process_unit
+            reference_yaml_context[process_unit_key] = process_unit_path
 
         process_pipelines_path = YamlPath(keys=("PROCESS_PIPELINES",))
         for process_pipeline_key, process_pipeline in configuration.process_pipelines.items():
