@@ -289,6 +289,8 @@ class ProcessSimulationMapper:
         pressure_control_configs: dict[ProcessPipelineId, PressureControlConfig] = {}
         anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
+
+        # Some configurations are not found/set by the solver, but set by user upon process_simulation creation
         predefined_configurations: dict[
             ProcessPipelineId,
             dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
