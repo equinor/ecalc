@@ -36,13 +36,6 @@ class YamlCompressor(YamlBase):
     """
 
     type: Literal["COMPRESSOR"]
-    name: Annotated[
-        ProcessUnitReference,
-        Field(
-            description="Name of the model. See documentation for more information.",
-            title="NAME",
-        ),
-    ]
     compressor_model: YamlCompressorModelChart
 
 
