@@ -33,10 +33,10 @@ class SpeedSolver(Solver[SpeedConfiguration]):
             max_speed_configuration = SpeedConfiguration(speed=self._boundary.max)
             maximum_speed_outlet_stream = func(max_speed_configuration)
         except RateTooHighError as e:
-            logger.debug(f"No solution found for maximum speed: {max_speed_configuration}", exc_info=e)
+            logger.debug(f"No solution found for maximum speed: {max_speed_configuration}")
             return Solution.from_rate_too_high(e, configuration=max_speed_configuration)
         except RateTooLowError as e:
-            logger.debug(f"No solution found for maximum speed: {max_speed_configuration}", exc_info=e)
+            logger.debug(f"No solution found for maximum speed: {max_speed_configuration}")
             return Solution.from_rate_too_low(e, configuration=max_speed_configuration)
 
         if maximum_speed_outlet_stream.pressure_bara < self._target_pressure:
