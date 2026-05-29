@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Literal, assert_never
+from typing import Literal, assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException
@@ -46,6 +46,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressorModelChart,
     YamlLiquidRemover,
     YamlPressureDropper,
+    YamlProcessUnit,
     YamlTemperatureSetter,
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
@@ -351,9 +352,14 @@ class ProcessSimulationMapper:
                         liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
                         process_unit_map[liquid_remover.get_id()] = liquid_remover
                         current_segment_unit_ids.append(liquid_remover.get_id())
-
                     case _:
-                        assert_never(yaml_process_unit)
+                        # Unreachable for valid YAML (pydantic discriminator rejects unknown types).
+                        # Guards against bypassed parsing or new union variants missing a case.
+                        allowed_types = [t.__name__ for t in get_args(get_args(YamlProcessUnit)[0])]
+                        raise EcalcValidationException(
+                            f"Process unit of type '{type(yaml_process_unit).__name__}' is not allowed "
+                            f"in a process pipeline. Allowed types are: {', '.join(allowed_types)}."
+                        )
 
             # Trailing units (units after the last compressor) are not supported: each segment
             # must end with a compressor so it can be wrapped in an ASV recirculation loop.
