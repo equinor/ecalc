@@ -152,14 +152,12 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
             current_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
             boundary = compressor.get_recirculation_range(inlet_stream=current_stream)
             recirculation_rate = boundary.min + asv_rate_fraction * (boundary.max - boundary.min)
-            configurations.append(
-                Configuration(
-                    configuration_handler_id=recirculation_loop_id,
-                    value=RecirculationConfiguration(
-                        recirculation_rate=recirculation_rate,
-                    ),
-                )
+            configuration: Configuration[RecirculationConfiguration | ChokeConfiguration] = Configuration(
+                configuration_handler_id=recirculation_loop_id,
+                value=RecirculationConfiguration(recirculation_rate=recirculation_rate),
             )
+            self._simulator.apply_configuration(configuration)
+            configurations.append(configuration)
         return configurations
 
     def apply(
