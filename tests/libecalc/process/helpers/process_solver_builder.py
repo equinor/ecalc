@@ -1,28 +1,14 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import assert_never
 
 from libecalc.ecalc_model.process_simulation import PressureControlConfig, PressureControlType
 from libecalc.process.fluid_stream.fluid_service import FluidService
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
-from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
-from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
-from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
-from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
-from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
-from libecalc.process.process_solver.pressure_control.individual_asv import (
-    IndividualASVPressureControlStrategy,
-    IndividualASVRateControlStrategy,
-)
-from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
-from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
-from libecalc.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, ScipyRootFindingStrategy
+from libecalc.process.process_solver.solver_assembly import ProcessSolverSystem, assemble_solver
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
@@ -30,7 +16,7 @@ from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
-from tests.libecalc.process.helpers.process_solver_system import ProcessSolverSystem, StageConfig
+from tests.libecalc.process.helpers.process_solver_system import StageConfig
 
 
 class ProcessSolverBuilder:
@@ -76,38 +62,17 @@ class ProcessSolverBuilder:
             else:
                 process_units = [choke, *process_units]
 
-        pipeline = ProcessPipeline(name="test-pipeline", stream_propagators=process_units)
-        runner = ProcessPipelineRunner(units=process_units, configuration_handlers=configuration_handlers)
-        anti_surge_strategy = self._create_anti_surge_strategy(
-            runner=runner,
-            recirculation_loops=recirculation_loops,
+        return assemble_solver(
+            process_units=process_units,
+            configuration_handlers=configuration_handlers,
             compressors=compressors,
-        )
-        pressure_control_strategy = self._create_pressure_control_strategy(
-            runner=runner,
             recirculation_loops=recirculation_loops,
-            compressors=compressors,
-            choke_configuration_handler=choke_configuration_handler,
-            anti_surge_strategy=anti_surge_strategy,
-        )
-        solver = OutletPressureSolver(
-            shaft_id=shaft.get_id(),
-            process_pipeline_id=pipeline.get_id(),
-            runner=runner,
-            anti_surge_strategy=anti_surge_strategy,
-            pressure_control_strategy=pressure_control_strategy,
-            root_finding_strategy=self._root_finding_strategy,
-            speed_boundary=shaft.get_speed_boundary(),
-        )
-
-        return ProcessSolverSystem(
-            solver=solver,
-            runner=runner,
-            pipeline=pipeline,
             shaft=shaft,
-            compressors=tuple(compressors),
-            recirculation_loops=tuple(recirculation_loops),
+            pipeline_name="test-pipeline",
+            pressure_control_type=self._pressure_control_config.type,
             choke=choke,
+            choke_configuration_handler=choke_configuration_handler,
+            root_finding_strategy=self._root_finding_strategy,
         )
 
     def _create_stage_units(
@@ -161,74 +126,3 @@ class ProcessSolverBuilder:
         splitter = DirectSplitter()
         recirculation_loop = RecirculationLoop(mixer=mixer, splitter=splitter)
         return recirculation_loop, [mixer, *units, splitter]
-
-    def _create_anti_surge_strategy(
-        self,
-        *,
-        runner: ProcessPipelineRunner,
-        recirculation_loops: Sequence[RecirculationLoop],
-        compressors: Sequence[Compressor],
-    ) -> CommonASVAntiSurgeStrategy | IndividualASVAntiSurgeStrategy:
-        match self._pressure_control_config.type:
-            case "COMMON_ASV":
-                return CommonASVAntiSurgeStrategy(
-                    simulator=runner,
-                    root_finding_strategy=self._root_finding_strategy,
-                    first_compressor=compressors[0],
-                    recirculation_loop_id=recirculation_loops[0].get_id(),
-                )
-            case "DOWNSTREAM_CHOKE" | "UPSTREAM_CHOKE" | "INDIVIDUAL_ASV_RATE" | "INDIVIDUAL_ASV_PRESSURE":
-                return IndividualASVAntiSurgeStrategy(
-                    simulator=runner,
-                    recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
-                    compressors=compressors,
-                )
-            case _:
-                assert_never(self._pressure_control_config.type)
-
-    def _create_pressure_control_strategy(
-        self,
-        *,
-        runner: ProcessPipelineRunner,
-        recirculation_loops: Sequence[RecirculationLoop],
-        compressors: Sequence[Compressor],
-        choke_configuration_handler: ChokeConfigurationHandler | None,
-        anti_surge_strategy: AntiSurgeStrategy,
-    ) -> PressureControlStrategy:
-        match self._pressure_control_config.type:
-            case "DOWNSTREAM_CHOKE":
-                assert choke_configuration_handler is not None
-                return DownstreamChokePressureControlStrategy(
-                    simulator=runner,
-                    choke_configuration_handler_id=choke_configuration_handler.get_id(),
-                )
-            case "UPSTREAM_CHOKE":
-                assert choke_configuration_handler is not None
-                return UpstreamChokePressureControlStrategy(
-                    simulator=runner,
-                    choke_configuration_handler_id=choke_configuration_handler.get_id(),
-                    root_finding_strategy=self._root_finding_strategy,
-                    anti_surge_strategy=anti_surge_strategy,
-                )
-            case "COMMON_ASV":
-                return CommonASVPressureControlStrategy(
-                    simulator=runner,
-                    recirculation_loop_id=recirculation_loops[0].get_id(),
-                    first_compressor=compressors[0],
-                    root_finding_strategy=self._root_finding_strategy,
-                )
-            case "INDIVIDUAL_ASV_RATE":
-                return IndividualASVRateControlStrategy(
-                    simulator=runner,
-                    recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
-                    compressors=compressors,
-                )
-            case "INDIVIDUAL_ASV_PRESSURE":
-                return IndividualASVPressureControlStrategy(
-                    simulator=runner,
-                    recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
-                    compressors=compressors,
-                    root_finding_strategy=self._root_finding_strategy,
-                )
-            case _:
-                assert_never(self._pressure_control_config.type)
