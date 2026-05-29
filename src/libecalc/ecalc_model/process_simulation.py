@@ -15,6 +15,7 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
 
 
@@ -38,15 +39,6 @@ class IndividualStreamDistributionConfig:
 @value_object
 class Constraint:  # should this instead be more flexible wrt. matching one or more stream conditions?
     outlet_pressure: TimeSeriesExpression
-
-
-PressureControlType = Literal[
-    "UPSTREAM_CHOKE",
-    "DOWNSTREAM_CHOKE",
-    "COMMON_ASV",
-    "INDIVIDUAL_ASV_RATE",
-    "INDIVIDUAL_ASV_PRESSURE",
-]
 
 
 @value_object
