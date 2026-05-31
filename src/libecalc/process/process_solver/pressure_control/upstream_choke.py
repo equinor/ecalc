@@ -81,4 +81,5 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
                     configuration_handler_id=self._choke_configuration_handler_id, value=solution.configuration
                 ),
             ],
+            failure=solution.failure,
         )
