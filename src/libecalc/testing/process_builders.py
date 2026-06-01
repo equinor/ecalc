@@ -9,11 +9,22 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlFluidModelType,
     YamlPredefinedFluidModel,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
+    YamlProcessConstraints,
+    YamlProcessSimulation,
+)
+from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
+    YamlCommonStreamDistribution,
+    YamlIndividualStreamDistribution,
+    YamlCommonStreamSetting,
+    YamlOverflow,
+)
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
     YamlInletStreamRate,
     YamlInletStream,
     YamlStreamRateUnit,
 )
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.testing.yaml_builder import Builder
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
@@ -24,7 +35,11 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlEfficiencyUnits,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlItem, YamlProcessPipeline
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlItem,
+    YamlProcessPipeline,
+    ProcessPipelineReference,
+)
 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlLiquidRemover,
@@ -303,4 +318,94 @@ class YamlInletStreamBuilder(Builder[YamlInletStream]):
         self.pressure = 20.0
         self.temperature = 30.0
         self.rate = YamlInletStreamRateBuilder().with_test_data().validate()
+        return self
+
+
+# ---------------------------------------------------------------------------
+# Stream distribution builders
+# ---------------------------------------------------------------------------
+
+
+class YamlIndividualStreamDistributionBuilder(Builder[YamlIndividualStreamDistribution]):
+    def __init__(self):
+        self.method = "INDIVIDUAL_STREAMS"
+        self.inlet_streams: list[str | YamlInletStream] = []
+
+    def with_inlet_streams(self, inlet_streams: list[str | YamlInletStream]) -> Self:
+        self.inlet_streams = inlet_streams
+        return self
+
+    def with_test_data(self) -> Self:
+        self.inlet_streams = [YamlInletStreamBuilder().with_test_data().validate()]
+        return self
+
+
+class YamlCommonStreamDistributionBuilder(Builder[YamlCommonStreamDistribution]):
+    def __init__(self):
+        self.method = "COMMON_STREAM"
+        self.inlet_stream: str | YamlInletStream | None = None
+        self.settings: list[YamlCommonStreamSetting] = []
+
+    def with_inlet_stream(self, inlet_stream: str | YamlInletStream) -> Self:
+        self.inlet_stream = inlet_stream
+        return self
+
+    def with_settings(self, settings: list[YamlCommonStreamSetting]) -> Self:
+        self.settings = settings
+        return self
+
+    def with_rate_fractions(
+        self,
+        rate_fractions: list[YamlExpressionType],
+        overflow: list[YamlOverflow] | None = None,
+    ) -> Self:
+        self.settings = [YamlCommonStreamSetting(rate_fractions=rate_fractions, overflow=overflow)]
+        return self
+
+    def with_test_data(self) -> Self:
+        self.inlet_stream = YamlInletStreamBuilder().with_test_data().validate()
+        self.settings = [YamlCommonStreamSetting(rate_fractions=[1.0], overflow=None)]
+        return self
+
+
+# ---------------------------------------------------------------------------
+# Process simulation builder
+# ---------------------------------------------------------------------------
+
+
+class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
+    def __init__(self):
+        self.name: str | None = None
+        self.targets: list[YamlItem[YamlProcessPipeline]] = []
+        self.stream_distribution = None
+        self.pressure_control: dict[ProcessPipelineReference, PressureControlType] = {}
+        self.constraints: dict[ProcessPipelineReference, YamlProcessConstraints] = {}
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_stream_distribution(
+        self,
+        stream_distribution: YamlCommonStreamDistribution | YamlIndividualStreamDistribution,
+    ) -> Self:
+        self.stream_distribution = stream_distribution
+        return self
+
+    def with_pipeline(
+        self,
+        pipeline: YamlProcessPipeline,
+        pressure_control: PressureControlType = "DOWNSTREAM_CHOKE",
+        outlet_pressure: YamlExpressionType = 100.0,
+    ) -> Self:
+        self.targets.append(YamlItem(target=pipeline))
+        self.pressure_control[pipeline.name] = pressure_control
+        self.constraints[pipeline.name] = YamlProcessConstraints(outlet_pressure=outlet_pressure)
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "DefaultProcessSimulation"
+        pipeline = YamlProcessPipelineBuilder().with_test_data().with_name("DefaultPipeline").validate()
+        self.with_pipeline(pipeline)
+        self.stream_distribution = YamlIndividualStreamDistributionBuilder().with_test_data().validate()
         return self
