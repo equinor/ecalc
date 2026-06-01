@@ -648,6 +648,7 @@ def patch_uuid():
 def process_simulation_mapper(
     fluid_service,
     expression_evaluator_factory,
+    with_neqsim_service,
 ):
     """
     Minimal ProcessSimulationMapper for testing.
