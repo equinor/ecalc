@@ -36,6 +36,7 @@ from libecalc.process.process_solver.process_pipeline_runner import ProcessPipel
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, ScipyRootFindingStrategy
+from libecalc.process.process_solver.speed_strategy.single_shaft_speed_strategy import SingleShaftSpeedStrategy
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
@@ -121,13 +122,16 @@ def assemble_solver(
     )
 
     solver = OutletPressureSolver(
-        shaft_id=shaft.get_id(),
+        speed_strategy=SingleShaftSpeedStrategy(
+            shaft_id=shaft.get_id(),
+            anti_surge_strategy=anti_surge_strategy,
+            root_finding_strategy=root_finding_strategy,
+            speed_boundary=shaft.get_speed_boundary(),
+            runner=runner,
+        ),
         process_pipeline_id=pipeline.get_id(),
         runner=runner,
-        anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=shaft.get_speed_boundary(),
     )
 
     return ProcessSolverSystem(

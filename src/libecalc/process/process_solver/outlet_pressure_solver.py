@@ -2,27 +2,20 @@ from collections.abc import Sequence
 from typing import Final
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooLowError
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
-from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import (
     Configuration,
-    ConfigurationHandlerId,
     RecirculationConfiguration,
-    SpeedConfiguration,
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
-from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
-    RateTooHighFailure,
     Solution,
     TargetDirection,
     TargetPressureUnreachableFailure,
 )
-from libecalc.process.process_solver.solvers.speed_solver import SpeedSolver
+from libecalc.process.process_solver.speed_strategy.speed_strategy import SpeedStrategy, SpeedStrategySolution
 
 
 class OutletPressureSolver:
@@ -40,80 +33,41 @@ class OutletPressureSolver:
 
     def __init__(
         self,
-        shaft_id: ConfigurationHandlerId,
         process_pipeline_id: ProcessPipelineId,
         runner: ProcessRunner,
-        anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
-        root_finding_strategy: RootFindingStrategy,
-        speed_boundary: Boundary,
+        speed_strategy: SpeedStrategy,
     ) -> None:
-        self._shaft_id: Final = shaft_id
         self._process_pipeline_id: Final = process_pipeline_id
-        self._root_finding_strategy: Final = root_finding_strategy
-        self._anti_surge_strategy: Final = anti_surge_strategy
         self._simulator: Final = runner
         self._pressure_control_strategy: Final = pressure_control_strategy
-        self._speed_boundary: Final = speed_boundary
-
-        self._anti_surge_solution: Solution[Sequence[Configuration[RecirculationConfiguration]]] | None = None
+        self._speed_solution: SpeedStrategySolution | None = None
+        self._speed_strategy: Final = speed_strategy
 
     @property
     def runner(self) -> ProcessRunner:
         return self._simulator
 
     @property
-    def anti_surge_strategy(self) -> AntiSurgeStrategy:
-        return self._anti_surge_strategy
-
-    @property
     def pressure_control_strategy(self) -> PressureControlStrategy:
         return self._pressure_control_strategy
-
-    @property
-    def shaft_id(self) -> ConfigurationHandlerId:
-        return self._shaft_id
 
     @property
     def process_pipeline_id(self) -> ProcessPipelineId:
         return self._process_pipeline_id
 
-    def _get_initial_speed_boundary(self) -> Boundary:
-        return self._speed_boundary
-
-    def _find_speed_solution(
-        self,
-        pressure_constraint: FloatConstraint,
-        inlet_stream: FluidStream,
-    ) -> Solution[SpeedConfiguration]:
-        speed_solver = SpeedSolver(
-            search_strategy=BinarySearchStrategy(),
-            root_finding_strategy=self._root_finding_strategy,
-            boundary=self._get_initial_speed_boundary(),
-            target_pressure=pressure_constraint.value,
-        )
-
-        def speed_func(configuration: SpeedConfiguration) -> FluidStream:
-            self._simulator.reset_to(
-                configurations=[Configuration(configuration_handler_id=self._shaft_id, value=configuration)],
-            )
-            try:
-                return self._simulator.run(inlet_stream=inlet_stream)
-            except RateTooLowError:
-                solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
-                self._simulator.apply_configurations(solution.configuration)
-                return self._simulator.run(inlet_stream=inlet_stream)
-
-        speed_solution = speed_solver.solve(speed_func)
-
-        return speed_solution
+    @property
+    def speed_strategy(self):
+        return self._speed_strategy
 
     def _get_outlet_stream(self, inlet_stream: FluidStream, configurations: Sequence[Configuration]):
         self._simulator.apply_configurations(configurations)
         return self._simulator.run(inlet_stream=inlet_stream)
 
     def get_anti_surge_solution(self) -> Solution[Sequence[Configuration[RecirculationConfiguration]]] | None:
-        return self._anti_surge_solution
+        if self._speed_solution is None:
+            return None
+        return self._speed_solution.get_anti_surge_solution()
 
     def find_solution(
         self,
@@ -124,47 +78,33 @@ class OutletPressureSolver:
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
         self._simulator.reset_to()
-        configurations: dict[ConfigurationHandlerId, Configuration] = {}
-        speed_solution = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
-        configurations[self._shaft_id] = Configuration(
-            configuration_handler_id=self._shaft_id,
-            value=speed_solution.configuration,
-        )
+        speed_solution = self._speed_strategy.apply(target_pressure=pressure_constraint, inlet_stream=inlet_stream)
+        self._speed_solution = speed_solution
 
-        # Short-circuit: if rate exceeds compressor capacity at all speeds, anti-surge cannot help
-        if isinstance(speed_solution.failure, RateTooHighFailure):
-            return Solution(
-                success=False,
-                configuration=list(configurations.values()),
-                failure=speed_solution.failure,
-            )
+        anti_surge_solution = speed_solution.get_anti_surge_solution()
 
-        self._simulator.reset_to(configurations=list(configurations.values()))
-        self._anti_surge_solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
-        for anti_surge_configuration in self._anti_surge_solution.configuration:
-            configurations[anti_surge_configuration.configuration_handler_id] = anti_surge_configuration
-
-        if speed_solution.success:
+        if speed_solution.is_success():
+            # Pressure is met
             return Solution(
                 success=True,
-                configuration=list(configurations.values()),
+                configuration=speed_solution.get_configurations(),
             )
-
-        if not self._anti_surge_solution.success:
+        elif anti_surge_solution is None or not anti_surge_solution.success:
+            # Anti surge does not consider target pressure, if no solution found we are unable to propagate stream at all
             return Solution(
                 success=False,
-                configuration=list(configurations.values()),
-                failure=self._anti_surge_solution.failure,
+                configuration=speed_solution.get_configurations(),
+                failure=speed_solution.get_failures()[-1],
             )
 
         outlet_at_chosen_speed = self._get_outlet_stream(
             inlet_stream=inlet_stream,
-            configurations=list(configurations.values()),
+            configurations=speed_solution.get_configurations(),
         )
 
         if outlet_at_chosen_speed.pressure_bara < pressure_constraint:
             return Solution.target_pressure_unreachable(
-                configuration=list(configurations.values()),
+                configuration=speed_solution.get_configurations(),
                 achievable_pressure_bara=outlet_at_chosen_speed.pressure_bara,
                 target_pressure_bara=pressure_constraint.value,
                 source_id=self._process_pipeline_id,
@@ -176,6 +116,8 @@ class OutletPressureSolver:
             inlet_stream=inlet_stream,
         )
 
+        # Speed strategy (anti-surge) and pressure control might configure the same units, overwrite with pressure control configs.
+        configurations = {config.configuration_handler_id: config for config in speed_solution.get_configurations()}
         for pressure_control_configuration in pressure_control_solution.configuration:
             configurations[pressure_control_configuration.configuration_handler_id] = pressure_control_configuration
 

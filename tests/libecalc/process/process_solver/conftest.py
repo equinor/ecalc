@@ -12,7 +12,7 @@ from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiS
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.configuration import ConfigurationHandlerId
-from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
+from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver, SubProblem
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.process.process_solver.pressure_control.downstream_choke import (
@@ -26,6 +26,7 @@ from libecalc.process.process_solver.pressure_control.pressure_control_strategy 
 from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
+from libecalc.process.process_solver.speed_strategy.single_shaft_speed_strategy import SingleShaftSpeedStrategy
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import Shaft, VariableSpeedShaft
 from libecalc.testing.chart_data_factory import ChartDataFactory
@@ -104,7 +105,21 @@ def with_individual_asv(with_common_asv):
 
 
 @pytest.fixture
-def outlet_pressure_solver_factory(root_finding_strategy):
+def single_shaft_speed_strategy_factory(root_finding_strategy):
+    def create_speed_factory(shaft: Shaft, anti_surge_strategy: AntiSurgeStrategy, runner: ProcessRunner):
+        return SingleShaftSpeedStrategy(
+            root_finding_strategy=root_finding_strategy,
+            speed_boundary=shaft.get_speed_boundary(),
+            shaft_id=shaft.get_id(),
+            anti_surge_strategy=anti_surge_strategy,
+            runner=runner,
+        )
+
+    return create_speed_factory
+
+
+@pytest.fixture
+def outlet_pressure_solver_factory(root_finding_strategy, single_shaft_speed_strategy_factory):
     def create_outlet_pressure_solver(
         shaft: Shaft,
         runner: ProcessRunner,
@@ -113,13 +128,14 @@ def outlet_pressure_solver_factory(root_finding_strategy):
         process_pipeline_id: ProcessPipelineId,
     ):
         return OutletPressureSolver(
-            shaft_id=shaft.get_id(),
             process_pipeline_id=process_pipeline_id,
+            speed_strategy=single_shaft_speed_strategy_factory(
+                shaft=shaft,
+                anti_surge_strategy=anti_surge_strategy,
+                runner=runner,
+            ),
             runner=runner,
-            anti_surge_strategy=anti_surge_strategy,
             pressure_control_strategy=pressure_control_strategy,
-            root_finding_strategy=root_finding_strategy,
-            speed_boundary=shaft.get_speed_boundary(),
         )
 
     return create_outlet_pressure_solver
@@ -240,11 +256,11 @@ def downstream_choke_pressure_control_strategy_factory():
 
 
 @pytest.fixture
-def multi_pressure_solver_factory():
+def multi_pressure_solver_factory(root_finding_strategy):
     def create_multi_pressure_solver(
-        segments: list[OutletPressureSolver],
+        segments: list[SubProblem],
     ) -> MultiPressureSolver:
-        return MultiPressureSolver(segments=segments)
+        return MultiPressureSolver(segments=segments, root_finding_strategy=root_finding_strategy)
 
     return create_multi_pressure_solver
 

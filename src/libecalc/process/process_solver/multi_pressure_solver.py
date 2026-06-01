@@ -1,14 +1,31 @@
 from collections.abc import Sequence
+from dataclasses import dataclass
 from typing import Final
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
+from libecalc.process.process_solver.process_runner import ProcessRunner
+from libecalc.process.process_solver.search_strategies import RootFindingStrategy
 from libecalc.process.process_solver.solver import Solution, TargetDirection
+from libecalc.process.process_solver.speed_strategy.single_shaft_speed_strategy import SingleShaftSpeedStrategy
+from libecalc.process.shaft import Shaft
+
+
+@dataclass
+class SubProblem:
+    shaft: Shaft
+    runner: ProcessRunner
+    anti_surge_strategy: AntiSurgeStrategy
+    pressure_control_strategy: PressureControlStrategy
+    process_pipeline_id: ProcessPipelineId
 
 
 class MultiPressureSolver:
@@ -28,19 +45,21 @@ class MultiPressureSolver:
 
     def __init__(
         self,
-        segments: list[OutletPressureSolver],
+        segments: list[SubProblem],
+        root_finding_strategy: RootFindingStrategy,
     ) -> None:
         if len(segments) < 2:
             raise EcalcValidationException("MultiPressureSolver requires at least 2 segments.")
-        shaft_ids = {segment.shaft_id for segment in segments}
+        shaft_ids = {segment.shaft.get_id() for segment in segments}
         if len(shaft_ids) != 1:
             raise EcalcValidationException("All segments must share the same shaft_id.")
         self._shaft_id: Final = next(iter(shaft_ids))
         self._validate_pressure_control_placement(segments)
         self._segments: Final = segments
+        self._root_finding_strategy: Final = root_finding_strategy
 
     @staticmethod
-    def _validate_pressure_control_placement(segments: list[OutletPressureSolver]) -> None:
+    def _validate_pressure_control_placement(segments: list[SubProblem]) -> None:
         """Upstream choke is only valid on the first segment; downstream choke only on the last."""
         for i, segment in enumerate(segments):
             strategy = segment.pressure_control_strategy
@@ -71,7 +90,19 @@ class MultiPressureSolver:
         speed_configurations: list[SpeedConfiguration] = []
         current_inlet = inlet_stream
         for segment, target in zip(self._segments, pressure_targets):
-            solution_for_segment = segment.find_solution(pressure_constraint=target, inlet_stream=current_inlet)
+            solver = OutletPressureSolver(
+                process_pipeline_id=segment.process_pipeline_id,
+                speed_strategy=SingleShaftSpeedStrategy(
+                    speed_boundary=segment.shaft.get_speed_boundary(),
+                    root_finding_strategy=self._root_finding_strategy,
+                    anti_surge_strategy=segment.anti_surge_strategy,
+                    shaft_id=segment.shaft.get_id(),
+                    runner=segment.runner,
+                ),
+                pressure_control_strategy=segment.pressure_control_strategy,
+                runner=segment.runner,
+            )
+            solution_for_segment = solver.find_solution(pressure_constraint=target, inlet_stream=current_inlet)
             if not solution_for_segment.success:
                 return solution_for_segment
             speed_configuration = solution_for_segment.get_configuration(self._shaft_id)

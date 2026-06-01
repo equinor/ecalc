@@ -6,8 +6,7 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.multi_pressure_solver import SubProblem
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.solver import TargetPressureUnreachableFailure
@@ -25,14 +24,12 @@ def segment_factory(root_finding_strategy):
         process_pipeline_id: ProcessPipelineId,
         shaft: Shaft,
     ):
-        return OutletPressureSolver(
+        return SubProblem(
             process_pipeline_id=process_pipeline_id,
+            shaft=shaft,
             anti_surge_strategy=anti_surge_strategy,
-            shaft_id=shaft.get_id(),
-            speed_boundary=shaft.get_speed_boundary(),
             pressure_control_strategy=pressure_control_strategy,
             runner=runner,
-            root_finding_strategy=root_finding_strategy,
         )
 
     return create_segment
@@ -377,6 +374,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
     root_finding_strategy,
     variable_speed_chart_data_factory,
     segment_factory,
+    multi_pressure_solver_factory,
 ):
     """TargetPressureUnreachableFailure.source_id should identify the second segment when it fails."""
 
@@ -434,7 +432,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
         process_pipeline_id=hp_process_pipeline.get_id(),
     )
 
-    solver = MultiPressureSolver(segments=[lp_segment, hp_segment])
+    solver = multi_pressure_solver_factory(segments=[lp_segment, hp_segment])
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
 
@@ -463,6 +461,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
     root_finding_strategy,
     variable_speed_chart_data_factory,
     segment_factory,
+    multi_pressure_solver_factory,
 ):
     """TargetPressureUnreachableFailure.source_id should identify the first segment when it fails."""
     temperature = 300.0
@@ -519,7 +518,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
         process_pipeline_id=hp_process_pipeline.get_id(),
     )
 
-    solver = MultiPressureSolver(segments=[lp_segment, hp_segment])
+    solver = multi_pressure_solver_factory(segments=[lp_segment, hp_segment])
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
 
