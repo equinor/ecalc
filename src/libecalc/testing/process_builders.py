@@ -111,19 +111,13 @@ class YamlCompressorModelChartBuilder(Builder[YamlCompressorModelChart]):
 class YamlCompressorBuilder(Builder[YamlCompressor]):
     def __init__(self):
         self.type = "COMPRESSOR"
-        self.name = None
         self.compressor_model = None
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
 
     def with_compressor_model(self, compressor_model: YamlCompressorModelChart) -> Self:
         self.compressor_model = compressor_model
         return self
 
     def with_test_data(self) -> Self:
-        self.name = "DefaultCompressor"
         self.compressor_model = YamlCompressorModelChartBuilder().with_test_data().validate()
         return self
 
