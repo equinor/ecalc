@@ -82,12 +82,12 @@ LEGACY_CHART_AREAS: dict[tuple[str, str], ChartAreaFlag] = {
     ("R8", "INDIVIDUAL_ASV_RATE"): ChartAreaFlag.NOT_CALCULATED,
     ("R8", "INDIVIDUAL_ASV_PRESSURE"): ChartAreaFlag.NOT_CALCULATED,
     ("R8", "COMMON_ASV"): ChartAreaFlag.NOT_CALCULATED,
-    # R9 — internal point except UPSTREAM_CHOKE and COMMON_ASV (above max flow)
+    # R9 — internal point except UPSTREAM_CHOKE (above max flow)
     ("R9", "UPSTREAM_CHOKE"): ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
     ("R9", "DOWNSTREAM_CHOKE"): ChartAreaFlag.INTERNAL_POINT,
     ("R9", "INDIVIDUAL_ASV_RATE"): ChartAreaFlag.INTERNAL_POINT,
     ("R9", "INDIVIDUAL_ASV_PRESSURE"): ChartAreaFlag.INTERNAL_POINT,
-    ("R9", "COMMON_ASV"): ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
+    ("R9", "COMMON_ASV"): ChartAreaFlag.INTERNAL_POINT,
 }
 
 

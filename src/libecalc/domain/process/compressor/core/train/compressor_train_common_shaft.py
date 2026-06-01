@@ -954,14 +954,19 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
             )
 
         # outer bounds for minimum and maximum mass rate without individual recirculation on stages will be the
-        # minimum and maximum mass rate for the first stage, adjusted for the volume entering the first stage
+        # minimum and maximum mass rate for the first stage at the current (fixed) shaft speed, adjusted for the
+        # volume entering the first stage
+        current_speed = self.shaft.get_speed()
         minimum_mass_rate = max(
             minimum_mass_rate_kg_per_hour,
-            self.stages[0].compressor.compressor_chart.minimum_rate * density_train_inlet_fluid,
+            float(self.stages[0].compressor.compressor_chart.minimum_rate_as_function_of_speed(current_speed))
+            * density_train_inlet_fluid,
         )
         # note: we subtract EPSILON to avoid floating point issues causing the maximum mass rate to exceed chart area maximum rate after round-trip conversion (mass rate -> standard rat -> mass rate)
         maximum_mass_rate = (
-            self.stages[0].compressor.compressor_chart.maximum_rate * density_train_inlet_fluid * (1 - EPSILON)
+            float(self.stages[0].compressor.compressor_chart.maximum_rate_as_function_of_speed(current_speed))
+            * density_train_inlet_fluid
+            * (1 - EPSILON)
         )
 
         # if the minimum_mass_rate_kg_per_hour(i.e. before increasing rate with recirculation to lower pressure)

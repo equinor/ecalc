@@ -229,7 +229,7 @@ EXPECTED_RESULTS: dict[tuple[str, PressureControlType], ExpectedResult] = {
     ("R9", "INDIVIDUAL_ASV_PRESSURE"): _fail(
         ExpectedOutcome.PRESSURE_TOO_LOW, 2.964, control=ExpectedControlAction.RECIRCULATION
     ),
-    ("R9", "COMMON_ASV"): _fail(ExpectedOutcome.ABOVE_MAX_FLOW, 4.456),
+    ("R9", "COMMON_ASV"): _fail(ExpectedOutcome.PRESSURE_TOO_LOW, 2.970),
 }
 
 # Fail fast if a new PressureControlType is added without test coverage.
