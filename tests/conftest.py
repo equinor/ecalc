@@ -38,6 +38,7 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlCo
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.testing.direct_reference_service import DirectReferenceService
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,
@@ -48,7 +49,6 @@ from libecalc.testing.yaml_builder import (
     YamlInstallationBuilder,
     YamlTimeSeriesBuilder,
 )
-from tests.libecalc.input.mappers.test_model_mapper import DirectReferenceService
 
 # Attribute name for storing cache stats in pytest config
 _CACHE_STATS_ATTR = "ecalc_cache_stats"
