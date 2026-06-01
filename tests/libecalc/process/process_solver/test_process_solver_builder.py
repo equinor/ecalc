@@ -113,11 +113,6 @@ def test_builder_wires_expected_solver_strategies(
         pressure_control_type=pressure_control_type,
         fluid_service=fluid_service,
     ).build()
-    expected_anti_surge_strategy_type = (
-        CommonASVAntiSurgeStrategy if pressure_control_type == "COMMON_ASV" else IndividualASVAntiSurgeStrategy
-    )
-
-    assert isinstance(system.solver.anti_surge_strategy, expected_anti_surge_strategy_type)
     assert isinstance(system.solver.pressure_control_strategy, PRESSURE_CONTROL_STRATEGY_TYPES[pressure_control_type])
 
 

@@ -9,10 +9,6 @@ from libecalc.domain.process.compressor.core.train.simplified_train.simplified_t
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_shaft_equal_ratio_solver import MultiShaftEqualRatioSolver
-from tests.libecalc.process.process_solver.test_multi_shaft_equal_ratio_solver import (
-    make_process_pipeline,
-    make_variable_speed_chart,
-)
 
 _RATE_SM3_DAY = 1_500_000.0
 _P_IN_BARA = 30.0
@@ -27,13 +23,14 @@ _MAX_RATE = 5_000.0
 
 def test_multi_shaft_outlet_pressure_matches_simplified_train(
     stream_factory,
-    fluid_service,
-    root_finding_strategy,
     compressor_stage_factory,
+    fluid_service,
+    affinity_law_scaled_variable_speed_chart_data_factory,
+    single_compressor_process_pipeline_factory,
 ):
     """Outlet pressure should match within 1% relative tolerance."""
     # Legacy: CompressorTrainSimplified
-    chart_data = make_variable_speed_chart(_MIN_RATE, _MAX_RATE, _HEAD_HI, _HEAD_LO)
+    chart_data = affinity_law_scaled_variable_speed_chart_data_factory(_MIN_RATE, _MAX_RATE, _HEAD_HI, _HEAD_LO)
     legacy_stages = [
         compressor_stage_factory(compressor_chart_data=chart_data, inlet_temperature_kelvin=_T_IN_KELVIN)
         for _ in range(_N_STAGES)
@@ -56,14 +53,12 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
 
     # New: MultiShaftEqualRatioSolver
     solver_pipelines = [
-        make_process_pipeline(
+        single_compressor_process_pipeline_factory(
             min_rate=_MIN_RATE,
             max_rate=_MAX_RATE,
             head_hi=_HEAD_HI,
             head_lo=_HEAD_LO,
             inlet_temperature_kelvin=_T_IN_KELVIN,
-            fluid_service=fluid_service,
-            root_finding_strategy=root_finding_strategy,
         )
         for _ in range(_N_STAGES)
     ]
