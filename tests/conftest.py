@@ -30,6 +30,7 @@ from libecalc.presentation.yaml.domain.expression_time_series_pressure import Ex
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
+from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService, TupleWithError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
@@ -47,6 +48,7 @@ from libecalc.testing.yaml_builder import (
     YamlInstallationBuilder,
     YamlTimeSeriesBuilder,
 )
+from tests.libecalc.input.mappers.test_model_mapper import DirectReferenceService
 
 # Attribute name for storing cache stats in pytest config
 _CACHE_STATS_ATTR = "ecalc_cache_stats"
@@ -640,3 +642,25 @@ def patch_uuid():
     # Patch the uuid.uuid4 function to return values from the list sequentially
     with patch("uuid.uuid4", side_effect=fixed_uuids):
         yield
+
+
+@pytest.fixture
+def process_simulation_mapper(
+    fluid_service,
+    expression_evaluator_factory,
+):
+    """
+    Minimal ProcessSimulationMapper for testing.
+    """
+    period = Period(start=datetime(2020, 1, 1), end=datetime(2030, 1, 1))
+
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+    reference_service = DirectReferenceService(references={})
+
+    return ProcessSimulationMapper(
+        expression_evaluator=expression_evaluator,
+        fluid_service=fluid_service,
+        reference_service=reference_service,
+        process_simulation_period=period,
+        resources={},
+    )
