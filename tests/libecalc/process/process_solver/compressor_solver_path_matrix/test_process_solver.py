@@ -64,7 +64,6 @@ PROCESS_XFAILS: dict[tuple[str, str], str] = {
     ("R8", "INDIVIDUAL_ASV_PRESSURE"): "No zero-rate short-circuit in process solver.",
     ("R8", "COMMON_ASV"): "No zero-rate short-circuit in process solver.",
     # R9 — individual case mismatches
-    ("R9", "UPSTREAM_CHOKE"): "Upstream-choke strategy reports success for stonewall-limited over-compression.",
     ("R9", "COMMON_ASV"): "Common-ASV reports pressure-limit where legacy reports stonewall for R9.",
 }
 

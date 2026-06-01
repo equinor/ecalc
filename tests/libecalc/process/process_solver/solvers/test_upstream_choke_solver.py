@@ -5,6 +5,7 @@ from libecalc.process.process_pipeline.process_error import RateTooHighError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
+from libecalc.process.process_solver.solver import RateTooHighFailure
 from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 
@@ -77,16 +78,18 @@ def test_upstream_choke_solver_handles_rate_too_high_at_max_choke(
     assert abs(solution.configuration.delta_pressure - 70.0) < 1e-3
 
 
-def test_upstream_choke_solver_reports_failure_when_rate_capacity_prevents_reaching_target(
+def test_upstream_choke_solver_reports_rate_too_high_when_stonewall_prevents_reaching_target(
     root_finding_strategy,
     stream_factory,
 ):
-    """When RateTooHighError creates a discontinuity that prevents the outlet from reaching
-    the target, the solver must report failure rather than false success at the discontinuity boundary.
+    """When choking further would exceed rate capacity (RateTooHighError) AND the maximum
+    feasible choke still leaves outlet pressure above target, the solver must classify the
+    failure as ``RateTooHighFailure``: stonewall is the actual blocker, not an unreachable
+    pressure.
 
     Scenario: outlet = inlet - dp + 50. RateTooHighError at dp > 40 (suction < 60).
     Target = 80 requires dp = 70, which is in the infeasible region.
-    Root-finding converges at dp ≈ 40 (discontinuity boundary) where actual outlet = 110, not 80.
+    At dp = 40 (stonewall edge), outlet = 110 > target = 80 — stonewall is the blocker.
     """
     inlet_pressure = 100.0
     feasible_suction_minimum = 60.0  # RateTooHighError below this
@@ -111,9 +114,7 @@ def test_upstream_choke_solver_reports_failure_when_rate_capacity_prevents_reach
     solution = upstream_choke_solver.solve(choke_func)
 
     assert not solution.success
-    assert solution.failure is not None
-    assert solution.failure.target_pressure_bara == target_pressure
-    assert solution.failure.achievable_pressure_bara > target_pressure
+    assert isinstance(solution.failure, RateTooHighFailure)
 
 
 def test_upstream_choke_solver_reports_failure_when_max_choke_still_above_target(

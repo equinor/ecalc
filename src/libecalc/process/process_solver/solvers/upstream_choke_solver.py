@@ -35,41 +35,43 @@ class UpstreamChokeSolver(Solver):
 
         assert outlet_pressure(0) > self._target_pressure
 
-        search_boundary = self._feasible_boundary(func)
-        max_pressure = outlet_pressure(search_boundary.max)
+        # Upstream choking increase the rate (lower pressure, higher volume)
+        # If we choke too much, to rate will exceed the capacity / stonewall
+        # If so, bisect to the highest ΔP that doesn't exceed stonewall
+        stonewall_error: RateTooHighError | None = None
+        try:
+            outlet_pressure(self._boundary.max)
+            search_max = self._boundary.max
+        except RateTooHighError as e:
+            stonewall_error = e
+            lo, hi = self._boundary.min, self._boundary.max
+            while hi - lo > PRESSURE_CALCULATION_TOLERANCE:
+                mid = (lo + hi) / 2
+                try:
+                    outlet_pressure(mid)
+                    lo = mid
+                except RateTooHighError as bisect_error:
+                    stonewall_error = bisect_error
+                    hi = mid
+            search_max = lo
+
+        max_pressure = outlet_pressure(search_max)
 
         if max_pressure > self._target_pressure:
+            if stonewall_error is not None:
+                return Solution.from_rate_too_high(
+                    stonewall_error,
+                    configuration=ChokeConfiguration(delta_pressure=search_max),
+                )
             return Solution.target_pressure_unreachable(
-                configuration=ChokeConfiguration(delta_pressure=search_boundary.max),
+                configuration=ChokeConfiguration(delta_pressure=search_max),
                 achievable_pressure_bara=max_pressure,
                 target_pressure_bara=self._target_pressure,
                 direction=TargetDirection.MIN_ABOVE_TARGET,
             )
 
         delta_pressure = self._root_finding_strategy.find_root(
-            boundary=search_boundary,
+            boundary=Boundary(min=self._boundary.min, max=search_max),
             func=lambda x: outlet_pressure(x) - self._target_pressure,
         )
         return Solution(success=True, configuration=ChokeConfiguration(delta_pressure=delta_pressure))
-
-    def _feasible_boundary(self, func: Callable[[ChokeConfiguration], FluidStream]) -> Boundary:
-        """Return the search boundary narrowed to the feasible region (no RateTooHighError).
-
-        Probes the upper bound first; if feasible, returns the original boundary immediately.
-        Otherwise bisects for the largest ΔP before rate capacity is exceeded.
-        """
-        try:
-            func(ChokeConfiguration(delta_pressure=self._boundary.max))
-            return self._boundary
-        except RateTooHighError:
-            pass
-
-        lo, hi = self._boundary.min, self._boundary.max
-        while hi - lo > PRESSURE_CALCULATION_TOLERANCE:
-            mid = (lo + hi) / 2
-            try:
-                func(ChokeConfiguration(delta_pressure=mid))
-                lo = mid
-            except RateTooHighError:
-                hi = mid
-        return Boundary(min=self._boundary.min, max=lo)
