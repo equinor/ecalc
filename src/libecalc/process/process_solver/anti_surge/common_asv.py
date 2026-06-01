@@ -77,7 +77,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         # target_pressure=None means: "solve only for within-capacity feasibility",
         # not for meeting any pressure constraint.
         solver = RecirculationSolver(
-            search_strategy=BinarySearchStrategy(tolerance=10e-3),
+            search_strategy=BinarySearchStrategy(),
             root_finding_strategy=self._root_finding_strategy,
             recirculation_rate_boundary=boundary,
             target_pressure=None,  # capacity only

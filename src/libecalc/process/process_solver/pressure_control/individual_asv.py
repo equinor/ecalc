@@ -88,7 +88,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
                 return compressor.propagate_stream(inlet_stream=compressor_inlet_stream)
 
             solver = RecirculationSolver(
-                search_strategy=BinarySearchStrategy(tolerance=10e-3),
+                search_strategy=BinarySearchStrategy(),
                 root_finding_strategy=self._root_finding_strategy,
                 recirculation_rate_boundary=boundary,
                 target_pressure=FloatConstraint(stage_target_pressure),

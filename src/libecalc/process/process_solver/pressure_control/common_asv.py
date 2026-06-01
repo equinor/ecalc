@@ -78,7 +78,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
             )
 
         solver = RecirculationSolver(
-            search_strategy=BinarySearchStrategy(tolerance=10e-3),
+            search_strategy=BinarySearchStrategy(),
             root_finding_strategy=self._root_finding_strategy,
             recirculation_rate_boundary=boundary,
             target_pressure=target_pressure,
