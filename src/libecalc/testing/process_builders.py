@@ -1,5 +1,19 @@
 from typing import Self
 
+from libecalc.common.utils.rates import RateType
+from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
+from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
+from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
+    YamlEosModel,
+    YamlPredefinedFluidType,
+    YamlFluidModelType,
+    YamlPredefinedFluidModel,
+)
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
+    YamlInletStreamRate,
+    YamlInletStream,
+    YamlStreamRateUnit,
+)
 from libecalc.testing.yaml_builder import Builder
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
@@ -190,4 +204,103 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
             YamlItem(target=YamlLiquidRemoverBuilder().with_test_data().validate()),
             YamlItem(target=YamlCompressorBuilder().with_test_data().validate()),
         ]
+        return self
+
+
+# ---------------------------------------------------------------------------
+# Fluid model builders
+# ---------------------------------------------------------------------------
+
+
+class YamlPredefinedFluidModelBuilder(Builder[YamlPredefinedFluidModel]):
+    def __init__(self):
+        self.name = None
+        self.type = YamlModelType.FLUID
+        self.fluid_model_type = YamlFluidModelType.PREDEFINED
+        self.eos_model = None
+        self.gas_type = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_eos_model(self, eos_model: YamlEosModel) -> Self:
+        self.eos_model = eos_model
+        return self
+
+    def with_gas_type(self, gas_type: YamlPredefinedFluidType) -> Self:
+        self.gas_type = gas_type
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "DefaultFluidModel"
+        self.eos_model = YamlEosModel.SRK
+        self.gas_type = YamlPredefinedFluidType.MEDIUM
+        return self
+
+
+# ---------------------------------------------------------------------------
+# Inlet stream builders
+# ---------------------------------------------------------------------------
+
+
+class YamlInletStreamRateBuilder(Builder[YamlInletStreamRate]):
+    def __init__(self):
+        self.value = None
+        self.unit = None
+        self.type = None
+
+    def with_value(self, value: YamlExpressionType) -> Self:
+        self.value = value
+        return self
+
+    def with_unit(self, unit: YamlStreamRateUnit) -> Self:
+        self.unit = unit
+        return self
+
+    def with_type(self, rate_type: RateType) -> Self:
+        self.type = rate_type
+        return self
+
+    def with_test_data(self) -> Self:
+        self.value = 1000000.0
+        self.unit = YamlStreamRateUnit.SM3_PER_DAY
+        self.type = RateType.STREAM_DAY
+        return self
+
+
+class YamlInletStreamBuilder(Builder[YamlInletStream]):
+    def __init__(self):
+        self.name = None
+        self.fluid_model = None
+        self.pressure = None
+        self.temperature = None
+        self.rate = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_fluid_model(self, fluid_model: str | YamlFluidModel) -> Self:
+        self.fluid_model = fluid_model
+        return self
+
+    def with_pressure(self, pressure: YamlExpressionType) -> Self:
+        self.pressure = pressure
+        return self
+
+    def with_temperature(self, temperature: YamlExpressionType) -> Self:
+        self.temperature = temperature
+        return self
+
+    def with_rate(self, rate: YamlInletStreamRate) -> Self:
+        self.rate = rate
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "DefaultInletStream"
+        self.fluid_model = YamlPredefinedFluidModelBuilder().with_test_data().validate()
+        self.pressure = 20.0
+        self.temperature = 30.0
+        self.rate = YamlInletStreamRateBuilder().with_test_data().validate()
         return self
