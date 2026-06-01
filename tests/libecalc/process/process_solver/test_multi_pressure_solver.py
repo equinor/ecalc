@@ -3,13 +3,39 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
+from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.solver import TargetPressureUnreachableFailure
 from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.splitter import Splitter
-from libecalc.process.shaft import VariableSpeedShaft
+from libecalc.process.shaft import Shaft, VariableSpeedShaft
+
+
+@pytest.fixture
+def segment_factory(root_finding_strategy):
+    def create_segment(
+        runner: ProcessRunner,
+        anti_surge_strategy: AntiSurgeStrategy,
+        pressure_control_strategy: PressureControlStrategy,
+        process_pipeline_id: ProcessPipelineId,
+        shaft: Shaft,
+    ):
+        return OutletPressureSolver(
+            process_pipeline_id=process_pipeline_id,
+            anti_surge_strategy=anti_surge_strategy,
+            shaft_id=shaft.get_id(),
+            speed_boundary=shaft.get_speed_boundary(),
+            pressure_control_strategy=pressure_control_strategy,
+            runner=runner,
+            root_finding_strategy=root_finding_strategy,
+        )
+
+    return create_segment
 
 
 @pytest.mark.parametrize("pd_target", [92.0, 150.0])
@@ -27,8 +53,8 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     individual_asv_rate_control_strategy_factory,
     multi_pressure_solver_factory,
     compressor_stage_factory,
-    root_finding_strategy,
     variable_speed_chart_data_factory,
+    segment_factory,
 ):
     temperature = 300.0
     interstage_pressure_target = 60.0  # bara
@@ -124,9 +150,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     )
     high_pressure_process_pipeline = process_pipeline_factory(units=[splitter, *high_pressure_units_wrapped])
 
-    speed_boundary = shaft_new.get_speed_boundary()
-    low_pressure_segment = OutletPressureSolver(
-        shaft_id=shaft_new.get_id(),
+    low_pressure_segment = segment_factory(
         runner=low_pressure_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=low_pressure_runner,
@@ -138,12 +162,10 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
             recirculation_loop_ids=low_pressure_loop_ids,
             compressors=low_pressure_compressors,
         ),
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=speed_boundary,
+        shaft=shaft_new,
         process_pipeline_id=low_pressure_process_pipeline.get_id(),
     )
-    high_pressure_segment = OutletPressureSolver(
-        shaft_id=shaft_new.get_id(),
+    high_pressure_segment = segment_factory(
         runner=high_pressure_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=high_pressure_runner,
@@ -155,8 +177,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
             recirculation_loop_ids=high_pressure_loop_ids,
             compressors=high_pressure_compressors,
         ),
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=speed_boundary,
+        shaft=shaft_new,
         process_pipeline_id=high_pressure_process_pipeline.get_id(),
     )
 
@@ -196,8 +217,8 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
     multi_pressure_solver_factory,
-    root_finding_strategy,
     variable_speed_chart_data_factory,
+    segment_factory,
 ):
     """LP → [Mixer1, Mixer2] → MP → [Splitter1, Splitter2] → HP, with interstage pressures at both junctions."""
     temperature = 300.0
@@ -290,11 +311,9 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
     mixer1.set_stream(injection_stream)
     mixer2.set_stream(injection_stream)
 
-    speed_boundary = shaft.get_speed_boundary()
-
     def make_segment(runner, loop_ids, compressors, process_pipeline):
-        return OutletPressureSolver(
-            shaft_id=shaft.get_id(),
+        return segment_factory(
+            shaft=shaft,
             runner=runner,
             anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
                 runner=runner,
@@ -306,8 +325,6 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
                 recirculation_loop_ids=loop_ids,
                 compressors=compressors,
             ),
-            root_finding_strategy=root_finding_strategy,
-            speed_boundary=speed_boundary,
             process_pipeline_id=process_pipeline.get_id(),
         )
 
@@ -359,6 +376,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
     individual_asv_rate_control_strategy_factory,
     root_finding_strategy,
     variable_speed_chart_data_factory,
+    segment_factory,
 ):
     """TargetPressureUnreachableFailure.source_id should identify the second segment when it fails."""
 
@@ -393,10 +411,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
     hp_runner = process_runner_factory(units=hp_units, configuration_handlers=[shaft, *hp_loops])
     hp_process_pipeline = process_pipeline_factory(units=hp_units)
 
-    speed_boundary = shaft.get_speed_boundary()
-
-    lp_segment = OutletPressureSolver(
-        shaft_id=shaft.get_id(),
+    lp_segment = segment_factory(
         runner=lp_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
@@ -404,12 +419,10 @@ def test_target_not_achievable_event_identifies_failing_segment(
         pressure_control_strategy=individual_asv_rate_control_strategy_factory(
             runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
         ),
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=speed_boundary,
+        shaft=shaft,
         process_pipeline_id=lp_process_pipeline.get_id(),
     )
-    hp_segment = OutletPressureSolver(
-        shaft_id=shaft.get_id(),
+    hp_segment = segment_factory(
         runner=hp_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
@@ -417,8 +430,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
         pressure_control_strategy=individual_asv_rate_control_strategy_factory(
             runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
         ),
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=speed_boundary,
+        shaft=shaft,
         process_pipeline_id=hp_process_pipeline.get_id(),
     )
 
@@ -450,6 +462,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
     individual_asv_rate_control_strategy_factory,
     root_finding_strategy,
     variable_speed_chart_data_factory,
+    segment_factory,
 ):
     """TargetPressureUnreachableFailure.source_id should identify the first segment when it fails."""
     temperature = 300.0
@@ -483,10 +496,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
     hp_runner = process_runner_factory(units=hp_units, configuration_handlers=[shaft, *hp_loops])
     hp_process_pipeline = process_pipeline_factory(units=hp_units)
 
-    speed_boundary = shaft.get_speed_boundary()
-
-    lp_segment = OutletPressureSolver(
-        shaft_id=shaft.get_id(),
+    lp_segment = segment_factory(
         runner=lp_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
@@ -494,12 +504,10 @@ def test_target_not_achievable_event_when_first_segment_fails(
         pressure_control_strategy=individual_asv_rate_control_strategy_factory(
             runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
         ),
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=speed_boundary,
+        shaft=shaft,
         process_pipeline_id=lp_process_pipeline.get_id(),
     )
-    hp_segment = OutletPressureSolver(
-        shaft_id=shaft.get_id(),
+    hp_segment = segment_factory(
         runner=hp_runner,
         anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
             runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
@@ -507,8 +515,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
         pressure_control_strategy=individual_asv_rate_control_strategy_factory(
             runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
         ),
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=speed_boundary,
+        shaft=shaft,
         process_pipeline_id=hp_process_pipeline.get_id(),
     )
 

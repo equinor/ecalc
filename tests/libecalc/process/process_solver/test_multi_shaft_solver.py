@@ -4,19 +4,16 @@ import pytest
 
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_shaft_solver import MultiShaftSolver
-from tests.libecalc.process.process_solver.test_multi_shaft_equal_ratio_solver import make_process_pipeline
 
 
-def test_mismatched_targets_raises(stream_factory, fluid_service, root_finding_strategy):
+def test_mismatched_targets_raises(single_compressor_process_pipeline_factory, stream_factory):
     pipelines = [
-        make_process_pipeline(
+        single_compressor_process_pipeline_factory(
             min_rate=200,
             max_rate=5000,
             head_hi=200_000,
             head_lo=140_000,
             inlet_temperature_kelvin=303.15,
-            fluid_service=fluid_service,
-            root_finding_strategy=root_finding_strategy,
         )
     ]
     solver = MultiShaftSolver(process_pipelines=pipelines)
@@ -37,17 +34,15 @@ def test_empty_pipelines(stream_factory):
     assert solution.failure is None
 
 
-def test_unreachable_target_reports_failure(stream_factory, fluid_service, root_finding_strategy):
+def test_unreachable_target_reports_failure(single_compressor_process_pipeline_factory, stream_factory):
     """A target far beyond the chart capability should return success=False."""
     pipelines = [
-        make_process_pipeline(
+        single_compressor_process_pipeline_factory(
             min_rate=200,
             max_rate=5000,
             head_hi=200_000,
             head_lo=140_000,
             inlet_temperature_kelvin=303.15,
-            fluid_service=fluid_service,
-            root_finding_strategy=root_finding_strategy,
         )
     ]
     solver = MultiShaftSolver(process_pipelines=pipelines)
@@ -60,26 +55,22 @@ def test_unreachable_target_reports_failure(stream_factory, fluid_service, root_
     assert solution.failure is not None
 
 
-def test_second_pipeline_failure_preserves_first_failure(stream_factory, fluid_service, root_finding_strategy):
+def test_second_pipeline_failure_preserves_first_failure(single_compressor_process_pipeline_factory, stream_factory):
     """When multiple pipelines fail, the first failure is preserved."""
     pipelines = [
-        make_process_pipeline(
+        single_compressor_process_pipeline_factory(
             min_rate=200,
             max_rate=5000,
             head_hi=200_000,
             head_lo=140_000,
             inlet_temperature_kelvin=303.15,
-            fluid_service=fluid_service,
-            root_finding_strategy=root_finding_strategy,
         ),
-        make_process_pipeline(
+        single_compressor_process_pipeline_factory(
             min_rate=200,
             max_rate=5000,
             head_hi=200_000,
             head_lo=140_000,
             inlet_temperature_kelvin=303.15,
-            fluid_service=fluid_service,
-            root_finding_strategy=root_finding_strategy,
         ),
     ]
     solver = MultiShaftSolver(process_pipelines=pipelines)

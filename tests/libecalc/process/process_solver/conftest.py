@@ -2,11 +2,12 @@ from collections.abc import Sequence
 
 import pytest
 
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.ecalc_model.process_simulation import PressureControlType
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
-from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
@@ -26,7 +27,8 @@ from libecalc.process.process_solver.pressure_control.upstream_choke import Upst
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_units.compressor import Compressor
-from libecalc.process.shaft import Shaft
+from libecalc.process.shaft import Shaft, VariableSpeedShaft
+from libecalc.testing.chart_data_factory import ChartDataFactory
 from libecalc.testing.no_asv import NoASVAntiSurgeStrategy
 from tests.libecalc.process.helpers import ProcessSolverBuilder, ProcessSolverSystem, StageConfig
 
@@ -210,7 +212,7 @@ def individual_asv_pressure_control_strategy_factory(root_finding_strategy):
 def upstream_choke_pressure_control_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
-        choke_id: ProcessUnitId,
+        choke_id: ConfigurationHandlerId,
         anti_surge_strategy: AntiSurgeStrategy | None = None,
     ) -> UpstreamChokePressureControlStrategy:
         return UpstreamChokePressureControlStrategy(
@@ -227,7 +229,7 @@ def upstream_choke_pressure_control_strategy_factory(root_finding_strategy):
 def downstream_choke_pressure_control_strategy_factory():
     def create(
         runner: ProcessRunner,
-        choke_id: ProcessUnitId,
+        choke_id: ConfigurationHandlerId,
     ) -> DownstreamChokePressureControlStrategy:
         return DownstreamChokePressureControlStrategy(
             simulator=runner,
@@ -269,3 +271,95 @@ def variable_speed_chart_data_factory():
         )
 
     return create_variable_speed_chart_data
+
+
+@pytest.fixture
+def affinity_law_scaled_variable_speed_chart_data_factory():
+    def create_variable_speed_chart(
+        min_rate: float, max_rate: float, head_hi: float, head_lo: float, eff: float = 0.75
+    ):
+        """Five affinity-law-scaled speed curves (60–100 rpm)."""
+        curves = []
+        for n in [60.0, 70.0, 80.0, 90.0, 100.0]:
+            f = n / 100.0
+            curves.append(
+                ChartCurve(
+                    speed_rpm=n,
+                    rate_actual_m3_hour=[min_rate * f, max_rate * f],
+                    polytropic_head_joule_per_kg=[head_hi * f**2, head_lo * f**2],
+                    efficiency_fraction=[eff, eff],
+                )
+            )
+        return ChartDataFactory.from_curves(curves, control_margin=0.0)
+
+    return create_variable_speed_chart
+
+
+@pytest.fixture()
+def single_compressor_process_pipeline_factory(
+    affinity_law_scaled_variable_speed_chart_data_factory,
+    outlet_pressure_solver_factory,
+    compressor_factory,
+    recirculation_loop_factory,
+    process_runner_factory,
+    temperature_setter_factory,
+    direct_mixer_factory,
+    direct_splitter_factory,
+    individual_asv_anti_surge_strategy_factory,
+    individual_asv_pressure_control_strategy_factory,
+):
+    def create_process_pipeline(
+        *,
+        min_rate: float,
+        max_rate: float,
+        head_hi: float,
+        head_lo: float,
+        inlet_temperature_kelvin: float,
+    ) -> OutletPressureSolver:
+        """One independently-shafted process pipeline: TemperatureSetter → Compressor with individual ASV."""
+        chart_data = affinity_law_scaled_variable_speed_chart_data_factory(min_rate, max_rate, head_hi, head_lo)
+
+        compressor = compressor_factory(
+            chart_data=chart_data,
+        )
+
+        shaft = VariableSpeedShaft()
+        shaft.connect(compressor)
+
+        mixer = direct_mixer_factory()
+        splitter = direct_splitter_factory()
+        loop = recirculation_loop_factory(
+            mixer=mixer,
+            splitter=splitter,
+        )
+
+        runner = process_runner_factory(
+            configuration_handlers=[shaft, loop],
+            units=[
+                temperature_setter_factory(required_temperature_kelvin=inlet_temperature_kelvin),
+                mixer,
+                compressor,
+                splitter,
+            ],
+        )
+
+        anti_surge = individual_asv_anti_surge_strategy_factory(
+            recirculation_loop_ids=[loop.get_id()],
+            compressors=[compressor],
+            runner=runner,
+        )
+        pressure_control = individual_asv_pressure_control_strategy_factory(
+            runner=runner,
+            recirculation_loop_ids=[loop.get_id()],
+            compressors=[compressor],
+        )
+
+        return outlet_pressure_solver_factory(
+            process_pipeline_id=ProcessPipelineId(ecalc_id_generator()),
+            runner=runner,
+            anti_surge_strategy=anti_surge,
+            pressure_control_strategy=pressure_control,
+            shaft=shaft,
+        )
+
+    return create_process_pipeline
