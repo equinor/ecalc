@@ -20,6 +20,7 @@ from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiS
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
+from libecalc.process.process_solver.minimum_flow_protected_process_runner import MinimumFlowProtectedProcessRunner
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
@@ -36,6 +37,7 @@ from libecalc.process.process_solver.process_pipeline_runner import ProcessPipel
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, ScipyRootFindingStrategy
+from libecalc.process.process_solver.speed_search import SpeedSearch
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
@@ -120,19 +122,29 @@ def assemble_solver(
         root_finding_strategy=root_finding_strategy,
     )
 
+    protected_runner = MinimumFlowProtectedProcessRunner(
+        runner=runner,
+        anti_surge_strategy=anti_surge_strategy,
+    )
+
+    speed_search = SpeedSearch(
+        runner=protected_runner,
+        shaft_id=shaft.get_id(),
+        speed_boundary=shaft.get_speed_boundary(),
+        root_finding_strategy=root_finding_strategy,
+    )
+
     solver = OutletPressureSolver(
         shaft_id=shaft.get_id(),
         process_pipeline_id=pipeline.get_id(),
-        runner=runner,
-        anti_surge_strategy=anti_surge_strategy,
+        runner=protected_runner,
         pressure_control_strategy=pressure_control_strategy,
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=shaft.get_speed_boundary(),
+        speed_search=speed_search,
     )
 
     return ProcessSolverSystem(
         solver=solver,
-        runner=runner,
+        runner=protected_runner,
         pipeline=pipeline,
         shaft=shaft,
         compressors=tuple(compressors),

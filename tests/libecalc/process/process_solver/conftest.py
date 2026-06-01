@@ -11,6 +11,7 @@ from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiS
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.configuration import ConfigurationHandlerId
+from libecalc.process.process_solver.minimum_flow_protected_process_runner import MinimumFlowProtectedProcessRunner
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
@@ -25,6 +26,7 @@ from libecalc.process.process_solver.pressure_control.pressure_control_strategy 
 from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
+from libecalc.process.process_solver.speed_search import SpeedSearch
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import Shaft
 from libecalc.testing.no_asv import NoASVAntiSurgeStrategy
@@ -110,14 +112,19 @@ def outlet_pressure_solver_factory(root_finding_strategy):
         pressure_control_strategy: PressureControlStrategy,
         process_pipeline_id: ProcessPipelineId,
     ):
+        protected_runner = MinimumFlowProtectedProcessRunner(runner=runner, anti_surge_strategy=anti_surge_strategy)
+        speed_search = SpeedSearch(
+            runner=protected_runner,
+            shaft_id=shaft.get_id(),
+            speed_boundary=shaft.get_speed_boundary(),
+            root_finding_strategy=root_finding_strategy,
+        )
         return OutletPressureSolver(
             shaft_id=shaft.get_id(),
             process_pipeline_id=process_pipeline_id,
-            runner=runner,
-            anti_surge_strategy=anti_surge_strategy,
+            runner=protected_runner,
             pressure_control_strategy=pressure_control_strategy,
-            root_finding_strategy=root_finding_strategy,
-            speed_boundary=shaft.get_speed_boundary(),
+            speed_search=speed_search,
         )
 
     return create_outlet_pressure_solver

@@ -9,11 +9,13 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.configuration import ConfigurationHandlerId, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.minimum_flow_protected_process_runner import MinimumFlowProtectedProcessRunner
 from libecalc.process.process_solver.multi_shaft_equal_ratio_solver import MultiShaftEqualRatioSolver
 from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
 from libecalc.process.process_solver.pressure_control.individual_asv import IndividualASVPressureControlStrategy
 from libecalc.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
+from libecalc.process.process_solver.speed_search import SpeedSearch
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
@@ -90,14 +92,20 @@ def make_process_pipeline(
         root_finding_strategy=root_finding_strategy,
     )
 
+    protected_runner = MinimumFlowProtectedProcessRunner(runner=runner, anti_surge_strategy=anti_surge)
+    speed_search = SpeedSearch(
+        runner=protected_runner,
+        shaft_id=shaft.get_id(),
+        speed_boundary=shaft.get_speed_boundary(),
+        root_finding_strategy=root_finding_strategy,
+    )
+
     return OutletPressureSolver(
         shaft_id=shaft.get_id(),
         process_pipeline_id=ProcessPipelineId(ecalc_id_generator()),
-        runner=runner,
-        anti_surge_strategy=anti_surge,
+        runner=protected_runner,
         pressure_control_strategy=pressure_control,
-        root_finding_strategy=root_finding_strategy,
-        speed_boundary=shaft.get_speed_boundary(),
+        speed_search=speed_search,
     )
 
 

@@ -93,11 +93,10 @@ class MultiPressureSolver:
         for segment, target in zip(self._segments, pressure_targets):
             segment.runner.reset_to(configurations=[shaft_config])
 
-            anti_surge_solution = segment.anti_surge_strategy.apply(inlet_stream=current_inlet)
-            segment.runner.apply_configurations(anti_surge_solution.configuration)
-            solution = solution.combine(anti_surge_solution)
-
             outlet = segment.runner.run(inlet_stream=current_inlet)
+            anti_surge_solution = segment.runner.get_last_protection()
+            if anti_surge_solution is not None:
+                solution = solution.combine(anti_surge_solution)
 
             if outlet.pressure_bara > target:
                 pressure_control_solution = segment.pressure_control_strategy.apply(
