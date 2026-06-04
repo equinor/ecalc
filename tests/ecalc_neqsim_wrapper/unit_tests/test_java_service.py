@@ -138,6 +138,8 @@ class TestPy4JShutdownOnExit:
         ):
             service.shutdown()
         NeqsimService.reset_py4j_config()
+        # Debug/check: re-initialize for subsequent tests in the same process
+        NeqsimService.factory(use_jpype=False).initialize()
 
     def test_shutdown_on_exit_false_config(self):
         """With shutdown_on_exit=False, service stays alive after shutdown is skipped."""

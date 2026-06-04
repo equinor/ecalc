@@ -579,7 +579,7 @@ def fluid_model_dry(fluid_model_factory, fluid_composition_factory) -> FluidMode
 
 
 @pytest.fixture(scope="session")
-def fluid_service(with_neqsim_service):
+def fluid_service():
     """Session-scoped fluid service singleton for all tests.
 
     This fixture provides the same NeqSimFluidService.instance() singleton
