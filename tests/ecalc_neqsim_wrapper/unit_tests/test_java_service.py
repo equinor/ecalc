@@ -138,7 +138,9 @@ class TestPy4JShutdownOnExit:
         ):
             service.shutdown()
         NeqsimService.reset_py4j_config()
-        # Debug/check: re-initialize for subsequent tests in the same process
+        # Re-initialize NeqSim for subsequent tests in the same shard.
+        # These tests shut down the global service intentionally; without this
+        # re-init, later tests fail with "not initialized".
         NeqsimService.factory(use_jpype=False).initialize()
 
     def test_shutdown_on_exit_false_config(self):
