@@ -66,3 +66,15 @@ def heavy_fluid_with_water() -> NeqsimFluid:
     composition = HEAVY_FLUID_COMPOSITION.model_copy()
     composition["water"] = 0.15
     return NeqsimFluid.create_thermo_system(composition=composition)
+
+
+@pytest.fixture(scope="session")
+def fluid_service():
+    """Override of root fluid_service for ecalc_neqsim_wrapper tests.
+
+    Cannot depend on with_neqsim_service because the local function-scoped
+    version overrides the session-scoped one for tests in this directory.
+    """
+    from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
+
+    return NeqSimFluidService.instance()
