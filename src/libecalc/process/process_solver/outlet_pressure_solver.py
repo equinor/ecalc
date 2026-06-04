@@ -11,6 +11,7 @@ from libecalc.process.process_solver.configuration import (
     ConfigurationHandlerId,
     RecirculationConfiguration,
     SpeedConfiguration,
+    merge_configurations,
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
@@ -124,9 +125,8 @@ class OutletPressureSolver:
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
         self._simulator.reset_to()
-        configurations: dict[ConfigurationHandlerId, Configuration] = {}
         speed_solution = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
-        configurations[self._shaft_id] = Configuration(
+        shaft_config = Configuration(
             configuration_handler_id=self._shaft_id,
             value=speed_solution.configuration,
         )
@@ -135,36 +135,33 @@ class OutletPressureSolver:
         if isinstance(speed_solution.failure, RateTooHighFailure):
             return Solution(
                 success=False,
-                configuration=list(configurations.values()),
+                configuration=[shaft_config],
                 failure=speed_solution.failure,
             )
 
-        self._simulator.reset_to(configurations=list(configurations.values()))
+        self._simulator.reset_to(configurations=[shaft_config])
         self._anti_surge_solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
-        for anti_surge_configuration in self._anti_surge_solution.configuration:
-            configurations[anti_surge_configuration.configuration_handler_id] = anti_surge_configuration
+
+        speed_and_anti_surge_configurations = [shaft_config, *self._anti_surge_solution.configuration]
 
         if speed_solution.success:
-            return Solution(
-                success=True,
-                configuration=list(configurations.values()),
-            )
+            return Solution(success=True, configuration=speed_and_anti_surge_configurations)
 
         if not self._anti_surge_solution.success:
             return Solution(
                 success=False,
-                configuration=list(configurations.values()),
+                configuration=speed_and_anti_surge_configurations,
                 failure=self._anti_surge_solution.failure,
             )
 
         outlet_at_chosen_speed = self._get_outlet_stream(
             inlet_stream=inlet_stream,
-            configurations=list(configurations.values()),
+            configurations=speed_and_anti_surge_configurations,
         )
 
         if outlet_at_chosen_speed.pressure_bara < pressure_constraint:
             return Solution.target_pressure_unreachable(
-                configuration=list(configurations.values()),
+                configuration=speed_and_anti_surge_configurations,
                 achievable_pressure_bara=outlet_at_chosen_speed.pressure_bara,
                 target_pressure_bara=pressure_constraint.value,
                 source_id=self._process_pipeline_id,
@@ -175,9 +172,9 @@ class OutletPressureSolver:
             target_pressure=pressure_constraint,
             inlet_stream=inlet_stream,
         )
-
-        for pressure_control_configuration in pressure_control_solution.configuration:
-            configurations[pressure_control_configuration.configuration_handler_id] = pressure_control_configuration
+        final_configs = merge_configurations(
+            speed_and_anti_surge_configurations, pressure_control_solution.configuration
+        )
 
         failure = pressure_control_solution.failure
         if isinstance(failure, TargetPressureUnreachableFailure) and failure.source_id is None:
@@ -185,6 +182,6 @@ class OutletPressureSolver:
 
         return Solution(
             success=pressure_control_solution.success,
-            configuration=list(configurations.values()),
+            configuration=final_configs,
             failure=failure,
         )

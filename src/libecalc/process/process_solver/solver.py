@@ -135,10 +135,22 @@ class Solution[TConfiguration]:
         self: Solution[Sequence[Configuration[OperatingConfiguration]]],
         other: Solution[Sequence[Configuration[OperatingConfiguration]]],
     ) -> Solution[Sequence[Configuration[OperatingConfiguration]]]:
-        """Combine two solutions: merge configurations and success flags."""
+        """Combine two solutions as a strict sequential aggregation.
+
+        If self has already failed, returns self unchanged: once a segment in the
+        pipeline fails, subsequent segments cannot meaningfully extend it, and the
+        failure must keep referring to the configurations it was generated from.
+
+        Otherwise both stages must succeed for the combined solution to succeed;
+        any failure carried by other becomes the combined failure. Configurations
+        are merged with later entries winning per handler.
+        """
+        if not self.success:
+            return self
         return Solution(
-            success=self.success and other.success,
+            success=other.success,
             configuration=merge_configurations(self.configuration, other.configuration),
+            failure=other.failure,
         )
 
 
