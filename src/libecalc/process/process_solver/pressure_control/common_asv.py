@@ -39,12 +39,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
         self._root_finding_strategy = root_finding_strategy
 
     def reset(self) -> None:
-        self._simulator.apply_configuration(
-            Configuration(
-                configuration_handler_id=self._recirculation_loop_id,
-                value=RecirculationConfiguration(recirculation_rate=0.0),
-            )
-        )
+        self._simulator.reset_configuration_handler(self._recirculation_loop_id)
 
     def apply(
         self,

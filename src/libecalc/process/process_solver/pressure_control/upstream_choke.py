@@ -43,6 +43,9 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
         self._anti_surge_strategy = anti_surge_strategy
         self._last_anti_surge_configurations: Sequence[Configuration[RecirculationConfiguration]] = []
 
+    def reset(self) -> None:
+        self._simulator.reset_configuration_handler(self._choke_configuration_handler_id)
+
     def apply(
         self,
         target_pressure: FloatConstraint,

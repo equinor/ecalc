@@ -42,12 +42,7 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
 
     def reset(self) -> None:
         for recirculation_loop_id in self._recirculation_loop_ids:
-            self._simulator.apply_configuration(
-                Configuration(
-                    configuration_handler_id=recirculation_loop_id,
-                    value=RecirculationConfiguration(recirculation_rate=0.0),
-                )
-            )
+            self._simulator.reset_configuration_handler(recirculation_loop_id)
 
     def apply(
         self,
@@ -133,12 +128,7 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
 
     def reset(self) -> None:
         for recirculation_loop_id in self._recirculation_loop_ids:
-            self._simulator.apply_configuration(
-                Configuration(
-                    configuration_handler_id=recirculation_loop_id,
-                    value=RecirculationConfiguration(recirculation_rate=0.0),
-                )
-            )
+            self._simulator.reset_configuration_handler(recirculation_loop_id)
 
     def _get_configurations_from_fraction(
         self,
@@ -229,7 +219,5 @@ def compute_minimum_achievable_pressure(
 
     pressure_bara = simulator.run(inlet_stream=inlet_stream).pressure_bara
     for loop in recirculation_loop_ids:
-        simulator.apply_configuration(
-            Configuration(configuration_handler_id=loop, value=RecirculationConfiguration(recirculation_rate=0.0))
-        )
+        simulator.reset_configuration_handler(loop)
     return configurations, pressure_bara

@@ -38,12 +38,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self._simulator = simulator
 
     def reset(self) -> None:
-        self._simulator.apply_configuration(
-            Configuration(
-                configuration_handler_id=self._recirculation_loop_id,
-                value=RecirculationConfiguration(recirculation_rate=0.0),
-            )
-        )
+        self._simulator.reset_configuration_handler(self._recirculation_loop_id)
 
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
         self.reset()

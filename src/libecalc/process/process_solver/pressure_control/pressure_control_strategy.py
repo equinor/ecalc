@@ -40,3 +40,13 @@ class PressureControlStrategy(ABC):
             Solution containing the manipulations (e.g. recirculation rate, choke ΔP) needed to meet the target pressure.
         """
         ...
+
+    @abstractmethod
+    def reset(self) -> None:
+        """Restore any state owned by the strategy to its default/unconfigured value.
+
+        Called before re-evaluating in contexts where stale state from a previous
+        evaluation (e.g. a choke ΔP set during a prior solve) would corrupt the
+        result.
+        """
+        ...
