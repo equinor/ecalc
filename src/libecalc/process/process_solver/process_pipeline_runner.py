@@ -18,7 +18,6 @@ class ProcessPipelineRunner(ProcessRunner):
     def __init__(self, configuration_handlers: Sequence[ConfigurationHandler], units: Sequence[ProcessUnit]):
         self._configuration_handlers = {handler.get_id(): handler for handler in configuration_handlers}
         self._units = {unit.get_id(): unit for unit in units}
-        self._configurations: dict[ConfigurationHandlerId, Configuration] = {}
 
     @staticmethod
     def _apply_config_for_unit(configuration_handler: ConfigurationHandler, configuration: Configuration):
@@ -26,18 +25,10 @@ class ProcessPipelineRunner(ProcessRunner):
 
     def apply_configuration(self, configuration: Configuration):
         unit = self._get_configuration_handler(configuration.configuration_handler_id)
-        self._configurations[configuration.configuration_handler_id] = configuration
         self._apply_config_for_unit(configuration_handler=unit, configuration=configuration)
 
-    def reset_to(
-        self,
-        configurations: Sequence[Configuration] = (),
-    ) -> None:
-        self._configurations.clear()
-        for handler in self._configuration_handlers.values():
-            handler.reset()
-        if configurations:
-            self.apply_configurations(configurations)
+    def reset_configuration_handler(self, handler_id: ConfigurationHandlerId) -> None:
+        self._get_configuration_handler(handler_id).reset()
 
     def _get_configuration_handler(self, configuration_handler_id: ConfigurationHandlerId) -> ConfigurationHandler:
         return self._configuration_handlers[configuration_handler_id]

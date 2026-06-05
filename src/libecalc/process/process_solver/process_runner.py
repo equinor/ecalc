@@ -3,7 +3,11 @@ from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
-from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration
+from libecalc.process.process_solver.configuration import (
+    Configuration,
+    ConfigurationHandlerId,
+    OperatingConfiguration,
+)
 
 
 class ProcessRunner(abc.ABC):
@@ -18,18 +22,12 @@ class ProcessRunner(abc.ABC):
             self.apply_configuration(configuration)
 
     @abc.abstractmethod
-    def reset_to(
-        self,
-        configurations: Sequence[Configuration] = (),
-    ) -> None:
-        """Establish a clean starting state for the next evaluation.
+    def reset_configuration_handler(self, handler_id: ConfigurationHandlerId) -> None:
+        """Reset a single configuration handler to its default state.
 
-        Clears all configuration-handler state on the runner (e.g. shaft speed,
-        recirculation rates, choke pressure changes) and then applies the given
-        configurations as the new starting point.
-
-        Call this whenever a solver begins a new attempt so that no state from a
-        previous run leaks into the next one.
+        The default state is owned by the handler itself; this only dispatches to it.
+        The caller (a strategy) decides which handler to reset and when, so no state
+        from a previous evaluation leaks into the next one.
         """
         ...
 

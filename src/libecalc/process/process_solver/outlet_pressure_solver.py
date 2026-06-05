@@ -87,6 +87,8 @@ class OutletPressureSolver:
         pressure_constraint: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> Solution[SpeedConfiguration]:
+        # The speed search evaluates the train with pressure control disengaged
+        self._pressure_control_strategy.reset()
         speed_solver = SpeedSolver(
             search_strategy=BinarySearchStrategy(),
             root_finding_strategy=self._root_finding_strategy,
@@ -95,8 +97,9 @@ class OutletPressureSolver:
         )
 
         def speed_func(configuration: SpeedConfiguration) -> FluidStream:
-            self._simulator.reset_to(
-                configurations=[Configuration(configuration_handler_id=self._shaft_id, value=configuration)],
+            self._anti_surge_strategy.reset()
+            self._simulator.apply_configuration(
+                Configuration(configuration_handler_id=self._shaft_id, value=configuration),
             )
             try:
                 return self._simulator.run(inlet_stream=inlet_stream)
@@ -124,7 +127,6 @@ class OutletPressureSolver:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
-        self._simulator.reset_to()
         speed_solution = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
         shaft_config = Configuration(
             configuration_handler_id=self._shaft_id,
@@ -139,7 +141,7 @@ class OutletPressureSolver:
                 failure=speed_solution.failure,
             )
 
-        self._simulator.reset_to(configurations=[shaft_config])
+        self._simulator.apply_configuration(shaft_config)
         self._anti_surge_solution = self._anti_surge_strategy.apply(inlet_stream=inlet_stream)
 
         speed_and_anti_surge_configurations = [shaft_config, *self._anti_surge_solution.configuration]

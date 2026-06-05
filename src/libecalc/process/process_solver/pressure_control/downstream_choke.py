@@ -27,6 +27,9 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
         self._choke_configuration_handler_id = choke_configuration_handler_id
         self._simulator = simulator
 
+    def reset(self) -> None:
+        self._simulator.reset_configuration_handler(self._choke_configuration_handler_id)
+
     def apply(
         self,
         target_pressure: FloatConstraint,
