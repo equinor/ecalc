@@ -1,7 +1,7 @@
 from libecalc.common.version import Version
 
 # DO NOT EDIT - replaced in CI with release please
-__version__ = "13.7.8"  # x-release-please-version
+__version__ = "13.7.9"  # x-release-please-version
 # END DO NOT EDIT
 
 
