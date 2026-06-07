@@ -26,47 +26,45 @@ def single_speed_compressor(fluid_service):
     )
 
 
-def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at_min_speed(
+def test_pipeline_section_solver_applies_downstream_choke_when_speed_solution_is_at_min_speed(
     stream_factory,
     choke_factory,
     choke_configuration_handler_factory,
     single_speed_compressor,
-    with_common_asv,
     process_pipeline_factory,
     process_runner_factory,
+    with_common_asv,
     common_asv_anti_surge_strategy_factory,
-    upstream_choke_pressure_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    downstream_choke_pressure_control_strategy_factory,
+    pipeline_section_solver_factory,
 ):
     """
-    If the outlet pressure is higher than the target outlet pressure at minimum speed, SpeedSolver returns
-    success=False and selects the minimum speed. OutletPressureSolver should still attempt pressure control, and with an
-    upstream choke it should be able to meet the target.
+    If the target outlet pressure is lower than the outlet pressure at minimum speed, SpeedSolver returns
+    success=False and selects the minimum speed. PipelineSectionSolver should still attempt pressure control, and with a
+    downstream choke it should be able to meet the target.
     """
     compressor = single_speed_compressor
     shaft = VariableSpeedShaft()
     shaft.connect(compressor)
-    upstream_choke = choke_factory()
-    upstream_choke_configuration_handler = choke_configuration_handler_factory(choke=upstream_choke)
+    downstream_choke = choke_factory()
+    downstream_choke_configuration_handler = choke_configuration_handler_factory(choke=downstream_choke)
 
     recirculation_loop, process_units = with_common_asv([compressor])
-
     runner = process_runner_factory(
-        units=[upstream_choke, *process_units],
-        configuration_handlers=[shaft, recirculation_loop, upstream_choke_configuration_handler],
+        units=[*process_units, downstream_choke],
+        configuration_handlers=[shaft, recirculation_loop, downstream_choke_configuration_handler],
     )
-    process_pipeline = process_pipeline_factory(units=[upstream_choke, *process_units])
+    process_pipeline = process_pipeline_factory(units=[*process_units, downstream_choke])
     anti_surge_strategy = common_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_id=recirculation_loop.get_id(),
         first_compressor=compressor,
     )
-    pressure_control_strategy = upstream_choke_pressure_control_strategy_factory(
+    pressure_control_strategy = downstream_choke_pressure_control_strategy_factory(
         runner=runner,
-        choke_id=upstream_choke_configuration_handler.get_id(),
-        anti_surge_strategy=anti_surge_strategy,
+        choke_id=downstream_choke_configuration_handler.get_id(),
     )
-    solver = outlet_pressure_solver_factory(
+    solver = pipeline_section_solver_factory(
         shaft=shaft,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
@@ -79,24 +77,23 @@ def test_outlet_pressure_solver_applies_upstream_choke_when_speed_solution_is_at
 
     # The compressor (single speed) produces outlet pressure well above 28 bara.
     # SpeedSolver cannot lower it further, so it returns min speed with success=False.
-    # The upstream choke reduces inlet pressure, which lowers outlet pressure to the target.
-    target_pressure = FloatConstraint(28.0, abs_tol=1e-4)
+    # The downstream choke then reduces pressure to the target.
+    target_pressure = FloatConstraint(28.0, abs_tol=1e-12)
 
     solution = solver.find_solution(
         pressure_constraint=target_pressure,
         inlet_stream=inlet_stream,
     )
-
     speed_configuration = solution.get_configuration(shaft.get_id())
 
     # Single-speed compressor: SpeedSolver is forced to return the only available speed.
     assert speed_configuration.speed == shaft.get_speed_boundary().min
 
-    # Overall solver should succeed via upstream choke pressure control.
+    # Overall solver should succeed via downstream choke pressure control.
     assert solution.success
-    assert solution.get_configuration(upstream_choke_configuration_handler.get_id()).delta_pressure > 0
+    assert solution.get_configuration(downstream_choke_configuration_handler.get_id()).delta_pressure > 0
 
-    # Verify that upstream choking actually brings outlet down to target.
+    # Verify that downstream choking actually brings outlet down to target.
     runner.apply_configurations(solution.configuration)
     outlet = runner.run(inlet_stream=inlet_stream)
     assert outlet.pressure_bara == target_pressure

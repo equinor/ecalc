@@ -113,7 +113,9 @@ def test_builder_wires_expected_solver_strategies(
         pressure_control_type=pressure_control_type,
         fluid_service=fluid_service,
     ).build()
-    assert isinstance(system.solver.pressure_control_strategy, PRESSURE_CONTROL_STRATEGY_TYPES[pressure_control_type])
+    assert isinstance(
+        system.pipeline_section.pressure_control_strategy, PRESSURE_CONTROL_STRATEGY_TYPES[pressure_control_type]
+    )
 
 
 def test_builder_uses_single_recirculation_loop_for_common_asv(

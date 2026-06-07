@@ -26,7 +26,7 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
     compressor_stage_factory,
     fluid_service,
     affinity_law_scaled_variable_speed_chart_data_factory,
-    single_compressor_process_pipeline_factory,
+    single_compressor_pipeline_section_factory,
 ):
     """Outlet pressure should match within 1% relative tolerance."""
     # Legacy: CompressorTrainSimplified
@@ -53,7 +53,7 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
 
     # New: MultiShaftEqualRatioSolver
     solver_pipelines = [
-        single_compressor_process_pipeline_factory(
+        single_compressor_pipeline_section_factory(
             min_rate=_MIN_RATE,
             max_rate=_MAX_RATE,
             head_hi=_HEAD_HI,
@@ -62,7 +62,7 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
         )
         for _ in range(_N_STAGES)
     ]
-    solver = MultiShaftEqualRatioSolver(process_pipelines=solver_pipelines)
+    solver = MultiShaftEqualRatioSolver(pipeline_sections=solver_pipelines)
     solution = solver.find_solution(FloatConstraint(_P_OUT_BARA, abs_tol=1.0), inlet_stream)
 
     assert solution.success, f"Solver failed: {solution.failure}"

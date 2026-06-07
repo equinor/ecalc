@@ -2,7 +2,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import OutsideCapacityError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
 from libecalc.process.process_solver.search_strategies import (
     BinarySearchStrategy,
     DidNotConvergeError,
@@ -17,16 +17,16 @@ class FeasibilitySolver:
     """Calculates how much of a given inlet rate exceeds what a compressor train
     can handle for a target pressure.
 
-    Orchestrates OutletPressureSolver and queries compressor charts to find
+    Orchestrates PipelineSectionSolver and queries compressor charts to find
     the feasible rate — the excess is redirected via stream distribution.
     """
 
     def __init__(
         self,
-        outlet_pressure_solver: OutletPressureSolver,
+        pipeline_section_solver: PipelineSectionSolver,
         search_strategy: SearchStrategy | None = None,
     ):
-        self._solver = outlet_pressure_solver
+        self._solver = pipeline_section_solver
         self._search_strategy = search_strategy or BinarySearchStrategy(
             tolerance=_RATE_SEARCH_TOLERANCE,
             max_iterations=_RATE_SEARCH_MAX_ITERATIONS,

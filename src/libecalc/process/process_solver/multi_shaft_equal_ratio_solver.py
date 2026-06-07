@@ -8,32 +8,32 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_shaft_solver import MultiShaftSolver
-from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.pipeline_section import PipelineSection
 from libecalc.process.process_solver.solver import Solution
 
 
 class MultiShaftEqualRatioSolver:
-    """Wrapper around MultiShaftSolver that computes per-pipeline pressure targets
+    """Wrapper around MultiShaftSolver that computes per-pipeline section pressure targets
     using equal pressure ratio: target_i = P_in × ratio^(i+1).
     """
 
-    def __init__(self, process_pipelines: Sequence[OutletPressureSolver]) -> None:
-        self._process_pipelines = list(process_pipelines)
-        self._solver = MultiShaftSolver(list(process_pipelines))
+    def __init__(self, pipeline_sections: Sequence[PipelineSection]) -> None:
+        self._pipeline_sections = list(pipeline_sections)
+        self._solver = MultiShaftSolver(list(pipeline_sections))
 
     def find_solution(
         self,
         pressure_constraint: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration[OperatingConfiguration]]]:
-        """Split overall pressure target into equal per-pipeline ratios and delegate."""
-        n = len(self._process_pipelines)
+        """Split overall pressure target into equal per-pipeline section ratios and delegate."""
+        n = len(self._pipeline_sections)
         if n == 0:
             return Solution(success=True, configuration=[], failure=None)
 
         pressure_ratio = (pressure_constraint.value / inlet_stream.pressure_bara) ** (1.0 / n)
 
-        # Rolling targets: each pipeline targets its actual inlet × ratio.
+        # Rolling targets: each pipeline section targets its actual inlet × ratio.
         # The final target is always the exact requested constraint.
         current_p = inlet_stream.pressure_bara
         targets: list[FloatConstraint] = []
