@@ -25,7 +25,7 @@ def _chart(chart_data_factory, *, q0, min_rate_factor, max_rate_factor, head_hi,
     )
 
 
-def test_individual_asv_rate_via_outlet_pressure_solver_two_stages(
+def test_individual_asv_rate_via_pipeline_section_solver_two_stages(
     stream_factory,
     chart_data_factory,
     compressor_factory,
@@ -35,7 +35,7 @@ def test_individual_asv_rate_via_outlet_pressure_solver_two_stages(
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
 ):
     temperature = 300.0
     inlet_stream = stream_factory(
@@ -74,7 +74,7 @@ def test_individual_asv_rate_via_outlet_pressure_solver_two_stages(
         recirculation_loop_ids=loop_ids,
         compressors=compressors,
     )
-    solver = outlet_pressure_solver_factory(
+    solver = pipeline_section_solver_factory(
         shaft=shaft,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,

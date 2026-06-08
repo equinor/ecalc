@@ -62,7 +62,7 @@ def test_common_asv_solver_vs_legacy_train(
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
 ):
     temperature = 300.0
     target_pressure = 92.0
@@ -147,7 +147,7 @@ def test_common_asv_solver_vs_legacy_train(
         first_compressor=first_compressor,
     )
     process_pipeline = process_pipeline_factory(units=process_units)
-    train_solver = outlet_pressure_solver_factory(
+    train_solver = pipeline_section_solver_factory(
         shaft=shaft_new,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,

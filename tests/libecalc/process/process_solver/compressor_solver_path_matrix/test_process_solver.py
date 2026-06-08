@@ -1,6 +1,6 @@
 """Process-domain solver path matrix tests.
 
-Tests the new OutletPressureSolver.find_solution() across all 45 trial cases
+Tests the new PipelineSectionSolver.find_solution() across all 45 trial cases
 (9 regions × 5 pressure-control modes). Cases where the process solver does not
 yet match legacy behavior are marked as strict xfails.
 """

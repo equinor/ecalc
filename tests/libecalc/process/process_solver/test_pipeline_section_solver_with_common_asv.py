@@ -15,7 +15,7 @@ def shaft():
 
 @pytest.mark.inlinesnapshot
 @pytest.mark.snapshot
-def test_outlet_pressure_solver_with_common_asv(
+def test_pipeline_section_solver_with_common_asv(
     stream_factory,
     compressor_factory,
     stage_units_factory,
@@ -26,7 +26,7 @@ def test_outlet_pressure_solver_with_common_asv(
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
 ):
     target_pressure = FloatConstraint(75)
     temperature = 300
@@ -51,7 +51,7 @@ def test_outlet_pressure_solver_with_common_asv(
         recirculation_loop_id=common_asv.get_id(),
         first_compressor=first_compressor,
     )
-    common_asv_solver = outlet_pressure_solver_factory(
+    common_asv_solver = pipeline_section_solver_factory(
         shaft=shaft,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
@@ -128,7 +128,7 @@ def test_find_solution_returns_failure_when_rate_above_stonewall(
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
 ):
     common_asv, process_units = with_common_asv([small_chart_compressor])
 
@@ -140,7 +140,7 @@ def test_find_solution_returns_failure_when_rate_above_stonewall(
     pressure_control = common_asv_pressure_control_strategy_factory(
         runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
     )
-    solver = outlet_pressure_solver_factory(
+    solver = pipeline_section_solver_factory(
         shaft=shaft,
         runner=runner,
         anti_surge_strategy=anti_surge,
@@ -168,7 +168,7 @@ def test_pressure_control_boundary_not_affected_by_residual_anti_surge_recircula
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
 ):
     """Regression test: pressure control must reset recirculation before computing
     the recirculation boundary.
@@ -190,7 +190,7 @@ def test_pressure_control_boundary_not_affected_by_residual_anti_surge_recircula
     pressure_control = common_asv_pressure_control_strategy_factory(
         runner=runner, recirculation_loop_id=common_asv.get_id(), first_compressor=small_chart_compressor
     )
-    solver = outlet_pressure_solver_factory(
+    solver = pipeline_section_solver_factory(
         shaft=shaft,
         runner=runner,
         anti_surge_strategy=anti_surge,

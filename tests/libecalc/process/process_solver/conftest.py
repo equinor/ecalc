@@ -13,7 +13,8 @@ from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiS
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.configuration import ConfigurationHandlerId
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.pipeline_section import PipelineSection
+from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
 from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.process.process_solver.pressure_control.downstream_choke import (
     DownstreamChokePressureControlStrategy,
@@ -104,25 +105,47 @@ def with_individual_asv(with_common_asv):
 
 
 @pytest.fixture
-def outlet_pressure_solver_factory(root_finding_strategy):
-    def create_outlet_pressure_solver(
-        shaft: Shaft,
+def pipeline_section_factory(root_finding_strategy):
+    def create_segment(
         runner: ProcessRunner,
         anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
         process_pipeline_id: ProcessPipelineId,
-    ):
-        return OutletPressureSolver(
+        shaft: Shaft,
+    ) -> PipelineSection:
+        return PipelineSection(
             shaft_id=shaft.get_id(),
             process_pipeline_id=process_pipeline_id,
             runner=runner,
             anti_surge_strategy=anti_surge_strategy,
             pressure_control_strategy=pressure_control_strategy,
-            root_finding_strategy=root_finding_strategy,
             speed_boundary=shaft.get_speed_boundary(),
+            root_finding_strategy=root_finding_strategy,
         )
 
-    return create_outlet_pressure_solver
+    return create_segment
+
+
+@pytest.fixture
+def pipeline_section_solver_factory(pipeline_section_factory):
+    def create_segment_solver(
+        shaft: Shaft,
+        runner: ProcessRunner,
+        anti_surge_strategy: AntiSurgeStrategy,
+        pressure_control_strategy: PressureControlStrategy,
+        process_pipeline_id: ProcessPipelineId,
+    ) -> PipelineSectionSolver:
+        return PipelineSectionSolver(
+            pipeline_section_factory(
+                shaft=shaft,
+                runner=runner,
+                anti_surge_strategy=anti_surge_strategy,
+                pressure_control_strategy=pressure_control_strategy,
+                process_pipeline_id=process_pipeline_id,
+            )
+        )
+
+    return create_segment_solver
 
 
 @pytest.fixture
@@ -242,9 +265,9 @@ def downstream_choke_pressure_control_strategy_factory():
 @pytest.fixture
 def multi_pressure_solver_factory():
     def create_multi_pressure_solver(
-        segments: list[OutletPressureSolver],
+        pipeline_sections: list[PipelineSection],
     ) -> MultiPressureSolver:
-        return MultiPressureSolver(segments=segments)
+        return MultiPressureSolver(pipeline_sections=pipeline_sections)
 
     return create_multi_pressure_solver
 
@@ -296,9 +319,9 @@ def affinity_law_scaled_variable_speed_chart_data_factory():
 
 
 @pytest.fixture()
-def single_compressor_process_pipeline_factory(
+def single_compressor_pipeline_section_factory(
     affinity_law_scaled_variable_speed_chart_data_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_factory,
     compressor_factory,
     recirculation_loop_factory,
     process_runner_factory,
@@ -308,15 +331,15 @@ def single_compressor_process_pipeline_factory(
     individual_asv_anti_surge_strategy_factory,
     individual_asv_pressure_control_strategy_factory,
 ):
-    def create_process_pipeline(
+    def create_segment(
         *,
         min_rate: float,
         max_rate: float,
         head_hi: float,
         head_lo: float,
         inlet_temperature_kelvin: float,
-    ) -> OutletPressureSolver:
-        """One independently-shafted process pipeline: TemperatureSetter → Compressor with individual ASV."""
+    ) -> PipelineSection:
+        """One independently-shafted process section: TemperatureSetter → Compressor with individual ASV."""
         chart_data = affinity_law_scaled_variable_speed_chart_data_factory(min_rate, max_rate, head_hi, head_lo)
 
         compressor = compressor_factory(
@@ -354,7 +377,7 @@ def single_compressor_process_pipeline_factory(
             compressors=[compressor],
         )
 
-        return outlet_pressure_solver_factory(
+        return pipeline_section_factory(
             process_pipeline_id=ProcessPipelineId(ecalc_id_generator()),
             runner=runner,
             anti_surge_strategy=anti_surge,
@@ -362,4 +385,4 @@ def single_compressor_process_pipeline_factory(
             shaft=shaft,
         )
 
-    return create_process_pipeline
+    return create_segment

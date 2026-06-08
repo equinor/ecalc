@@ -161,7 +161,7 @@ def feasibility_solver_setup(
     with_individual_asv,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
 ):
     """Factory fixture: build a fully-wired FeasibilitySolver for a given compressor.
 
@@ -192,7 +192,7 @@ def feasibility_solver_setup(
             recirculation_loop_ids=loop_ids,
             compressors=[compressor],
         )
-        outlet_pressure_solver = outlet_pressure_solver_factory(
+        segment_solver = pipeline_section_solver_factory(
             shaft=shaft,
             runner=runner,
             anti_surge_strategy=anti_surge,
@@ -200,7 +200,7 @@ def feasibility_solver_setup(
             process_pipeline_id=process_pipeline.get_id(),
         )
 
-        return FeasibilitySolver(outlet_pressure_solver=outlet_pressure_solver)
+        return FeasibilitySolver(pipeline_section_solver=segment_solver)
 
     return _create
 
@@ -358,7 +358,7 @@ def two_stage_feasibility_solver(
     with_individual_asv,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
     fluid_service,
 ):
     """Two identical Unisim stages in series on a shared shaft, with inter-stage cooling."""
@@ -395,14 +395,14 @@ def two_stage_feasibility_solver(
     pressure_control = individual_asv_rate_control_strategy_factory(
         runner=runner, recirculation_loop_ids=loop_ids, compressors=[c1, c2]
     )
-    outlet_pressure_solver = outlet_pressure_solver_factory(
+    segment_solver = pipeline_section_solver_factory(
         shaft=shaft,
         runner=runner,
         anti_surge_strategy=anti_surge,
         pressure_control_strategy=pressure_control,
         process_pipeline_id=process_pipeline.get_id(),
     )
-    return FeasibilitySolver(outlet_pressure_solver=outlet_pressure_solver)
+    return FeasibilitySolver(pipeline_section_solver=segment_solver)
 
 
 class TestTwoStageTrain:

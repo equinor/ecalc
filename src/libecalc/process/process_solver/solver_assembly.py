@@ -1,7 +1,7 @@
 """Production solver assembly: wire physical components into a working solver.
 
-This module contains the single source of truth for assembling an
-OutletPressureSolver from its collaborating objects (runner, anti-surge
+This module contains the single source of truth for assembling a
+PipelineSectionSolver from its collaborating objects (runner, anti-surge
 strategy, pressure control strategy).  Both the YAML mapper and test
 infrastructure should use ``assemble_solver`` to ensure tests exercise
 the same wiring logic as production.
@@ -20,7 +20,8 @@ from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiS
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
-from libecalc.process.process_solver.outlet_pressure_solver import OutletPressureSolver
+from libecalc.process.process_solver.pipeline_section import PipelineSection
+from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
 from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
 from libecalc.process.process_solver.pressure_control.individual_asv import (
@@ -45,11 +46,12 @@ from libecalc.process.shaft import VariableSpeedShaft
 class ProcessSolverSystem:
     """A fully-wired solver with all its collaborating objects.
 
-    Bundles the OutletPressureSolver together with the physical components
+    Bundles the PipelineSectionSolver together with the physical components
     it operates on, so callers can inspect topology and run the solver.
     """
 
-    solver: OutletPressureSolver
+    solver: PipelineSectionSolver
+    pipeline_section: PipelineSection
     runner: ProcessRunner
     pipeline: ProcessPipeline
     shaft: VariableSpeedShaft
@@ -71,12 +73,12 @@ def assemble_solver(
     choke_configuration_handler: ChokeConfigurationHandler | None = None,
     root_finding_strategy: RootFindingStrategy | None = None,
 ) -> ProcessSolverSystem:
-    """Assemble a fully-wired OutletPressureSolver from physical components.
+    """Assemble a fully-wired PipelineSectionSolver from physical components.
 
     This is the production solver assembly path.  It creates the
     ProcessPipelineRunner, resolves the anti-surge and pressure control
     strategies from the ``pressure_control_type``, and wires everything
-    into an OutletPressureSolver.
+    into a PipelineSectionSolver.
 
     Args:
         process_units: Ordered list of process units forming the pipeline
@@ -120,7 +122,7 @@ def assemble_solver(
         root_finding_strategy=root_finding_strategy,
     )
 
-    solver = OutletPressureSolver(
+    pipeline_section = PipelineSection(
         shaft_id=shaft.get_id(),
         process_pipeline_id=pipeline.get_id(),
         runner=runner,
@@ -130,8 +132,11 @@ def assemble_solver(
         speed_boundary=shaft.get_speed_boundary(),
     )
 
+    solver = PipelineSectionSolver(pipeline_section)
+
     return ProcessSolverSystem(
         solver=solver,
+        pipeline_section=pipeline_section,
         runner=runner,
         pipeline=pipeline,
         shaft=shaft,

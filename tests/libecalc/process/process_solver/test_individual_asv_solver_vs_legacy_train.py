@@ -48,7 +48,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -136,7 +136,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
         recirculation_loop_ids=recirculation_loop_ids,
         compressors=compressors,
     )
-    train_solver = outlet_pressure_solver_factory(
+    train_solver = pipeline_section_solver_factory(
         shaft=shaft_new,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
@@ -192,7 +192,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_pressure_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
 ):
     temperature = 300.0
     target_pressure = pd_target
@@ -278,7 +278,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
         recirculation_loop_ids=recirculation_loop_ids,
         compressors=compressors,
     )
-    train_solver = outlet_pressure_solver_factory(
+    train_solver = pipeline_section_solver_factory(
         shaft=shaft_new,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
@@ -326,7 +326,7 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
     chart_data_factory,
 ):
     shaft = VariableSpeedShaft()
@@ -363,7 +363,7 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
     pressure_control = individual_asv_rate_control_strategy_factory(
         runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
     )
-    solver = outlet_pressure_solver_factory(
+    solver = pipeline_section_solver_factory(
         shaft=shaft,
         runner=runner,
         anti_surge_strategy=anti_surge,

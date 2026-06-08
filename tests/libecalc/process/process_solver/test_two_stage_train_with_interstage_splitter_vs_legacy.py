@@ -23,7 +23,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
-    outlet_pressure_solver_factory,
+    pipeline_section_solver_factory,
     variable_speed_chart_data_factory,
 ):
     temperature = 300.0
@@ -116,7 +116,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
         recirculation_loop_ids=recirculation_loop_ids,
         compressors=compressors,
     )
-    train_solver = outlet_pressure_solver_factory(
+    train_solver = pipeline_section_solver_factory(
         shaft=shaft_new,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
