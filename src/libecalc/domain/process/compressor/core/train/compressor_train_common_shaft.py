@@ -893,7 +893,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
         return CompressorTrainResultSingleTimeStep(
             inlet_stream=inlet_stream_train,
             outlet_stream=stage_result.outlet_stream,
-            speed=float("nan"),
+            speed=self.shaft.get_speed(),
             stage_results=stage_results,
             target_pressure_status=target_pressure_status,
         )
