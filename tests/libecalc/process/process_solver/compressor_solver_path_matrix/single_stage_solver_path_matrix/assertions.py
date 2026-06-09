@@ -8,11 +8,16 @@ import pytest
 
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 
-from .cases import ExpectedControlAction, PressureExpectation, SpeedBoundaryClass, TrialCase
-
-PRESSURE_TOLERANCE = 1e-3
-POWER_TOLERANCE = 0.1
-RECIRCULATION_TOLERANCE = 1e-6
+# Shared tolerances/vocabulary live in the common parent package.
+from ..utils import (  # noqa: F401  (POWER_TOLERANCE/PRESSURE_TOLERANCE re-exported for tests importing from this module)
+    POWER_TOLERANCE,
+    PRESSURE_TOLERANCE,
+    RECIRCULATION_THRESHOLD,
+    ExpectedControlAction,
+    PressureExpectation,
+    SpeedBoundaryClass,
+)
+from .cases import TrialCase
 
 
 def assert_pressure_expectation(outlet_pressure_bara: float, case: TrialCase) -> None:
@@ -56,10 +61,9 @@ def assert_control_behavior(
     recirculation_rates: tuple[float, ...],
     anti_surge_recirculation_rates: tuple[float, ...],
     choke_delta_pressure: float | None = None,
-    suction_pressure_after_upstream_choke_bara: float | None = None,
 ) -> None:
-    has_recirculation = any(rate > RECIRCULATION_TOLERANCE for rate in recirculation_rates)
-    has_anti_surge_recirculation = any(rate > RECIRCULATION_TOLERANCE for rate in anti_surge_recirculation_rates)
+    has_recirculation = any(rate > RECIRCULATION_THRESHOLD for rate in recirculation_rates)
+    has_anti_surge_recirculation = any(rate > RECIRCULATION_THRESHOLD for rate in anti_surge_recirculation_rates)
 
     if case.region.expect_auto_anti_surge:
         assert has_anti_surge_recirculation
@@ -76,6 +80,3 @@ def assert_control_behavior(
         assert choke_delta_pressure is None or choke_delta_pressure > 0.0
     elif choke_delta_pressure is not None:
         assert choke_delta_pressure == pytest.approx(0.0, abs=PRESSURE_TOLERANCE)
-
-    if action is ExpectedControlAction.UPSTREAM_CHOKE and suction_pressure_after_upstream_choke_bara is not None:
-        assert suction_pressure_after_upstream_choke_bara < case.region.suction_pressure_bara

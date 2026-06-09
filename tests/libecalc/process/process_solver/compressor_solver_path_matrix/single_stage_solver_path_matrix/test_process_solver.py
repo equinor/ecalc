@@ -8,6 +8,7 @@ yet match legacy behavior are marked as strict xfails.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 import numpy as np
 import pytest
@@ -21,6 +22,7 @@ from libecalc.process.process_solver.configuration import (
     SpeedConfiguration,
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.search_strategies import DidNotConvergeError
 from libecalc.process.process_solver.solver import (
     RateTooHighFailure,
     Solution,
@@ -41,28 +43,49 @@ from .assertions import (
 )
 from .cases import TEST_CASES, ExpectedOutcome, TrialCase
 
+
 # ---------------------------------------------------------------------------
 # Expected failures — remove entries as the process solver improves
 # ---------------------------------------------------------------------------
-PROCESS_XFAILS: dict[tuple[str, str], str] = {
-    # R1 — SpeedSolver does not converge when min-speed point starts above stonewall
-    ("R1", "UPSTREAM_CHOKE"): "SpeedSolver bracketing failure at min-speed.",
-    ("R1", "DOWNSTREAM_CHOKE"): "SpeedSolver bracketing failure at min-speed.",
-    ("R1", "INDIVIDUAL_ASV_RATE"): "SpeedSolver bracketing failure at min-speed.",
-    ("R1", "INDIVIDUAL_ASV_PRESSURE"): "SpeedSolver bracketing failure at min-speed.",
-    ("R1", "COMMON_ASV"): "SpeedSolver bracketing failure at min-speed.",
-    # R6 — similar SpeedSolver convergence issue near max-speed boundary
-    ("R6", "UPSTREAM_CHOKE"): "SpeedSolver convergence issue near max-speed boundary.",
-    ("R6", "DOWNSTREAM_CHOKE"): "SpeedSolver convergence issue near max-speed boundary.",
-    ("R6", "INDIVIDUAL_ASV_RATE"): "SpeedSolver convergence issue near max-speed boundary.",
-    ("R6", "INDIVIDUAL_ASV_PRESSURE"): "SpeedSolver convergence issue near max-speed boundary.",
-    ("R6", "COMMON_ASV"): "SpeedSolver convergence issue near max-speed boundary.",
-    # R8 — process solver does not implement legacy zero-rate short-circuit
-    ("R8", "UPSTREAM_CHOKE"): "No zero-rate short-circuit in process solver.",
-    ("R8", "DOWNSTREAM_CHOKE"): "No zero-rate short-circuit in process solver.",
-    ("R8", "INDIVIDUAL_ASV_RATE"): "No zero-rate short-circuit in process solver.",
-    ("R8", "INDIVIDUAL_ASV_PRESSURE"): "No zero-rate short-circuit in process solver.",
-    ("R8", "COMMON_ASV"): "No zero-rate short-circuit in process solver.",
+@dataclass(frozen=True)
+class _Xfail:
+    """A documented process-solver divergence from legacy.
+
+    ``raises`` distinguishes a *crash* (uncaught exception) from a merely
+    *wrong-but-structured* outcome. When set, the xfail is strict on that exact
+    exception type, so the case xpasses (alerting us) once the solver either stops
+    crashing or starts returning the correct structured result.
+    """
+
+    reason: str
+    raises: type[BaseException] | None = None
+
+
+PROCESS_XFAILS: dict[tuple[str, str], _Xfail] = {
+    # R1 — SpeedSolver does not converge when the min-speed point starts above stonewall;
+    # the search raises DidNotConvergeError instead of returning a structured solution.
+    ("R1", "UPSTREAM_CHOKE"): _Xfail("SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError),
+    ("R1", "DOWNSTREAM_CHOKE"): _Xfail("SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError),
+    ("R1", "INDIVIDUAL_ASV_RATE"): _Xfail("SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError),
+    ("R1", "INDIVIDUAL_ASV_PRESSURE"): _Xfail(
+        "SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError
+    ),
+    ("R1", "COMMON_ASV"): _Xfail("SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError),
+    # R6 — similar SpeedSolver non-convergence near the max-speed boundary (also raises).
+    ("R6", "UPSTREAM_CHOKE"): _Xfail("SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError),
+    ("R6", "DOWNSTREAM_CHOKE"): _Xfail("SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError),
+    ("R6", "INDIVIDUAL_ASV_RATE"): _Xfail("SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError),
+    ("R6", "INDIVIDUAL_ASV_PRESSURE"): _Xfail(
+        "SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError
+    ),
+    ("R6", "COMMON_ASV"): _Xfail("SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError),
+    # R8 — process solver does not implement the legacy zero-rate short-circuit: it returns a
+    # real (non-NaN) outlet pressure instead, so this is a wrong-but-structured outcome (no crash).
+    ("R8", "UPSTREAM_CHOKE"): _Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "DOWNSTREAM_CHOKE"): _Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "INDIVIDUAL_ASV_RATE"): _Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "INDIVIDUAL_ASV_PRESSURE"): _Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "COMMON_ASV"): _Xfail("No zero-rate short-circuit in process solver."),
 }
 
 
@@ -106,16 +129,19 @@ def _calculate_compressor_power_mw(
     return delta_h * mass_rate / 3600.0 / 1e6
 
 
-PROCESS_TEST_PARAMS = tuple(
-    pytest.param(
-        case,
-        id=case.id,
-        marks=pytest.mark.xfail(reason=PROCESS_XFAILS[(case.region.id, case.mode)], strict=True),
+def _make_param(case: TrialCase):
+    xfail = PROCESS_XFAILS.get((case.region.id, case.mode))
+    if xfail is None:
+        return pytest.param(case, id=case.id)
+    mark = (
+        pytest.mark.xfail(reason=xfail.reason, strict=True, raises=xfail.raises)
+        if xfail.raises is not None
+        else pytest.mark.xfail(reason=xfail.reason, strict=True)
     )
-    if (case.region.id, case.mode) in PROCESS_XFAILS
-    else pytest.param(case, id=case.id)
-    for case in TEST_CASES
-)
+    return pytest.param(case, id=case.id, marks=mark)
+
+
+PROCESS_TEST_PARAMS = tuple(_make_param(case) for case in TEST_CASES)
 
 
 @pytest.mark.parametrize("case", PROCESS_TEST_PARAMS)
