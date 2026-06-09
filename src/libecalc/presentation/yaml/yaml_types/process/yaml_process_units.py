@@ -10,8 +10,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution impo
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
-ProcessUnitReference = str
-
 
 class YamlControlMargin(YamlBase):
     unit: YamlControlMarginUnits

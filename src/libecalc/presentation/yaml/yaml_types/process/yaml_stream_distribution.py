@@ -5,9 +5,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import ProcessPipelineReference
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
-
-
-StreamRef = str
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import StreamRef
 
 
 class YamlOverflow(YamlBase):
