@@ -50,6 +50,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlControlMargin,
     YamlCompressorChart,
     YamlProcessUnit,
+    YamlMixer,
 )
 
 
@@ -187,6 +188,20 @@ class YamlLiquidRemoverBuilder(Builder[YamlLiquidRemover]):
         # LIQUID_REMOVER has no configurable fields beyond `type`,
         # so `with_test_data` is a no-op. Kept for API consistency
         # with the other process unit builders.
+        return self
+
+
+class YamlMixerBuilder(Builder[YamlMixer]):
+    def __init__(self):
+        self.type = "MIXER"
+        self.inlet_stream = None
+
+    def with_inlet_stream(self, inlet_stream: str | YamlInletStream) -> Self:
+        self.inlet_stream = inlet_stream
+        return self
+
+    def with_test_data(self) -> Self:
+        self.inlet_stream = YamlInletStreamBuilder().with_test_data().with_name("SidestreamDefault").validate()
         return self
 
 

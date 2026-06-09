@@ -20,6 +20,7 @@ from libecalc.ecalc_model.process_simulation import (
     ProcessSimulation,
 )
 from libecalc.ecalc_model.time_series_configuration import (
+    TimeSeriesMixerConfiguration,
     TimeSeriesPressureDropperConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
@@ -45,6 +46,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressor,
     YamlCompressorModelChart,
     YamlLiquidRemover,
+    YamlMixer,
     YamlPressureDropper,
     YamlProcessUnit,
     YamlTemperatureSetter,
@@ -75,6 +77,7 @@ from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
@@ -294,7 +297,12 @@ class ProcessSimulationMapper:
         # Some configurations are not found/set by the solver, but set by user upon process_simulation creation
         predefined_configurations: dict[
             ProcessPipelineId,
-            dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
+            dict[
+                ProcessUnitId,
+                TimeSeriesTemperatureSetterConfiguration
+                | TimeSeriesPressureDropperConfiguration
+                | TimeSeriesMixerConfiguration,
+            ],
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
@@ -306,7 +314,10 @@ class ProcessSimulationMapper:
             compressor_segments: list[list[ProcessUnitId]] = []
             compressor_ids: list[ProcessUnitId] = []
             problem_time_series_configurations: dict[
-                ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration
+                ProcessUnitId,
+                TimeSeriesTemperatureSetterConfiguration
+                | TimeSeriesPressureDropperConfiguration
+                | TimeSeriesMixerConfiguration,
             ] = {}
 
             # Group units into compressor segments: each segment contains the units leading up to
@@ -352,6 +363,22 @@ class ProcessSimulationMapper:
                         liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
                         process_unit_map[liquid_remover.get_id()] = liquid_remover
                         current_segment_unit_ids.append(liquid_remover.get_id())
+
+                    case YamlMixer():
+                        yaml_stream = self._resolve_stream_reference(yaml_process_unit.inlet_stream)
+                        yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
+                        mixer = Mixer(fluid_service=self._fluid_service)
+                        problem_time_series_configurations[mixer.get_id()] = TimeSeriesMixerConfiguration(
+                            inlet_stream=TimeSeriesStream(
+                                pressure_bara=self._map_pressure(yaml_stream.pressure),
+                                standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
+                                temperature_kelvin=self._map_temperature(yaml_stream.temperature),
+                                fluid_model=self._map_fluid_model(yaml_fluid_model),
+                            )
+                        )
+                        process_unit_map[mixer.get_id()] = mixer
+                        current_segment_unit_ids.append(mixer.get_id())
+
                     case _:
                         # Unreachable for valid YAML (pydantic discriminator rejects unknown types).
                         # Guards against bypassed parsing or new union variants missing a case.
