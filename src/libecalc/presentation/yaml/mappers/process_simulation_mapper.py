@@ -361,16 +361,6 @@ class ProcessSimulationMapper:
                             f"in a process pipeline. Allowed types are: {', '.join(allowed_types)}."
                         )
 
-            # Trailing units (units after the last compressor) are not supported: each segment
-            # must end with a compressor so it can be wrapped in an ASV recirculation loop.
-            # Units placed after the last compressor would otherwise be silently dropped from
-            # the simulated pipeline.
-            if current_segment_unit_ids:
-                raise EcalcValidationException(
-                    f"Process pipeline '{item.name}' has {len(current_segment_unit_ids)} unit(s) "
-                    f"after the last compressor. Each compressor segment must end with a compressor."
-                )
-
             for compressor_id in compressor_ids:
                 compressor = process_unit_map[compressor_id]
                 assert isinstance(compressor, Compressor)
@@ -393,6 +383,10 @@ class ProcessSimulationMapper:
                     recirculation_loop, stage_process_units = with_asv(units=segment_units)
                     problem_configuration_handlers.append(recirculation_loop)
                     process_units.extend(stage_process_units)
+
+                # Trailing units after last compressor — outside any ASV loop
+                if current_segment_unit_ids:
+                    process_units.extend([process_unit_map[uid] for uid in current_segment_unit_ids])
 
             if pressure_control == "DOWNSTREAM_CHOKE":
                 choke, choke_configuration_handler = choke_factory(fluid_service=self._fluid_service)

@@ -1,8 +1,5 @@
 from datetime import datetime
 
-import pytest
-
-from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.process_units.choke import Choke
@@ -187,27 +184,39 @@ def test_mapper_attaches_anti_surge_config_to_process_problem(process_simulation
 
 
 # ---------------------------------------------------------------------------
-# Tests: validation
+# Tests: trailing units
 # ---------------------------------------------------------------------------
 
 
-def test_mapper_raises_when_pipeline_has_units_after_last_compressor(process_simulation_mapper):
-    """Trailing units (after the last compressor) are not allowed."""
-    pipeline = (
+def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_mapper):
+    """Units after the last compressor are placed outside any ASV recirculation loop."""
+    yaml_pipeline = (
         YamlProcessPipelineBuilder()
-        .with_name("invalid_train")
+        .with_name("train_with_aftercooler")
         .with_items(
             [
+                YamlTemperatureSetterBuilder().with_test_data().validate(),
                 YamlCompressorBuilder().with_test_data().validate(),
-                YamlPressureDropperBuilder().with_test_data().validate(),  # trailing
+                YamlTemperatureSetterBuilder().with_test_data().validate(),
+                YamlCompressorBuilder().with_test_data().validate(),
+                YamlTemperatureSetterBuilder().with_test_data().validate(),  # trailing
             ]
         )
         .validate()
     )
-    yaml_simulation = _build_simulation_with_pipeline(pipeline)
+    yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
-    with pytest.raises(EcalcValidationException, match="after the last compressor"):
-        process_simulation_mapper.map_process_simulation(
-            yaml_process_simulation=yaml_simulation,
-            process_periods=[PERIOD],
-        )
+    pipelines, _ = process_simulation_mapper.map_process_simulation(
+        yaml_process_simulation=yaml_simulation,
+        process_periods=[PERIOD],
+    )
+
+    units = pipelines[0].get_process_units()
+
+    # Two ASV loops = two DirectSplitters. Trailing TemperatureSetter should be after both.
+    splitter_indices = [i for i, u in enumerate(units) if isinstance(u, DirectSplitter)]
+    assert len(splitter_indices) == 2
+
+    trailing_temp_index = len(units) - 1
+    assert isinstance(units[trailing_temp_index], TemperatureSetter)
+    assert trailing_temp_index > max(splitter_indices)
