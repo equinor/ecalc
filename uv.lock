@@ -315,15 +315,15 @@ wheels = [
 
 [[package]]
 name = "jneqsim"
-version = "3.12.1"
+version = "3.13.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "jpype1" },
     { name = "pyyaml" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/6d/62/10345537113b3b9a5eccd7f1f138edee5a62241cbe6fab486ac3d7001c24/jneqsim-3.12.1.tar.gz", hash = "sha256:f4870f9cd228cb7089735bb7eedd532257a980597bf9b577cc2fef06c4a332cd", size = 2754556, upload-time = "2026-06-05T04:33:53.404Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/fd/07/14542c783c21a376553ac63153bc178c8afb53f73184437a7fb13d38683a/jneqsim-3.13.0.tar.gz", hash = "sha256:e6d3a210b0e9d2617a048534cf175bbdeb53e9143794922c269e4d5ce87a6c43", size = 2752368, upload-time = "2026-06-06T04:26:45.974Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/91/ad/f152cca3fd0f33be45c4a7d54af8447604a1e5117c85f747598853ad4cf2/jneqsim-3.12.1-py3-none-any.whl", hash = "sha256:a5e45c3a614ea72fa0a0b982464b8989ed8223530dc3230e89a1990bce2333a4", size = 727757, upload-time = "2026-06-05T04:33:51.76Z" },
+    { url = "https://files.pythonhosted.org/packages/98/dc/c6e80d605d22aac21359491505f932a605e7b0ffa298f8fed6531b23a79b/jneqsim-3.13.0-py3-none-any.whl", hash = "sha256:b332fa9c348c2bf139503d9bab703e97f29e36f57a101041f70cd8307b28b6c7", size = 725214, upload-time = "2026-06-06T04:26:44.334Z" },
 ]
 
 [[package]]
