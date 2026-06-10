@@ -15,4 +15,4 @@ class TimeSeriesTemperatureSetterConfiguration:
 
 @value_object
 class TimeSeriesMixerConfiguration:
-    inlet_stream: TimeSeriesStream
+    sidestream: TimeSeriesStream

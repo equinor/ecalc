@@ -80,7 +80,7 @@ class YamlMixer(YamlBase):
     intermediate point in the pipeline."""
 
     type: Literal["MIXER"]
-    inlet_stream: Annotated[
+    sidestream: Annotated[
         StreamRef | YamlInletStream,
         Field(
             description="Sidestream to mix in. Either a reference to a named stream or an inline stream definition.",

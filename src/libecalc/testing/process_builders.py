@@ -108,7 +108,7 @@ class YamlCompressorChartBuilder(Builder[YamlCompressorChart]):
         self.units = YamlUnits(
             rate=YamlRateUnits.AM3_PER_HOUR,
             head=YamlHeadUnits.M,
-            efficiency=YamlEfficiencyUnits.PERCENTAGE,
+            efficiency=YamlEfficiencyUnits.FRACTION,
         )
         return self
 
@@ -194,14 +194,20 @@ class YamlLiquidRemoverBuilder(Builder[YamlLiquidRemover]):
 class YamlMixerBuilder(Builder[YamlMixer]):
     def __init__(self):
         self.type = "MIXER"
-        self.inlet_stream = None
+        self.sidestream = None
 
-    def with_inlet_stream(self, inlet_stream: str | YamlInletStream) -> Self:
-        self.inlet_stream = inlet_stream
+    def with_sidestream(self, sidestream: str | YamlInletStream) -> Self:
+        self.sidestream = sidestream
         return self
 
     def with_test_data(self) -> Self:
-        self.inlet_stream = YamlInletStreamBuilder().with_test_data().with_name("SidestreamDefault").validate()
+        self.sidestream = (
+            YamlInletStreamBuilder()
+            .with_test_data()
+            .with_name("SidestreamDefault")
+            .with_rate(YamlInletStreamRateBuilder().with_test_data().with_value(200000).validate())
+            .validate()
+        )
         return self
 
 

@@ -365,11 +365,11 @@ class ProcessSimulationMapper:
                         current_segment_unit_ids.append(liquid_remover.get_id())
 
                     case YamlMixer():
-                        yaml_stream = self._resolve_stream_reference(yaml_process_unit.inlet_stream)
+                        yaml_stream = self._resolve_stream_reference(yaml_process_unit.sidestream)
                         yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
                         mixer = Mixer(fluid_service=self._fluid_service)
                         problem_time_series_configurations[mixer.get_id()] = TimeSeriesMixerConfiguration(
-                            inlet_stream=TimeSeriesStream(
+                            sidestream=TimeSeriesStream(
                                 pressure_bara=self._map_pressure(yaml_stream.pressure),
                                 standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
                                 temperature_kelvin=self._map_temperature(yaml_stream.temperature),
