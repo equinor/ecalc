@@ -101,4 +101,6 @@ def test_mixer_defined_in_yaml_produces_pipeline_that_mixes_sidestream(process_s
         standard_rate_m3_per_day=sidestream_rate_sm3_per_day,
     )
 
+    # -- Assert: mass is conserved — compressors and temperature setters
+    # change P and T but not mass rate, so outlet = inlet + sidestream --
     assert outlet.mass_rate_kg_per_h == inlet_stream.mass_rate_kg_per_h + expected_sidestream_mass_rate
