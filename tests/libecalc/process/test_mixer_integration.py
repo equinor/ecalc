@@ -20,7 +20,7 @@ from libecalc.testing.process_builders import (
 PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2030, 1, 1))
 
 
-def test_mixer_defined_in_yaml_produces_pipeline_that_mixes_sidestream(process_simulation_mapper, fluid_service):
+def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper, fluid_service):
     """
     Verify that a Mixer defined in YAML survives the full chain:
     YAML → mapper → runtime configuration → pipeline execution.
