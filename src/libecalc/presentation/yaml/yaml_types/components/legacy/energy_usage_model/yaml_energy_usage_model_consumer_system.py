@@ -69,6 +69,26 @@ class YamlCompressorSystemOperationalSetting(YamlBase):
         description="Set suction pressure equal for all consumers in a consumer system operational setting. \n\n$ECALC_DOCS_KEYWORDS_URL/SUCTION_PRESSURE",
     )
 
+    @model_validator(mode="after")
+    def ensure_mutually_exclusive_discharge_pressures(self):
+        if self.discharge_pressure is None and self.discharge_pressures is None:
+            raise ValueError("One of DISCHARGE_PRESSURE or DISCHARGE_PRESSURES must be specified.")
+
+        if self.discharge_pressure is not None and self.discharge_pressures is not None:
+            raise ValueError("Only one of DISCHARGE_PRESSURE or DISCHARGE_PRESSURES may be specified.")
+
+        return self
+
+    @model_validator(mode="after")
+    def ensure_mutually_exclusive_suction_pressures(self):
+        if self.suction_pressure is None and self.suction_pressures is None:
+            raise ValueError("One of SUCTION_PRESSURE or SUCTION_PRESSURES must be specified.")
+
+        if self.suction_pressure is not None and self.suction_pressures is not None:
+            raise ValueError("Only one of SUCTION_PRESSURE or SUCTION_PRESSURES may be specified.")
+
+        return self
+
 
 class YamlPumpSystemOperationalSettings(YamlCompressorSystemOperationalSetting):
     fluid_densities: list[YamlExpressionType] | None = Field(
