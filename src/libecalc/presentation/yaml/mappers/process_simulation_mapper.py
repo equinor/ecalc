@@ -22,6 +22,7 @@ from libecalc.ecalc_model.process_simulation import (
 from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesMixerConfiguration,
     TimeSeriesPressureDropperConfiguration,
+    TimeSeriesSplitterConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
@@ -49,6 +50,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlMixer,
     YamlPressureDropper,
     YamlProcessUnit,
+    YamlSplitter,
     YamlTemperatureSetter,
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
@@ -79,6 +81,7 @@ from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.pressure_dropper import PressureDropper
+from libecalc.process.process_units.splitter import Splitter
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.process.stream_distribution.common_stream_distribution import (
@@ -301,7 +304,8 @@ class ProcessSimulationMapper:
                 ProcessUnitId,
                 TimeSeriesTemperatureSetterConfiguration
                 | TimeSeriesPressureDropperConfiguration
-                | TimeSeriesMixerConfiguration,
+                | TimeSeriesMixerConfiguration
+                | TimeSeriesSplitterConfiguration,
             ],
         ] = {}
 
@@ -316,7 +320,8 @@ class ProcessSimulationMapper:
                 ProcessUnitId,
                 TimeSeriesTemperatureSetterConfiguration
                 | TimeSeriesPressureDropperConfiguration
-                | TimeSeriesMixerConfiguration,
+                | TimeSeriesMixerConfiguration
+                | TimeSeriesSplitterConfiguration,
             ] = {}
 
             # Group units into compressor segments: each segment contains the units leading up to
@@ -379,6 +384,15 @@ class ProcessSimulationMapper:
                         process_unit_map[mixer.get_id()] = mixer
                         # Mixer should not be wrapped in ASV-loop
                         pipeline_chunks.append((False, [mixer.get_id()]))
+
+
+                    case YamlSplitter():
+                        splitter = Splitter(fluid_service=self._fluid_service)
+                        problem_time_series_configurations[splitter.get_id()] = TimeSeriesSplitterConfiguration(
+                            offtake_rate=self._map_rate(yaml_process_unit.offtake_rate),
+                        )
+                        process_unit_map[splitter.get_id()] = splitter
+                        current_segment_unit_ids.append(splitter.get_id())
 
                     case _:
                         # Unreachable for valid YAML (pydantic discriminator rejects unknown types).

@@ -8,6 +8,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import U
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import StreamRef
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
 
@@ -89,7 +90,21 @@ class YamlMixer(YamlBase):
     ]
 
 
+class YamlSplitter(YamlBase):
+    """Removes a fixed rate from the through-stream at an
+    intermediate point in the pipeline (e.g. fuel gas offtake)."""
+
+    type: Literal["SPLITTER"]
+    offtake_rate: Annotated[
+        YamlInletStreamRate,
+        Field(
+            description="Standard rate to split off.",
+            title="OFFTAKE_RATE",
+        ),
+    ]
+
+
 YamlProcessUnit = Annotated[
-    YamlCompressor | YamlPressureDropper | YamlTemperatureSetter | YamlLiquidRemover | YamlMixer,
+    YamlCompressor | YamlPressureDropper | YamlTemperatureSetter | YamlLiquidRemover | YamlMixer | YamlSplitter,
     Field(discriminator="type"),
 ]
