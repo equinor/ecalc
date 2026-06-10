@@ -3,9 +3,8 @@ from typing import override
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.process.process_solver.configuration import Configuration
+from libecalc.process.process_solver.configuration import Configuration, RecirculationConfiguration
 from libecalc.process.process_solver.solver import Solution
-from libecalc.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 
 
 class NoASVAntiSurgeStrategy(AntiSurgeStrategy):

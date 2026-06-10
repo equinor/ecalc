@@ -2,9 +2,8 @@ from abc import ABC, abstractmethod
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_solver.configuration import Configuration
+from libecalc.process.process_solver.configuration import Configuration, RecirculationConfiguration
 from libecalc.process.process_solver.solver import Solution
-from libecalc.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 
 
 class AntiSurgeStrategy(ABC):

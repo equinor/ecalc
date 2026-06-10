@@ -6,8 +6,8 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.process.shaft import VariableSpeedShaft
 
 

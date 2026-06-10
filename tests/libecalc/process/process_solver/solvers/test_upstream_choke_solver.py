@@ -4,9 +4,9 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
+from libecalc.process.process_solver.configuration import ChokeConfiguration
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.process.process_solver.solver import RateTooHighFailure
-from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
 from libecalc.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 
 

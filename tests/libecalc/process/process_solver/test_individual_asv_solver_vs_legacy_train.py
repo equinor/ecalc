@@ -3,10 +3,8 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.value_objects.chart import ChartCurve
-from libecalc.process.process_solver.configuration import Configuration
+from libecalc.process.process_solver.configuration import Configuration, RecirculationConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
-from libecalc.process.process_solver.solvers.speed_solver import SpeedConfiguration
 from libecalc.process.shaft import VariableSpeedShaft
 
 

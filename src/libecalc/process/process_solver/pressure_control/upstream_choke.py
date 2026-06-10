@@ -3,14 +3,17 @@ from collections.abc import Sequence
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.boundary import Boundary
-from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
+from libecalc.process.process_solver.configuration import (
+    ChokeConfiguration,
+    Configuration,
+    ConfigurationHandlerId,
+    RecirculationConfiguration,
+)
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy
 from libecalc.process.process_solver.solver import Solution
-from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
-from libecalc.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 from libecalc.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 
 PRESSURE_CALCULATION_TOLERANCE = 1e-3

@@ -3,11 +3,9 @@ from collections.abc import Sequence
 from typing import Literal
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_solver.configuration import Configuration
+from libecalc.process.process_solver.configuration import ChokeConfiguration, Configuration, RecirculationConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.solver import Solution
-from libecalc.process.process_solver.solvers.downstream_choke_solver import ChokeConfiguration
-from libecalc.process.process_solver.solvers.recirculation_solver import RecirculationConfiguration
 
 PressureControlType = Literal[
     "UPSTREAM_CHOKE",
