@@ -6,8 +6,8 @@ from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
+from libecalc.process.process_solver.finders.shaft_speed_finder import ShaftSpeedFinder, SpeedConfiguration
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
-from libecalc.process.process_solver.solvers.speed_solver import SpeedConfiguration, SpeedSolver
 from libecalc.process.shaft import Shaft, VariableSpeedShaft
 
 
@@ -41,14 +41,14 @@ def shaft():
 
 
 @pytest.mark.parametrize(
-    "target_pressure, speed_boundary, inlet_pressure, expected_speed, expected_pressure, solution_found",
+    "target_pressure, speed_boundary, inlet_pressure, expected_speed, expected_pressure",
     [
-        (300, Boundary(min=200, max=600), 100, 200, 300, True),  # Solution found
-        (1000, Boundary(min=200, max=600), 100, 600, 700, False),  # Solution not found, max speed
-        (50, Boundary(min=200, max=600), 25, 200, 225, False),  # Solution not found, min speed
+        (300, Boundary(min=200, max=600), 100, 200, 300),  # exact speed found
+        (1000, Boundary(min=200, max=600), 100, 600, 700),  # max below target: returns max speed
+        (50, Boundary(min=200, max=600), 25, 200, 225),  # min above target: returns min speed
     ],
 )
-def test_speed_solver(
+def test_shaft_speed_finder(
     search_strategy_factory,
     root_finding_strategy,
     stream_factory,
@@ -59,9 +59,8 @@ def test_speed_solver(
     inlet_pressure,
     expected_speed,
     expected_pressure,
-    solution_found,
 ):
-    speed_solver = SpeedSolver(
+    speed_search = ShaftSpeedFinder(
         search_strategy=search_strategy_factory(),
         root_finding_strategy=root_finding_strategy,
         boundary=speed_boundary,
@@ -78,10 +77,8 @@ def test_speed_solver(
         shaft.set_speed(configuration.speed)
         return propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
-    solution = speed_solver.solve(speed_func)
+    result = speed_search.find(speed_func)
 
-    assert solution.success == solution_found
-
-    assert solution.configuration.speed == expected_speed
-    outlet_stream = speed_func(solution.configuration)
+    assert result.configuration.speed == expected_speed
+    outlet_stream = speed_func(result.configuration)
     assert outlet_stream.pressure_bara == expected_pressure

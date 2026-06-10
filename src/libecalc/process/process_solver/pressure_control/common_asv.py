@@ -1,7 +1,13 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_solver.configuration import ChokeConfiguration, Configuration, ConfigurationHandlerId
+from libecalc.process.process_solver.configuration import (
+    ChokeConfiguration,
+    Configuration,
+    ConfigurationHandlerId,
+    RecirculationConfiguration,
+)
+from libecalc.process.process_solver.finders.recirculation_loop_rate_finder import RecirculationLoopRateFinder
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
@@ -9,10 +15,6 @@ from libecalc.process.process_solver.search_strategies import Bisect, RootFindin
 from libecalc.process.process_solver.solver import (
     Solution,
     TargetDirection,
-)
-from libecalc.process.process_solver.solvers.recirculation_solver import (
-    RecirculationConfiguration,
-    RecirculationSolver,
 )
 from libecalc.process.process_units.compressor import Compressor
 
@@ -71,20 +73,21 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
                 direction=TargetDirection.MIN_ABOVE_TARGET,
             )
 
-        solver = RecirculationSolver(
+        finder = RecirculationLoopRateFinder(
             search_strategy=Bisect(tolerance=10e-3),
             root_finding_strategy=self._root_finding_strategy,
             recirculation_rate_boundary=boundary,
             target_pressure=target_pressure,
         )
 
-        solution = solver.solve(recirculation_func)
+        finding = finder.find(recirculation_func)
         return Solution(
-            success=solution.success,
+            success=finding.success,
             configuration=[
                 Configuration(
                     configuration_handler_id=self._recirculation_loop_id,
-                    value=solution.configuration,
+                    value=finding.configuration,
                 )
             ],
+            failure=finding.failure,
         )

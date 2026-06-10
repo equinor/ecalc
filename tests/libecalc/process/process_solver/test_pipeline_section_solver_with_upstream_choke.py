@@ -39,7 +39,7 @@ def test_pipeline_section_solver_applies_upstream_choke_when_speed_solution_is_a
     pipeline_section_solver_factory,
 ):
     """
-    If the outlet pressure is higher than the target outlet pressure at minimum speed, SpeedSolver returns
+    If the outlet pressure is higher than the target outlet pressure at minimum speed, ShaftSpeedFinder returns
     success=False and selects the minimum speed. PipelineSectionSolver should still attempt pressure control, and with an
     upstream choke it should be able to meet the target.
     """
@@ -78,7 +78,7 @@ def test_pipeline_section_solver_applies_upstream_choke_when_speed_solution_is_a
     inlet_stream = stream_factory(standard_rate_m3_per_day=500_000, pressure_bara=25.0)
 
     # The compressor (single speed) produces outlet pressure well above 28 bara.
-    # SpeedSolver cannot lower it further, so it returns min speed with success=False.
+    # ShaftSpeedFinder cannot lower it further, so it returns min speed with success=False.
     # The upstream choke reduces inlet pressure, which lowers outlet pressure to the target.
     target_pressure = FloatConstraint(28.0, abs_tol=1e-4)
 
@@ -89,7 +89,7 @@ def test_pipeline_section_solver_applies_upstream_choke_when_speed_solution_is_a
 
     speed_configuration = solution.get_configuration(shaft.get_id())
 
-    # Single-speed compressor: SpeedSolver is forced to return the only available speed.
+    # Single-speed compressor: ShaftSpeedFinder is forced to return the only available speed.
     assert speed_configuration.speed == shaft.get_speed_boundary().min
 
     # Overall solver should succeed via upstream choke pressure control.

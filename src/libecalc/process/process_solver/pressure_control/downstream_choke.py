@@ -2,18 +2,16 @@ from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.configuration import (
+    ChokeConfiguration,
     Configuration,
     ConfigurationHandlerId,
     RecirculationConfiguration,
 )
+from libecalc.process.process_solver.finders.choke_delta_pressure_finders import DownstreamChokeDeltaPressureFinder
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.solver import Solution
-from libecalc.process.process_solver.solvers.downstream_choke_solver import (
-    ChokeConfiguration,
-    DownstreamChokeSolver,
-)
 
 
 class DownstreamChokePressureControlStrategy(PressureControlStrategy):
@@ -58,15 +56,16 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
             )
 
         # 2) Solve for needed downstream ΔP
-        choke_solver = DownstreamChokeSolver(target_pressure=target_pressure.value)
+        choke_finder = DownstreamChokeDeltaPressureFinder(target_pressure=target_pressure.value)
 
-        solution = choke_solver.solve(outlet_with_choke)
+        finding = choke_finder.find(outlet_with_choke)
         return Solution(
-            success=solution.success,
+            success=finding.success,
             configuration=[
                 Configuration(
                     configuration_handler_id=self._choke_configuration_handler_id,
-                    value=solution.configuration,
+                    value=finding.configuration,
                 )
             ],
+            failure=finding.failure,
         )

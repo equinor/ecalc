@@ -7,11 +7,11 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import ProcessError, RateTooHighError, RateTooLowError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
-from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
-from libecalc.process.process_solver.solvers.recirculation_solver import (
+from libecalc.process.process_solver.finders.recirculation_loop_rate_finder import (
     RecirculationConfiguration,
-    RecirculationSolver,
+    RecirculationLoopRateFinder,
 )
+from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
 
 
 class RateCompressor(ProcessUnit):
@@ -87,7 +87,7 @@ def test_single(
         with pytest.raises(ProcessError):
             propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
-    recirculation_solver = RecirculationSolver(
+    recirculation_search = RecirculationLoopRateFinder(
         search_strategy=search_strategy_factory(tolerance=10e-3),
         root_finding_strategy=root_finding_strategy,
         recirculation_rate_boundary=Boundary(min=0, max=20000),
@@ -97,14 +97,13 @@ def test_single(
         recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
         return propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
-    recirculation_solution = recirculation_solver.solve(recirculation_func)
+    result = recirculation_search.find(recirculation_func)
 
     outlet_stream = propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
     # TODO: Verify inlet_standard_rate + recirc_rate = compressor_rate
-    assert recirculation_solution.success
     assert inlet_stream.standard_rate_sm3_per_day == pytest.approx(outlet_stream.standard_rate_sm3_per_day)
-    assert recirculation_solution.configuration.recirculation_rate == expected_recirculation_rate
+    assert result.configuration.recirculation_rate == expected_recirculation_rate
 
 
 def test_rate_too_high_at_zero_recirculation_returns_failure(
@@ -122,7 +121,7 @@ def test_rate_too_high_at_zero_recirculation_returns_failure(
     inlet_stream = stream_factory(standard_rate_m3_per_day=500_000, pressure_bara=20)
     assert inlet_stream.volumetric_rate_m3_per_hour > max_actual_rate
 
-    recirculation_solver = RecirculationSolver(
+    recirculation_search = RecirculationLoopRateFinder(
         search_strategy=search_strategy_factory(tolerance=10e-3),
         root_finding_strategy=root_finding_strategy,
         recirculation_rate_boundary=Boundary(min=0, max=20000),
@@ -132,6 +131,5 @@ def test_rate_too_high_at_zero_recirculation_returns_failure(
         recirculation_loop.set_recirculation_rate(configuration.recirculation_rate)
         return propagate_stream_many(process_units=process_units, inlet_stream=inlet_stream)
 
-    solution = recirculation_solver.solve(recirculation_func)
-
-    assert not solution.success
+    result = recirculation_search.find(recirculation_func)
+    assert not result.success
