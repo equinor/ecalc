@@ -86,7 +86,7 @@ def test_genset_duplicate_names(duplicate_genset_name_model):
     errors = exc_info.value.errors()
     assert len(errors) == 1
     assert errors[0].message == snapshot(
-        "Value error, Component names must be unique. Components include the main model, installations, generator sets, electricity consumers, fuel consumers, systems and its consumers and direct emitters. Duplicated names are: genset1"
+        "Component names must be unique. Components include the main model, installations, generator sets, electricity consumers, fuel consumers, systems and its consumers and direct emitters. Duplicated names are: genset1"
     )
 
 
@@ -203,7 +203,7 @@ def test_duplicate_names_combinations(
     errors = exc_info.value.errors()
     assert len(errors) == 1
     assert errors[0].message == snapshot(
-        "Value error, Component names must be unique. Components include the main model, installations, generator sets, electricity consumers, fuel consumers, systems and its consumers and direct emitters. Duplicated names are: duplicationedness"
+        "Component names must be unique. Components include the main model, installations, generator sets, electricity consumers, fuel consumers, systems and its consumers and direct emitters. Duplicated names are: duplicationedness"
     )
 
 
@@ -240,7 +240,7 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
     errors = exc_info.value.errors()
     assert len(errors) == 1
     assert errors[0].message == snapshot(
-        "Value error, References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: same"
+        "References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: same"
     )
 
 
@@ -273,7 +273,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
 
     errors = exc_info.value.errors()
     assert len(errors) == 1
-    assert errors[0].message == snapshot("Value error, TIME_SERIES names must be unique. Duplicated names are: SIM1")
+    assert errors[0].message == snapshot("TIME_SERIES names must be unique. Duplicated names are: SIM1")
 
 
 @pytest.mark.inlinesnapshot
@@ -296,7 +296,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
             ],
             [],
             snapshot(
-                "Value error, References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
+                "References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
             ),
         ),
         (
@@ -311,7 +311,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
                 YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
             ],
             snapshot(
-                "Value error, References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
+                "References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
             ),
         ),
         (
@@ -321,7 +321,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
                 YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
             ],
             snapshot(
-                "Value error, References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
+                "References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
             ),
         ),
     ],

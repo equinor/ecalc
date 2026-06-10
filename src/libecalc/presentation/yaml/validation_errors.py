@@ -126,16 +126,28 @@ class ModelValidationError:
         return msg
 
 
+def remove_prefix_if_exists(prefix: str, message: str):
+    if message.startswith(prefix):
+        return message[len(prefix) :]
+    else:
+        return message
+
+
 def custom_errors(e: PydanticValidationError) -> list[ErrorDetails]:
     """
     Customized pydantic validation errors, to give user more precise feedback.
 
     :param e: pydantic validation error
-    :param custom_messages: custom error messages to overwrite pydantic standard messages
     :return: list of error details
     """
     new_errors: list[ErrorDetails] = []
     for error in e.errors():
+        if error["type"] == "assertion_error":
+            # The prefix should exist for all errors of type "assertion_error", just an extra check to be sure.
+            error["msg"] = remove_prefix_if_exists(prefix="Assertion failed, ", message=error["msg"])
+        if error["type"] == "value_error":
+            # The prefix should exist for all errors of type "value_error", just an extra check to be sure.
+            error["msg"] = remove_prefix_if_exists(prefix="Value error, ", message=error["msg"])
         custom_message = CUSTOM_MESSAGES.get(error["type"])
         if custom_message:
             ctx = error.get("ctx")
