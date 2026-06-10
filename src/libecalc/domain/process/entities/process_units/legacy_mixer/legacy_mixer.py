@@ -1,14 +1,14 @@
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_units.simplified_stream_mixer import (
-    SimplifiedStreamMixer,
+from libecalc.process.fluid_stream.stream_mixer import (
+    StreamMixer,
 )
 
 
 class LegacyMixer:
     def __init__(self, number_of_inputs: int, fluid_service: FluidService):
         self.number_of_inputs = number_of_inputs
-        self._stream_mixer = SimplifiedStreamMixer(fluid_service)
+        self._stream_mixer = StreamMixer(fluid_service)
 
     def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
         """

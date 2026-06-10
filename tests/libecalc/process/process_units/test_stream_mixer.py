@@ -4,10 +4,10 @@ from libecalc.process.fluid_stream.exceptions import IncompatibleEoSModelsExcept
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidModel
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_units.simplified_stream_mixer import SimplifiedStreamMixer
+from libecalc.process.fluid_stream.stream_mixer import StreamMixer
 
 
-class TestSimplifiedStreamMixer:
+class TestStreamMixer:
     """Test suite for the StreamMixer class.
 
     These tests use the NeqSimFluidService and require the JVM to be running.
@@ -40,7 +40,7 @@ class TestSimplifiedStreamMixer:
         ultra_rich_stream = FluidStream(fluid=ultra_rich_fluid, mass_rate_kg_per_h=mass_rate_ultra_rich)
 
         # Mix streams using StreamMixer
-        mixer = SimplifiedStreamMixer(fluid_service=service)
+        mixer = StreamMixer(fluid_service=service)
         mixed_stream = mixer.mix_streams([medium_stream, ultra_rich_stream])
 
         # Expected values from mixing medium (30%) and ultra rich (70%) compositions
@@ -65,7 +65,11 @@ class TestSimplifiedStreamMixer:
             assert actual_value == pytest.approx(expected_value, abs=1e-5)
 
     def test_mix_streams_with_different_conditions(self, medium_composition):
-        """Test mixing streams with different pressure and temperature conditions."""
+        """Test mixing streams with different pressure and temperature conditions.
+
+        Verifies isenthalpic mixing: the outlet uses the lowest inlet pressure and
+        the total enthalpy is conserved (mass-weighted specific enthalpy).
+        """
         from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 
         eos_model = EoSModel.SRK
@@ -85,18 +89,25 @@ class TestSimplifiedStreamMixer:
         stream2 = FluidStream(fluid=fluid2, mass_rate_kg_per_h=500.0)
 
         # Mix streams
-        mixer = SimplifiedStreamMixer(fluid_service=service)
+        mixer = StreamMixer(fluid_service=service)
         mixed_stream = mixer.mix_streams([stream1, stream2])
 
-        # Verify the mixed stream uses the simplified mass-weighted average temperature and lowest pressure
-        expected_temperature = (
-            stream1.mass_rate_kg_per_h * stream1.temperature_kelvin
-            + stream2.mass_rate_kg_per_h * stream2.temperature_kelvin
-        ) / (stream1.mass_rate_kg_per_h + stream2.mass_rate_kg_per_h)
+        total_mass_rate = stream1.mass_rate_kg_per_h + stream2.mass_rate_kg_per_h
 
-        assert mixed_stream.temperature_kelvin == expected_temperature
-        assert mixed_stream.pressure_bara == stream2.pressure_bara
-        assert mixed_stream.mass_rate_kg_per_h == stream1.mass_rate_kg_per_h + stream2.mass_rate_kg_per_h
+        # Outlet uses the lowest inlet pressure (default strategy)
+        assert mixed_stream.pressure_bara == min(stream1.pressure_bara, stream2.pressure_bara)
+        assert mixed_stream.mass_rate_kg_per_h == total_mass_rate
+
+        # Total enthalpy is conserved: sum(m_i * h_i) == m_total * h_out
+        expected_total_enthalpy = (
+            stream1.mass_rate_kg_per_h * stream1.enthalpy_joule_per_kg
+            + stream2.mass_rate_kg_per_h * stream2.enthalpy_joule_per_kg
+        )
+        actual_total_enthalpy = total_mass_rate * mixed_stream.enthalpy_joule_per_kg
+        assert actual_total_enthalpy == pytest.approx(expected_total_enthalpy, rel=1e-4)
+
+        # Outlet temperature lies between the two inlet temperatures
+        assert stream1.temperature_kelvin <= mixed_stream.temperature_kelvin <= stream2.temperature_kelvin
 
     def test_mix_streams_with_different_eos_models(self, medium_composition):
         """Test mixing streams with different EoS models raises IncompatibleEoSModelsException."""
@@ -121,5 +132,5 @@ class TestSimplifiedStreamMixer:
         stream2 = FluidStream(fluid=pr_fluid, mass_rate_kg_per_h=500.0)
 
         with pytest.raises(IncompatibleEoSModelsException):
-            mixer = SimplifiedStreamMixer(fluid_service=service)
+            mixer = StreamMixer(fluid_service=service)
             mixer.mix_streams([stream1, stream2])

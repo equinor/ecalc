@@ -2,10 +2,11 @@ from typing import Final
 
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.process.process_units.simplified_stream_mixer import (
-    SimplifiedStreamMixer,
+from libecalc.process.fluid_stream.stream_mixer import (
+    MixerPressureStrategy,
+    StreamMixer,
 )
+from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
 class Mixer(ProcessUnit):
@@ -15,9 +16,14 @@ class Mixer(ProcessUnit):
     a sidestream injection point in an interstage manifold.
     """
 
-    def __init__(self, fluid_service: FluidService, process_unit_id: ProcessUnitId | None = None):
+    def __init__(
+        self,
+        fluid_service: FluidService,
+        process_unit_id: ProcessUnitId | None = None,
+        pressure_strategy: MixerPressureStrategy = MixerPressureStrategy.LOWEST_INLET,
+    ):
         self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
-        self._mixer = SimplifiedStreamMixer(fluid_service)
+        self._mixer = StreamMixer(fluid_service, pressure_strategy=pressure_strategy)
         self._external_stream: FluidStream | None = None
 
     def get_id(self) -> ProcessUnitId:
