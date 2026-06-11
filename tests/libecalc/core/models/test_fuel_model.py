@@ -1,6 +1,10 @@
 from datetime import datetime
 from uuid import uuid4
 
+import pytest
+from inline_snapshot import snapshot
+
+from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import RateType, TimeSeriesRate
@@ -14,18 +18,20 @@ def test_fuel_model(expression_evaluator_factory):
         time_vector=[datetime(2000, 1, 1), datetime(2001, 1, 1), datetime(2002, 1, 1), datetime(2003, 1, 1)]
     )
     fuel_model = FuelModel(
-        {
-            Period(datetime(2000, 1, 1)): FuelType(
-                id=uuid4(),
-                name="fuel_gas",
-                emissions=[
-                    Emission(
-                        name="CO2",
-                        factor=Expression.setup_from_expression(1.0),
-                    )
-                ],
-            )
-        },
+        TemporalModel(
+            {
+                Period(datetime(2000, 1, 1)): FuelType(
+                    id=uuid4(),
+                    name="fuel_gas",
+                    emissions=[
+                        Emission(
+                            name="CO2",
+                            factor=Expression.setup_from_expression(1.0),
+                        )
+                    ],
+                )
+            }
+        ),
         expression_evaluator=variables_map,
     )
 
@@ -47,28 +53,30 @@ def test_fuel_model(expression_evaluator_factory):
 def test_temporal_fuel_model(expression_evaluator_factory):
     """Assure that emissions are concatenated correctly when the emission name changes in a temporal model."""
     fuel_model = FuelModel(
-        {
-            Period(datetime(2000, 1, 1), datetime(2001, 1, 1)): FuelType(
-                id=uuid4(),
-                name="fuel_gas",
-                emissions=[
-                    Emission(
-                        name="CO2",
-                        factor=Expression.setup_from_expression(1.0),
-                    ),
-                ],
-            ),
-            Period(datetime(2001, 1, 1)): FuelType(
-                id=uuid4(),
-                name="fuel_gas",
-                emissions=[
-                    Emission(
-                        name="CH4",
-                        factor=Expression.setup_from_expression(2.0),
-                    ),
-                ],
-            ),
-        },
+        TemporalModel(
+            {
+                Period(datetime(2000, 1, 1), datetime(2001, 1, 1)): FuelType(
+                    id=uuid4(),
+                    name="fuel_gas",
+                    emissions=[
+                        Emission(
+                            name="CO2",
+                            factor=Expression.setup_from_expression(1.0),
+                        ),
+                    ],
+                ),
+                Period(datetime(2001, 1, 1)): FuelType(
+                    id=uuid4(),
+                    name="fuel_gas",
+                    emissions=[
+                        Emission(
+                            name="CH4",
+                            factor=Expression.setup_from_expression(2.0),
+                        ),
+                    ],
+                ),
+            }
+        ),
         expression_evaluator=expression_evaluator_factory.from_time_vector(
             [
                 datetime(2000, 1, 1),
@@ -89,3 +97,45 @@ def test_temporal_fuel_model(expression_evaluator_factory):
     # And they should cover the whole time index of 3 steps.
     for emission in emissions.values():
         assert len(emission) == 3
+
+
+@pytest.mark.inlinesnapshot
+def test_fuel_model_late_start(expression_evaluator_factory):
+    """Ensure emissions are extrapolated to the global time-vector for a late start fuel model"""
+    fuel_model = FuelModel(
+        TemporalModel(
+            {
+                Period(datetime(2000, 1, 1), datetime(2002, 1, 1)): FuelType(
+                    id=uuid4(),
+                    name="fuel_gas",
+                    emissions=[
+                        Emission(
+                            name="CO2",
+                            factor=Expression.setup_from_expression(1.0),
+                        ),
+                    ],
+                ),
+            }
+        ),
+        expression_evaluator=expression_evaluator_factory.from_time_vector(
+            [
+                datetime(1995, 1, 1),
+                datetime(2000, 1, 1),
+                datetime(2001, 1, 1),
+                datetime(2002, 1, 1),
+            ]
+        ),
+    )
+
+    emissions = fuel_model.evaluate_emissions(
+        fuel_rate=[1, 2, 3],
+    )
+
+    # We should have CO2
+    assert len(emissions) == 1
+
+    # And they should cover the whole time index of 3 steps.
+    for emission in emissions.values():
+        assert len(emission) == 3
+
+    assert emissions["co2"].values == snapshot([0.0, 0.002, 0.003])
