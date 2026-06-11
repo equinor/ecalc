@@ -686,13 +686,6 @@ class TimeSeriesStreamDayRate(TimeSeriesFloat):
     """
 
     def __add__(self, other: TimeSeriesStreamDayRate) -> TimeSeriesStreamDayRate:
-        """
-        Args:
-            other:
-
-        Returns:
-
-        """
         # Check for same unit
         if not self.unit == other.unit:
             raise ValueError(f"Mismatching units: '{self.unit}' != `{other.unit}`")
