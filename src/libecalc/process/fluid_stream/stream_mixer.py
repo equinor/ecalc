@@ -1,6 +1,5 @@
 import dataclasses
 from collections import defaultdict
-from enum import StrEnum
 
 from libecalc.process.fluid_stream.exceptions import (
     EmptyStreamListException,
@@ -13,27 +12,6 @@ from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 
-class MixerPressureStrategy(StrEnum):
-    """Strategy for selecting the outlet pressure of a mixed stream.
-
-    LOWEST_INLET:
-        Use the lowest pressure among the inlet streams. Default behavior for most use cases.
-
-    MASS_WEIGHTED_AVERAGE:
-        Use the mass-weighted average of the inlet pressures. NOTE: this is NOT
-        thermodynamically rigorous - pressure is an intensive property and cannot
-        be mass-averaged the way (extensive) enthalpy can. It is exposed only as a
-        heuristic for a venturi/ejector-style mixer, where a high-pressure motive
-        stream entrains a lower-pressure suction stream and some pressure is
-        recovered in a downstream diffuser. A rigorous ejector requires a
-        momentum/energy balance (motive vs. suction nozzles, mixing and diffuser
-        efficiencies); this option is a simplified stand-in for that behaviour.
-    """
-
-    LOWEST_INLET = "LOWEST_INLET"
-    MASS_WEIGHTED_AVERAGE = "MASS_WEIGHTED_AVERAGE"
-
-
 class StreamMixer:
     """Process unit for mixing multiple fluid streams.
 
@@ -44,7 +22,8 @@ class StreamMixer:
     temperature and phase state.
 
     - Composition: component-wise molar balance across all streams.
-    - Pressure: selected via MixerPressureStrategy (default: lowest inlet pressure).
+    - Pressure: the lowest inlet pressure - the only pressure a passive mixing tee
+      can reach without adding work (higher pressure feeds throttle down to it).
     - Temperature: solved by PH flash to conserve enthalpy.
 
     All inlet streams must share the same EoS model. Mixing streams modelled with
@@ -53,19 +32,8 @@ class StreamMixer:
     models and are not mutually consistent.
     """
 
-    def __init__(
-        self,
-        fluid_service: FluidService,
-        pressure_strategy: MixerPressureStrategy = MixerPressureStrategy.LOWEST_INLET,
-    ):
+    def __init__(self, fluid_service: FluidService):
         self._fluid_service = fluid_service
-        self._pressure_strategy = pressure_strategy
-
-    def _outlet_pressure(self, streams: list[FluidStream], total_mass_rate: float) -> float:
-        """Determine outlet pressure according to the configured strategy."""
-        if self._pressure_strategy == MixerPressureStrategy.MASS_WEIGHTED_AVERAGE:
-            return sum(s.mass_rate_kg_per_h * s.pressure_bara for s in streams) / total_mass_rate
-        return min(s.pressure_bara for s in streams)
 
     def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
         """Mix multiple streams using isenthalpic mixing and a molar composition balance.
@@ -95,8 +63,8 @@ class StreamMixer:
             if s.fluid_model.eos_model != reference_eos_model:
                 raise IncompatibleEoSModelsException(reference_eos_model, s.fluid_model.eos_model)
 
-        # Outlet pressure from the configured strategy
-        outlet_pressure = self._outlet_pressure(streams, total_mass_rate)
+        # Outlet pressure is the lowest inlet pressure
+        outlet_pressure = min(s.pressure_bara for s in streams)
 
         # Mass-weighted average temperature - used only as the PH-flash initial guess
         temperature_guess = sum(s.mass_rate_kg_per_h * s.temperature_kelvin for s in streams) / total_mass_rate
