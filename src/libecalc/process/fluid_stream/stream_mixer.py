@@ -12,23 +12,31 @@ from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 
-# TODO: Use enthalpy balance instead of simplified mixing?
-class SimplifiedStreamMixer:
+class StreamMixer:
     """Process unit for mixing multiple fluid streams.
 
-    Uses simplified mixing calculation:
-    - Mass-weighted average temperature
-    - Lowest pressure among all streams
-    - Component-wise molar balance for composition
+    Mixing is adiabatic (isenthalpic): with no shaft work and negligible kinetic
+    and potential energy, total enthalpy is conserved across the mixing tee. The
+    outlet specific enthalpy is the mass-weighted average of the inlet specific
+    enthalpies, and a PH flash at the outlet pressure yields the correct outlet
+    temperature and phase state.
 
-    Note: This method is most appropriate when mixing streams with similar temperatures.
+    - Composition: component-wise molar balance across all streams.
+    - Pressure: the lowest inlet pressure - the only pressure a passive mixing tee
+      can reach without adding work (higher pressure feeds throttle down to it).
+    - Temperature: solved by PH flash to conserve enthalpy.
+
+    All inlet streams must share the same EoS model. Mixing streams modelled with
+    different equations of state is not physically meaningful, since their
+    properties (enthalpy, density, phase behaviour) are computed by different
+    models and are not mutually consistent.
     """
 
     def __init__(self, fluid_service: FluidService):
         self._fluid_service = fluid_service
 
     def mix_streams(self, streams: list[FluidStream]) -> FluidStream:
-        """Mix multiple streams using component-wise molar balance.
+        """Mix multiple streams using isenthalpic mixing and a molar composition balance.
 
         Args:
             streams: List of streams to mix (must have same EoS model)
@@ -48,17 +56,24 @@ class SimplifiedStreamMixer:
         if total_mass_rate == 0:
             raise ZeroTotalMassRateException()
 
-        # Calculate mass-weighted average temperature
-        temperature_mix = sum(s.mass_rate_kg_per_h * s.temperature_kelvin for s in streams) / total_mass_rate
-
-        # Lowest pressure among all streams
-        reference_pressure = min(s.pressure_bara for s in streams)
-
-        # All streams must share the same EoS model
+        # All streams must share the same EoS model so their enthalpies are on a
+        # consistent reference state and may be summed.
         reference_eos_model = streams[0].fluid_model.eos_model
         for s in streams[1:]:
             if s.fluid_model.eos_model != reference_eos_model:
                 raise IncompatibleEoSModelsException(reference_eos_model, s.fluid_model.eos_model)
+
+        # Outlet pressure is the lowest inlet pressure
+        outlet_pressure = min(s.pressure_bara for s in streams)
+
+        # Mass-weighted average temperature - used only as the PH-flash initial guess
+        temperature_guess = sum(s.mass_rate_kg_per_h * s.temperature_kelvin for s in streams) / total_mass_rate
+
+        # Isenthalpic mixing: outlet specific enthalpy is the mass-weighted average
+        # of the inlet specific enthalpies (total enthalpy conserved).
+        outlet_enthalpy_joule_per_kg = (
+            sum(s.mass_rate_kg_per_h * s.enthalpy_joule_per_kg for s in streams) / total_mass_rate
+        )
 
         # Compute total molar flow for each stream
         stream_total_molar_rates = [s.mass_rate_kg_per_h / s.molar_mass for s in streams]
@@ -83,11 +98,12 @@ class SimplifiedStreamMixer:
             eos_model=reference_eos_model,
         )
 
-        # Get properties at mixed conditions via fluid service
-        mix_props = self._fluid_service.flash_pt(
+        # Solve outlet temperature by conserving enthalpy (PH flash)
+        mix_props = self._fluid_service.flash_ph(
             fluid_model=mix_fluid_model,
-            pressure_bara=reference_pressure,
-            temperature_kelvin=temperature_mix,
+            pressure_bara=outlet_pressure,
+            target_enthalpy_joule_per_kg=outlet_enthalpy_joule_per_kg,
+            temperature_guess_kelvin=temperature_guess,
         )
 
         # Create a new stream with calculated properties
