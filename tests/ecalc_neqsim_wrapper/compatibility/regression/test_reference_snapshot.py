@@ -12,10 +12,13 @@ from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 
 from ..compositions import COMPOSITIONS
 from ._spec import (
+    PH_FLASH_PRESSURE_RATIO,
+    PH_SNAPSHOT_PROPERTIES,
     PROPERTY_TOLERANCES,
-    SNAPSHOT_PROPERTIES,
+    TP_SNAPSHOT_PROPERTIES,
     iter_states,
-    state_key,
+    ph_state_key,
+    tp_state_key,
 )
 
 SNAPSHOT_PATH = Path(__file__).with_name("reference_snapshot.json")
@@ -40,7 +43,7 @@ _CASES = [
         pressure_bara,
         temperature_kelvin,
         eos_model,
-        id=state_key(composition_name, pressure_bara, temperature_kelvin, eos_model),
+        id=tp_state_key(composition_name, pressure_bara, temperature_kelvin, eos_model),
     )
     for composition_name, pressure_bara, temperature_kelvin, eos_model in iter_states()
 ]
@@ -73,10 +76,10 @@ def _compare(prop_name: str, current: float, expected: float) -> str | None:
 
 
 @pytest.mark.parametrize("composition_name,pressure_bara,temperature_kelvin,eos_model", _CASES)
-def test_state_matches_snapshot(composition_name, pressure_bara, temperature_kelvin, eos_model):
-    """Every property at every snapshotted state must match the recorded
-    value within the per-property tolerance defined in ``_spec``."""
-    key = state_key(composition_name, pressure_bara, temperature_kelvin, eos_model)
+def test_tp_flash_matches_snapshot(composition_name, pressure_bara, temperature_kelvin, eos_model):
+    """TP-flash properties at every snapshotted inlet state must match the recorded
+    values within the per-property tolerance defined in ``_spec``."""
+    key = tp_state_key(composition_name, pressure_bara, temperature_kelvin, eos_model)
     if key not in _SNAPSHOT:
         pytest.fail(
             f"State {key!r} is in the spec but missing from the snapshot. "
@@ -93,7 +96,7 @@ def test_state_matches_snapshot(composition_name, pressure_bara, temperature_kel
     )
 
     diffs = []
-    for prop_name in SNAPSHOT_PROPERTIES:
+    for prop_name in TP_SNAPSHOT_PROPERTIES:
         if prop_name not in expected:
             diffs.append(f"{prop_name}: missing from snapshot for this state")
             continue
@@ -104,7 +107,49 @@ def test_state_matches_snapshot(composition_name, pressure_bara, temperature_kel
     if diffs:
         details = "\n  ".join(diffs)
         pytest.fail(
-            f"Reference snapshot drift at {key!r}:\n  {details}\n\n"
+            f"TP-flash snapshot drift at {key!r}:\n  {details}\n\n"
+            f"If this drift is acceptable, regenerate the snapshot with: "
+            f"uv run pytest tests/ecalc_neqsim_wrapper/compatibility/ --regenerate-neqsim-snapshot"
+        )
+
+
+@pytest.mark.parametrize("composition_name,pressure_bara,temperature_kelvin,eos_model", _CASES)
+def test_ph_flash_matches_snapshot(composition_name, pressure_bara, temperature_kelvin, eos_model):
+    """PH-flash outlet properties (isenthalpic compression to 1.5× inlet P) must match
+    the recorded values. This pins the core compressor operation across jar bumps."""
+    key = ph_state_key(composition_name, pressure_bara, temperature_kelvin, eos_model)
+    if key not in _SNAPSHOT:
+        pytest.fail(
+            f"PH-flash state {key!r} is in the spec but missing from the snapshot. "
+            f"Regenerate with: "
+            f"uv run pytest tests/ecalc_neqsim_wrapper/compatibility/ --regenerate-neqsim-snapshot"
+        )
+    expected = _SNAPSHOT[key]
+
+    inlet = NeqsimFluid.create_thermo_system(
+        composition=COMPOSITIONS[composition_name],
+        pressure_bara=pressure_bara,
+        temperature_kelvin=temperature_kelvin,
+        eos_model=eos_model,
+    )
+    outlet = inlet.set_new_pressure_and_enthalpy(
+        new_pressure=pressure_bara * PH_FLASH_PRESSURE_RATIO,
+        new_enthalpy_joule_per_kg=inlet.enthalpy_joule_per_kg,
+    )
+
+    diffs = []
+    for prop_name in PH_SNAPSHOT_PROPERTIES:
+        if prop_name not in expected:
+            diffs.append(f"{prop_name}: missing from snapshot for this state")
+            continue
+        diff = _compare(prop_name, float(getattr(outlet, prop_name)), float(expected[prop_name]))
+        if diff is not None:
+            diffs.append(diff)
+
+    if diffs:
+        details = "\n  ".join(diffs)
+        pytest.fail(
+            f"PH-flash snapshot drift at {key!r}:\n  {details}\n\n"
             f"If this drift is acceptable, regenerate the snapshot with: "
             f"uv run pytest tests/ecalc_neqsim_wrapper/compatibility/ --regenerate-neqsim-snapshot"
         )
@@ -113,10 +158,10 @@ def test_state_matches_snapshot(composition_name, pressure_bara, temperature_kel
 def test_snapshot_has_no_extra_states():
     """The snapshot file must not contain states that are no longer in
     the spec — otherwise dead entries accumulate across spec changes."""
-    expected_keys = {
-        state_key(composition_name, pressure_bara, temperature_kelvin, eos_model)
-        for composition_name, pressure_bara, temperature_kelvin, eos_model in iter_states()
-    }
+    expected_keys = set()
+    for composition_name, pressure_bara, temperature_kelvin, eos_model in iter_states():
+        expected_keys.add(tp_state_key(composition_name, pressure_bara, temperature_kelvin, eos_model))
+        expected_keys.add(ph_state_key(composition_name, pressure_bara, temperature_kelvin, eos_model))
     extra = sorted(set(_SNAPSHOT) - expected_keys)
     assert not extra, (
         f"Snapshot contains {len(extra)} state(s) no longer in the spec:\n  "

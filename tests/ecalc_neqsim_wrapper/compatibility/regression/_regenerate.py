@@ -13,7 +13,14 @@ from pathlib import Path
 from ecalc_neqsim_wrapper.thermo import NeqsimFluid
 
 from ..compositions import COMPOSITIONS
-from ._spec import SNAPSHOT_PROPERTIES, iter_states, state_key
+from ._spec import (
+    PH_FLASH_PRESSURE_RATIO,
+    PH_SNAPSHOT_PROPERTIES,
+    TP_SNAPSHOT_PROPERTIES,
+    iter_states,
+    ph_state_key,
+    tp_state_key,
+)
 
 SNAPSHOT_PATH = Path(__file__).with_name("reference_snapshot.json")
 
@@ -26,14 +33,25 @@ def regenerate() -> Path:
     with NeqsimService.factory(use_jpype=False).initialize():
         snapshot: dict[str, dict[str, float]] = {}
         for composition_name, pressure_bara, temperature_kelvin, eos_model in iter_states():
-            fluid = NeqsimFluid.create_thermo_system(
+            inlet = NeqsimFluid.create_thermo_system(
                 composition=COMPOSITIONS[composition_name],
                 pressure_bara=pressure_bara,
                 temperature_kelvin=temperature_kelvin,
                 eos_model=eos_model,
             )
-            key = state_key(composition_name, pressure_bara, temperature_kelvin, eos_model)
-            snapshot[key] = {prop: float(getattr(fluid, prop)) for prop in SNAPSHOT_PROPERTIES}
+
+            # TP-flash entry
+            tp_key = tp_state_key(composition_name, pressure_bara, temperature_kelvin, eos_model)
+            snapshot[tp_key] = {prop: float(getattr(inlet, prop)) for prop in TP_SNAPSHOT_PROPERTIES}
+
+            # PH-flash entry: isenthalpic compression to 1.5× inlet pressure
+            outlet_pressure = pressure_bara * PH_FLASH_PRESSURE_RATIO
+            outlet = inlet.set_new_pressure_and_enthalpy(
+                new_pressure=outlet_pressure,
+                new_enthalpy_joule_per_kg=inlet.enthalpy_joule_per_kg,
+            )
+            ph_key = ph_state_key(composition_name, pressure_bara, temperature_kelvin, eos_model)
+            snapshot[ph_key] = {prop: float(getattr(outlet, prop)) for prop in PH_SNAPSHOT_PROPERTIES}
 
     SNAPSHOT_PATH.write_text(json.dumps(snapshot, indent=2, sort_keys=True) + "\n")
     return SNAPSHOT_PATH
