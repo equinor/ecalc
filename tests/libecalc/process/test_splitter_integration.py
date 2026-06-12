@@ -31,6 +31,7 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper, flui
     """
 
     # -- Build YAML --
+    yaml_splitter = YamlSplitterBuilder().with_test_data().validate()
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_splitter")
@@ -38,7 +39,7 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper, flui
             [
                 YamlTemperatureSetterBuilder().with_test_data().validate(),
                 YamlCompressorBuilder().with_test_data().validate(),
-                YamlSplitterBuilder().with_test_data().validate(),
+                yaml_splitter,
                 YamlTemperatureSetterBuilder().with_test_data().validate(),
                 YamlCompressorBuilder().with_test_data().validate(),
             ]
@@ -86,7 +87,7 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper, flui
     outlet = propagate_stream_many(units, inlet_stream)
 
     # -- Assert: mass is conserved — outlet = inlet - offtake --
-    offtake_rate_sm3_per_day = 50_000  # fra YamlSplitterBuilder.with_test_data()
+    offtake_rate_sm3_per_day = yaml_splitter.offtake_rate.value
     expected_offtake_mass_rate = fluid_service.standard_rate_to_mass_rate(
         fluid_model=simulation.get_inlet_streams()[0].fluid_model,
         standard_rate_m3_per_day=offtake_rate_sm3_per_day,

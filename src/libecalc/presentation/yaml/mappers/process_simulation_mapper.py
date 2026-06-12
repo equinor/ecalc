@@ -385,14 +385,13 @@ class ProcessSimulationMapper:
                         # Mixer should not be wrapped in ASV-loop
                         pipeline_chunks.append((False, [mixer.get_id()]))
 
-
                     case YamlSplitter():
                         splitter = Splitter(fluid_service=self._fluid_service)
                         problem_time_series_configurations[splitter.get_id()] = TimeSeriesSplitterConfiguration(
                             offtake_rate=self._map_rate(yaml_process_unit.offtake_rate),
                         )
                         process_unit_map[splitter.get_id()] = splitter
-                        current_segment_unit_ids.append(splitter.get_id())
+                        pipeline_chunks.append((False, [splitter.get_id()]))
 
                     case _:
                         # Unreachable for valid YAML (pydantic discriminator rejects unknown types).

@@ -7,7 +7,6 @@ from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
-from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.testing.process_builders import (
@@ -18,6 +17,7 @@ from libecalc.testing.process_builders import (
     YamlPressureDropperBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
+    YamlSplitterBuilder,
     YamlTemperatureSetterBuilder,
 )
 
@@ -160,15 +160,16 @@ def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulatio
     assert isinstance(units[0], Choke)
 
 
-def test_mixer_is_placed_between_asv_loops(process_simulation_mapper):
-    """Mixer must sit between ASV recirculation loops, not inside one."""
+def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapper):
+    """Mixer and Splitter must sit between ASV recirculation loops, not inside one."""
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
-        .with_name("train_with_mixer")
+        .with_name("train_with_mixer_and_splitter")
         .with_items(
             [
                 YamlTemperatureSetterBuilder().with_test_data().validate(),
                 YamlCompressorBuilder().with_test_data().validate(),
+                YamlSplitterBuilder().with_test_data().validate(),
                 YamlMixerBuilder().with_test_data().validate(),
                 YamlTemperatureSetterBuilder().with_test_data().validate(),
                 YamlCompressorBuilder().with_test_data().validate(),
@@ -184,12 +185,20 @@ def test_mixer_is_placed_between_asv_loops(process_simulation_mapper):
     )
 
     units = pipelines[0].get_process_units()
-    mixer_index = next(i for i, u in enumerate(units) if isinstance(u, Mixer))
+    unit_types = [type(u).__name__ for u in units]
 
-    # ASV loop 1 ends (DirectSplitter) before Mixer
-    assert isinstance(units[mixer_index - 1], DirectSplitter)
-    # ASV loop 2 starts (DirectMixer) after Mixer
-    assert isinstance(units[mixer_index + 1], DirectMixer)
+    assert unit_types == [
+        "DirectMixer",
+        "TemperatureSetter",
+        "Compressor",
+        "DirectSplitter",  # ASV loop 1
+        "Splitter",  # between loops
+        "Mixer",  # between loops
+        "DirectMixer",
+        "TemperatureSetter",
+        "Compressor",
+        "DirectSplitter",  # ASV loop 2
+    ]
 
 
 # ---------------------------------------------------------------------------
