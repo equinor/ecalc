@@ -265,20 +265,16 @@ class ProcessSimulationMapper:
                 assert_never(yaml_fluid_model)
 
     @staticmethod
-    def _parse_constraint_reference(key: str) -> tuple[str, str | None]:
-        """Parse 'train_a.compressor_1' -> ('train_a', 'compressor_1')
-        Parse 'train_a' -> ('train_a', None)
-        """
-        if not key:
-            raise EcalcValidationException("Constraint reference cannot be empty.")
-        if "." in key:
-            pipeline_name, unit_name = key.split(".", maxsplit=1)
-            if not pipeline_name or not unit_name:
-                raise EcalcValidationException(
-                    f"Invalid constraint reference '{key}'. Expected format 'pipeline_name.unit_name'."
-                )
-            return pipeline_name, unit_name
-        return key, None
+    def _register_unit_name(
+        name: str | None,
+        unit_id: ProcessUnitId,
+        name_map: dict[str, ProcessUnitId],
+        pipeline_name: str,
+    ):
+        if name is not None:
+            if name in name_map:
+                raise EcalcValidationException(f"Duplicate unit name '{name}' in pipeline '{pipeline_name}'")
+            name_map[name] = unit_id
 
     def map_anti_surge_strategy(
         self,
@@ -326,7 +322,7 @@ class ProcessSimulationMapper:
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
-        compressor_names_per_pipeline: dict[str, dict[str, ProcessUnitId]] = {}
+        unit_names_per_pipeline: dict[str, dict[str, ProcessUnitId]] = {}
 
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers = []
@@ -341,7 +337,7 @@ class ProcessSimulationMapper:
                 | TimeSeriesMixerConfiguration
                 | TimeSeriesSplitterConfiguration,
             ] = {}
-            compressor_name_to_id_map: dict[str, ProcessUnitId] = {}  # reset per pipeline
+            unit_name_to_id_map: dict[str, ProcessUnitId] = {}  # reset per pipeline
 
             # Group units into compressor segments: each segment contains the units leading up to
             # (and including) one compressor. Used downstream to wrap each segment in its own ASV
@@ -356,12 +352,12 @@ class ProcessSimulationMapper:
                 match yaml_process_unit:
                     case YamlCompressor():
                         compressor = self._get_compressor(yaml_process_unit)
-                        if yaml_process_unit.name is not None:
-                            if yaml_process_unit.name in compressor_name_to_id_map:
-                                raise EcalcValidationException(
-                                    f"Duplicate compressor name '{yaml_process_unit.name}' in pipeline '{item.name}'"
-                                )
-                            compressor_name_to_id_map[yaml_process_unit.name] = compressor.get_id()
+                        self._register_unit_name(
+                            name=yaml_process_unit.name,
+                            unit_id=compressor.get_id(),
+                            name_map=unit_name_to_id_map,
+                            pipeline_name=item.name,
+                        )
                         process_unit_map[compressor.get_id()] = compressor
                         compressor_ids.append(compressor.get_id())
                         current_segment_unit_ids.append(compressor.get_id())
@@ -371,6 +367,12 @@ class ProcessSimulationMapper:
 
                     case YamlPressureDropper():
                         pressure_dropper = PressureDropper(fluid_service=self._fluid_service)
+                        self._register_unit_name(
+                            name=yaml_process_unit.name,
+                            unit_id=pressure_dropper.get_id(),
+                            name_map=unit_name_to_id_map,
+                            pipeline_name=item.name,
+                        )
                         problem_time_series_configurations[pressure_dropper.get_id()] = (
                             TimeSeriesPressureDropperConfiguration(
                                 pressure_drop_in_bara=self._map_pressure(yaml_process_unit.pressure_drop)
@@ -381,6 +383,12 @@ class ProcessSimulationMapper:
 
                     case YamlTemperatureSetter():
                         temperature_setter = TemperatureSetter(fluid_service=self._fluid_service)
+                        self._register_unit_name(
+                            name=yaml_process_unit.name,
+                            unit_id=temperature_setter.get_id(),
+                            name_map=unit_name_to_id_map,
+                            pipeline_name=item.name,
+                        )
                         problem_time_series_configurations[temperature_setter.get_id()] = (
                             TimeSeriesTemperatureSetterConfiguration(
                                 temperature_in_celsius=self._map_temperature(yaml_process_unit.temperature)
@@ -391,6 +399,12 @@ class ProcessSimulationMapper:
 
                     case YamlLiquidRemover():
                         liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
+                        self._register_unit_name(
+                            name=yaml_process_unit.name,
+                            unit_id=liquid_remover.get_id(),
+                            name_map=unit_name_to_id_map,
+                            pipeline_name=item.name,
+                        )
                         process_unit_map[liquid_remover.get_id()] = liquid_remover
                         current_segment_unit_ids.append(liquid_remover.get_id())
 
@@ -398,6 +412,13 @@ class ProcessSimulationMapper:
                         yaml_stream = self._resolve_stream_reference(yaml_process_unit.sidestream)
                         yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
                         mixer = Mixer(fluid_service=self._fluid_service)
+                        self._register_unit_name(
+                            name=yaml_process_unit.name,
+                            unit_id=mixer.get_id(),
+                            name_map=unit_name_to_id_map,
+                            pipeline_name=item.name,
+                        )
+
                         problem_time_series_configurations[mixer.get_id()] = TimeSeriesMixerConfiguration(
                             sidestream=TimeSeriesStream(
                                 pressure_bara=self._map_pressure(yaml_stream.pressure),
@@ -412,6 +433,12 @@ class ProcessSimulationMapper:
 
                     case YamlSplitter():
                         splitter = Splitter(fluid_service=self._fluid_service)
+                        self._register_unit_name(
+                            name=yaml_process_unit.name,
+                            unit_id=splitter.get_id(),
+                            name_map=unit_name_to_id_map,
+                            pipeline_name=item.name,
+                        )
                         problem_time_series_configurations[splitter.get_id()] = TimeSeriesSplitterConfiguration(
                             offtake_rate=self._map_rate(yaml_process_unit.offtake_rate),
                         )
@@ -427,7 +454,7 @@ class ProcessSimulationMapper:
                             f"in a process pipeline. Allowed types are: {', '.join(allowed_types)}."
                         )
 
-            compressor_names_per_pipeline[item.name] = compressor_name_to_id_map
+            unit_names_per_pipeline[item.name] = unit_name_to_id_map
 
             for compressor_id in compressor_ids:
                 compressor = process_unit_map[compressor_id]
@@ -487,26 +514,27 @@ class ProcessSimulationMapper:
             process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
 
-        for constraint_key, constraint in yaml_process_simulation.constraints.items():
-            pipeline_name, unit_name = self._parse_constraint_reference(key=constraint_key)
-
-            process_pipeline_id = process_pipeline_reference_to_id_map.get(pipeline_name)
+        for yaml_constraint in yaml_process_simulation.constraints:
+            process_pipeline_id = process_pipeline_reference_to_id_map.get(yaml_constraint.target)
             if process_pipeline_id is None:
-                raise EcalcValidationException(f"Constraint specified for unknown process system '{pipeline_name}'")
+                raise EcalcValidationException(
+                    f"Constraint specified for unknown process system '{yaml_constraint.target}'"
+                )
 
             target_unit_id = None
-            if unit_name is not None:
-                names = compressor_names_per_pipeline.get(pipeline_name, {})
-                if unit_name not in names:
+            if yaml_constraint.unit is not None:
+                names = unit_names_per_pipeline.get(yaml_constraint.target, {})
+                if yaml_constraint.unit not in names:
                     raise EcalcValidationException(
-                        f"Constraint references unknown compressor '{unit_name}' in pipeline '{pipeline_name}'"
+                        f"Constraint references unknown unit '{yaml_constraint.unit}' "
+                        f"in pipeline '{yaml_constraint.target}'"
                     )
-                target_unit_id = names[unit_name]
+                target_unit_id = names[yaml_constraint.unit]
 
             constraints[process_pipeline_id].append(
                 Constraint(
                     outlet_pressure=TimeSeriesExpression(
-                        expression=constraint.outlet_pressure,
+                        expression=yaml_constraint.outlet_pressure,
                         expression_evaluator=self._expression_evaluator,
                     ),
                     target_unit_id=target_unit_id,

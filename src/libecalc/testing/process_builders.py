@@ -10,8 +10,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlPredefinedFluidModel,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlProcessConstraints,
     YamlProcessSimulation,
+    YamlProcessConstraint,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
     YamlCommonStreamDistribution,
@@ -415,7 +415,7 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         self.targets: list[YamlItem[YamlProcessPipeline]] = []
         self.stream_distribution = None
         self.pressure_control: dict[ProcessPipelineReference, PressureControlType] = {}
-        self.constraints: dict[ProcessPipelineReference, YamlProcessConstraints] = {}
+        self.constraints: list[YamlProcessConstraint] = []
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -436,7 +436,7 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
     ) -> Self:
         self.targets.append(YamlItem(target=pipeline))
         self.pressure_control[pipeline.name] = pressure_control
-        self.constraints[pipeline.name] = YamlProcessConstraints(outlet_pressure=outlet_pressure)
+        self.constraints.append(YamlProcessConstraint(target=pipeline.name, outlet_pressure=outlet_pressure))
         return self
 
     def with_test_data(self) -> Self:

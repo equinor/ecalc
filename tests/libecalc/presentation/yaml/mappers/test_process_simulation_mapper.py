@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraints
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
@@ -270,14 +270,18 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
 
 
 # ---------------------------------------------------------------------------
-# Tests: constraints parsing
+# Tests: typed constraints
 # ---------------------------------------------------------------------------
 
 
-def test_constraint_with_compressor_name_resolves_to_unit_id(process_simulation_mapper):
-    """Constraint 'train_a.compressor_1' should resolve target_unit_id to the compressor's ProcessUnitId."""
-    compressor = YamlCompressorBuilder().with_test_data().validate()
-    compressor.name = "compressor_1"
+def test_constraints_on_different_unit_types(process_simulation_mapper):
+    """Constraints can target any named unit, not just compressors."""
+    compressor_1 = YamlCompressorBuilder().with_test_data().validate()
+    compressor_1.name = "compressor_1"
+    mixer = YamlMixerBuilder().with_test_data().validate()
+    mixer.name = "injection_point"
+    compressor_2 = YamlCompressorBuilder().with_test_data().validate()
+    compressor_2.name = "compressor_2"
 
     pipeline = (
         YamlProcessPipelineBuilder()
@@ -285,44 +289,52 @@ def test_constraint_with_compressor_name_resolves_to_unit_id(process_simulation_
         .with_items(
             [
                 YamlTemperatureSetterBuilder().with_test_data().validate(),
-                compressor,
+                compressor_1,
+                mixer,
+                YamlTemperatureSetterBuilder().with_test_data().validate(),
+                compressor_2,
             ]
         )
         .validate()
     )
     process_sim = _build_simulation_with_pipeline(pipeline)
+    process_sim.constraints = [
+        YamlProcessConstraint(target="train_a", unit="injection_point", outlet_pressure=50.0),
+        YamlProcessConstraint(target="train_a", outlet_pressure=120.0),
+    ]
 
-    # Override constraints with dot-notation key
-    process_sim.constraints = {
-        "train_a.compressor_1": YamlProcessConstraints(outlet_pressure=50.0),
-        "train_a": YamlProcessConstraints(outlet_pressure=100.0),
-    }
-
-    # Map and verify
     pipelines, simulation = process_simulation_mapper.map_process_simulation(process_sim, [PERIOD])
-
     problem = simulation.process_problems[0]
+    pipeline_unit_ids = {u.get_id() for u in pipelines[0].get_process_units()}
+
     assert len(problem.constraints) == 2
 
-    # Interstage constraint points to an actual compressor in the pipeline
-    interstage_constraint = next(c for c in problem.constraints if c.target_unit_id is not None)
-    compressor_ids = {u.get_id() for u in pipelines[0].get_process_units() if isinstance(u, Compressor)}
-    assert interstage_constraint.target_unit_id in compressor_ids
+    # Constraint points to mixer
+    assert problem.constraints[0].target_unit_id in pipeline_unit_ids
+    assert problem.constraints[0].target_unit_id is not None
 
-    # Outlet constraint applies to the whole pipeline, not a specific unit
-    outlet_constraint = next(c for c in problem.constraints if c.target_unit_id is None)
-    assert outlet_constraint.target_unit_id is None
+    assert problem.constraints[1].target_unit_id is None
 
 
-def test_constraint_with_unknown_compressor_name_raises(process_simulation_mapper):
-    """Constraint referencing a non-existent compressor should raise validation error."""
+def test_constraint_with_unknown_unit_raises(process_simulation_mapper):
+    """Constraint referencing a non-existent unit should raise validation error."""
     pipeline = YamlProcessPipelineBuilder().with_test_data().with_name("train_a").validate()
-
     process_sim = _build_simulation_with_pipeline(pipeline)
+    process_sim.constraints = [
+        YamlProcessConstraint(target="train_a", unit="nonexistent", outlet_pressure=50.0),
+    ]
 
-    process_sim.constraints = {
-        "train_a.nonexistent_compressor": YamlProcessConstraints(outlet_pressure=50.0),
-    }
+    with pytest.raises(EcalcValidationException, match="unknown unit"):
+        process_simulation_mapper.map_process_simulation(process_sim, [PERIOD])
 
-    with pytest.raises(EcalcValidationException, match="unknown compressor"):
-        process_simulation_mapper.map_process_simulation(process_sim, PERIOD)
+
+def test_constraint_with_unknown_pipeline_raises(process_simulation_mapper):
+    """Constraint referencing a non-existent pipeline should raise validation error."""
+    pipeline = YamlProcessPipelineBuilder().with_test_data().with_name("train_a").validate()
+    process_sim = _build_simulation_with_pipeline(pipeline)
+    process_sim.constraints = [
+        YamlProcessConstraint(target="nonexistent", outlet_pressure=100.0),
+    ]
+
+    with pytest.raises(EcalcValidationException, match="unknown process system"):
+        process_simulation_mapper.map_process_simulation(process_sim, [PERIOD])

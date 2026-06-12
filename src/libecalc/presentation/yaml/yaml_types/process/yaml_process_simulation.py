@@ -9,10 +9,26 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     YamlItem,
     YamlProcessPipeline,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
 
 
-class YamlProcessConstraints(YamlBase):
+class YamlProcessConstraint(YamlBase):
+    target: Annotated[
+        ProcessPipelineReference,
+        Field(
+            title="TARGET",
+            description="Reference to the process pipeline this constraint applies to.",
+        ),
+    ]
+    unit: Annotated[
+        ProcessUnitReference | None,
+        Field(
+            title="UNIT",
+            description="Reference to a named unit within the pipeline. If omitted, the constraint applies to the pipeline outlet.",
+        ),
+    ] = None
+
     outlet_pressure: Annotated[
         YamlExpressionType,
         Field(
@@ -42,7 +58,7 @@ class YamlProcessSimulation(YamlBase):
         ),
     ]
     constraints: Annotated[
-        dict[ProcessPipelineReference, YamlProcessConstraints],
+        list[YamlProcessConstraint],
         Field(
             title="CONSTRAINTS",
             description="Constraints per target.",
