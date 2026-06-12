@@ -264,6 +264,16 @@ class ProcessSimulationMapper:
             case _:
                 assert_never(yaml_fluid_model)
 
+    @staticmethod
+    def _parse_constraint_reference(key: str) -> tuple[str, str | None]:
+        """Parse 'train_a.compressor_1' -> ('train_a', 'compressor_1')
+        Parse 'train_a' -> ('train_a', None)
+        """
+        if "." in key:
+            pipeline_name, unit_name = key.split(".", maxsplit=1)
+            return pipeline_name, unit_name
+        return key, None
+
     def map_anti_surge_strategy(
         self,
         simulator: ProcessRunner,
@@ -292,7 +302,7 @@ class ProcessSimulationMapper:
         self, yaml_process_simulation: YamlProcessSimulation, process_periods: list[Period]
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         process_pipelines: list[ProcessPipeline] = []
-        constraints: dict[ProcessPipelineId, Constraint] = {}
+        constraints: dict[ProcessPipelineId, list[Constraint]] = {}
         pressure_control_configs: dict[ProcessPipelineId, PressureControlConfig] = {}
         anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
@@ -310,6 +320,8 @@ class ProcessSimulationMapper:
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
+        compressor_names_per_pipeline: dict[str, dict[str, ProcessUnitId]] = {}
+
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
@@ -323,6 +335,7 @@ class ProcessSimulationMapper:
                 | TimeSeriesMixerConfiguration
                 | TimeSeriesSplitterConfiguration,
             ] = {}
+            compressor_name_to_id_map: dict[str, ProcessUnitId] = {}  # reset per pipeline
 
             # Group units into compressor segments: each segment contains the units leading up to
             # (and including) one compressor. Used downstream to wrap each segment in its own ASV
@@ -337,6 +350,12 @@ class ProcessSimulationMapper:
                 match yaml_process_unit:
                     case YamlCompressor():
                         compressor = self._get_compressor(yaml_process_unit)
+                        if yaml_process_unit.name is not None:
+                            if yaml_process_unit.name in compressor_name_to_id_map:
+                                raise EcalcValidationException(
+                                    f"Duplicate compressor name '{yaml_process_unit.name}' in pipeline '{item.name}'"
+                                )
+                            compressor_name_to_id_map[yaml_process_unit.name] = compressor.get_id()
                         process_unit_map[compressor.get_id()] = compressor
                         compressor_ids.append(compressor.get_id())
                         current_segment_unit_ids.append(compressor.get_id())
@@ -402,6 +421,8 @@ class ProcessSimulationMapper:
                             f"in a process pipeline. Allowed types are: {', '.join(allowed_types)}."
                         )
 
+            compressor_names_per_pipeline[item.name] = compressor_name_to_id_map
+
             for compressor_id in compressor_ids:
                 compressor = process_unit_map[compressor_id]
                 assert isinstance(compressor, Compressor)
@@ -446,6 +467,8 @@ class ProcessSimulationMapper:
                 stream_propagators=process_units,
             )
 
+            constraints[process_pipeline.get_id()] = []
+
             configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
@@ -458,15 +481,29 @@ class ProcessSimulationMapper:
             process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
 
-        for process_pipeline_reference, constraint in yaml_process_simulation.constraints.items():
-            process_pipeline_id = process_pipeline_reference_to_id_map.get(process_pipeline_reference)
+        for constraint_key, constraint in yaml_process_simulation.constraints.items():
+            pipeline_name, unit_name = self._parse_constraint_reference(key=constraint_key)
+
+            process_pipeline_id = process_pipeline_reference_to_id_map.get(pipeline_name)
             if process_pipeline_id is None:
-                raise EcalcValidationException(
-                    f"Constraint specified for unknown process system '{process_pipeline_reference}'"
-                )
-            constraints[process_pipeline_id] = Constraint(
-                outlet_pressure=TimeSeriesExpression(
-                    expression=constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
+                raise EcalcValidationException(f"Constraint specified for unknown process system '{pipeline_name}'")
+
+            target_unit_id = None
+            if unit_name is not None:
+                names = compressor_names_per_pipeline.get(pipeline_name, {})
+                if unit_name not in names:
+                    raise EcalcValidationException(
+                        f"Constraint references unknown compressor '{unit_name}' in pipeline '{pipeline_name}'"
+                    )
+                target_unit_id = names[unit_name]
+
+            constraints[process_pipeline_id].append(
+                Constraint(
+                    outlet_pressure=TimeSeriesExpression(
+                        expression=constraint.outlet_pressure,
+                        expression_evaluator=self._expression_evaluator,
+                    ),
+                    target_unit_id=target_unit_id,
                 ),
             )
 
@@ -549,7 +586,7 @@ class ProcessSimulationMapper:
         process_problems = [
             ProcessProblem(
                 process_pipeline_id=process_pipeline.get_id(),
-                constraint=constraints[process_pipeline.get_id()],
+                constraints=constraints[process_pipeline.get_id()],
                 anti_surge_strategy=anti_surge_configs[process_pipeline.get_id()],
                 pressure_control_strategy=pressure_control_configs[process_pipeline.get_id()],
                 configuration_handlers=configuration_handlers[process_pipeline.get_id()],

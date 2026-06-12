@@ -36,6 +36,7 @@ class YamlCompressor(YamlBase):
     """
 
     type: Literal["COMPRESSOR"]
+    name: ProcessUnitReference | None = None
     compressor_model: YamlCompressorModelChart
 
 
