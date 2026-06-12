@@ -4,9 +4,9 @@ from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
 from libecalc.process.process_solver.search_strategies import (
-    BinarySearchStrategy,
+    Bisect,
+    BisectResult,
     DidNotConvergeError,
-    SearchStrategy,
 )
 
 _RATE_SEARCH_TOLERANCE = 1e-4
@@ -24,10 +24,10 @@ class FeasibilitySolver:
     def __init__(
         self,
         pipeline_section_solver: PipelineSectionSolver,
-        search_strategy: SearchStrategy | None = None,
+        search_strategy: Bisect | None = None,
     ):
         self._solver = pipeline_section_solver
-        self._search_strategy = search_strategy or BinarySearchStrategy(
+        self._search_strategy = search_strategy or Bisect(
             tolerance=_RATE_SEARCH_TOLERANCE,
             max_iterations=_RATE_SEARCH_MAX_ITERATIONS,
         )
@@ -62,9 +62,9 @@ class FeasibilitySolver:
         try:
             return self._search_strategy.search(
                 boundary=boundary,
-                func=lambda rate: (
-                    self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure),
-                    True,
+                func=lambda rate: BisectResult(
+                    higher=self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure),
+                    accepted=True,
                 ),
             )
         except DidNotConvergeError:

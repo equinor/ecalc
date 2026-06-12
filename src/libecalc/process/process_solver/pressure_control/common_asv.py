@@ -5,7 +5,7 @@ from libecalc.process.process_solver.configuration import ChokeConfiguration, Co
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
-from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
+from libecalc.process.process_solver.search_strategies import Bisect, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
     Solution,
     TargetDirection,
@@ -72,7 +72,7 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
             )
 
         solver = RecirculationSolver(
-            search_strategy=BinarySearchStrategy(tolerance=10e-3),
+            search_strategy=Bisect(tolerance=10e-3),
             root_finding_strategy=self._root_finding_strategy,
             recirculation_rate_boundary=boundary,
             target_pressure=target_pressure,

@@ -1,11 +1,11 @@
-"""Tests for BinarySearchStrategy."""
+"""Tests for Bisect."""
 
 from libecalc.process.process_solver.boundary import Boundary
-from libecalc.process.process_solver.search_strategies import BinarySearchStrategy
+from libecalc.process.process_solver.search_strategies import Bisect
 
 
 def test_search_returns_accepted_value():
-    """BinarySearchStrategy.search should return a value that was accepted.
+    """Bisect.search should return a value that was accepted.
 
     The search converges to the boundary between accepted/rejected regions.
     The returned value must be from the accepted side, not an arbitrary midpoint
@@ -19,7 +19,7 @@ def test_search_returns_accepted_value():
         else:
             return False, True  # at/above threshold: go lower
 
-    strategy = BinarySearchStrategy(tolerance=1e-5, max_iterations=50)
+    strategy = Bisect(tolerance=1e-5, max_iterations=50)
     result = strategy.search(boundary=Boundary(min=0.0, max=10.0), func=step_func)
 
     # The result must be below the threshold (on the accepted/valid side)

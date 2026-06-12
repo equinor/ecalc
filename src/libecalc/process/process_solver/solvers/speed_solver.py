@@ -5,7 +5,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
-from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
+from libecalc.process.process_solver.search_strategies import Bisect, BisectResult, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
     Solution,
     Solver,
@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class SpeedSolver(Solver[SpeedConfiguration]):
     def __init__(
         self,
-        search_strategy: SearchStrategy,
+        search_strategy: Bisect,
         root_finding_strategy: RootFindingStrategy,
         boundary: Boundary,
         target_pressure: float,
@@ -91,14 +91,14 @@ class SpeedSolver(Solver[SpeedConfiguration]):
         except RateTooHighError as e:
             logger.debug(f"No solution found for minimum speed: {self._boundary.min}", exc_info=e)
 
-            def bool_speed_func(x: float) -> tuple[bool, bool]:
+            def bool_speed_func(x: float) -> BisectResult:
                 try:
                     func(SpeedConfiguration(speed=x))
-                    return False, True
+                    return BisectResult(higher=False, accepted=True)
                 except RateTooHighError:
-                    return True, False
+                    return BisectResult(higher=True, accepted=False)
                 except RateTooLowError:
-                    return False, False
+                    return BisectResult(higher=False, accepted=False)
 
             minimum_speed_within_capacity = self._search_strategy.search(
                 boundary=self._boundary,

@@ -11,7 +11,7 @@ from libecalc.process.process_solver.configuration import (
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section import PipelineSection
-from libecalc.process.process_solver.search_strategies import BinarySearchStrategy
+from libecalc.process.process_solver.search_strategies import Bisect
 from libecalc.process.process_solver.solver import (
     RateTooHighFailure,
     Solution,
@@ -42,7 +42,7 @@ class PipelineSectionSolver:
         # The speed search evaluates the train with pressure control disengaged
         self._pipeline_section.pressure_control_strategy.reset()
         speed_solver = SpeedSolver(
-            search_strategy=BinarySearchStrategy(),
+            search_strategy=Bisect(),
             root_finding_strategy=self._pipeline_section.root_finding_strategy,
             boundary=self._get_initial_speed_boundary(),
             target_pressure=pressure_constraint.value,

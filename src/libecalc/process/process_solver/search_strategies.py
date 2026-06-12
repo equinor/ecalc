@@ -1,5 +1,6 @@
 import abc
 from collections.abc import Callable
+from typing import NamedTuple
 
 from scipy.optimize import root_scalar
 
@@ -7,6 +8,11 @@ from libecalc.common.errors.exceptions import EcalcError
 from libecalc.process.process_solver.boundary import Boundary
 
 CONVERGENCE_TOLERANCE = 1e-5
+
+
+class BisectResult(NamedTuple):
+    higher: bool
+    accepted: bool
 
 
 class DidNotConvergeError(EcalcError):
@@ -23,58 +29,97 @@ class DidNotConvergeError(EcalcError):
         )
 
 
-class SearchStrategy(abc.ABC):
-    @abc.abstractmethod
-    def search(self, boundary: Boundary, func: Callable[[float], tuple[bool, bool]]) -> float: ...
+class Bisect:
+    """Bisection over a numeric range to locate a boolean threshold.
 
+    The condition is assumed monotonic (a single True/False crossing). Probes are evaluated
+    at the midpoint of a shrinking bracket until it is narrower than ``tolerance``.
+    """
 
-class BinarySearchStrategy(SearchStrategy):
     def __init__(self, tolerance: float = CONVERGENCE_TOLERANCE, max_iterations: int = 20):
         """
 
         Args:
-            tolerance: The tolerance of convergence that will be used to exist the iteration
-            max_iterations: The maximum number of iterations that will be used to find the root.
+            tolerance: The relative bracket width at which the search stops.
+            max_iterations: The maximum number of bisection steps.
         """
         self._tolerance = tolerance
         self._max_iterations = max_iterations
 
-    def search(self, boundary: Boundary, func: Callable[[float], tuple[bool, bool]]) -> float:
-        """Binary search until we reach the maximum x value constrained by x_min and x_max
-        where we have a boolean constraint condition given as a function.
+    def _bisect(
+        self,
+        boundary: Boundary,
+        probe: Callable[[float], BisectResult],
+    ) -> float | None:
+        """Bisect [boundary.min, boundary.max]. Returns the last accepted x, or ``None``."""
+        x0, x1 = boundary.min, boundary.max
+        last_accepted: float | None = None
+        for _ in range(self._max_iterations):
+            x2 = (x0 + x1) / 2
+            higher, accepted = probe(x2)
+            if accepted:
+                last_accepted = x2
+            if higher:
+                x0 = x2
+            else:
+                x1 = x2
+            rel_diff = (x1 - x0) / max(abs(x0), abs(x1), 1.0)
+            if rel_diff < self._tolerance:
+                break
+        return last_accepted
 
-        max(x) given f(x) == True
+    def search(self, boundary: Boundary, func: Callable[[float], BisectResult]) -> float:
+        """Highest x in ``boundary`` where the indicator holds (``max(x) given f(x) == True``).
+
+        ``func`` returns a ``BisectResult`` so steering (``higher``) and validity (``accepted``)
+        are decoupled: a probe can steer the search without being accepted as a solution.
 
         We assume f(x) to be a binary (Heaviside step) function where f(x) is 1 for x <= n and 0 for x > n.
         n is the target value in this optimization. x == n is the highest possible value of x before f(x) turns to 0.
 
-        Note: This requires that the boolean condition is an indicator function where x > threshold returns False.
+        Raises ``DidNotConvergeError`` if no probe was ever accepted.
         """
-        x0, x1 = boundary.min, boundary.max
-        last_accepted: float | None = None
-        i = 0
-        rel_diff = 100.0
-
-        while (abs(rel_diff) > self._tolerance) and (i < self._max_iterations):
-            x2 = (x0 + x1) / 2  # Bisecting x0 and x1.
-            higher, accepted = func(x2)
-            if higher:
-                x0, x1 = x2, x1  # x2 is valid. We can now search to the right in the binary three.
-                if accepted:
-                    last_accepted = x2
-            else:
-                x0, x1 = x0, x2  # x2 is invalid. We can now search to the left in the binary three
-
-            rel_diff = 0 if x0 == x1 else abs(x1 - x0) / max(abs(x0), abs(x1))
-            i += 1
-
-        if i >= self._max_iterations:
+        result = self._bisect(boundary=boundary, probe=func)
+        if result is None:
             raise DidNotConvergeError(
                 boundary=boundary,
                 tolerance=self._tolerance,
                 iterations=self._max_iterations,
             )
-        return last_accepted if last_accepted is not None else x1
+        return result
+
+    def lowest_true(self, boundary: Boundary, predicate: Callable[[float], bool]) -> float | None:
+        """Return the lowest x in ``boundary`` where ``predicate(x)`` is True, or ``None``."""
+        return self._first_true(boundary, predicate, lowest=True)
+
+    def highest_true(self, boundary: Boundary, predicate: Callable[[float], bool]) -> float | None:
+        """Return the highest x in ``boundary`` where ``predicate(x)`` is True, or ``None``."""
+        return self._first_true(boundary, predicate, lowest=False)
+
+    def _first_true(
+        self,
+        boundary: Boundary,
+        predicate: Callable[[float], bool],
+        *,
+        lowest: bool,
+    ) -> float | None:
+        """Locate the boundary x where ``predicate`` flips, searching from the near end.
+
+        ``lowest=True`` searches up from ``boundary.min`` for the lowest passing x;
+        ``lowest=False`` searches down from ``boundary.max`` for the highest passing x.
+        """
+        near, far = (boundary.min, boundary.max) if lowest else (boundary.max, boundary.min)
+        if predicate(near):
+            return near
+        if not predicate(far):
+            return None
+
+        def probe(x: float) -> BisectResult:
+            ok = predicate(x)
+            return BisectResult(higher=ok != lowest, accepted=ok)
+
+        result = self._bisect(boundary=boundary, probe=probe)
+        return result if result is not None else far
 
 
 class RootFindingStrategy(abc.ABC):
