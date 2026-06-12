@@ -418,6 +418,11 @@ class ProcessSimulationMapper:
                             name_map=unit_name_to_id_map,
                             pipeline_name=item.name,
                         )
+                        # Units between the last compressor and this mixer/splitter
+                        # belong outside any ASV loop — save them as a separate chunk.
+                        if current_segment_unit_ids:
+                            pipeline_chunks.append((False, current_segment_unit_ids))
+                            current_segment_unit_ids = []
 
                         problem_time_series_configurations[mixer.get_id()] = TimeSeriesMixerConfiguration(
                             sidestream=TimeSeriesStream(
@@ -439,6 +444,12 @@ class ProcessSimulationMapper:
                             name_map=unit_name_to_id_map,
                             pipeline_name=item.name,
                         )
+                        # Units between the last compressor and this mixer/splitter
+                        # belong outside any ASV loop — save them as a separate chunk.
+                        if current_segment_unit_ids:
+                            pipeline_chunks.append((False, current_segment_unit_ids))
+                            current_segment_unit_ids = []
+
                         problem_time_series_configurations[splitter.get_id()] = TimeSeriesSplitterConfiguration(
                             offtake_rate=self._map_rate(yaml_process_unit.offtake_rate),
                         )

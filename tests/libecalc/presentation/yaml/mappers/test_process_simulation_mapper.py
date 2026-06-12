@@ -11,6 +11,7 @@ from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.testing.process_builders import (
@@ -274,46 +275,83 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
 # ---------------------------------------------------------------------------
 
 
-def test_constraints_on_different_unit_types(process_simulation_mapper):
-    """Constraints can target any named unit, not just compressors."""
-    compressor_1 = YamlCompressorBuilder().with_test_data().validate()
-    compressor_1.name = "compressor_1"
-    mixer = YamlMixerBuilder().with_test_data().validate()
-    mixer.name = "injection_point"
-    compressor_2 = YamlCompressorBuilder().with_test_data().validate()
-    compressor_2.name = "compressor_2"
+def test_multiple_constraints_resolve_to_correct_units(process_simulation_mapper):
+    """
+    Multi-stage train: inlet conditioning, two compressors with interstage
+    mixer (gas injection) and splitter (fuel offtake), pressure targets at three points.
 
-    pipeline = (
+    --- Assemble pipeline ---
+
+             ASV loop 1                                                               ASV loop 2
+    ┌─────────────────────────────────────┐                                 ┌─────────────────────────────────────┐
+    │ cooler → scrubber → lp_compr.       │     →    mixer    → splitter →  │ cooler → scrubber → hp_compr.       │
+    └─────────────────────────────────────┘                                 └─────────────────────────────────────┘
+                                          ↑               ↑                                                       ↑
+                                  constraint 1      constraint 2                                              constraint 3
+                                   (30 bara)         (28 bara)                                                 (180 bara)
+
+    """
+
+    # --- Build pipeline units ---
+    yaml_compressor_1 = YamlCompressorBuilder().with_test_data().validate()
+    yaml_compressor_1.name = "lp_compressor"
+
+    yaml_mixer = YamlMixerBuilder().with_test_data().validate()
+    yaml_mixer.name = "gas_injection"
+
+    yaml_splitter = YamlSplitterBuilder().with_test_data().validate()
+    yaml_splitter.name = "fuel_offtake"
+
+    yaml_compressor_2 = YamlCompressorBuilder().with_test_data().validate()
+    yaml_compressor_2.name = "hp_compressor"
+
+    yaml_pipeline = (
         YamlProcessPipelineBuilder()
-        .with_name("train_a")
+        .with_name("export_train")
         .with_items(
             [
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                compressor_1,
-                mixer,
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                compressor_2,
+                YamlTemperatureSetterBuilder().with_test_data().validate(),  # inlet cooling
+                YamlLiquidRemoverBuilder().with_test_data().validate(),  # inlet scrubbing
+                yaml_compressor_1,  # LP compression
+                yaml_mixer,  # injection gas enters
+                yaml_splitter,  # fuel gas leaves
+                YamlTemperatureSetterBuilder().with_test_data().validate(),  # interstage cooling
+                YamlLiquidRemoverBuilder().with_test_data().validate(),  # interstage scrubbing
+                yaml_compressor_2,  # HP compression
             ]
         )
         .validate()
     )
-    process_sim = _build_simulation_with_pipeline(pipeline)
-    process_sim.constraints = [
-        YamlProcessConstraint(target="train_a", unit="injection_point", outlet_pressure=50.0),
-        YamlProcessConstraint(target="train_a", outlet_pressure=120.0),
+
+    # --- Constraints: pressure targets at three points ---
+    # NOTE: Constraint on mixer is resolvable here (mapper test), but not yet
+    # actionable by MultiPressureSolver until PRESSURE_CONTROL is defined
+    # per constraint rather than per pipeline.
+    yaml_process_sim = _build_simulation_with_pipeline(yaml_pipeline)
+    yaml_process_sim.constraints = [
+        YamlProcessConstraint(target="export_train", unit="lp_compressor", outlet_pressure=30.0),
+        YamlProcessConstraint(target="export_train", unit="gas_injection", outlet_pressure=28.0),
+        YamlProcessConstraint(target="export_train", outlet_pressure=180.0),
     ]
 
-    pipelines, simulation = process_simulation_mapper.map_process_simulation(process_sim, [PERIOD])
+    # --- Map and verify ---
+    pipelines, simulation = process_simulation_mapper.map_process_simulation(yaml_process_sim, [PERIOD])
     problem = simulation.process_problems[0]
-    pipeline_unit_ids = {u.get_id() for u in pipelines[0].get_process_units()}
+    units = pipelines[0].get_process_units()
 
-    assert len(problem.constraints) == 2
+    compressor_ids = [u.get_id() for u in units if isinstance(u, Compressor)]
+    mixer_ids = [u.get_id() for u in units if isinstance(u, Mixer)]
 
-    # Constraint points to mixer
-    assert problem.constraints[0].target_unit_id in pipeline_unit_ids
-    assert problem.constraints[0].target_unit_id is not None
+    assert len(problem.constraints) == 3
 
-    assert problem.constraints[1].target_unit_id is None
+    # LP compressor outlet: 30 bara before injection gas enters
+    assert problem.constraints[0].target_unit_id == compressor_ids[0]
+
+    # Mixer outlet: 28 bara after injection gas is mixed in
+    assert problem.constraints[1].target_unit_id == mixer_ids[0]
+
+    # Pipeline outlet: 180 bara final discharge
+    assert problem.constraints[2].target_unit_id is None
 
 
 def test_constraint_with_unknown_unit_raises(process_simulation_mapper):
