@@ -269,8 +269,14 @@ class ProcessSimulationMapper:
         """Parse 'train_a.compressor_1' -> ('train_a', 'compressor_1')
         Parse 'train_a' -> ('train_a', None)
         """
+        if not key:
+            raise EcalcValidationException("Constraint reference cannot be empty.")
         if "." in key:
             pipeline_name, unit_name = key.split(".", maxsplit=1)
+            if not pipeline_name or not unit_name:
+                raise EcalcValidationException(
+                    f"Invalid constraint reference '{key}'. Expected format 'pipeline_name.unit_name'."
+                )
             return pipeline_name, unit_name
         return key, None
 
