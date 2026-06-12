@@ -1,0 +1,407 @@
+{
+  "R1-COMMON_ASV": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 100.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 8.313,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 10996.772
+  },
+  "R1-DOWNSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 100.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 8.313,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 10996.772
+  },
+  "R1-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 100.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 8.313,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 10996.772
+  },
+  "R1-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 100.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 8.313,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 10996.772
+  },
+  "R1-UPSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 100.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 8.313,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 10996.772
+  },
+  "R2-COMMON_ASV": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 90.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 5.31,
+    "recirculation_rate_sm3_day": 1558354.075,
+    "speed": 9911.868
+  },
+  "R2-DOWNSTREAM_CHOKE": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 90.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 5.31,
+    "recirculation_rate_sm3_day": 1558354.075,
+    "speed": 9911.868
+  },
+  "R2-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 90.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 5.31,
+    "recirculation_rate_sm3_day": 1558354.075,
+    "speed": 9911.868
+  },
+  "R2-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 90.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 5.31,
+    "recirculation_rate_sm3_day": 1558354.075,
+    "speed": 9911.868
+  },
+  "R2-UPSTREAM_CHOKE": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 90.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 5.31,
+    "recirculation_rate_sm3_day": 1558354.075,
+    "speed": 9911.868
+  },
+  "R3-COMMON_ASV": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 60.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.977,
+    "recirculation_rate_sm3_day": 3715690.17,
+    "speed": 7689.0
+  },
+  "R3-DOWNSTREAM_CHOKE": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 60.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.502,
+    "recirculation_rate_sm3_day": 2274493.591,
+    "speed": 7689.0
+  },
+  "R3-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 60.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.977,
+    "recirculation_rate_sm3_day": 3715685.402,
+    "speed": 7689.0
+  },
+  "R3-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 60.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.977,
+    "recirculation_rate_sm3_day": 3715685.402,
+    "speed": 7689.0
+  },
+  "R3-UPSTREAM_CHOKE": {
+    "chart_area": "BELOW_MINIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 60.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.237,
+    "recirculation_rate_sm3_day": 1979598.305,
+    "speed": 7689.0
+  },
+  "R4-COMMON_ASV": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 110.257,
+    "is_valid": false,
+    "outcome": "PRESSURE_TOO_HIGH",
+    "power_mw": 9.346,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R4-DOWNSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 110.257,
+    "is_valid": false,
+    "outcome": "PRESSURE_TOO_HIGH",
+    "power_mw": 9.346,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R4-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 110.257,
+    "is_valid": false,
+    "outcome": "PRESSURE_TOO_HIGH",
+    "power_mw": 9.346,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R4-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 110.257,
+    "is_valid": false,
+    "outcome": "PRESSURE_TOO_HIGH",
+    "power_mw": 9.346,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R4-UPSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 110.257,
+    "is_valid": false,
+    "outcome": "PRESSURE_TOO_HIGH",
+    "power_mw": 9.346,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R5-COMMON_ASV": {
+    "chart_area": "ABOVE_MAXIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 88.378,
+    "is_valid": false,
+    "outcome": "ABOVE_MAX_FLOW",
+    "power_mw": 22.527,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R5-DOWNSTREAM_CHOKE": {
+    "chart_area": "ABOVE_MAXIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 50.0,
+    "is_valid": false,
+    "outcome": "ABOVE_MAX_FLOW",
+    "power_mw": 22.527,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R5-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "ABOVE_MAXIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 88.378,
+    "is_valid": false,
+    "outcome": "ABOVE_MAX_FLOW",
+    "power_mw": 22.527,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R5-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "ABOVE_MAXIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 88.378,
+    "is_valid": false,
+    "outcome": "ABOVE_MAX_FLOW",
+    "power_mw": 22.527,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R5-UPSTREAM_CHOKE": {
+    "chart_area": "ABOVE_MAXIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 50.0,
+    "is_valid": false,
+    "outcome": "ABOVE_MAX_FLOW",
+    "power_mw": 22.527,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11533.0
+  },
+  "R6-COMMON_ASV": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 107.999,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 9.125,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11414.342
+  },
+  "R6-DOWNSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 107.999,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 9.125,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11414.342
+  },
+  "R6-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 107.999,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 9.125,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11414.342
+  },
+  "R6-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 107.999,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 9.125,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11414.342
+  },
+  "R6-UPSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 107.999,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 9.125,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 11414.342
+  },
+  "R7-COMMON_ASV": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 62.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.962,
+    "recirculation_rate_sm3_day": 463119.06,
+    "speed": 7689.0
+  },
+  "R7-DOWNSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 62.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.848,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 7689.0
+  },
+  "R7-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 62.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.962,
+    "recirculation_rate_sm3_day": 463119.06,
+    "speed": 7689.0
+  },
+  "R7-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 62.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.962,
+    "recirculation_rate_sm3_day": 463119.06,
+    "speed": 7689.0
+  },
+  "R7-UPSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 62.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.789,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 7689.0
+  },
+  "R8-COMMON_ASV": {
+    "chart_area": "NOT_CALCULATED",
+    "discharge_pressure_bara": null,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 0.0,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": null
+  },
+  "R8-DOWNSTREAM_CHOKE": {
+    "chart_area": "NOT_CALCULATED",
+    "discharge_pressure_bara": null,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 0.0,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": null
+  },
+  "R8-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "NOT_CALCULATED",
+    "discharge_pressure_bara": null,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 0.0,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": null
+  },
+  "R8-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "NOT_CALCULATED",
+    "discharge_pressure_bara": null,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 0.0,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": null
+  },
+  "R8-UPSTREAM_CHOKE": {
+    "chart_area": "NOT_CALCULATED",
+    "discharge_pressure_bara": null,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 0.0,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": null
+  },
+  "R9-COMMON_ASV": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 58.606,
+    "is_valid": false,
+    "outcome": "PRESSURE_TOO_LOW",
+    "power_mw": 2.97,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 7689.0
+  },
+  "R9-DOWNSTREAM_CHOKE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 45.0,
+    "is_valid": true,
+    "outcome": "SUCCESS",
+    "power_mw": 2.966,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 7689.0
+  },
+  "R9-INDIVIDUAL_ASV_PRESSURE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 58.605,
+    "is_valid": false,
+    "outcome": "PRESSURE_TOO_LOW",
+    "power_mw": 2.97,
+    "recirculation_rate_sm3_day": 396137.258,
+    "speed": 7689.0
+  },
+  "R9-INDIVIDUAL_ASV_RATE": {
+    "chart_area": "INTERNAL_POINT",
+    "discharge_pressure_bara": 58.605,
+    "is_valid": false,
+    "outcome": "PRESSURE_TOO_LOW",
+    "power_mw": 2.97,
+    "recirculation_rate_sm3_day": 396137.259,
+    "speed": 7689.0
+  },
+  "R9-UPSTREAM_CHOKE": {
+    "chart_area": "ABOVE_MAXIMUM_FLOW_RATE",
+    "discharge_pressure_bara": 45.0,
+    "is_valid": false,
+    "outcome": "ABOVE_MAX_FLOW",
+    "power_mw": 2.703,
+    "recirculation_rate_sm3_day": 0.0,
+    "speed": 7689.0
+  }
+}

@@ -579,6 +579,26 @@ def fluid_model_dry(fluid_model_factory, fluid_composition_factory) -> FluidMode
 
 
 @pytest.fixture(scope="session")
+def pure_methane_fluid_model(fluid_model_factory) -> FluidModel:
+    return fluid_model_factory(
+        fluid_composition=FluidComposition(
+            water=0.0,
+            nitrogen=0.0,
+            CO2=0.0,
+            methane=1.0,
+            ethane=0.0,
+            propane=0.0,
+            i_butane=0.0,
+            n_butane=0.0,
+            i_pentane=0.0,
+            n_pentane=0.0,
+            n_hexane=0.0,
+        ),
+        eos_model=EoSModel.SRK,
+    )
+
+
+@pytest.fixture(scope="session")
 def fluid_service():
     """Session-scoped fluid service singleton for all tests.
 
