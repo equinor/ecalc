@@ -354,7 +354,14 @@ def yaml_electricity_consumer_builder_factory():
 
 
 @pytest.fixture
-def minimal_installation_yaml_factory(yaml_installation_builder_factory):
+def yaml_direct_energy_usage_model_builder_factory():
+    return YamlEnergyUsageModelDirectFuelBuilder
+
+
+@pytest.fixture
+def minimal_installation_yaml_factory(
+    yaml_installation_builder_factory, yaml_direct_energy_usage_model_builder_factory
+):
     def minimal_installation_yaml(
         name: str = "DefaultInstallation",
         consumer_name: str = "flare",
@@ -372,7 +379,10 @@ def minimal_installation_yaml_factory(yaml_installation_builder_factory):
                     .with_name(consumer_name)
                     .with_fuel(fuel_name)
                     .with_energy_usage_model(
-                        YamlEnergyUsageModelDirectFuelBuilder().with_test_data().with_fuel_rate(fuel_rate).validate()
+                        yaml_direct_energy_usage_model_builder_factory()
+                        .with_test_data()
+                        .with_fuel_rate(fuel_rate)
+                        .validate()
                     )
                     .validate()
                 ]
