@@ -29,19 +29,21 @@ def methane_values():
 
 
 @pytest.fixture
-def fuel_gas() -> dict[Period, FuelType]:
-    return {
-        Period(datetime(1900, 1, 1), datetime(2021, 1, 1)): FuelType(
-            id=uuid4(),
-            name="fuel_gas",
-            emissions=[
-                Emission(
-                    name="co2",
-                    factor=Expression.setup_from_expression(value="2.20"),
-                )
-            ],
-        )
-    }
+def fuel_gas() -> TemporalModel[FuelType]:
+    return TemporalModel(
+        {
+            Period(datetime(1900, 1, 1)): FuelType(
+                id=uuid4(),
+                name="fuel_gas",
+                emissions=[
+                    Emission(
+                        name="co2",
+                        factor=Expression.setup_from_expression(value="2.20"),
+                    )
+                ],
+            )
+        }
+    )
 
 
 @pytest.fixture
@@ -154,10 +156,12 @@ def genset_2mw_dto(fuel_dto, electricity_consumer_factory, generator_set_sampled
         return GeneratorSetEnergyComponent(
             id=uuid4(),
             name="genset",
-            fuel={Period(datetime(1900, 1, 1)): fuel_dto},
-            generator_set_model={
-                Period(datetime(1900, 1, 1)): generator_set_sampled_model_2mw,
-            },
+            fuel=TemporalModel({Period(datetime(1900, 1, 1)): fuel_dto}),
+            generator_set_model=TemporalModel(
+                {
+                    Period(datetime(1900, 1, 1)): generator_set_sampled_model_2mw,
+                }
+            ),
             consumers=[electricity_consumer_factory(variables)],
             regularity=regularity,
             component_type=ComponentType.GENERATOR_SET,
@@ -176,10 +180,12 @@ def genset_1000mw_late_startup_dto(fuel_dto, electricity_consumer_factory, gener
         return GeneratorSetEnergyComponent(
             id=uuid4(),
             name="genset_late_startup",
-            fuel={Period(datetime(1900, 1, 1)): fuel_dto},
-            generator_set_model={
-                Period(datetime(2022, 1, 1)): generator_set_sampled_model_1000mw,
-            },
+            fuel=TemporalModel({Period(datetime(1900, 1, 1)): fuel_dto}),
+            generator_set_model=TemporalModel(
+                {
+                    Period(datetime(2022, 1, 1)): generator_set_sampled_model_1000mw,
+                }
+            ),
             consumers=[electricity_consumer_factory(variables)],
             regularity=regularity,
             component_type=ComponentType.GENERATOR_SET,

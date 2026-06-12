@@ -4,6 +4,7 @@ from uuid import UUID
 
 from libecalc.common.component_type import ComponentType
 from libecalc.common.consumption_type import ConsumptionType
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
@@ -45,6 +46,11 @@ class FuelConsumerComponent(Emitter, EnergyComponent, FuelConsumer):
         energy_usage_model: EnergyUsageModelType,
         expression_evaluator: ExpressionEvaluator,
     ):
+        consumer_period = energy_usage_model.get_period()
+        if consumer_period not in fuel.get_period():
+            raise EcalcValidationException(
+                f"Fuel definition does not cover the full operational period. Make sure fuel is defined for the full period {consumer_period.start.date()};{consumer_period.end.date()}, current period is {fuel.get_period().start.date()};{fuel.get_period().end.date()}."
+            )
         self._uuid = id
         assert fuel is not None
         self._name = name

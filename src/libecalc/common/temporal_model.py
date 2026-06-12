@@ -88,6 +88,12 @@ class TemporalModel[ModelType]:
         for model in self._models:
             yield model.model
 
+    def get_period(self) -> Period:
+        return Period(
+            start=self._periods[0].start,
+            end=self._periods[-1].end,
+        )
+
     def get_periods(self) -> Iterable[Period]:
         return self._periods
 

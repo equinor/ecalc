@@ -5,6 +5,7 @@ import numpy as np
 from numpy.typing import NDArray
 
 from libecalc.common.component_type import ComponentType
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import EcalcError, ProgrammingError
 from libecalc.common.list.list_utils import array_to_list
 from libecalc.common.logger import logger
@@ -57,6 +58,12 @@ class GeneratorSetEnergyComponent(Emitter, EnergyComponent, ElectricityProducer,
         max_usage_from_shore: TimeSeriesMaxUsageFromShore | None = None,
         component_type: Literal[ComponentType.GENERATOR_SET] = ComponentType.GENERATOR_SET,
     ):
+        generator_set_period = generator_set_model.get_period()
+        if generator_set_period not in fuel.get_period():
+            raise EcalcValidationException(
+                f"Fuel definition does not cover the full operational period. Make sure fuel is defined for the full period {generator_set_period.start.date()};{generator_set_period.end.date()}, current period is {fuel.get_period().start.date()};{fuel.get_period().end.date()}."
+            )
+
         self._uuid = id
         self._name = name
         self.regularity = regularity

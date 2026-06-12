@@ -1,3 +1,4 @@
+from datetime import datetime
 from io import StringIO
 
 import pytest
@@ -182,3 +183,68 @@ class TestYamlModelValidation:
         )
 
         assert invalid_keyword_error.message == snapshot("This is not a valid keyword")
+
+    def test_mismatching_fuel_in_fuel_consumer(
+        self,
+        yaml_asset_builder_factory,
+        yaml_installation_builder_factory,
+        yaml_asset_configuration_service_factory,
+        yaml_fuel_consumer_builder_factory,
+        resource_service_factory,
+        yaml_direct_energy_usage_model_builder_factory,
+        yaml_fuel_type_builder_factory,
+    ):
+        asset = (
+            yaml_asset_builder_factory()
+            .with_test_data()
+            .with_start(datetime(2019, 1, 1))
+            .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name("my_fuel").construct()])
+            .with_installations(
+                [
+                    yaml_installation_builder_factory()
+                    .with_test_data()
+                    .with_name("installation_name")
+                    .with_fuel_consumers(
+                        [
+                            yaml_fuel_consumer_builder_factory()
+                            .with_test_data()
+                            .with_name("my error model")
+                            .with_fuel({datetime(2020, 1, 1): "my_fuel"})
+                            .with_energy_usage_model(
+                                {
+                                    datetime(2019, 1, 1): yaml_direct_energy_usage_model_builder_factory()
+                                    .with_test_data()
+                                    .validate()
+                                }
+                            )
+                            .validate()
+                        ]
+                    )
+                    .with_venting_emitters([])
+                    .with_generator_sets([])
+                    .construct()
+                ]
+            )
+            .construct()
+        )
+        configuration = yaml_asset_configuration_service_factory(asset, "no consumers or emitters").get_configuration()
+        model = YamlModel(
+            configuration=configuration,
+            resource_service=resource_service_factory({}, configuration=configuration),
+        )
+
+        with pytest.raises(ModelValidationException) as ee:
+            model.validate_for_run()
+
+        error_message = str(ee.value)
+
+        errors = ee.value.errors()
+        assert len(errors) == 1
+
+        assert error_message == snapshot("""\
+Validation error
+
+	Object starting on line 10
+	Location: installations.installation_name.FUELCONSUMERS.my error model
+	Message: Fuel definition does not cover the full operational period. Make sure fuel is defined for the full period 2019-01-01;2024-01-01, current period is 2020-01-01;2024-01-01.
+""")
