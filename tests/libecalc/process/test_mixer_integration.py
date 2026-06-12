@@ -30,6 +30,7 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper, fluid_s
     """
 
     # -- Build YAML --
+    yaml_mixer = YamlMixerBuilder().with_test_data().validate()
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer")
@@ -37,7 +38,7 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper, fluid_s
             [
                 YamlTemperatureSetterBuilder().with_test_data().validate(),
                 YamlCompressorBuilder().with_test_data().validate(),
-                YamlMixerBuilder().with_test_data().validate(),
+                yaml_mixer,
                 YamlTemperatureSetterBuilder().with_test_data().validate(),
                 YamlCompressorBuilder().with_test_data().validate(),
             ]
@@ -94,8 +95,7 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper, fluid_s
 
     outlet = propagate_stream_many(units, inlet_stream)
 
-    sidestream_rate_sm3_per_day = 200_000  # from YamlMixerBuilder.with_test_data()
-
+    sidestream_rate_sm3_per_day = yaml_mixer.sidestream.rate.value
     expected_sidestream_mass_rate = fluid_service.standard_rate_to_mass_rate(
         fluid_model=simulation.get_inlet_streams()[0].fluid_model,
         standard_rate_m3_per_day=sidestream_rate_sm3_per_day,

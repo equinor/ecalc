@@ -7,12 +7,14 @@ from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompressorBuilder,
     YamlLiquidRemoverBuilder,
+    YamlMixerBuilder,
     YamlPressureDropperBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
@@ -156,6 +158,38 @@ def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulatio
 
     units = pipelines[0].get_process_units()
     assert isinstance(units[0], Choke)
+
+
+def test_mixer_is_placed_between_asv_loops(process_simulation_mapper):
+    """Mixer must sit between ASV recirculation loops, not inside one."""
+    yaml_pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("train_with_mixer")
+        .with_items(
+            [
+                YamlTemperatureSetterBuilder().with_test_data().validate(),
+                YamlCompressorBuilder().with_test_data().validate(),
+                YamlMixerBuilder().with_test_data().validate(),
+                YamlTemperatureSetterBuilder().with_test_data().validate(),
+                YamlCompressorBuilder().with_test_data().validate(),
+            ]
+        )
+        .validate()
+    )
+    yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
+
+    pipelines, _ = process_simulation_mapper.map_process_simulation(
+        yaml_process_simulation=yaml_simulation,
+        process_periods=[PERIOD],
+    )
+
+    units = pipelines[0].get_process_units()
+    mixer_index = next(i for i, u in enumerate(units) if isinstance(u, Mixer))
+
+    # ASV loop 1 ends (DirectSplitter) before Mixer
+    assert isinstance(units[mixer_index - 1], DirectSplitter)
+    # ASV loop 2 starts (DirectMixer) after Mixer
+    assert isinstance(units[mixer_index + 1], DirectMixer)
 
 
 # ---------------------------------------------------------------------------
