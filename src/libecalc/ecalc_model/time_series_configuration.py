@@ -1,5 +1,6 @@
 from libecalc.common.ddd import value_object
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
+from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -16,3 +17,8 @@ class TimeSeriesTemperatureSetterConfiguration:
 @value_object
 class TimeSeriesMixerConfiguration:
     sidestream: TimeSeriesStream
+
+
+@value_object
+class TimeSeriesSplitterConfiguration:
+    offtake_rate: ExpressionTimeSeriesFlowRate

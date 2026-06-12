@@ -51,6 +51,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressorChart,
     YamlProcessUnit,
     YamlMixer,
+    YamlSplitter,
 )
 
 
@@ -84,9 +85,9 @@ class YamlCurveBuilder(Builder[YamlCurve]):
 
     def with_test_data(self) -> Self:
         self.speed = 10000.0
-        self.rate = [3000.0, 4000.0, 5000.0]
-        self.head = [100000.0, 90000.0, 75000.0]
-        self.efficiency = [0.72, 0.74, 0.70]
+        self.rate = [500.0, 3000.0, 5000.0, 8000.0]
+        self.head = [30000.0, 25000.0, 20000.0, 15000.0]
+        self.efficiency = [0.68, 0.72, 0.74, 0.70]
         return self
 
 
@@ -208,6 +209,20 @@ class YamlMixerBuilder(Builder[YamlMixer]):
             .with_rate(YamlInletStreamRateBuilder().with_test_data().with_value(200000).validate())
             .validate()
         )
+        return self
+
+
+class YamlSplitterBuilder(Builder[YamlSplitter]):
+    def __init__(self):
+        self.type = "SPLITTER"
+        self.offtake_rate = None
+
+    def with_offtake_rate(self, offtake_rate: YamlInletStreamRate) -> Self:
+        self.offtake_rate = offtake_rate
+        return self
+
+    def with_test_data(self) -> Self:
+        self.offtake_rate = YamlInletStreamRateBuilder().with_test_data().with_value(50_000).validate()
         return self
 
 

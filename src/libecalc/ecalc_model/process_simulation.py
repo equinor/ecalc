@@ -9,6 +9,7 @@ from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesMixerConfiguration,
     TimeSeriesPressureDropperConfiguration,
+    TimeSeriesSplitterConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
@@ -115,6 +116,7 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
                 ProcessUnitId,
                 TimeSeriesTemperatureSetterConfiguration
                 | TimeSeriesPressureDropperConfiguration
+                | TimeSeriesSplitterConfiguration
                 | TimeSeriesMixerConfiguration,
             ],
         ]
