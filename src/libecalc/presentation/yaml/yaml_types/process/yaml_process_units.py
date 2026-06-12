@@ -7,8 +7,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import UnitsField, YamlCurve, YamlUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import StreamRef
-from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
-from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStreamRate
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
 

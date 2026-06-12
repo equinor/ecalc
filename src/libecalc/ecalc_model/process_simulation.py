@@ -117,7 +117,7 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
                 TimeSeriesTemperatureSetterConfiguration
                 | TimeSeriesPressureDropperConfiguration
                 | TimeSeriesSplitterConfiguration
-                | TimeSeriesMixerConfiguration ,
+                | TimeSeriesMixerConfiguration,
             ],
         ]
         | None = None,
