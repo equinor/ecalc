@@ -6,9 +6,9 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import UnitsField, YamlCurve, YamlUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
+from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import StreamRef
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
-
-ProcessUnitReference = str
 
 
 class YamlControlMargin(YamlBase):
@@ -75,7 +75,21 @@ class YamlLiquidRemover(YamlBase):
     type: Literal["LIQUID_REMOVER"]
 
 
+class YamlMixer(YamlBase):
+    """Mixes an external sidestream into the through-stream at an
+    intermediate point in the pipeline."""
+
+    type: Literal["MIXER"]
+    sidestream: Annotated[
+        StreamRef | YamlInletStream,
+        Field(
+            description="Sidestream to mix in. Either a reference to a named stream or an inline stream definition.",
+            title="INLET_STREAM",
+        ),
+    ]
+
+
 YamlProcessUnit = Annotated[
-    YamlCompressor | YamlPressureDropper | YamlTemperatureSetter | YamlLiquidRemover,
+    YamlCompressor | YamlPressureDropper | YamlTemperatureSetter | YamlLiquidRemover | YamlMixer,
     Field(discriminator="type"),
 ]

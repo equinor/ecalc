@@ -20,6 +20,7 @@ from libecalc.ecalc_model.process_simulation import (
     ProcessSimulation,
 )
 from libecalc.ecalc_model.time_series_configuration import (
+    TimeSeriesMixerConfiguration,
     TimeSeriesPressureDropperConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
@@ -45,6 +46,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressor,
     YamlCompressorModelChart,
     YamlLiquidRemover,
+    YamlMixer,
     YamlPressureDropper,
     YamlProcessUnit,
     YamlTemperatureSetter,
@@ -75,6 +77,7 @@ from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
@@ -294,7 +297,12 @@ class ProcessSimulationMapper:
         # Some configurations are not found/set by the solver, but set by user upon process_simulation creation
         predefined_configurations: dict[
             ProcessPipelineId,
-            dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
+            dict[
+                ProcessUnitId,
+                TimeSeriesTemperatureSetterConfiguration
+                | TimeSeriesPressureDropperConfiguration
+                | TimeSeriesMixerConfiguration,
+            ],
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
@@ -303,15 +311,18 @@ class ProcessSimulationMapper:
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
-            compressor_segments: list[list[ProcessUnitId]] = []
             compressor_ids: list[ProcessUnitId] = []
             problem_time_series_configurations: dict[
-                ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration
+                ProcessUnitId,
+                TimeSeriesTemperatureSetterConfiguration
+                | TimeSeriesPressureDropperConfiguration
+                | TimeSeriesMixerConfiguration,
             ] = {}
 
             # Group units into compressor segments: each segment contains the units leading up to
             # (and including) one compressor. Used downstream to wrap each segment in its own ASV
             # recirculation loop when pressure_control is INDIVIDUAL_ASV.
+            pipeline_chunks: list[tuple[bool, list[ProcessUnitId]]] = []  # (wrap_in_asv, ids)
             current_segment_unit_ids: list[ProcessUnitId] = []
             for yaml_pipeline_item in item.items:
                 yaml_process_unit = yaml_pipeline_item.target
@@ -324,8 +335,8 @@ class ProcessSimulationMapper:
                         process_unit_map[compressor.get_id()] = compressor
                         compressor_ids.append(compressor.get_id())
                         current_segment_unit_ids.append(compressor.get_id())
-                        # Compressor closes the current segment
-                        compressor_segments.append(current_segment_unit_ids)
+                        # Compressor should be wrapped in ASV-loop
+                        pipeline_chunks.append((True, current_segment_unit_ids))
                         current_segment_unit_ids = []
 
                     case YamlPressureDropper():
@@ -352,6 +363,23 @@ class ProcessSimulationMapper:
                         liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
                         process_unit_map[liquid_remover.get_id()] = liquid_remover
                         current_segment_unit_ids.append(liquid_remover.get_id())
+
+                    case YamlMixer():
+                        yaml_stream = self._resolve_stream_reference(yaml_process_unit.sidestream)
+                        yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
+                        mixer = Mixer(fluid_service=self._fluid_service)
+                        problem_time_series_configurations[mixer.get_id()] = TimeSeriesMixerConfiguration(
+                            sidestream=TimeSeriesStream(
+                                pressure_bara=self._map_pressure(yaml_stream.pressure),
+                                standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
+                                temperature_kelvin=self._map_temperature(yaml_stream.temperature),
+                                fluid_model=self._map_fluid_model(yaml_fluid_model),
+                            )
+                        )
+                        process_unit_map[mixer.get_id()] = mixer
+                        # Mixer should not be wrapped in ASV-loop
+                        pipeline_chunks.append((False, [mixer.get_id()]))
+
                     case _:
                         # Unreachable for valid YAML (pydantic discriminator rejects unknown types).
                         # Guards against bypassed parsing or new union variants missing a case.
@@ -378,11 +406,14 @@ class ProcessSimulationMapper:
                 recirculation_loop, process_units = with_asv(units=list(process_unit_map.values()))
                 problem_configuration_handlers.append(recirculation_loop)
             else:  # INDIVIDUAL ASV (ASV per stage) assumed if not COMMON ASV explicitly set
-                for compressor_segment_ids in compressor_segments:
-                    segment_units = [process_unit_map[segment_unit_id] for segment_unit_id in compressor_segment_ids]
-                    recirculation_loop, stage_process_units = with_asv(units=segment_units)
-                    problem_configuration_handlers.append(recirculation_loop)
-                    process_units.extend(stage_process_units)
+                for wrap_in_asv, unit_ids in pipeline_chunks:
+                    segment_units = [process_unit_map[uid] for uid in unit_ids]
+                    if wrap_in_asv:
+                        recirculation_loop, stage_process_units = with_asv(units=segment_units)
+                        problem_configuration_handlers.append(recirculation_loop)
+                        process_units.extend(stage_process_units)
+                    else:
+                        process_units.extend(segment_units)
 
                 # Trailing units after last compressor — outside any ASV loop
                 if current_segment_unit_ids:

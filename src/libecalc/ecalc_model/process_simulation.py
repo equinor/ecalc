@@ -7,6 +7,7 @@ from libecalc.common.ddd.entity import Entity
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.ecalc_model.time_series_configuration import (
+    TimeSeriesMixerConfiguration,
     TimeSeriesPressureDropperConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
@@ -110,7 +111,12 @@ class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
         process_simulation_id: ProcessSimulationId | None = None,
         process_configurations: dict[
             ProcessPipelineId,
-            dict[ProcessUnitId, TimeSeriesTemperatureSetterConfiguration | TimeSeriesPressureDropperConfiguration],
+            dict[
+                ProcessUnitId,
+                TimeSeriesTemperatureSetterConfiguration
+                | TimeSeriesPressureDropperConfiguration
+                | TimeSeriesMixerConfiguration,
+            ],
         ]
         | None = None,
     ):
