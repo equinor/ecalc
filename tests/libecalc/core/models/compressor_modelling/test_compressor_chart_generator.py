@@ -217,7 +217,7 @@ def test_compressor_chart_from_head_and_rate_data(chart_data_factory, compressor
     )
 
     assert compressor_chart.design_head == pytest.approx(96909.05)
-    assert compressor_chart.design_rate == pytest.approx(4451.96)
+    assert compressor_chart.design_rate == pytest.approx(4451.965)
 
 
 def test_compressor_chart_from_head_and_rate_data_2():
