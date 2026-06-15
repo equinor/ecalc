@@ -126,6 +126,7 @@ class PipelineSectionSolver:
             target_pressure=pressure_constraint,
             inlet_stream=inlet_stream,
         )
+        print(f"pressure_control_solution: {pressure_control_solution}")
         final_configs = merge_configurations(
             speed_and_anti_surge_configurations, pressure_control_solution.configuration
         )
