@@ -41,6 +41,7 @@ class IndividualStreamDistributionConfig:
 @value_object
 class Constraint:  # should this instead be more flexible wrt. matching one or more stream conditions?
     outlet_pressure: TimeSeriesExpression
+    pressure_control: PressureControlType
     target_unit_id: ProcessUnitId | None = None  # None = pipeline outlet
 
 
@@ -64,14 +65,12 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 
     def __init__(
         self,
-        pressure_control_strategy: PressureControlConfig,
         anti_surge_strategy: AntiSurgeConfig,
         constraints: list[Constraint],
         configuration_handlers: Sequence[ConfigurationHandler],
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
-        self.pressure_control_strategy = pressure_control_strategy
         self.anti_surge_strategy = anti_surge_strategy
         self.constraints = constraints
         self.process_pipeline_id = process_pipeline_id
@@ -87,9 +86,6 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 
     def get_constraints(self) -> list[Constraint]:
         return self.constraints
-
-    def get_pressure_control_strategy(self) -> PressureControlConfig:
-        return self.pressure_control_strategy
 
     def get_anti_surge_strategy(self) -> AntiSurgeConfig:
         return self.anti_surge_strategy

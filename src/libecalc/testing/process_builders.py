@@ -236,6 +236,7 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self.type = "SERIAL"
         self.name = None
         self.items = []
+        self.anti_surge = "INDIVIDUAL_ASV"
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -245,6 +246,10 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         """Pass a list of validated process units (or string references).
         Each is wrapped in a YamlItem automatically."""
         self.items = [YamlItem(target=u) for u in units]
+        return self
+
+    def with_anti_surge(self, anti_surge: str) -> Self:
+        self.anti_surge = anti_surge
         return self
 
     def with_test_data(self) -> Self:
@@ -436,7 +441,11 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
     ) -> Self:
         self.targets.append(YamlItem(target=pipeline))
         self.pressure_control[pipeline.name] = pressure_control
-        self.constraints.append(YamlProcessConstraint(target=pipeline.name, outlet_pressure=outlet_pressure))
+        self.constraints.append(
+            YamlProcessConstraint(
+                target=pipeline.name, outlet_pressure=outlet_pressure, pressure_control=pressure_control
+            )
+        )
         return self
 
     def with_test_data(self) -> Self:

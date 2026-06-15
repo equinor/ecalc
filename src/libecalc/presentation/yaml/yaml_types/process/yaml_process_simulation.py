@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from pydantic import Field
 
@@ -11,6 +11,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 
 
 class YamlProcessConstraint(YamlBase):
@@ -37,6 +38,14 @@ class YamlProcessConstraint(YamlBase):
         ),
     ]
 
+    pressure_control: Annotated[
+        PressureControlType,
+        Field(
+            title="PRESSURE_CONTROL",
+            description="How to meet the target pressure at this constraint point.",
+        ),
+    ]
+
 
 class YamlProcessSimulation(YamlBase):
     name: str
@@ -45,18 +54,6 @@ class YamlProcessSimulation(YamlBase):
         Field(title="TARGETS"),
     ]
     stream_distribution: YamlStreamDistribution
-    pressure_control: Annotated[
-        dict[
-            ProcessPipelineReference,
-            Literal[
-                "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE", "DOWNSTREAM_CHOKE", "UPSTREAM_CHOKE"
-            ],
-        ],
-        Field(
-            title="PRESSURE_CONTROLS",
-            description="Pressure control strategy per target",
-        ),
-    ]
     constraints: Annotated[
         list[YamlProcessConstraint],
         Field(
