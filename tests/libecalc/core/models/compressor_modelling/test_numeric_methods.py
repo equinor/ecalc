@@ -81,6 +81,20 @@ def test_maximize_x_given_invalid_boolean_condition_function():
     assert result == pytest.approx(0, rel=0.01)
 
 
+def test_maximize_x_converges_when_threshold_is_near_lower_bound():
+    """Converges within a tight iteration budget even when the first several probes are all False."""
+    threshold = 11.0
+    result = maximize_x_given_boolean_condition_function(
+        x_min=10.0,
+        x_max=20.0,
+        bool_func=lambda x: x <= threshold,
+        convergence_tolerance=0.001,
+        maximum_number_of_iterations=10,
+    )
+    assert result <= threshold
+    assert result == pytest.approx(threshold, rel=0.001)
+
+
 def test_adaptive_pressure_update_beta_reduces_after_two_large_flips():
     """
     After two sign flips with large amplitude β must be < 1 (damped).

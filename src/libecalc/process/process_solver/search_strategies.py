@@ -51,7 +51,6 @@ class BinarySearchStrategy(SearchStrategy):
         Note: This requires that the boolean condition is an indicator function where x > threshold returns False.
         """
         x0, x1 = boundary.min, boundary.max
-        x2 = (x0 + x1) / 2  # Initial value x2.
         last_accepted: float | None = None
         i = 0
         rel_diff = 100.0
@@ -66,9 +65,7 @@ class BinarySearchStrategy(SearchStrategy):
             else:
                 x0, x1 = x0, x2  # x2 is invalid. We can now search to the left in the binary three
 
-            if accepted:
-                # Avoid division by zero: https://en.wikipedia.org/wiki/Relative_change_and_difference
-                rel_diff = 0 if x0 == x1 else abs(x1 - x0) / max(abs(x0), abs(x1))
+            rel_diff = 0 if x0 == x1 else abs(x1 - x0) / max(abs(x0), abs(x1))
             i += 1
 
         if i >= self._max_iterations:
@@ -77,7 +74,7 @@ class BinarySearchStrategy(SearchStrategy):
                 tolerance=self._tolerance,
                 iterations=self._max_iterations,
             )
-        return last_accepted if last_accepted is not None else x2
+        return last_accepted if last_accepted is not None else x1
 
 
 class RootFindingStrategy(abc.ABC):

@@ -209,11 +209,9 @@ def maximize_x_given_boolean_condition_function(
         x2 = (x0 + x1) / 2  # Bisecting x0 and x1.
         if bool_func(x2):
             x0, x1 = x2, x1  # x2 is valid. We can now search to the right in the binary three.
-            # Avoid division by zero: https://en.wikipedia.org/wiki/Relative_change_and_difference
-            rel_diff = 0 if x0 == x1 else abs(x1 - x0) / max(abs(x0), abs(x1))
         else:
             x0, x1 = x0, x2  # x2 is invalid. We can now search to the left in the binary three
-            # rel_diff does not change since the solution is not valid. Otherwise we could accept a non-True solution.
+        rel_diff = 0 if x0 == x1 else abs(x1 - x0) / max(abs(x0), abs(x1))
         i += 1
 
     if i > maximum_number_of_iterations:
@@ -223,4 +221,4 @@ def maximize_x_given_boolean_condition_function(
             f" bool_func: {bool_func}"
         )
         logger.error(msg)
-    return x2
+    return x0

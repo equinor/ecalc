@@ -22,7 +22,6 @@ from libecalc.process.process_solver.configuration import (
     SpeedConfiguration,
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.search_strategies import DidNotConvergeError
 from libecalc.process.process_solver.solver import (
     RateTooHighFailure,
     Solution,
@@ -62,23 +61,6 @@ class _Xfail:
 
 
 PROCESS_XFAILS: dict[tuple[str, str], _Xfail] = {
-    # R1 — SpeedSolver does not converge when the min-speed point starts above stonewall;
-    # the search raises DidNotConvergeError instead of returning a structured solution.
-    ("R1", "UPSTREAM_CHOKE"): _Xfail("SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError),
-    ("R1", "DOWNSTREAM_CHOKE"): _Xfail("SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError),
-    ("R1", "INDIVIDUAL_ASV_RATE"): _Xfail("SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError),
-    ("R1", "INDIVIDUAL_ASV_PRESSURE"): _Xfail(
-        "SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError
-    ),
-    ("R1", "COMMON_ASV"): _Xfail("SpeedSolver bracketing failure at min-speed.", raises=DidNotConvergeError),
-    # R6 — similar SpeedSolver non-convergence near the max-speed boundary (also raises).
-    ("R6", "UPSTREAM_CHOKE"): _Xfail("SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError),
-    ("R6", "DOWNSTREAM_CHOKE"): _Xfail("SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError),
-    ("R6", "INDIVIDUAL_ASV_RATE"): _Xfail("SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError),
-    ("R6", "INDIVIDUAL_ASV_PRESSURE"): _Xfail(
-        "SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError
-    ),
-    ("R6", "COMMON_ASV"): _Xfail("SpeedSolver convergence issue near max-speed.", raises=DidNotConvergeError),
     # R8 — process solver does not implement the legacy zero-rate short-circuit: it returns a
     # real (non-NaN) outlet pressure instead, so this is a wrong-but-structured outcome (no crash).
     ("R8", "UPSTREAM_CHOKE"): _Xfail("No zero-rate short-circuit in process solver."),

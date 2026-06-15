@@ -276,7 +276,7 @@ class TestCompressorTrainCommonShaft:
 
         np.testing.assert_almost_equal(
             result.outlet_stream.pressure,
-            [238.2, 270.0, 277.2, 220.4],
+            [238.2, 270.0, 277.0, 220.4],
             decimal=1,
         )
 
