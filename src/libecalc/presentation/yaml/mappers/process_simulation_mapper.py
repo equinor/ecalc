@@ -339,9 +339,9 @@ class ProcessSimulationMapper:
             ] = {}
             unit_name_to_id_map: dict[str, ProcessUnitId] = {}  # reset per pipeline
 
-            # Pipeline chunking: compressor segments are wrapped in ASV loops,
+            # Pipeline segmenting: compressor segments are wrapped in ASV loops,
             # other units (mixers, splitters, interstage conditioning) are standalone.
-            pipeline_chunks: list[tuple[bool, list[ProcessUnitId]]] = []  # (wrap_in_asv, ids)
+            pipeline_segments: list[tuple[bool, list[ProcessUnitId]]] = []  # (wrap_in_asv, ids)
             current_segment_unit_ids: list[ProcessUnitId] = []
             for yaml_pipeline_item in item.items:
                 yaml_process_unit = yaml_pipeline_item.target
@@ -361,7 +361,7 @@ class ProcessSimulationMapper:
                         compressor_ids.append(compressor.get_id())
                         current_segment_unit_ids.append(compressor.get_id())
                         # Compressor should be wrapped in ASV-loop
-                        pipeline_chunks.append((True, current_segment_unit_ids))
+                        pipeline_segments.append((True, current_segment_unit_ids))
                         current_segment_unit_ids = []
 
                     case YamlPressureDropper():
@@ -420,7 +420,7 @@ class ProcessSimulationMapper:
                         # Any units accumulated since the last chunk boundary
                         # belong outside any ASV loop — save them as a separate chunk.
                         if current_segment_unit_ids:
-                            pipeline_chunks.append((False, current_segment_unit_ids))
+                            pipeline_segments.append((False, current_segment_unit_ids))
                             current_segment_unit_ids = []
 
                         problem_time_series_configurations[mixer.get_id()] = TimeSeriesMixerConfiguration(
@@ -433,7 +433,7 @@ class ProcessSimulationMapper:
                         )
                         process_unit_map[mixer.get_id()] = mixer
                         # Mixer should not be wrapped in ASV-loop
-                        pipeline_chunks.append((False, [mixer.get_id()]))
+                        pipeline_segments.append((False, [mixer.get_id()]))
 
                     case YamlSplitter():
                         splitter = Splitter(fluid_service=self._fluid_service)
@@ -446,14 +446,14 @@ class ProcessSimulationMapper:
                         # Any units accumulated since the last chunk boundary
                         # belong outside any ASV loop — save them as a separate chunk.
                         if current_segment_unit_ids:
-                            pipeline_chunks.append((False, current_segment_unit_ids))
+                            pipeline_segments.append((False, current_segment_unit_ids))
                             current_segment_unit_ids = []
 
                         problem_time_series_configurations[splitter.get_id()] = TimeSeriesSplitterConfiguration(
                             offtake_rate=self._map_rate(yaml_process_unit.offtake_rate),
                         )
                         process_unit_map[splitter.get_id()] = splitter
-                        pipeline_chunks.append((False, [splitter.get_id()]))
+                        pipeline_segments.append((False, [splitter.get_id()]))
 
                     case _:
                         # Unreachable for valid YAML (pydantic discriminator rejects unknown types).
@@ -483,7 +483,7 @@ class ProcessSimulationMapper:
                 recirculation_loop, process_units = with_asv(units=list(process_unit_map.values()))
                 problem_configuration_handlers.append(recirculation_loop)
             else:  # INDIVIDUAL ASV (ASV per stage) assumed if not COMMON ASV explicitly set
-                for wrap_in_asv, unit_ids in pipeline_chunks:
+                for wrap_in_asv, unit_ids in pipeline_segments:
                     segment_units = [process_unit_map[uid] for uid in unit_ids]
                     if wrap_in_asv:
                         recirculation_loop, stage_process_units = with_asv(units=segment_units)
