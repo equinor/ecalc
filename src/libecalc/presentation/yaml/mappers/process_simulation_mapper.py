@@ -339,9 +339,8 @@ class ProcessSimulationMapper:
             ] = {}
             unit_name_to_id_map: dict[str, ProcessUnitId] = {}  # reset per pipeline
 
-            # Group units into compressor segments: each segment contains the units leading up to
-            # (and including) one compressor. Used downstream to wrap each segment in its own ASV
-            # recirculation loop when pressure_control is INDIVIDUAL_ASV.
+            # Pipeline chunking: compressor segments are wrapped in ASV loops,
+            # other units (mixers, splitters, interstage conditioning) are standalone.
             pipeline_chunks: list[tuple[bool, list[ProcessUnitId]]] = []  # (wrap_in_asv, ids)
             current_segment_unit_ids: list[ProcessUnitId] = []
             for yaml_pipeline_item in item.items:
@@ -418,7 +417,7 @@ class ProcessSimulationMapper:
                             name_map=unit_name_to_id_map,
                             pipeline_name=item.name,
                         )
-                        # Units between the last compressor and this mixer/splitter
+                        # Any units accumulated since the last chunk boundary
                         # belong outside any ASV loop — save them as a separate chunk.
                         if current_segment_unit_ids:
                             pipeline_chunks.append((False, current_segment_unit_ids))
@@ -444,7 +443,7 @@ class ProcessSimulationMapper:
                             name_map=unit_name_to_id_map,
                             pipeline_name=item.name,
                         )
-                        # Units between the last compressor and this mixer/splitter
+                        # Any units accumulated since the last chunk boundary
                         # belong outside any ASV loop — save them as a separate chunk.
                         if current_segment_unit_ids:
                             pipeline_chunks.append((False, current_segment_unit_ids))
