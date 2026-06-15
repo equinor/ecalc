@@ -15,7 +15,6 @@ from libecalc.ecalc_model.process_simulation import (
     CommonStreamSettings,
     Constraint,
     IndividualStreamDistributionConfig,
-    PressureControlConfig,
     ProcessProblem,
     ProcessSimulation,
 )
@@ -295,7 +294,6 @@ class ProcessSimulationMapper:
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         process_pipelines: list[ProcessPipeline] = []
         constraints: dict[ProcessPipelineId, Constraint] = {}
-        pressure_control_configs: dict[ProcessPipelineId, PressureControlConfig] = {}
         anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
 
@@ -411,10 +409,11 @@ class ProcessSimulationMapper:
 
             problem_configuration_handlers.append(shaft)
 
-            try:
-                pressure_control = yaml_process_simulation.pressure_control[item.name]
-            except KeyError as e:
-                raise EcalcValidationException(f"Missing pressure control for process system '{item.name}'") from e
+            # Find the first constraint for this pipeline to determine pressure control
+            pipeline_constraint = next((c for c in yaml_process_simulation.constraints if c.target == item.name), None)
+            if pipeline_constraint is None:
+                raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
+            pressure_control = pipeline_constraint.pressure_control
 
             process_units = []
             if pressure_control == "COMMON_ASV":
@@ -455,24 +454,21 @@ class ProcessSimulationMapper:
             configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
-            pressure_control_configs[process_pipeline.get_id()] = PressureControlConfig(
-                type=pressure_control,
-            )
             anti_surge_configs[process_pipeline.get_id()] = AntiSurgeConfig(
-                type="COMMON_ASV" if pressure_control == "COMMON_ASV" else "INDIVIDUAL_ASV",
+                type=item.anti_surge,
             )
             process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
 
-        for process_pipeline_reference, constraint in yaml_process_simulation.constraints.items():
-            process_pipeline_id = process_pipeline_reference_to_id_map.get(process_pipeline_reference)
-            if process_pipeline_id is None:
+        for yaml_constraint in yaml_process_simulation.constraints:
+            if yaml_constraint.target not in process_pipeline_reference_to_id_map:
                 raise EcalcValidationException(
-                    f"Constraint specified for unknown process system '{process_pipeline_reference}'"
+                    f"Constraint specified for unknown process system '{yaml_constraint.target}'"
                 )
+            process_pipeline_id = process_pipeline_reference_to_id_map[yaml_constraint.target]
             constraints[process_pipeline_id] = Constraint(
                 outlet_pressure=TimeSeriesExpression(
-                    expression=constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
+                    expression=yaml_constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
                 ),
             )
 
@@ -557,7 +553,6 @@ class ProcessSimulationMapper:
                 process_pipeline_id=process_pipeline.get_id(),
                 constraint=constraints[process_pipeline.get_id()],
                 anti_surge_strategy=anti_surge_configs[process_pipeline.get_id()],
-                pressure_control_strategy=pressure_control_configs[process_pipeline.get_id()],
                 configuration_handlers=configuration_handlers[process_pipeline.get_id()],
             )
             for process_pipeline in process_pipelines

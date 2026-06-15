@@ -218,10 +218,11 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
 
 def test_mapper_attaches_anti_surge_config_to_process_problem(process_simulation_mapper):
     """Anti-surge strategy follows from pressure control choice."""
-    yaml_common = _build_simulation_with_pipeline(_simple_pipeline("train_common"), pressure_control="COMMON_ASV")
-    yaml_individual = _build_simulation_with_pipeline(
-        _simple_pipeline("train_individual"), pressure_control="INDIVIDUAL_ASV_RATE"
-    )
+    pipeline_common = _simple_pipeline("train_common")
+    pipeline_common.anti_surge = "COMMON_ASV"
+    yaml_common = _build_simulation_with_pipeline(pipeline_common)
+    pipeline_individual = _simple_pipeline("train_individual")
+    yaml_individual = _build_simulation_with_pipeline(pipeline_individual)
 
     _, sim_common = process_simulation_mapper.map_process_simulation(
         yaml_process_simulation=yaml_common,

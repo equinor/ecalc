@@ -10,7 +10,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlPredefinedFluidModel,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlProcessConstraints,
+    YamlProcessConstraint,
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
@@ -236,6 +236,7 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self.type = "SERIAL"
         self.name = None
         self.items = []
+        self.anti_surge = "INDIVIDUAL_ASV"
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -245,6 +246,10 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         """Pass a list of validated process units (or string references).
         Each is wrapped in a YamlItem automatically."""
         self.items = [YamlItem(target=u) for u in units]
+        return self
+
+    def with_anti_surge(self, anti_surge: str) -> Self:
+        self.anti_surge = anti_surge
         return self
 
     def with_test_data(self) -> Self:
@@ -414,8 +419,7 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         self.name: str | None = None
         self.targets: list[YamlItem[YamlProcessPipeline]] = []
         self.stream_distribution = None
-        self.pressure_control: dict[ProcessPipelineReference, PressureControlType] = {}
-        self.constraints: dict[ProcessPipelineReference, YamlProcessConstraints] = {}
+        self.constraints: list[YamlProcessConstraint] = []
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -435,8 +439,13 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         outlet_pressure: YamlExpressionType = 100.0,
     ) -> Self:
         self.targets.append(YamlItem(target=pipeline))
-        self.pressure_control[pipeline.name] = pressure_control
-        self.constraints[pipeline.name] = YamlProcessConstraints(outlet_pressure=outlet_pressure)
+        self.constraints.append(
+            YamlProcessConstraint(
+                target=pipeline.name,
+                outlet_pressure=outlet_pressure,
+                pressure_control=pressure_control,
+            )
+        )
         return self
 
     def with_test_data(self) -> Self:

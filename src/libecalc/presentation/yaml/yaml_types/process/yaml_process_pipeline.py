@@ -17,3 +17,4 @@ class YamlProcessPipeline(YamlBase):
     type: Literal["SERIAL"]
     name: ProcessPipelineReference
     items: list[YamlItem[YamlProcessUnit]]
+    anti_surge: Literal["INDIVIDUAL_ASV", "COMMON_ASV"] = "INDIVIDUAL_ASV"

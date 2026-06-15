@@ -6,6 +6,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import UnitsField, YamlCurve, YamlUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import StreamRef
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
@@ -36,6 +37,7 @@ class YamlCompressor(YamlBase):
     """
 
     type: Literal["COMPRESSOR"]
+    name: ProcessUnitReference | None = None
     compressor_model: YamlCompressorModelChart
 
 
@@ -43,6 +45,7 @@ class YamlPressureDropper(YamlBase):
     """A pressure dropper unit — reduces stream pressure by a fixed amount."""
 
     type: Literal["PRESSURE_DROPPER"]
+    name: ProcessUnitReference | None = None
     pressure_drop: Annotated[
         YamlExpressionType,
         Field(
@@ -56,6 +59,7 @@ class YamlTemperatureSetter(YamlBase):
     """A temperature setter unit — forces the stream to a specified temperature."""
 
     type: Literal["TEMPERATURE_SETTER"]
+    name: ProcessUnitReference | None = None
     temperature: Annotated[
         YamlExpressionType,
         Field(
@@ -73,6 +77,7 @@ class YamlLiquidRemover(YamlBase):
     """
 
     type: Literal["LIQUID_REMOVER"]
+    name: ProcessUnitReference | None = None
 
 
 class YamlMixer(YamlBase):
@@ -80,6 +85,7 @@ class YamlMixer(YamlBase):
     intermediate point in the pipeline."""
 
     type: Literal["MIXER"]
+    name: ProcessUnitReference | None = None
     sidestream: Annotated[
         StreamRef | YamlInletStream,
         Field(
@@ -94,6 +100,7 @@ class YamlSplitter(YamlBase):
     intermediate point in the pipeline (e.g. fuel gas offtake)."""
 
     type: Literal["SPLITTER"]
+    name: ProcessUnitReference | None = None
     offtake_rate: Annotated[
         YamlInletStreamRate,
         Field(

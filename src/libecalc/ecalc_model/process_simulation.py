@@ -63,14 +63,12 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 
     def __init__(
         self,
-        pressure_control_strategy: PressureControlConfig,
         anti_surge_strategy: AntiSurgeConfig,
         constraint: Constraint,
         configuration_handlers: Sequence[ConfigurationHandler],
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
-        self.pressure_control_strategy = pressure_control_strategy
         self.anti_surge_strategy = anti_surge_strategy
         self.constraint = constraint
         self.process_pipeline_id = process_pipeline_id
@@ -86,9 +84,6 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 
     def get_constraint(self) -> Constraint:
         return self.constraint
-
-    def get_pressure_control_strategy(self) -> PressureControlConfig:
-        return self.pressure_control_strategy
 
     def get_anti_surge_strategy(self) -> AntiSurgeConfig:
         return self.anti_surge_strategy
