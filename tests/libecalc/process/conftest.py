@@ -11,7 +11,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.search_strategies import (
     CONVERGENCE_TOLERANCE,
-    BinarySearchStrategy,
+    Bisect,
     ScipyRootFindingStrategy,
 )
 from libecalc.process.process_units.choke import Choke
@@ -228,6 +228,6 @@ def root_finding_strategy():
 @pytest.fixture
 def search_strategy_factory():
     def create_search_strategy(tolerance: float = CONVERGENCE_TOLERANCE):
-        return BinarySearchStrategy(tolerance=tolerance)
+        return Bisect(tolerance=tolerance)
 
     return create_search_strategy

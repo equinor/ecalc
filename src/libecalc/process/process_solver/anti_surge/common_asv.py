@@ -4,7 +4,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.process_runner import ProcessRunner
-from libecalc.process.process_solver.search_strategies import BinarySearchStrategy, RootFindingStrategy
+from libecalc.process.process_solver.search_strategies import Bisect, RootFindingStrategy
 from libecalc.process.process_solver.solver import Solution
 from libecalc.process.process_solver.solvers.recirculation_solver import (
     RecirculationConfiguration,
@@ -72,7 +72,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         # target_pressure=None means: "solve only for within-capacity feasibility",
         # not for meeting any pressure constraint.
         solver = RecirculationSolver(
-            search_strategy=BinarySearchStrategy(tolerance=10e-3),
+            search_strategy=Bisect(tolerance=10e-3),
             root_finding_strategy=self._root_finding_strategy,
             recirculation_rate_boundary=boundary,
             target_pressure=None,  # capacity only
