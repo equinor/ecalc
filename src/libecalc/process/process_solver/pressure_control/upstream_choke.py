@@ -9,12 +9,12 @@ from libecalc.process.process_solver.configuration import (
     ConfigurationHandlerId,
     RecirculationConfiguration,
 )
+from libecalc.process.process_solver.finders.choke_delta_pressure_finders import UpstreamChokeDeltaPressureFinder
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy
 from libecalc.process.process_solver.solver import Solution
-from libecalc.process.process_solver.solvers.upstream_choke_solver import UpstreamChokeSolver
 
 PRESSURE_CALCULATION_TOLERANCE = 1e-3
 
@@ -61,7 +61,7 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
             max=inlet_stream.pressure_bara - PRESSURE_CALCULATION_TOLERANCE,
         )
 
-        solver = UpstreamChokeSolver(
+        finder = UpstreamChokeDeltaPressureFinder(
             root_finding_strategy=self._root_finding_strategy,
             target_pressure=target_pressure.value,
             delta_pressure_boundary=delta_pressure_boundary,
@@ -77,15 +77,12 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
             self._last_anti_surge_configurations = anti_surge_solution.configuration
             return self._simulator.run(inlet_stream=inlet_stream)
 
-        solution = solver.solve(choke_func)
-
+        finding = finder.find(choke_func)
+        choke_config = Configuration(
+            configuration_handler_id=self._choke_configuration_handler_id, value=finding.configuration
+        )
         return Solution(
-            success=solution.success,
-            configuration=[
-                *self._last_anti_surge_configurations,
-                Configuration(
-                    configuration_handler_id=self._choke_configuration_handler_id, value=solution.configuration
-                ),
-            ],
-            failure=solution.failure,
+            success=finding.success,
+            configuration=[*self._last_anti_surge_configurations, choke_config],
+            failure=finding.failure,
         )

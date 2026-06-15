@@ -2,7 +2,13 @@ from collections.abc import Sequence
 
 from libecalc.common.numeric_methods import find_root
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_solver.configuration import ChokeConfiguration, Configuration, ConfigurationHandlerId
+from libecalc.process.process_solver.configuration import (
+    ChokeConfiguration,
+    Configuration,
+    ConfigurationHandlerId,
+    RecirculationConfiguration,
+)
+from libecalc.process.process_solver.finders.recirculation_loop_rate_finder import RecirculationLoopRateFinder
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
@@ -10,10 +16,6 @@ from libecalc.process.process_solver.search_strategies import Bisect, RootFindin
 from libecalc.process.process_solver.solver import (
     Solution,
     TargetDirection,
-)
-from libecalc.process.process_solver.solvers.recirculation_solver import (
-    RecirculationConfiguration,
-    RecirculationSolver,
 )
 from libecalc.process.process_units.compressor import Compressor
 
@@ -81,25 +83,24 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
                 compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
                 return compressor.propagate_stream(inlet_stream=compressor_inlet_stream)
 
-            solver = RecirculationSolver(
+            finder = RecirculationLoopRateFinder(
                 search_strategy=Bisect(tolerance=10e-3),
                 root_finding_strategy=self._root_finding_strategy,
                 recirculation_rate_boundary=boundary,
                 target_pressure=FloatConstraint(stage_target_pressure),
             )
 
-            solution = solver.solve(recirculation_func)
-            configuration: Configuration[RecirculationConfiguration | ChokeConfiguration] = Configuration(
-                configuration_handler_id=recirculation_loop_id, value=solution.configuration
-            )
-            configurations.append(configuration)
-
-            if not solution.success:
+            finding = finder.find(recirculation_func)
+            if not finding.success:
                 return Solution(
                     success=False,
                     configuration=configurations,
-                    failure=solution.failure,
+                    failure=finding.failure,
                 )
+            configuration: Configuration[RecirculationConfiguration | ChokeConfiguration] = Configuration(
+                configuration_handler_id=recirculation_loop_id, value=finding.configuration
+            )
+            configurations.append(configuration)
 
         return Solution(
             success=True,
