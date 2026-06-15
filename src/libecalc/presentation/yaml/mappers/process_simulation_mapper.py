@@ -339,8 +339,10 @@ class ProcessSimulationMapper:
             ] = {}
             unit_name_to_id_map: dict[str, ProcessUnitId] = {}  # reset per pipeline
 
-            # Pipeline segmenting: compressor segments are wrapped in ASV loops,
-            # other units (mixers, splitters, interstage conditioning) are standalone.
+            # Units like temperature setters, pressure droppers and liquid removers
+            # are grouped with the next compressor and share its ASV loop.
+            # A compressor ends the group and wraps it in an ASV loop.
+            # A mixer or splitter stands on its own, without ASV loop.
             pipeline_segments: list[tuple[bool, list[ProcessUnitId]]] = []  # (wrap_in_asv, ids)
             current_segment_unit_ids: list[ProcessUnitId] = []
             for yaml_pipeline_item in item.items:
