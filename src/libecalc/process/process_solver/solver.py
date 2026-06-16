@@ -60,12 +60,6 @@ class RateTooLowFailure(SolverFailure):
         )
 
 
-@dataclass
-class InfeasiblePressureFailure(SolverFailure):
-    source_id: ProcessUnitId
-    achieved_pressure_bara: float | None = None
-
-
 class TargetDirection(Enum):
     """Which side of the target pressure the achievable boundary lies on."""
 
