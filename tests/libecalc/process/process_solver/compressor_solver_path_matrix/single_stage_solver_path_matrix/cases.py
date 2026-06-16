@@ -19,6 +19,7 @@ from ..utils import (
     ExpectedResult,
     PressureExpectation,
     SpeedBoundaryClass,
+    pressure_expectation_from_legacy,
 )
 from .golden_snapshot import load_golden_snapshot
 
@@ -132,24 +133,6 @@ def _control_action(mode: str, recirculation_rate: float | None) -> ExpectedCont
     return ExpectedControlAction.NONE
 
 
-def _pressure_expectation(
-    outcome: ExpectedOutcome,
-    actual_discharge_bara: float | None,
-    target_discharge_bara: float,
-) -> PressureExpectation:
-    """Derive the pressure assertion intent from the legacy outcome and discharge pressure."""
-    if actual_discharge_bara is None:
-        return PressureExpectation.NAN
-    if outcome is ExpectedOutcome.SUCCESS:
-        return PressureExpectation.TARGET
-    if actual_discharge_bara < target_discharge_bara:
-        return PressureExpectation.BELOW_TARGET
-    if outcome is ExpectedOutcome.PRESSURE_TOO_LOW:
-        # Min-speed floor: the solver cannot reduce pressure to the (low) target, so it overshoots.
-        return PressureExpectation.ABOVE_TARGET
-    return PressureExpectation.NOT_ASSERTED
-
-
 def _expected_from_golden_snapshot(region_id: str, mode: PressureControlType) -> ExpectedResult:
     snapshot = _GOLDEN_SNAPSHOT.get(f"{region_id}-{mode}", {})
     try:
@@ -158,7 +141,7 @@ def _expected_from_golden_snapshot(region_id: str, mode: PressureControlType) ->
         return ExpectedResult(
             outcome=outcome,
             power_mw=snapshot["power_mw"],
-            pressure_expectation=_pressure_expectation(
+            pressure_expectation=pressure_expectation_from_legacy(
                 outcome,
                 snapshot["discharge_pressure_bara"],
                 REGIONS[region_id].discharge_pressure_bara,

@@ -7,9 +7,6 @@ yet match legacy behavior are marked as strict xfails.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
-from dataclasses import dataclass
-
 import numpy as np
 import pytest
 
@@ -17,22 +14,13 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.process.process_solver.configuration import (
     ChokeConfiguration,
-    Configuration,
     RecirculationConfiguration,
     SpeedConfiguration,
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.solver import (
-    RateTooHighFailure,
-    Solution,
-    TargetDirection,
-    TargetPressureUnreachableFailure,
-)
-from libecalc.process.process_solver.solver import (
-    RateTooLowFailure as SolverRateTooLowFailure,
-)
 from libecalc.process.process_units.compressor import Compressor
 
+from ..utils import Xfail, make_xfail_param, outcome_from_process_solution
 from .assertions import (
     POWER_TOLERANCE,
     PRESSURE_TOLERANCE,
@@ -40,60 +28,25 @@ from .assertions import (
     assert_pressure_expectation,
     assert_speed_boundary,
 )
-from .cases import TEST_CASES, ExpectedOutcome, TrialCase
-
+from .cases import TEST_CASES, TrialCase
 
 # ---------------------------------------------------------------------------
 # Expected failures — remove entries as the process solver improves
 # ---------------------------------------------------------------------------
-@dataclass(frozen=True)
-class _Xfail:
-    """A documented process-solver divergence from legacy.
-
-    ``raises`` distinguishes a *crash* (uncaught exception) from a merely
-    *wrong-but-structured* outcome. When set, the xfail is strict on that exact
-    exception type, so the case xpasses (alerting us) once the solver either stops
-    crashing or starts returning the correct structured result.
-    """
-
-    reason: str
-    raises: type[BaseException] | None = None
-
-
-PROCESS_XFAILS: dict[tuple[str, str], _Xfail] = {
+PROCESS_XFAILS: dict[tuple[str, str], Xfail] = {
     # R8 — process solver does not implement the legacy zero-rate short-circuit: it returns a
     # real (non-NaN) outlet pressure instead, so this is a wrong-but-structured outcome (no crash).
-    ("R8", "UPSTREAM_CHOKE"): _Xfail("No zero-rate short-circuit in process solver."),
-    ("R8", "DOWNSTREAM_CHOKE"): _Xfail("No zero-rate short-circuit in process solver."),
-    ("R8", "INDIVIDUAL_ASV_RATE"): _Xfail("No zero-rate short-circuit in process solver."),
-    ("R8", "INDIVIDUAL_ASV_PRESSURE"): _Xfail("No zero-rate short-circuit in process solver."),
-    ("R8", "COMMON_ASV"): _Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "UPSTREAM_CHOKE"): Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "DOWNSTREAM_CHOKE"): Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "INDIVIDUAL_ASV_RATE"): Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "INDIVIDUAL_ASV_PRESSURE"): Xfail("No zero-rate short-circuit in process solver."),
+    ("R8", "COMMON_ASV"): Xfail("No zero-rate short-circuit in process solver."),
 }
 
 
 # ---------------------------------------------------------------------------
 # Test parametrization and helpers
 # ---------------------------------------------------------------------------
-
-
-def _outcome_from_process_solution(
-    solution: Solution[Sequence[Configuration]],
-) -> ExpectedOutcome:
-    if solution.success:
-        return ExpectedOutcome.SUCCESS
-    if solution.failure is None:
-        return ExpectedOutcome.NOT_CALCULATED
-    match solution.failure:
-        case RateTooHighFailure():
-            return ExpectedOutcome.ABOVE_MAX_FLOW
-        case SolverRateTooLowFailure():
-            return ExpectedOutcome.BELOW_MIN_FLOW
-        case TargetPressureUnreachableFailure(direction=TargetDirection.MAX_BELOW_TARGET):
-            return ExpectedOutcome.PRESSURE_TOO_HIGH
-        case TargetPressureUnreachableFailure(direction=TargetDirection.MIN_ABOVE_TARGET):
-            return ExpectedOutcome.PRESSURE_TOO_LOW
-        case _:
-            return ExpectedOutcome.NOT_CALCULATED
 
 
 def _calculate_compressor_power_mw(
@@ -111,19 +64,7 @@ def _calculate_compressor_power_mw(
     return delta_h * mass_rate / 3600.0 / 1e6
 
 
-def _make_param(case: TrialCase):
-    xfail = PROCESS_XFAILS.get((case.region.id, case.mode))
-    if xfail is None:
-        return pytest.param(case, id=case.id)
-    mark = (
-        pytest.mark.xfail(reason=xfail.reason, strict=True, raises=xfail.raises)
-        if xfail.raises is not None
-        else pytest.mark.xfail(reason=xfail.reason, strict=True)
-    )
-    return pytest.param(case, id=case.id, marks=mark)
-
-
-PROCESS_TEST_PARAMS = tuple(_make_param(case) for case in TEST_CASES)
+PROCESS_TEST_PARAMS = tuple(make_xfail_param(case, PROCESS_XFAILS) for case in TEST_CASES)
 
 
 @pytest.mark.parametrize("case", PROCESS_TEST_PARAMS)
@@ -145,7 +86,7 @@ def test_process_solver_path(
     except RateTooHighError:
         outlet_pressure = np.nan
 
-    outcome = _outcome_from_process_solution(solution)
+    outcome = outcome_from_process_solution(solution)
     speed = next(
         (c.value.speed for c in solution.configuration if isinstance(c.value, SpeedConfiguration)),
         system.shaft.get_speed(),
