@@ -80,19 +80,22 @@ class TargetPressureUnreachableFailure(SolverFailure):
 
 @dataclass(frozen=True)
 class Solution[TConfiguration]:
-    success: bool
     configuration: TConfiguration
     failure: SolverFailure | None = field(default=None)
+
+    @property
+    def success(self) -> bool:
+        return self.failure is None
 
     @classmethod
     def from_rate_too_high[T](cls, e: RateTooHighError, configuration: T) -> Solution[T]:
         """Build an unsuccessful Solution carrying a RateTooHighFailure."""
-        return Solution(success=False, configuration=configuration, failure=RateTooHighFailure.from_error(e))
+        return Solution(configuration=configuration, failure=RateTooHighFailure.from_error(e))
 
     @classmethod
     def from_rate_too_low[T](cls, e: RateTooLowError, configuration: T) -> Solution[T]:
         """Build an unsuccessful Solution carrying a RateTooLowFailure."""
-        return Solution(success=False, configuration=configuration, failure=RateTooLowFailure.from_error(e))
+        return Solution(configuration=configuration, failure=RateTooLowFailure.from_error(e))
 
     @classmethod
     def target_pressure_unreachable[T](
@@ -105,7 +108,6 @@ class Solution[TConfiguration]:
     ) -> Solution[T]:
         """Build an unsuccessful Solution carrying a TargetPressureUnreachableFailure."""
         return Solution(
-            success=False,
             configuration=configuration,
             failure=TargetPressureUnreachableFailure(
                 achievable_pressure_bara=achievable_pressure_bara,
@@ -142,7 +144,6 @@ class Solution[TConfiguration]:
         if not self.success:
             return self
         return Solution(
-            success=other.success,
             configuration=merge_configurations(self.configuration, other.configuration),
             failure=other.failure,
         )

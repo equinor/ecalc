@@ -82,7 +82,6 @@ class UpstreamChokePressureControlStrategy(PressureControlStrategy):
             configuration_handler_id=self._choke_configuration_handler_id, value=finding.configuration
         )
         return Solution(
-            success=finding.success,
             configuration=[*self._last_anti_surge_configurations, choke_config],
             failure=finding.failure,
         )

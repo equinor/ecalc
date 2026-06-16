@@ -12,7 +12,7 @@ class NoASVAntiSurgeStrategy(AntiSurgeStrategy):
 
     @override
     def apply(self, inlet_stream: FluidStream) -> Solution[Sequence[Configuration[RecirculationConfiguration]]]:
-        return Solution(success=True, configuration=[])
+        return Solution(configuration=[])
 
     @override
     def reset(self) -> None:

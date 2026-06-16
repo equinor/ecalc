@@ -11,7 +11,7 @@ from libecalc.process.process_solver.finders.choke_delta_pressure_finders import
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
-from libecalc.process.process_solver.solver import Solution
+from libecalc.process.process_solver.solver import Solution, TargetDirection, TargetPressureUnreachableFailure
 
 
 class DownstreamChokePressureControlStrategy(PressureControlStrategy):
@@ -48,11 +48,18 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
 
         # If already at/below target, don't choke (can't increase pressure anyway).
         if baseline_outlet_stream.pressure_bara <= target_pressure:
+            choke_config = [
+                Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=baseline_config)
+            ]
+            if baseline_outlet_stream.pressure_bara == target_pressure:
+                return Solution(configuration=choke_config)
             return Solution(
-                success=baseline_outlet_stream.pressure_bara == target_pressure,
-                configuration=[
-                    Configuration(configuration_handler_id=self._choke_configuration_handler_id, value=baseline_config)
-                ],
+                configuration=choke_config,
+                failure=TargetPressureUnreachableFailure(
+                    achievable_pressure_bara=baseline_outlet_stream.pressure_bara,
+                    target_pressure_bara=target_pressure.value,
+                    direction=TargetDirection.MAX_BELOW_TARGET,
+                ),
             )
 
         # 2) Solve for needed downstream ΔP
@@ -60,7 +67,6 @@ class DownstreamChokePressureControlStrategy(PressureControlStrategy):
 
         finding = choke_finder.find(outlet_with_choke)
         return Solution(
-            success=finding.success,
             configuration=[
                 Configuration(
                     configuration_handler_id=self._choke_configuration_handler_id,

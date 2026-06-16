@@ -93,7 +93,6 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
             finding = finder.find(recirculation_func)
             if not finding.success:
                 return Solution(
-                    success=False,
                     configuration=configurations,
                     failure=finding.failure,
                 )
@@ -103,7 +102,6 @@ class IndividualASVPressureControlStrategy(PressureControlStrategy):
             configurations.append(configuration)
 
         return Solution(
-            success=True,
             configuration=configurations,
         )
 
@@ -192,7 +190,6 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
             asv_rate_fraction=result_fraction,
         )
         return Solution(
-            success=True,
             configuration=configurations,
         )
 
