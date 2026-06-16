@@ -69,6 +69,5 @@ class IndividualASVAntiSurgeStrategy(AntiSurgeStrategy):
             self._simulator.apply_configuration(configuration)
 
         return Solution(
-            success=True,
             configuration=configurations,
         )

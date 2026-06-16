@@ -82,7 +82,6 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
 
         finding = finder.find(recirculation_func)
         return Solution(
-            success=finding.success,
             configuration=[
                 Configuration(
                     configuration_handler_id=self._recirculation_loop_id,

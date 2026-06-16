@@ -87,9 +87,7 @@ class MultiPressureSolver:
             configuration_handler_id=self._shaft_id,
             value=max(speed_configurations),
         )
-        solution: Solution[Sequence[Configuration[OperatingConfiguration]]] = Solution(
-            success=True, configuration=[shaft_config]
-        )
+        solution: Solution[Sequence[Configuration[OperatingConfiguration]]] = Solution(configuration=[shaft_config])
 
         current_inlet = inlet_stream
 

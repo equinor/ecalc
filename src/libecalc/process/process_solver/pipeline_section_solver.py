@@ -87,7 +87,7 @@ class PipelineSectionSolver:
         )
 
         if isinstance(speed_finding.failure, (RateTooHighFailure, RateTooLowFailure)):
-            return Solution(success=False, configuration=[shaft_config], failure=speed_finding.failure)
+            return Solution(configuration=[shaft_config], failure=speed_finding.failure)
 
         self._pipeline_section.runner.apply_configuration(shaft_config)
         self._anti_surge_solution = self._pipeline_section.anti_surge_strategy.apply(inlet_stream=inlet_stream)
@@ -96,7 +96,6 @@ class PipelineSectionSolver:
 
         if not self._anti_surge_solution.success:
             return Solution(
-                success=False,
                 configuration=speed_and_anti_surge_configurations,
                 failure=self._anti_surge_solution.failure,
             )
@@ -105,7 +104,7 @@ class PipelineSectionSolver:
             speed_finding.failure.direction == TargetDirection.MAX_BELOW_TARGET
         ):
             failure = speed_finding.failure.with_source_id(self._pipeline_section.process_pipeline_id)
-            return Solution(success=False, configuration=speed_and_anti_surge_configurations, failure=failure)
+            return Solution(configuration=speed_and_anti_surge_configurations, failure=failure)
 
         outlet_at_chosen_speed = self._get_outlet_stream(
             inlet_stream=inlet_stream,
@@ -113,9 +112,7 @@ class PipelineSectionSolver:
         )
 
         if outlet_at_chosen_speed.pressure_bara == pressure_constraint:
-            return Solution(
-                success=True, configuration=speed_and_anti_surge_configurations
-            )  # No pressure control needed
+            return Solution(configuration=speed_and_anti_surge_configurations)  # No pressure control needed
 
         pressure_control_solution = self._pipeline_section.pressure_control_strategy.apply(
             target_pressure=pressure_constraint,
@@ -125,7 +122,6 @@ class PipelineSectionSolver:
         if isinstance(failure, TargetPressureUnreachableFailure) and failure.source_id is None:
             failure = failure.with_source_id(self._pipeline_section.process_pipeline_id)
         return Solution(
-            success=pressure_control_solution.success,
             configuration=merge_configurations(
                 speed_and_anti_surge_configurations, pressure_control_solution.configuration
             ),

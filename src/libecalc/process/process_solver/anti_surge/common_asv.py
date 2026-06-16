@@ -46,7 +46,6 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
         self.reset()
         finding = self._increase_recirculation_to_minimum_feasible(inlet_stream)
         return Solution(
-            success=finding.success,
             configuration=[
                 Configuration(configuration_handler_id=self._recirculation_loop_id, value=finding.configuration)
             ],
