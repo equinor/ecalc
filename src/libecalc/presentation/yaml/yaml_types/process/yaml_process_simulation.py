@@ -15,13 +15,6 @@ from libecalc.process.process_solver.pressure_control.pressure_control_strategy 
 
 
 class YamlProcessConstraint(YamlBase):
-    target: Annotated[
-        ProcessPipelineReference,
-        Field(
-            title="TARGET",
-            description="Reference to the process pipeline this constraint applies to.",
-        ),
-    ]
     unit: Annotated[
         ProcessUnitReference | None,
         Field(
@@ -53,9 +46,9 @@ class YamlProcessSimulation(YamlBase):
     ]
     stream_distribution: YamlStreamDistribution
     constraints: Annotated[
-        list[YamlProcessConstraint],
+        dict[ProcessPipelineReference, list[YamlProcessConstraint]],
         Field(
             title="CONSTRAINTS",
-            description="Constraints per target.",
+            description="Constraints per target. Key is pipeline name, value is list of constraints.",
         ),
     ]

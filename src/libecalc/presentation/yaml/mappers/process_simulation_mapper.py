@@ -409,11 +409,10 @@ class ProcessSimulationMapper:
 
             problem_configuration_handlers.append(shaft)
 
-            # Find the first constraint for this pipeline to determine pressure control
-            pipeline_constraint = next((c for c in yaml_process_simulation.constraints if c.target == item.name), None)
-            if pipeline_constraint is None:
+            pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
+            if not pipeline_constraints:
                 raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
-            pressure_control = pipeline_constraint.pressure_control
+            pressure_control = pipeline_constraints[-1].pressure_control
 
             process_units = []
             if pressure_control == "COMMON_ASV":
@@ -460,15 +459,17 @@ class ProcessSimulationMapper:
             process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
 
-        for yaml_constraint in yaml_process_simulation.constraints:
-            if yaml_constraint.target not in process_pipeline_reference_to_id_map:
-                raise EcalcValidationException(
-                    f"Constraint specified for unknown process system '{yaml_constraint.target}'"
-                )
-            process_pipeline_id = process_pipeline_reference_to_id_map[yaml_constraint.target]
+        for pipeline_ref, pipeline_constraints in yaml_process_simulation.constraints.items():
+            process_pipeline_id = process_pipeline_reference_to_id_map.get(pipeline_ref)
+            if process_pipeline_id is None:
+                raise EcalcValidationException(f"Constraint specified for unknown process system '{pipeline_ref}'")
+            if not pipeline_constraints:
+                raise EcalcValidationException(f"Empty constraint list for process system '{pipeline_ref}'")
+            outlet_constraint = pipeline_constraints[-1]
             constraints[process_pipeline_id] = Constraint(
                 outlet_pressure=TimeSeriesExpression(
-                    expression=yaml_constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
+                    expression=outlet_constraint.outlet_pressure,
+                    expression_evaluator=self._expression_evaluator,
                 ),
             )
 

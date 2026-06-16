@@ -419,7 +419,7 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         self.name: str | None = None
         self.targets: list[YamlItem[YamlProcessPipeline]] = []
         self.stream_distribution = None
-        self.constraints: list[YamlProcessConstraint] = []
+        self.constraints: dict[str, list[YamlProcessConstraint]] = {}
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -439,13 +439,12 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         outlet_pressure: YamlExpressionType = 100.0,
     ) -> Self:
         self.targets.append(YamlItem(target=pipeline))
-        self.constraints.append(
+        self.constraints[pipeline.name] = [
             YamlProcessConstraint(
-                target=pipeline.name,
                 outlet_pressure=outlet_pressure,
                 pressure_control=pressure_control,
             )
-        )
+        ]
         return self
 
     def with_test_data(self) -> Self:
