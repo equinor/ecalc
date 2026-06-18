@@ -292,13 +292,13 @@ svg{width:100%;height:100%;overflow:visible}
 
 <script>
 const PC = {speed_search:'#58a6ff',anti_surge:'#f78166',pressure_control:'#56d364',feasibility:'#e3b341',root_finding:'#a5d6ff'};
-const TC = {'solve.start':'#79c0ff','solve.end':'#56d364','phase.change':'#e3b341','speed.probe':'#58a6ff','binary_search.step':'#a5d6ff','root_finding.probe':'#cae8ff','anti_surge.applied':'#f78166','pressure_control.applied':'#56d364'};
+const TC = {'solve.start':'#79c0ff','solve.end':'#56d364','phase.change':'#e3b341','speed.probe':'#58a6ff','binary_search.step':'#a5d6ff','root_finding.probe':'#cae8ff','pressure.probe':'#79c0ff','anti_surge.applied':'#f78166','pressure_control.applied':'#56d364'};
 const PL = {speed_search:'Speed Search',anti_surge:'Anti-Surge',pressure_control:'Pressure Control',feasibility:'Feasibility',root_finding:'Root Finding',done:'\\u2713 Solved',failed:'\\u2717 Failed',idle:'Idle'};
 const PBG = {speed_search:'#1f3a5a',anti_surge:'#4a2216',pressure_control:'#1a3a27',feasibility:'#3a3214',root_finding:'#0d2a3a',done:'#1a3a27',failed:'#3a1414',idle:'#21262d'};
 const PTC = {speed_search:'#58a6ff',anti_surge:'#f78166',pressure_control:'#56d364',feasibility:'#e3b341',root_finding:'#a5d6ff',done:'#56d364',failed:'#f85149',idle:'#8b949e'};
 
 let S = mkState();
-function mkState(){return{phase:'idle',tgt:null,bounds:null,evals:[],steps:[],roots:[],sol:null,n:0,units:[],activeUnit:null,unitStats:{},compressorCharts:{},activeCompressorId:null};}
+function mkState(){return{phase:'idle',tgt:null,bounds:null,evals:[],steps:[],roots:[],sol:null,n:0,units:[],activeUnit:null,unitStats:{},compressorCharts:{},activeCompressorId:null,pipelineOutletPressure:null};}
 
 // Unit type → display label + color
 const UNIT_COLORS={
@@ -377,7 +377,7 @@ function handle(ev){
 
     case 'speed.probe':
       if(ev.pressure!=null){S.evals.push({speed:ev.speed,pressure:ev.pressure,phase:ev.phase||S.phase,result:ev.result||'ok'});}
-      S.n++;set('s-speed',fmt(ev.speed,1));
+      S.n++;
       if(ev.pressure!=null){set('s-pout',fmt(ev.pressure,2));updateDp(ev.pressure);}
       set('s-iters',S.n);scheduleRender('speed');break;
 
@@ -390,7 +390,16 @@ function handle(ev){
         const p=S.tgt+ev.pressure_delta;
         S.evals.push({speed:ev.speed,pressure:p,phase:'root_finding',result:'ok'});
         S.roots.push({speed:ev.speed,delta:ev.pressure_delta,iter:ev.iteration});
-        S.n++;set('s-speed',fmt(ev.speed,1));set('s-pout',fmt(p,2));updateDp(p);set('s-iters',S.n);scheduleRender('speed');
+        S.n++;set('s-pout',fmt(p,2));updateDp(p);set('s-iters',S.n);scheduleRender('speed');
+      }break;
+
+    case 'pressure.probe':
+      if(ev.outlet_pressure!=null&&S.evals.length>0){
+        const lastSpeed=S.evals[S.evals.length-1].speed;
+        S.evals.push({speed:lastSpeed,pressure:ev.outlet_pressure,phase:ev.phase||S.phase,result:'ok'});
+        S.n++;set('s-pout',fmt(ev.outlet_pressure,2));updateDp(ev.outlet_pressure);set('s-iters',S.n);
+        S.pipelineOutletPressure=ev.outlet_pressure;
+        scheduleRender('speed','pipeline');
       }break;
 
     case 'phase.change':S.phase=ev.phase;setPhase(ev.phase);break;
@@ -416,7 +425,7 @@ function handle(ev){
 
     case 'solve.end':
       S.sol=ev;S.activeUnit=null;
-      if(ev.success){setPhase('done');if(ev.speed!=null)set('s-speed',fmt(ev.speed,1));if(ev.outlet_pressure!=null){set('s-pout',fmt(ev.outlet_pressure,2));updateDp(ev.outlet_pressure);}}
+      if(ev.success){setPhase('done');if(ev.outlet_pressure!=null){set('s-pout',fmt(ev.outlet_pressure,2));updateDp(ev.outlet_pressure);}}
       else setPhase('failed');
       scheduleRender('speed','pipeline');break;
   }
@@ -792,7 +801,11 @@ function drawPipeline(){
     const lastX=startX+(units.length-1)*(boxW+arrowW)+boxW;
     o+=`<line x1="${lastX}" y1="${VH/2}" x2="${lastX+18}" y2="${VH/2}" stroke="#30363d" stroke-width="1.5"/>`;
     o+=`<polygon points="${lastX+14},${VH/2-4} ${lastX+20},${VH/2} ${lastX+14},${VH/2+4}" fill="#30363d"/>`;
-    o+=`<text x="${lastX+22}" y="${VH/2+4}" fill="#484f58" font-size="9">out</text>`;
+    o+=`<text x="${lastX+22}" y="${VH/2-3}" fill="#484f58" font-size="9">out</text>`;
+    if(S.pipelineOutletPressure!=null){
+      const pc=PC[S.phase]||'#8b949e';
+      o+=`<text x="${lastX+22}" y="${VH/2+9}" fill="${pc}" font-size="9" font-weight="700">${fmt(S.pipelineOutletPressure,1)} bara</text>`;
+    }
   }
 
   svg.innerHTML=o;
@@ -841,32 +854,140 @@ function injectTest(){
   const events=[
     {type:'solve.start',target_pressure:120,inlet_rate:45000,speed_min:8000,speed_max:14000,pipeline_id:'test',
      units:[{id:'u1',type:'Compressor',chart},{id:'u2',type:'PressureDropper'},{id:'u3',type:'Compressor',chart},{id:'u4',type:'TemperatureSetter'}]},
-    // max speed check
+    // max speed check — show each unit active with its outlet pressure
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:14000,rate:450,head:380,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:92.5},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:92.5},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:90.1},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:90.1},
     {type:'compressor.op_point',unit_id:'u3',speed:14000,rate:450,head:355,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:133.8},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:133.8},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:131.2},
     {type:'speed.probe',speed:14000,pressure:131.2,phase:'speed_search',result:'ok'},
     // min speed check
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:8000,rate:450,head:115,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:72.3},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:72.3},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:70.5},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:70.5},
     {type:'compressor.op_point',unit_id:'u3',speed:8000,rate:450,head:107,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:96.8},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:96.8},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:94.5},
     {type:'speed.probe',speed:8000,pressure:94.5,phase:'speed_search',result:'ok'},
     // binary search steps
     {type:'binary_search.step',iteration:0,lower:8000,upper:14000,probe:11000,higher:false,accepted:true,rel_diff:0.273},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:11000,rate:450,head:240,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:80.1},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:80.1},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:78.3},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:78.3},
+    {type:'compressor.op_point',unit_id:'u3',speed:11000,rate:450,head:224,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:114.2},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:114.2},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:112.1},
     {type:'speed.probe',speed:11000,pressure:112.1,phase:'speed_search',result:'ok'},
     {type:'binary_search.step',iteration:1,lower:11000,upper:14000,probe:12500,higher:false,accepted:true,rel_diff:0.118},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:12500,rate:450,head:285,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:86.7},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:86.7},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:84.9},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:84.9},
+    {type:'compressor.op_point',unit_id:'u3',speed:12500,rate:450,head:268,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:123.5},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:123.5},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:121.3},
     {type:'speed.probe',speed:12500,pressure:121.3,phase:'speed_search',result:'ok'},
     // root finding
     {type:'root_finding.probe',iteration:0,speed:11750,pressure_delta:-3.6},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:11750,rate:450,head:262,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:83.4},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:83.4},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:81.6},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:81.6},
+    {type:'compressor.op_point',unit_id:'u3',speed:11750,rate:450,head:248,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:118.7},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:118.7},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:116.4},
     {type:'root_finding.probe',iteration:1,speed:12264,pressure_delta:-0.04},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:450,head:277,phase:'speed_search',status:'ok'},
-    // anti-surge: rate drops below surge, recirculation pushes it back
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:85.9},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:85.9},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:84.1},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:84.1},
+    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:450,head:261,phase:'speed_search',status:'ok'},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:122.1},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:122.1},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:120.0},
+    // anti-surge: recirculation iterations — each runs full pipeline
     {type:'phase.change',phase:'anti_surge'},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:195,head:302,phase:'anti_surge',status:'rate_too_low',surge_rate:310},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:79.2},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:79.2},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:77.4},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:77.4},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:110.3},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:110.3},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:108.2},
+    {type:'pressure.probe',phase:'anti_surge',outlet_pressure:108.2},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
+    {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:253,head:299,phase:'anti_surge',status:'ok'},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:82.0},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:82.0},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:80.2},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:80.2},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:115.8},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:115.8},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:113.7},
+    {type:'pressure.probe',phase:'anti_surge',outlet_pressure:113.7},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:310,head:296,phase:'anti_surge',status:'ok'},
-    // pressure control
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:85.1},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:85.1},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:83.3},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:83.3},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:121.2},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:121.2},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:119.1},
+    {type:'pressure.probe',phase:'anti_surge',outlet_pressure:119.1},
+    // pressure control: choke/recirculation iterations
     {type:'phase.change',phase:'pressure_control'},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:85.1},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:85.1},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:83.3},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:83.3},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:124.6},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:124.6},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:122.4},
+    {type:'pressure.probe',phase:'pressure_control',outlet_pressure:122.4},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:85.1},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:85.1},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:83.3},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:83.3},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:121.9},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:121.9},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:119.8},
+    {type:'pressure.probe',phase:'pressure_control',outlet_pressure:119.8},
+    {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
+    {type:'unit.exit',unit_id:'u1',outlet_pressure:85.1},
+    {type:'unit.enter',unit_id:'u2',inlet_pressure:85.1},
+    {type:'unit.exit',unit_id:'u2',outlet_pressure:83.3},
+    {type:'unit.enter',unit_id:'u3',inlet_pressure:83.3},
+    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:450,head:277,phase:'pressure_control',status:'ok'},
+    {type:'unit.exit',unit_id:'u3',outlet_pressure:122.3},
+    {type:'unit.enter',unit_id:'u4',inlet_pressure:122.3},
+    {type:'unit.exit',unit_id:'u4',outlet_pressure:120.1},
+    {type:'pressure.probe',phase:'pressure_control',outlet_pressure:120.1},
     {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:450,head:277,phase:'pressure_control',status:'ok'},
     {type:'solve.end',success:true,speed:12264,outlet_pressure:120.04},
   ];
