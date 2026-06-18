@@ -698,37 +698,62 @@ function drawCompressor(){
     o+=`<text x="${xs(curves[n].rates[curves[n].rates.length-1])+3}" y="${ys(curves[n].heads[curves[n].heads.length-1])+3}" fill="#f0883e" font-size="8">stonewall</text>`;
   }
 
-  // Op trail connecting line
-  if(okPts.length>1){
-    const tp=okPts.map(p=>`${xs(p.rate)},${ys(p.head)}`).join(' ');
-    o+=`<polyline points="${tp}" fill="none" stroke="#484f58" stroke-width="0.5"/>`;
+  // Op trail: arrows + dots, fading from old → new
+  const maxShow=60;
+  const show=okPts.slice(-maxShow);
+  const ns=show.length;
+
+  // Layer 1: arrow vectors between consecutive ok points
+  for(let i=0;i<ns-1;i++){
+    const a=show[i],b=show[i+1];
+    if(a.status!=='ok'||b.status!=='ok')continue;
+    const ax=xs(a.rate),ay=ys(a.head);
+    const bx=xs(b.rate),by=ys(b.head);
+    const dx=bx-ax,dy=by-ay;
+    const len=Math.sqrt(dx*dx+dy*dy);
+    if(len<2)continue;
+    const t=(i+1)/(ns-1);
+    const fadeOp=Math.max(0.08,t*0.55);
+    const col=PC[b.phase]||'#8b949e';
+    const ux=dx/len,uy=dy/len;
+    const aLen=Math.min(7,len*0.45),aW=3;
+    const tipX=bx-ux*4,tipY=by-uy*4;
+    const lx=tipX-ux*aLen+uy*aW,ly=tipY-uy*aLen-ux*aW;
+    const rx=tipX-ux*aLen-uy*aW,ry=tipY-uy*aLen+ux*aW;
+    o+=`<line x1="${ax}" y1="${ay}" x2="${tipX}" y2="${tipY}" stroke="${col}" stroke-width="1" opacity="${fadeOp}"/>`;
+    o+=`<polygon points="${tipX},${tipY} ${lx},${ly} ${rx},${ry}" fill="${col}" opacity="${fadeOp}"/>`;
   }
 
-  // Op trail dots (fade older ones)
-  const maxShow=80;
-  const show=okPts.slice(-maxShow);
-  for(let i=0;i<show.length;i++){
+  // Layer 2: dots on top
+  for(let i=0;i<ns;i++){
     const p=show[i];
+    const isLast=i===ns-1;
+    const t=(ns>1)?i/(ns-1):1;
     const col=PC[p.phase]||'#8b949e';
-    const isLast=i===show.length-1;
-    const r=isLast?6:3;
-    const op=isLast?1:Math.max(0.15,(i/show.length)*0.6);
     if(p.status==='rate_too_low'){
-      o+=`<line x1="${xs(p.rate)-5}" y1="${ys(0)}" x2="${xs(p.rate)-5}" y2="${ys(y1)}" stroke="#f85149" stroke-width="1" stroke-dasharray="3,3" opacity=".4"/>`;
-      o+=`<circle cx="${xs(p.rate)}" cy="${mt+H/2}" r="4" fill="none" stroke="#f85149" stroke-width="1.5" opacity=".7"/>`;
+      const op=Math.max(0.2,t*0.8);
+      o+=`<line x1="${xs(p.rate)}" y1="${mt}" x2="${xs(p.rate)}" y2="${mt+H}" stroke="#f85149" stroke-width="0.8" stroke-dasharray="3,3" opacity="${op*0.5}"/>`;
+      o+=`<circle cx="${xs(p.rate)}" cy="${mt+H/2}" r="4" fill="none" stroke="#f85149" stroke-width="1.5" opacity="${op}"/>`;
     } else if(p.status==='rate_too_high'){
-      o+=`<circle cx="${xs(p.rate)}" cy="${mt+H/2}" r="4" fill="none" stroke="#f0883e" stroke-width="1.5" opacity=".7"/>`;
+      const op=Math.max(0.2,t*0.8);
+      o+=`<circle cx="${xs(p.rate)}" cy="${mt+H/2}" r="4" fill="none" stroke="#f0883e" stroke-width="1.5" opacity="${op}"/>`;
     } else {
+      const r=isLast?7:Math.max(2,2+t*2);
+      const op=isLast?1:Math.max(0.1,t*0.5);
       o+=`<circle cx="${xs(p.rate)}" cy="${ys(p.head)}" r="${r}" fill="${col}" opacity="${op}"/>`;
       if(isLast){
-        // Glow ring on current operating point
-        o+=`<circle cx="${xs(p.rate)}" cy="${ys(p.head)}" r="${r+4}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".5"/>`;
-        // Crosshair lines
-        o+=`<line x1="${ml}" y1="${ys(p.head)}" x2="${ml+W}" y2="${ys(p.head)}" stroke="${col}" stroke-width="0.5" stroke-dasharray="2,4" opacity=".4"/>`;
-        o+=`<line x1="${xs(p.rate)}" y1="${mt}" x2="${xs(p.rate)}" y2="${mt+H}" stroke="${col}" stroke-width="0.5" stroke-dasharray="2,4" opacity=".4"/>`;
-        // Label
-        o+=`<text x="${xs(p.rate)+9}" y="${ys(p.head)-6}" fill="${col}" font-size="9">${fmt(p.rate,0)} Am\u00b3/h</text>`;
-        o+=`<text x="${xs(p.rate)+9}" y="${ys(p.head)+6}" fill="${col}" font-size="9">${fmt(p.head,0)} kJ/kg</text>`;
+        // outer glow rings
+        o+=`<circle cx="${xs(p.rate)}" cy="${ys(p.head)}" r="${r+5}" fill="none" stroke="${col}" stroke-width="1.5" opacity=".45"/>`;
+        o+=`<circle cx="${xs(p.rate)}" cy="${ys(p.head)}" r="${r+10}" fill="none" stroke="${col}" stroke-width="0.75" opacity=".2"/>`;
+        // crosshair
+        o+=`<line x1="${ml}" y1="${ys(p.head)}" x2="${ml+W}" y2="${ys(p.head)}" stroke="${col}" stroke-width="0.6" stroke-dasharray="2,4" opacity=".5"/>`;
+        o+=`<line x1="${xs(p.rate)}" y1="${mt}" x2="${xs(p.rate)}" y2="${mt+H}" stroke="${col}" stroke-width="0.6" stroke-dasharray="2,4" opacity=".5"/>`;
+        // label — pick side with more space
+        const lx=xs(p.rate)>ml+W/2?xs(p.rate)-10:xs(p.rate)+10;
+        const anchor=xs(p.rate)>ml+W/2?'end':'start';
+        o+=`<text x="${lx}" y="${ys(p.head)-8}" text-anchor="${anchor}" fill="${col}" font-size="9" font-weight="700">${fmt(p.speed,0)} rpm</text>`;
+        o+=`<text x="${lx}" y="${ys(p.head)+2}" text-anchor="${anchor}" fill="${col}" font-size="9">${fmt(p.rate,0)} Am\u00b3/h</text>`;
+        o+=`<text x="${lx}" y="${ys(p.head)+12}" text-anchor="${anchor}" fill="${col}" font-size="9">${fmt(p.head,0)} kJ/kg</text>`;
       }
     }
   }
@@ -953,6 +978,7 @@ function injectTest(){
     {type:'unit.enter',unit_id:'u2',inlet_pressure:79.2},
     {type:'unit.exit',unit_id:'u2',outlet_pressure:77.4},
     {type:'unit.enter',unit_id:'u3',inlet_pressure:77.4},
+    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:195,head:302,phase:'anti_surge',status:'rate_too_low'},
     {type:'unit.exit',unit_id:'u3',outlet_pressure:110.3},
     {type:'unit.enter',unit_id:'u4',inlet_pressure:110.3},
     {type:'unit.exit',unit_id:'u4',outlet_pressure:108.2},
@@ -963,6 +989,7 @@ function injectTest(){
     {type:'unit.enter',unit_id:'u2',inlet_pressure:82.0},
     {type:'unit.exit',unit_id:'u2',outlet_pressure:80.2},
     {type:'unit.enter',unit_id:'u3',inlet_pressure:80.2},
+    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:253,head:299,phase:'anti_surge',status:'ok'},
     {type:'unit.exit',unit_id:'u3',outlet_pressure:115.8},
     {type:'unit.enter',unit_id:'u4',inlet_pressure:115.8},
     {type:'unit.exit',unit_id:'u4',outlet_pressure:113.7},
@@ -973,6 +1000,7 @@ function injectTest(){
     {type:'unit.enter',unit_id:'u2',inlet_pressure:85.1},
     {type:'unit.exit',unit_id:'u2',outlet_pressure:83.3},
     {type:'unit.enter',unit_id:'u3',inlet_pressure:83.3},
+    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:310,head:296,phase:'anti_surge',status:'ok'},
     {type:'unit.exit',unit_id:'u3',outlet_pressure:121.2},
     {type:'unit.enter',unit_id:'u4',inlet_pressure:121.2},
     {type:'unit.exit',unit_id:'u4',outlet_pressure:119.1},
@@ -980,29 +1008,34 @@ function injectTest(){
     // pressure control: choke/recirculation iterations
     {type:'phase.change',phase:'pressure_control'},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
+    {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:380,head:292,phase:'pressure_control',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:85.1},
     {type:'unit.enter',unit_id:'u2',inlet_pressure:85.1},
     {type:'unit.exit',unit_id:'u2',outlet_pressure:83.3},
     {type:'unit.enter',unit_id:'u3',inlet_pressure:83.3},
+    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:380,head:292,phase:'pressure_control',status:'ok'},
     {type:'unit.exit',unit_id:'u3',outlet_pressure:124.6},
     {type:'unit.enter',unit_id:'u4',inlet_pressure:124.6},
     {type:'unit.exit',unit_id:'u4',outlet_pressure:122.4},
     {type:'pressure.probe',phase:'pressure_control',outlet_pressure:122.4},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
+    {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:420,head:289,phase:'pressure_control',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:85.1},
     {type:'unit.enter',unit_id:'u2',inlet_pressure:85.1},
     {type:'unit.exit',unit_id:'u2',outlet_pressure:83.3},
     {type:'unit.enter',unit_id:'u3',inlet_pressure:83.3},
+    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:420,head:289,phase:'pressure_control',status:'ok'},
     {type:'unit.exit',unit_id:'u3',outlet_pressure:121.9},
     {type:'unit.enter',unit_id:'u4',inlet_pressure:121.9},
     {type:'unit.exit',unit_id:'u4',outlet_pressure:119.8},
     {type:'pressure.probe',phase:'pressure_control',outlet_pressure:119.8},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
+    {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:450,head:286,phase:'pressure_control',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:85.1},
     {type:'unit.enter',unit_id:'u2',inlet_pressure:85.1},
     {type:'unit.exit',unit_id:'u2',outlet_pressure:83.3},
     {type:'unit.enter',unit_id:'u3',inlet_pressure:83.3},
-    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:450,head:277,phase:'pressure_control',status:'ok'},
+    {type:'compressor.op_point',unit_id:'u3',speed:12264,rate:450,head:286,phase:'pressure_control',status:'ok'},
     {type:'unit.exit',unit_id:'u3',outlet_pressure:122.3},
     {type:'unit.enter',unit_id:'u4',inlet_pressure:122.3},
     {type:'unit.exit',unit_id:'u4',outlet_pressure:120.1},
