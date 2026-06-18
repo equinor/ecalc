@@ -214,6 +214,8 @@ header h1{font-size:14px;font-weight:700;color:#58a6ff;letter-spacing:-0.02em}
 .stat{flex:1;background:#0d1117;padding:6px 14px;display:flex;flex-direction:column;justify-content:center}
 .stat-lbl{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.05em}
 .stat-val{font-size:20px;font-weight:700;color:#e6edf3;margin-top:1px;transition:color .3s}
+#pipeline{grid-column:1/-1;background:#161b22;padding:6px 12px;display:flex;flex-direction:column;min-height:0}
+#stats{grid-column:1/-1;display:flex;background:#21262d;gap:1px}
 #log{grid-column:1/-1;background:#0d1117;display:flex;flex-direction:column;overflow:hidden}
 #log-hdr{display:flex;align-items:center;padding:3px 12px;background:#161b22;border-bottom:1px solid #30363d;flex-shrink:0;gap:8px}
 #log-hdr span{font-size:10px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em}
@@ -395,7 +397,8 @@ function handle(ev){
         const p=S.tgt+ev.pressure_delta;
         S.evals.push({speed:ev.speed,pressure:p,phase:'root_finding',result:'ok'});
         S.roots.push({speed:ev.speed,delta:ev.pressure_delta,iter:ev.iteration});
-        S.n++;set('s-pout',fmt(p,2));updateDp(p);set('s-iters',S.n);scheduleRender('speed');
+        S.n++;set('s-pout',fmt(p,2));updateDp(p);set('s-iters',S.n);
+        scheduleRender('speed','search');
       }break;
 
     case 'pressure.probe':
@@ -573,13 +576,70 @@ function drawSpeed(){
 // ── Search convergence chart ──────────────────────────────────────
 function drawSearch(){
   const svg=document.getElementById('svg-search');
-  const VW=295,VH=230,ml=28,mt=15,mr=8,mb=38;
+  const VW=295,VH=230,ml=38,mt=15,mr=16,mb=38;
   const W=VW-ml-mr,H=VH-mt-mb;
 
-  if(S.steps.length===0){
+  if(S.steps.length===0&&S.roots.length===0){
     svg.innerHTML='<text x="147" y="115" text-anchor="middle" fill="#484f58" font-size="12">No search steps yet</text>';return;
   }
 
+  // ── Root-finding view (brenth iterations) ────────────────────────
+  if(S.roots.length>0){
+    const vis=S.roots.slice(-18);
+    const n=vis.length;
+    const allDeltas=vis.map(r=>r.delta);
+    let dMin=Math.min(...allDeltas),dMax=Math.max(...allDeltas);
+    if(dMin===dMax){dMin-=1;dMax+=1;}
+    const pad=(dMax-dMin)*.12;
+    dMin-=pad;dMax+=pad;
+    // zero line must be in range
+    if(dMin>0)dMin=-pad;
+    if(dMax<0)dMax=pad;
+    const ys=d=>mt+H-(d-dMin)/(dMax-dMin)*H;
+    const barW=Math.max(4,Math.min(18,(W-4)/n-3));
+
+    let o='';
+    // grid
+    const ticks=[-1,-0.5,0,0.5,1].map(t=>t*(dMax-dMin)/2+((dMax+dMin)/2)).filter(t=>t>=dMin&&t<=dMax);
+    for(const t of ticks){
+      const py=ys(t);
+      o+=`<line x1="${ml}" y1="${py}" x2="${ml+W}" y2="${py}" class="gl"/>`;
+      o+=`<text x="${ml-3}" y="${py+4}" text-anchor="end" class="at">${fmt(t,1)}</text>`;
+    }
+    // zero line (target)
+    const py0=ys(0);
+    o+=`<line x1="${ml}" y1="${py0}" x2="${ml+W}" y2="${py0}" stroke="#f85149" stroke-width="1.5" stroke-dasharray="4,3" opacity=".9"/>`;
+    o+=`<text x="${ml+W+3}" y="${py0+4}" class="at" fill="#f85149" font-size="9">\u0394P=0</text>`;
+    // axes
+    o+=`<line x1="${ml}" y1="${mt}" x2="${ml}" y2="${mt+H}" class="al"/>`;
+    o+=`<line x1="${ml}" y1="${mt+H}" x2="${ml+W}" y2="${mt+H}" class="al"/>`;
+    o+=`<text x="${ml+W/2}" y="${VH-3}" text-anchor="middle" class="albl">Iteration</text>`;
+    o+=`<text x="9" y="${mt+H/2}" text-anchor="middle" class="albl" transform="rotate(-90 9 ${mt+H/2})">\u0394P (bara)</text>`;
+
+    // bars + connecting line
+    const pts=[];
+    for(let i=0;i<n;i++){
+      const r=vis[i];
+      const cx=ml+4+(i+0.5)*(W-4)/n;
+      const py=ys(r.delta);
+      const isLast=i===n-1;
+      const col=r.delta>0?'#58a6ff':'#a5d6ff';
+      const barTop=Math.min(py,py0),barH=Math.max(Math.abs(py-py0),2);
+      o+=`<rect x="${cx-barW/2}" y="${barTop}" width="${barW}" height="${barH}" fill="${col}" opacity="${isLast?0.85:0.35}" rx="1"/>`;
+      o+=`<text x="${cx}" y="${mt+H+14}" text-anchor="middle" class="at">${(S.roots.length-n)+i+1}</text>`;
+      pts.push(`${cx},${py}`);
+      if(isLast){
+        o+=`<circle cx="${cx}" cy="${py}" r="4" fill="${col}" opacity=".9"/>`;
+        o+=`<circle cx="${cx}" cy="${py}" r="8" fill="none" stroke="${col}" stroke-width="1.5" opacity=".4"/>`;
+        o+=`<text x="${cx}" y="${py-(r.delta>=0?12:-4)}" text-anchor="middle" fill="${col}" font-size="9" font-weight="700">${fmt(r.delta,3)}</text>`;
+      }
+    }
+    if(pts.length>1)o+=`<polyline points="${pts.join(' ')}" fill="none" stroke="#484f58" stroke-width="1" opacity=".6"/>`;
+    svg.innerHTML=o;
+    return;
+  }
+
+  // ── Binary-search view (stonewall search) ────────────────────────
   const allX=S.steps.flatMap(s=>[s.lower,s.upper,s.probe]);
   let x0=Math.min(...allX),x1=Math.max(...allX);
   if(x0===x1){x0-=1;x1+=1;}
