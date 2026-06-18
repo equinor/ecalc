@@ -2,13 +2,17 @@ from collections.abc import Callable
 from typing import Literal
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError, CompressorSurgeError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.process.process_solver.finder import Finder, Finding
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.search_strategies import Bisect, BisectResult, RootFindingStrategy
-from libecalc.process.process_solver.solver import RateTooHighFailure, TargetDirection, TargetPressureUnreachableFailure
+from libecalc.process.process_solver.solver import (
+    CompressorStonewallFailure,
+    TargetDirection,
+    TargetPressureUnreachableFailure,
+)
 
 
 class RecirculationLoopRateFinder(Finder):
@@ -27,11 +31,11 @@ class RecirculationLoopRateFinder(Finder):
     def find(self, func: Callable[[RecirculationConfiguration], FluidStream]) -> Finding[RecirculationConfiguration]:
         try:
             minimum_rate = self._find_min_within_capacity_rate(func)
-        except RateTooHighError as e:
+        except CompressorStonewallError as e:
             # Flow is above stonewall at zero recirculation; adding recirculation cannot help.
             return Finding(
                 configuration=RecirculationConfiguration(recirculation_rate=self._recirculation_rate_boundary.min),
-                failure=RateTooHighFailure.from_error(e),
+                failure=CompressorStonewallFailure.from_error(e),
             )
 
         target_pressure = self._target_pressure
@@ -85,7 +89,7 @@ class RecirculationLoopRateFinder(Finder):
         try:
             func(RecirculationConfiguration(recirculation_rate=minimum_rate))
             return minimum_rate
-        except RateTooLowError:
+        except CompressorSurgeError:
             return self._search_strategy.search(
                 boundary=self._recirculation_rate_boundary,
                 func=lambda x: self._bool_func(func, x, mode="minimize"),
@@ -100,7 +104,7 @@ class RecirculationLoopRateFinder(Finder):
         try:
             func(RecirculationConfiguration(recirculation_rate=maximum_rate))
             return maximum_rate
-        except RateTooHighError:
+        except CompressorStonewallError:
             return self._search_strategy.search(
                 boundary=self._recirculation_rate_boundary,
                 func=lambda x: self._bool_func(func, x, mode="maximize"),
@@ -120,7 +124,7 @@ class RecirculationLoopRateFinder(Finder):
         try:
             func(RecirculationConfiguration(recirculation_rate=x))
             return BisectResult(higher=mode != "minimize", accepted=True)
-        except RateTooLowError:
+        except CompressorSurgeError:
             return BisectResult(higher=True, accepted=False)
-        except RateTooHighError:
+        except CompressorStonewallError:
             return BisectResult(higher=False, accepted=False)

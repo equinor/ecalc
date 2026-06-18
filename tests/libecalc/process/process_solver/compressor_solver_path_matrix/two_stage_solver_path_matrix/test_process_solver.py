@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError, CompressorSurgeError
 from libecalc.process.process_solver.configuration import (
     RecirculationConfiguration,
     SpeedConfiguration,
@@ -124,7 +124,7 @@ def test_two_stage_process_solver_path(
     try:
         outlet_stream = system.runner.run(inlet_stream=inlet_stream)
         outlet_pressure = outlet_stream.pressure_bara
-    except RateTooHighError:
+    except CompressorStonewallError:
         outlet_pressure = np.nan
 
     outcome = outcome_from_process_solution(solution)
@@ -150,7 +150,7 @@ def test_two_stage_process_solver_path(
         per_stage_power = _per_stage_compressor_power_mw(list(system.compressors), compressor_inlets)
         assert sum(per_stage_power) == pytest.approx(case.expectation.power_mw, abs=POWER_TOLERANCE)
         assert_stage_power(case, tuple(per_stage_power))
-    except (RateTooHighError, RateTooLowError):
+    except (CompressorStonewallError, CompressorSurgeError):
         pass
 
     # ── Assert: per-stage anti-surge recirculation ───────────────────────
