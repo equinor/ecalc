@@ -298,7 +298,7 @@ const PBG = {speed_search:'#1f3a5a',anti_surge:'#4a2216',pressure_control:'#1a3a
 const PTC = {speed_search:'#58a6ff',anti_surge:'#f78166',pressure_control:'#56d364',feasibility:'#e3b341',root_finding:'#a5d6ff',done:'#56d364',failed:'#f85149',idle:'#8b949e'};
 
 let S = mkState();
-function mkState(){return{phase:'idle',tgt:null,bounds:null,evals:[],steps:[],roots:[],sol:null,n:0,units:[],activeUnit:null,unitStats:{},compressorCharts:{},activeCompressorId:null,pipelineOutletPressure:null};}
+function mkState(){return{phase:'idle',tgt:null,bounds:null,evals:[],steps:[],roots:[],sol:null,n:0,units:[],activeUnit:null,unitStats:{},compressorCharts:{},activeCompressorId:null,pipelineOutletPressure:null,pendingSpeed:null};}
 
 // Unit type → display label + color
 const UNIT_COLORS={
@@ -319,7 +319,7 @@ if (!CLIENT_ID) {
 
 let es;
 let eventQueue = [];
-let stepDelay = 1000;
+let stepDelay = 300;
 let stepTimer = null;
 
 function startDraining() {
@@ -376,6 +376,11 @@ function handle(ev){
       scheduleRender('speed','search','pipeline','compressor');break;
 
     case 'speed.probe':
+      if(ev.result==='pending'){
+        S.pendingSpeed=ev.speed;
+        scheduleRender('speed');break;
+      }
+      S.pendingSpeed=null;
       if(ev.pressure!=null){S.evals.push({speed:ev.speed,pressure:ev.pressure,phase:ev.phase||S.phase,result:ev.result||'ok'});}
       S.n++;
       if(ev.pressure!=null){set('s-pout',fmt(ev.pressure,2));updateDp(ev.pressure);}
@@ -514,6 +519,14 @@ function drawSpeed(){
     const py=ys(S.tgt);
     o+=`<line x1="${ml}" y1="${py}" x2="${ml+W}" y2="${py}" stroke="#f85149" stroke-width="1.5" stroke-dasharray="5,3" opacity=".9"/>`;
     o+=`<text x="${ml+W+3}" y="${py+4}" class="at" fill="#f85149" font-size="9">target</text>`;
+  }
+
+  // pending speed vertical line (currently being evaluated)
+  if(S.pendingSpeed!=null){
+    const px=xs(S.pendingSpeed);
+    const col=PC[S.phase]||'#8b949e';
+    o+=`<line x1="${px}" y1="${mt}" x2="${px}" y2="${mt+H}" stroke="${col}" stroke-width="1.5" stroke-dasharray="4,3" opacity=".7"/>`;
+    o+=`<text x="${px}" y="${mt-3}" text-anchor="middle" fill="${col}" font-size="9">${fmt(S.pendingSpeed,0)} \u2192</text>`;
   }
 
   // connecting lines per phase
@@ -855,6 +868,7 @@ function injectTest(){
     {type:'solve.start',target_pressure:120,inlet_rate:45000,speed_min:8000,speed_max:14000,pipeline_id:'test',
      units:[{id:'u1',type:'Compressor',chart},{id:'u2',type:'PressureDropper'},{id:'u3',type:'Compressor',chart},{id:'u4',type:'TemperatureSetter'}]},
     // max speed check — show each unit active with its outlet pressure
+    {type:'speed.probe',speed:14000,pressure:null,phase:'speed_search',result:'pending'},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:14000,rate:450,head:380,phase:'speed_search',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:92.5},
@@ -867,6 +881,7 @@ function injectTest(){
     {type:'unit.exit',unit_id:'u4',outlet_pressure:131.2},
     {type:'speed.probe',speed:14000,pressure:131.2,phase:'speed_search',result:'ok'},
     // min speed check
+    {type:'speed.probe',speed:8000,pressure:null,phase:'speed_search',result:'pending'},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:8000,rate:450,head:115,phase:'speed_search',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:72.3},
@@ -880,6 +895,7 @@ function injectTest(){
     {type:'speed.probe',speed:8000,pressure:94.5,phase:'speed_search',result:'ok'},
     // binary search steps
     {type:'binary_search.step',iteration:0,lower:8000,upper:14000,probe:11000,higher:false,accepted:true,rel_diff:0.273},
+    {type:'speed.probe',speed:11000,pressure:null,phase:'speed_search',result:'pending'},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:11000,rate:450,head:240,phase:'speed_search',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:80.1},
@@ -892,6 +908,7 @@ function injectTest(){
     {type:'unit.exit',unit_id:'u4',outlet_pressure:112.1},
     {type:'speed.probe',speed:11000,pressure:112.1,phase:'speed_search',result:'ok'},
     {type:'binary_search.step',iteration:1,lower:11000,upper:14000,probe:12500,higher:false,accepted:true,rel_diff:0.118},
+    {type:'speed.probe',speed:12500,pressure:null,phase:'speed_search',result:'pending'},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:12500,rate:450,head:285,phase:'speed_search',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:86.7},
@@ -905,6 +922,7 @@ function injectTest(){
     {type:'speed.probe',speed:12500,pressure:121.3,phase:'speed_search',result:'ok'},
     // root finding
     {type:'root_finding.probe',iteration:0,speed:11750,pressure_delta:-3.6},
+    {type:'speed.probe',speed:11750,pressure:null,phase:'root_finding',result:'pending'},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:11750,rate:450,head:262,phase:'speed_search',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:83.4},
@@ -916,6 +934,7 @@ function injectTest(){
     {type:'unit.enter',unit_id:'u4',inlet_pressure:118.7},
     {type:'unit.exit',unit_id:'u4',outlet_pressure:116.4},
     {type:'root_finding.probe',iteration:1,speed:12264,pressure_delta:-0.04},
+    {type:'speed.probe',speed:12264,pressure:null,phase:'root_finding',result:'pending'},
     {type:'unit.enter',unit_id:'u1',inlet_pressure:60.0},
     {type:'compressor.op_point',unit_id:'u1',speed:12264,rate:450,head:277,phase:'speed_search',status:'ok'},
     {type:'unit.exit',unit_id:'u1',outlet_pressure:85.9},

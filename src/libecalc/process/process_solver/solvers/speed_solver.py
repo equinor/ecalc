@@ -34,6 +34,13 @@ class SpeedSolver(Solver[SpeedConfiguration]):
             original_func = func1
 
             def func(cfg: SpeedConfiguration) -> FluidStream:
+                solver_debug.emit(
+                    "speed.probe",
+                    speed=cfg.speed,
+                    pressure=None,
+                    phase=solver_debug.current_phase(),
+                    result="pending",
+                )
                 try:
                     result = original_func(cfg)
                     solver_debug.emit(
@@ -65,7 +72,7 @@ class SpeedSolver(Solver[SpeedConfiguration]):
 
         try:
             max_speed_configuration = SpeedConfiguration(speed=self._boundary.max)
-            maximum_speed_outlet_stream = func1(max_speed_configuration)
+            maximum_speed_outlet_stream = func(max_speed_configuration)
         except RateTooHighError as e:
             logger.debug(f"No solution found for maximum speed: {max_speed_configuration}")
             return Solution.from_rate_too_high(e, configuration=max_speed_configuration)
@@ -81,7 +88,7 @@ class SpeedSolver(Solver[SpeedConfiguration]):
                 direction=TargetDirection.MAX_BELOW_TARGET,
             )
 
-        minimum_speed_configuration, minimum_speed_outlet_stream = self._find_min_within_capacity_speed(func1)
+        minimum_speed_configuration, minimum_speed_outlet_stream = self._find_min_within_capacity_speed(func)
 
         if minimum_speed_outlet_stream.pressure_bara > self._target_pressure:
             # Solution 2, target pressure is too low
