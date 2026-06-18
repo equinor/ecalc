@@ -2,6 +2,7 @@ from collections.abc import Iterable, Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_solver import solver_debug
 from libecalc.process.process_solver.configuration import Configuration, ConfigurationHandlerId
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.process_runner import ProcessRunner
@@ -9,8 +10,25 @@ from libecalc.process.process_solver.process_runner import ProcessRunner
 
 def propagate_stream_many(process_units: Sequence[ProcessUnit], inlet_stream: FluidStream) -> FluidStream:
     current_stream = inlet_stream
+    debug = solver_debug.is_enabled()
     for process_unit in process_units:
+        if debug:
+            solver_debug.emit(
+                "unit.enter",
+                unit_id=str(process_unit.get_id()),
+                unit_type=process_unit.__class__.__name__,
+                inlet_pressure=current_stream.pressure_bara,
+                inlet_rate=current_stream.standard_rate_sm3_per_day,
+            )
         current_stream = process_unit.propagate_stream(current_stream)
+        if debug:
+            solver_debug.emit(
+                "unit.exit",
+                unit_id=str(process_unit.get_id()),
+                unit_type=process_unit.__class__.__name__,
+                outlet_pressure=current_stream.pressure_bara,
+                outlet_rate=current_stream.standard_rate_sm3_per_day,
+            )
     return current_stream
 
 
@@ -18,6 +36,7 @@ class ProcessPipelineRunner(ProcessRunner):
     def __init__(self, configuration_handlers: Sequence[ConfigurationHandler], units: Sequence[ProcessUnit]):
         self._configuration_handlers = {handler.get_id(): handler for handler in configuration_handlers}
         self._units = {unit.get_id(): unit for unit in units}
+        print(f"order of units: {self._units}")
 
     @staticmethod
     def _apply_config_for_unit(configuration_handler: ConfigurationHandler, configuration: Configuration):

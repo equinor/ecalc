@@ -10,6 +10,7 @@ from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_solver import solver_debug
 from libecalc.process.process_solver.boundary import Boundary
 
 
@@ -31,12 +32,32 @@ class Compressor(ProcessUnit):
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         actual_rate = inlet_stream.volumetric_rate_m3_per_hour
         if actual_rate < self.minimum_flow_rate:
+            solver_debug.emit(
+                "compressor.op_point",
+                unit_id=str(self._id),
+                speed=self._speed,
+                rate=float(actual_rate),
+                head=None,
+                phase=solver_debug.current_phase(),
+                status="rate_too_low",
+                surge_rate=float(self.minimum_flow_rate),
+            )
             raise RateTooLowError(
                 actual_rate=actual_rate,
                 boundary_rate=self.minimum_flow_rate,
                 process_unit_id=self._id,
             )
         if actual_rate > self.maximum_flow_rate:
+            solver_debug.emit(
+                "compressor.op_point",
+                unit_id=str(self._id),
+                speed=self._speed,
+                rate=float(actual_rate),
+                head=None,
+                phase=solver_debug.current_phase(),
+                status="rate_too_high",
+                stonewall_rate=float(self.maximum_flow_rate),  # TODO: Is ndarray, fix
+            )
             raise RateTooHighError(
                 actual_rate=actual_rate,
                 boundary_rate=self.maximum_flow_rate,
@@ -55,6 +76,16 @@ class Compressor(ProcessUnit):
                 speed=self.speed,
                 rate=actual_rate,
             )
+
+        solver_debug.emit(
+            "compressor.op_point",
+            unit_id=str(self._id),
+            speed=self._speed,
+            rate=actual_rate,
+            head=polytropic_head / 1000.0,
+            phase=solver_debug.current_phase(),
+            status="ok",
+        )
 
         return calculate_outlet_pressure_and_stream(
             polytropic_efficiency=polytropic_efficiency,

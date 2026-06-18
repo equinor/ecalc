@@ -4,6 +4,7 @@ from collections.abc import Callable
 from scipy.optimize import root_scalar
 
 from libecalc.common.errors.exceptions import EcalcError
+from libecalc.process.process_solver import solver_debug
 from libecalc.process.process_solver.boundary import Boundary
 
 CONVERGENCE_TOLERANCE = 1e-5
@@ -69,6 +70,16 @@ class BinarySearchStrategy(SearchStrategy):
             if accepted:
                 # Avoid division by zero: https://en.wikipedia.org/wiki/Relative_change_and_difference
                 rel_diff = 0 if x0 == x1 else abs(x1 - x0) / max(abs(x0), abs(x1))
+            solver_debug.emit(
+                "binary_search.step",
+                iteration=i,
+                lower=x0,
+                upper=x1,
+                probe=x2,
+                higher=higher,
+                accepted=accepted,
+                rel_diff=rel_diff,
+            )
             i += 1
 
         if i >= self._max_iterations:
@@ -117,8 +128,16 @@ class ScipyRootFindingStrategy(RootFindingStrategy):
         :param boundary: Lower and upper of solution. Used as initial guess
         :param func: The function to be used in the secant root-finding method that we will solve f(x) = 0
         """
+        probe_count = [0]
+
+        def instrumented_func(x: float) -> float:
+            result = func(x)
+            solver_debug.emit("root_finding.probe", iteration=probe_count[0], speed=x, pressure_delta=result)
+            probe_count[0] += 1
+            return result
+
         result = root_scalar(
-            func,
+            instrumented_func,
             bracket=(boundary.min, boundary.max),
             x0=boundary.min,
             x1=boundary.max,

@@ -3,6 +3,7 @@ from collections.abc import Callable
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_solver import solver_debug
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, SearchStrategy
@@ -28,10 +29,43 @@ class SpeedSolver(Solver[SpeedConfiguration]):
         self._search_strategy = search_strategy
         self._root_finding_strategy = root_finding_strategy
 
-    def solve(self, func: Callable[[SpeedConfiguration], FluidStream]) -> Solution[SpeedConfiguration]:
+    def solve(self, func1: Callable[[SpeedConfiguration], FluidStream]) -> Solution[SpeedConfiguration]:
+        if solver_debug.is_enabled():
+            original_func = func1
+
+            def func(cfg: SpeedConfiguration) -> FluidStream:
+                try:
+                    result = original_func(cfg)
+                    solver_debug.emit(
+                        "speed.probe",
+                        speed=cfg.speed,
+                        pressure=result.pressure_bara,
+                        phase=solver_debug.current_phase(),
+                        result="ok",
+                    )
+                    return result
+                except RateTooHighError:
+                    solver_debug.emit(
+                        "speed.probe",
+                        speed=cfg.speed,
+                        pressure=None,
+                        phase=solver_debug.current_phase(),
+                        result="too_high",
+                    )
+                    raise
+                except RateTooLowError:
+                    solver_debug.emit(
+                        "speed.probe",
+                        speed=cfg.speed,
+                        pressure=None,
+                        phase=solver_debug.current_phase(),
+                        result="too_low",
+                    )
+                    raise
+
         try:
             max_speed_configuration = SpeedConfiguration(speed=self._boundary.max)
-            maximum_speed_outlet_stream = func(max_speed_configuration)
+            maximum_speed_outlet_stream = func1(max_speed_configuration)
         except RateTooHighError as e:
             logger.debug(f"No solution found for maximum speed: {max_speed_configuration}")
             return Solution.from_rate_too_high(e, configuration=max_speed_configuration)
@@ -47,7 +81,7 @@ class SpeedSolver(Solver[SpeedConfiguration]):
                 direction=TargetDirection.MAX_BELOW_TARGET,
             )
 
-        minimum_speed_configuration, minimum_speed_outlet_stream = self._find_min_within_capacity_speed(func)
+        minimum_speed_configuration, minimum_speed_outlet_stream = self._find_min_within_capacity_speed(func1)
 
         if minimum_speed_outlet_stream.pressure_bara > self._target_pressure:
             # Solution 2, target pressure is too low
