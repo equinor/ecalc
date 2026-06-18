@@ -6,9 +6,14 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
 )
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.process.fluid_stream.constants import ThermodynamicConstants
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import (
+    CompressorStonewallError,
+    CompressorSurgeError,
+    LiquidAtInletError,
+)
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
 
@@ -29,15 +34,20 @@ class Compressor(ProcessUnit):
         return self._id
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
+        if inlet_stream.vapor_fraction_molar < ThermodynamicConstants.PURE_VAPOR_THRESHOLD:
+            raise LiquidAtInletError(
+                process_unit_id=self._id,
+                vapor_fraction=inlet_stream.vapor_fraction_molar,
+            )
         actual_rate = inlet_stream.volumetric_rate_m3_per_hour
         if actual_rate < self.minimum_flow_rate:
-            raise RateTooLowError(
+            raise CompressorSurgeError(
                 actual_rate=actual_rate,
                 boundary_rate=self.minimum_flow_rate,
                 process_unit_id=self._id,
             )
         if actual_rate > self.maximum_flow_rate:
-            raise RateTooHighError(
+            raise CompressorStonewallError(
                 actual_rate=actual_rate,
                 boundary_rate=self.maximum_flow_rate,
                 process_unit_id=self._id,

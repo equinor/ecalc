@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError, CompressorSurgeError
 from libecalc.process.process_solver.configuration import (
     ChokeConfiguration,
     Configuration,
@@ -23,13 +23,13 @@ from libecalc.process.process_solver.configuration import (
 )
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.solver import (
-    RateTooHighFailure,
+    CompressorStonewallFailure,
     Solution,
     TargetDirection,
     TargetPressureUnreachableFailure,
 )
 from libecalc.process.process_solver.solver import (
-    RateTooLowFailure as SolverRateTooLowFailure,
+    CompressorSurgeFailure as SolverCompressorSurgeFailure,
 )
 from libecalc.process.process_units.compressor import Compressor
 
@@ -84,9 +84,9 @@ def _outcome_from_process_solution(
     if solution.failure is None:
         return ExpectedOutcome.NOT_CALCULATED
     match solution.failure:
-        case RateTooHighFailure():
+        case CompressorStonewallFailure():
             return ExpectedOutcome.ABOVE_MAX_FLOW
-        case SolverRateTooLowFailure():
+        case SolverCompressorSurgeFailure():
             return ExpectedOutcome.BELOW_MIN_FLOW
         case TargetPressureUnreachableFailure(direction=TargetDirection.MAX_BELOW_TARGET):
             return ExpectedOutcome.PRESSURE_TOO_HIGH
@@ -142,7 +142,7 @@ def test_process_solver_path(
     try:
         outlet_stream = system.runner.run(inlet_stream=inlet_stream)
         outlet_pressure = outlet_stream.pressure_bara
-    except RateTooHighError:
+    except CompressorStonewallError:
         outlet_pressure = np.nan
 
     outcome = _outcome_from_process_solution(solution)
@@ -164,7 +164,7 @@ def test_process_solver_path(
         compressor_inlet = system.runner.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
         power_mw = _calculate_compressor_power_mw(compressor, compressor_inlet)
         assert power_mw == pytest.approx(case.expectation.power_mw, abs=POWER_TOLERANCE)
-    except (RateTooHighError, RateTooLowError):
+    except (CompressorStonewallError, CompressorSurgeError):
         pass
 
     recirculation_rates = tuple(

@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorSurgeError, ProcessError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import (
     Configuration,
@@ -12,14 +12,16 @@ from libecalc.process.process_solver.finder import Finding
 from libecalc.process.process_solver.finders.shaft_speed_finder import ShaftSpeedFinder
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section import PipelineSection
-from libecalc.process.process_solver.search_strategies import Bisect
+from libecalc.process.process_solver.search_strategies import Bisect, DidNotConvergeError
 from libecalc.process.process_solver.solver import (
-    EosFailure,
-    RateTooHighFailure,
-    RateTooLowFailure,
+    CompressorStonewallFailure,
+    CompressorSurgeFailure,
+    ConvergenceFailure,
     Solution,
     TargetDirection,
     TargetPressureUnreachableFailure,
+    ThermodynamicCalculationFailure,
+    process_error_to_failure,
 )
 
 
@@ -56,7 +58,7 @@ class PipelineSectionSolver:
             )
             try:
                 return self._pipeline_section.runner.run(inlet_stream=inlet_stream)
-            except RateTooLowError:
+            except CompressorSurgeError:
                 solution = self._pipeline_section.anti_surge_strategy.apply(inlet_stream=inlet_stream)
                 self._pipeline_section.runner.apply_configurations(solution.configuration)
                 return self._pipeline_section.runner.run(inlet_stream=inlet_stream)
@@ -75,6 +77,25 @@ class PipelineSectionSolver:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
+        shaft_config = Configuration(
+            configuration_handler_id=self._pipeline_section.shaft_id,
+            value=SpeedConfiguration(speed=self._pipeline_section.speed_boundary.min),
+        )
+        try:
+            return self._find_solution(pressure_constraint, inlet_stream)
+        except DidNotConvergeError as e:
+            return Solution(
+                configuration=[shaft_config],
+                failure=ConvergenceFailure.from_error(e, source_id=self._pipeline_section.process_pipeline_id),
+            )
+        except ProcessError as e:
+            return Solution(configuration=[shaft_config], failure=process_error_to_failure(e))
+
+    def _find_solution(
+        self,
+        pressure_constraint: FloatConstraint,
+        inlet_stream: FluidStream,
+    ) -> Solution[Sequence[Configuration]]:
         speed_finding = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
 
         shaft_config = Configuration(
@@ -82,7 +103,9 @@ class PipelineSectionSolver:
             value=speed_finding.configuration,
         )
 
-        if isinstance(speed_finding.failure, (RateTooHighFailure, RateTooLowFailure, EosFailure)):
+        if isinstance(
+            speed_finding.failure, (CompressorStonewallFailure, CompressorSurgeFailure, ThermodynamicCalculationFailure)
+        ):
             return Solution(configuration=[shaft_config], failure=speed_finding.failure)
 
         self._pipeline_section.runner.apply_configuration(shaft_config)

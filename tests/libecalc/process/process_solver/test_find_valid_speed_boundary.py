@@ -11,12 +11,12 @@ import pytest
 from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
-from libecalc.process.process_pipeline.process_error import RateTooHighError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
 from libecalc.process.process_solver.finders.shaft_speed_finder import ShaftSpeedFinder
-from libecalc.process.process_solver.solver import EosFailure
+from libecalc.process.process_solver.solver import ThermodynamicCalculationFailure
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.testing.chart_data_factory import ChartDataFactory
@@ -38,7 +38,7 @@ def boundary():
 def test_eos_failure_at_all_speeds_returns_thermodynamic_failure(
     boundary, search_strategy_factory, root_finding_strategy
 ):
-    """If EOS fails at every speed, a EosFailure is returned rather than crashing."""
+    """If EOS fails at every speed, a ThermodynamicCalculationFailure is returned rather than crashing."""
 
     def func(_config: SpeedConfiguration):
         _eos_error()
@@ -48,7 +48,7 @@ def test_eos_failure_at_all_speeds_returns_thermodynamic_failure(
     finding = finder.find(func)
 
     assert not finding.success
-    assert isinstance(finding.failure, EosFailure)
+    assert isinstance(finding.failure, ThermodynamicCalculationFailure)
 
 
 def test_eos_failure_at_max_narrows_boundary_and_finds_solution(
@@ -94,8 +94,8 @@ def test_eos_failure_at_min_narrows_boundary_and_finds_solution(
 def test_rate_too_high_at_max_still_returns_structured_failure(
     boundary, search_strategy_factory, root_finding_strategy
 ):
-    """RateTooHighError at max speed still returns a structured Finding (unchanged behaviour)."""
-    error = RateTooHighError(process_unit_id=ProcessUnitId(uuid4()))
+    """CompressorStonewallError at max speed still returns a structured Finding (unchanged behaviour)."""
+    error = CompressorStonewallError(process_unit_id=ProcessUnitId(uuid4()))
 
     def func(config: SpeedConfiguration):
         if config.speed == boundary.max:
@@ -168,8 +168,8 @@ def test_eos_failure_at_max_speed_with_real_fluid(fluid_service, search_strategy
     inlet = fluid_service.create_stream_from_standard_rate(
         fluid_model=fluid_model,
         pressure_bara=10.0,
-        standard_rate_m3_per_day=500_000.0,
-        temperature_kelvin=270.0,
+        standard_rate_m3_per_day=200_000.0,
+        temperature_kelvin=320.0,
     )
 
     def speed_func(config: SpeedConfiguration):
