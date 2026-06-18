@@ -15,6 +15,7 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section import PipelineSection
 from libecalc.process.process_solver.search_strategies import Bisect
 from libecalc.process.process_solver.solver import (
+    EosFailure,
     RateTooHighFailure,
     RateTooLowFailure,
     Solution,
@@ -86,7 +87,7 @@ class PipelineSectionSolver:
             value=speed_finding.configuration,
         )
 
-        if isinstance(speed_finding.failure, (RateTooHighFailure, RateTooLowFailure)):
+        if isinstance(speed_finding.failure, (RateTooHighFailure, RateTooLowFailure, EosFailure)):
             return Solution(configuration=[shaft_config], failure=speed_finding.failure)
 
         self._pipeline_section.runner.apply_configuration(shaft_config)

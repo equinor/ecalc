@@ -60,6 +60,11 @@ class RateTooLowFailure(SolverFailure):
         )
 
 
+@dataclass
+class EosFailure(SolverFailure):
+    reason: str = ""
+
+
 class TargetDirection(Enum):
     """Which side of the target pressure the achievable boundary lies on."""
 

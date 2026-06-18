@@ -1,4 +1,3 @@
-import itertools
 from dataclasses import dataclass
 
 import pytest
@@ -176,9 +175,23 @@ def generate_model(
 @pytest.mark.inlinesnapshot
 @pytest.mark.parametrize(
     "first_duplicate, second_duplicate",
-    itertools.combinations(
-        ("genset", "electricity_consumer", "fuel_consumer", "venting_emitter", "installation", "asset"), 2
-    ),
+    [
+        ("genset", "electricity_consumer"),
+        ("genset", "fuel_consumer"),
+        ("genset", "venting_emitter"),
+        ("genset", "installation"),
+        ("genset", "asset"),
+        ("electricity_consumer", "fuel_consumer"),
+        ("electricity_consumer", "venting_emitter"),
+        ("electricity_consumer", "installation"),
+        ("electricity_consumer", "asset"),
+        ("fuel_consumer", "venting_emitter"),
+        ("fuel_consumer", "installation"),
+        ("fuel_consumer", "asset"),
+        ("venting_emitter", "installation"),
+        ("venting_emitter", "asset"),
+        ("installation", "asset"),
+    ],
 )
 def test_duplicate_names_combinations(
     first_duplicate, second_duplicate, yaml_asset_configuration_service_factory, resource_service_factory
