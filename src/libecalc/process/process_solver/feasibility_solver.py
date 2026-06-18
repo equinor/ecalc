@@ -1,5 +1,4 @@
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import OutsideCapacityError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
@@ -71,7 +70,4 @@ class FeasibilitySolver:
             return 0.0
 
     def _is_feasible(self, inlet_stream: FluidStream, target_pressure: FloatConstraint) -> bool:
-        try:
-            return self._solver.find_solution(target_pressure, inlet_stream).success
-        except (DidNotConvergeError, OutsideCapacityError):
-            return False
+        return self._solver.find_solution(target_pressure, inlet_stream).success

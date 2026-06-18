@@ -20,13 +20,11 @@ from libecalc.domain.process.compressor.core.results import CompressorTrainStage
 from libecalc.domain.process.core.results.compressor import CompressorTrainCommonShaftFailureStatus
 from libecalc.process.process_solver.configuration import Configuration
 from libecalc.process.process_solver.solver import (
-    RateTooHighFailure,
+    CompressorStonewallFailure,
+    CompressorSurgeFailure,
     Solution,
     TargetDirection,
     TargetPressureUnreachableFailure,
-)
-from libecalc.process.process_solver.solver import (
-    RateTooLowFailure as SolverRateTooLowFailure,
 )
 
 # Comparison tolerances shared by every suite.
@@ -182,9 +180,9 @@ def outcome_from_process_solution(
     if solution.failure is None:
         return ExpectedOutcome.NOT_CALCULATED
     match solution.failure:
-        case RateTooHighFailure():
+        case CompressorStonewallFailure():
             return ExpectedOutcome.ABOVE_MAX_FLOW
-        case SolverRateTooLowFailure():
+        case CompressorSurgeFailure():
             return ExpectedOutcome.BELOW_MIN_FLOW
         case TargetPressureUnreachableFailure(direction=TargetDirection.MAX_BELOW_TARGET):
             return ExpectedOutcome.PRESSURE_TOO_HIGH

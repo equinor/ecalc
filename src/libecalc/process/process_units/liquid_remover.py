@@ -1,7 +1,6 @@
 from typing import Final
 
 from libecalc.process.fluid_stream.constants import ThermodynamicConstants
-from libecalc.process.fluid_stream.exceptions import InvalidStreamException
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
@@ -35,10 +34,10 @@ class LiquidRemover(ProcessUnit):
         if inlet_stream.vapor_fraction_molar < ThermodynamicConstants.PURE_VAPOR_THRESHOLD:
             new_fluid = self._fluid_service.remove_liquid(inlet_stream.fluid)
             inlet_molar_mass = inlet_stream.fluid.molar_mass
-            if inlet_molar_mass <= 0.0:
-                raise InvalidStreamException(
-                    f"Cannot remove liquid from a degenerate stream with non-positive molar mass: {inlet_molar_mass}"
-                )
+            assert inlet_molar_mass > 0.0, (
+                f"Degenerate stream with non-positive molar mass ({inlet_molar_mass}) reached LiquidRemover — "
+                "this should have been caught at stream construction."
+            )
             gas_mass_fraction = inlet_stream.vapor_fraction_molar * new_fluid.molar_mass / inlet_molar_mass
             new_mass_rate = inlet_stream.mass_rate_kg_per_h * gas_mass_fraction
             return inlet_stream.with_new_fluid(new_fluid).with_mass_rate(new_mass_rate)
