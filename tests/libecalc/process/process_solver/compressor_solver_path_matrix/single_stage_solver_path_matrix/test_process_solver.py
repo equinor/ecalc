@@ -174,12 +174,14 @@ def test_process_solver_path(
         (c.value.delta_pressure for c in solution.configuration if isinstance(c.value, ChokeConfiguration)),
         None,
     )
-    anti_surge_solution = system.solver.get_anti_surge_solution()
-    anti_surge_recirculation_rates = (
-        tuple(c.value.recirculation_rate for c in anti_surge_solution.configuration)
-        if anti_surge_solution is not None
-        else ()
+
+    # Compute the anti-surge floor at the solution speed, without pressure control.
+    system.runner.apply_configurations(
+        [c for c in solution.configuration if not isinstance(c.value, RecirculationConfiguration)]
     )
+    anti_surge_solution = system.pipeline_section.anti_surge_strategy.apply(inlet_stream=inlet_stream)
+    anti_surge_recirculation_rates = tuple(c.value.recirculation_rate for c in anti_surge_solution.configuration)
+
     assert_control_behavior(
         case,
         recirculation_rates=recirculation_rates,
