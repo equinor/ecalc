@@ -92,8 +92,8 @@ def _distribute(msg: str) -> None:
 def _run_udp_listener(port: int) -> None:
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    # sock.bind(("0.0.0.0", port))
-    sock.bind(("127.0.0.1", port))
+    sock.bind(("0.0.0.0", port))
+    # sock.bind(("127.0.0.1", port))
     while True:
         try:
             data, _ = sock.recvfrom(65535)
@@ -182,8 +182,8 @@ def _run_http_server(port: int) -> None:
                 self.send_response(404)
                 self.end_headers()
 
-    # ThreadingHTTPServer(("0.0.0.0", port), _Handler).serve_forever()
-    ThreadingHTTPServer(("127.0.0.1", port), _Handler).serve_forever()
+    ThreadingHTTPServer(("0.0.0.0", port), _Handler).serve_forever()
+    # ThreadingHTTPServer(("127.0.0.1", port), _Handler).serve_forever()
 
 
 _HTML = """<!DOCTYPE html>
@@ -324,11 +324,13 @@ let stepTimer = null;
 
 function startDraining() {
   if (stepTimer !== null) return;
-  stepTimer = setInterval(() => {
+  function tick() {
     if (eventQueue.length > 0) {
       try { handle(eventQueue.shift()); } catch(x) { console.error(x); }
     }
-  }, stepDelay);
+    stepTimer = setTimeout(tick, stepDelay);
+  }
+  stepTimer = setTimeout(tick, stepDelay);
 }
 
 function connect(){
