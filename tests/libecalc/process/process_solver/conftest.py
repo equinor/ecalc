@@ -199,7 +199,7 @@ def common_asv_pressure_control_strategy_factory(root_finding_strategy):
 
 
 @pytest.fixture
-def individual_asv_rate_control_strategy_factory(root_finding_strategy):
+def individual_asv_rate_control_strategy_factory():
     def create(
         runner: ProcessRunner,
         recirculation_loop_ids: list[ConfigurationHandlerId],
@@ -209,7 +209,6 @@ def individual_asv_rate_control_strategy_factory(root_finding_strategy):
             simulator=runner,
             recirculation_loop_ids=recirculation_loop_ids,
             compressors=compressors,
-            root_finding_strategy=root_finding_strategy,
         )
 
     return create

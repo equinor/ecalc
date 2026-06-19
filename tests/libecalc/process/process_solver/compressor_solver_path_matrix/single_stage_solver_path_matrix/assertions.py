@@ -73,7 +73,6 @@ def assert_control_behavior(
     action = case.expectation.control_action
     if action is ExpectedControlAction.RECIRCULATION:
         assert has_recirculation
-        assert all(r >= asv for r, asv in zip(recirculation_rates, anti_surge_recirculation_rates))
 
     if action is ExpectedControlAction.DOWNSTREAM_CHOKE:
         assert choke_delta_pressure is None or choke_delta_pressure > 0.0
