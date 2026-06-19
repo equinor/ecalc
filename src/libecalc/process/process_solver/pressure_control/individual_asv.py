@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
-from libecalc.common.numeric_methods import find_root
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import (
     ChokeConfiguration,
     Configuration,
@@ -119,10 +119,12 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
         simulator: ProcessRunner,
         recirculation_loop_ids: Sequence[ConfigurationHandlerId],
         compressors: Sequence[Compressor],
+        root_finding_strategy: RootFindingStrategy,
     ):
         self._simulator = simulator
         self._recirculation_loop_ids = recirculation_loop_ids
         self._compressors = compressors
+        self._root_finding_strategy = root_finding_strategy
 
     def reset(self) -> None:
         for recirculation_loop_id in self._recirculation_loop_ids:
@@ -178,10 +180,9 @@ class IndividualASVRateControlStrategy(PressureControlStrategy):
 
         # find_root searches for the recirculation fraction [0, 1] where
         # outlet_pressure(fraction) == target_pressure.
-        # find_root raises if no solution exists within [0, 1].
-        result_fraction = find_root(
-            lower_bound=0.0,
-            upper_bound=1.0,
+        # Raises DidNotConvergeError if no solution is found within [0, 1].
+        result_fraction = self._root_finding_strategy.find_root(
+            boundary=Boundary(min=0.0, max=1.0),
             func=lambda x: get_outlet_stream(x).pressure_bara - target_pressure.value,
         )
         # Re-propagate with converged fraction so loops store correct rates

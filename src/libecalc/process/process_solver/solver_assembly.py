@@ -211,6 +211,7 @@ def _resolve_pressure_control_strategy(
                 simulator=runner,
                 recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
                 compressors=compressors,
+                root_finding_strategy=root_finding_strategy,
             )
         case "INDIVIDUAL_ASV_PRESSURE":
             return IndividualASVPressureControlStrategy(
