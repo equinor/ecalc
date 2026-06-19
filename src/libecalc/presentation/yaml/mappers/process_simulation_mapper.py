@@ -94,6 +94,10 @@ from libecalc.process.stream_distribution.priorities_stream_distribution import 
     HasValidity,
 )
 
+INCOMPATIBLE_STRATEGIES = [
+    ("INDIVIDUAL_ASV", "COMMON_ASV"),
+]
+
 
 class StreamDistributionItem(HasExcessRate, HasValidity):
     """Connects a compressor train's solver to the stream distribution system."""
@@ -290,9 +294,27 @@ class ProcessSimulationMapper:
             case _:
                 assert_never(recirculation_type)
 
+    def _validate_strategy_compatibility(self, yaml_process_simulation: YamlProcessSimulation) -> None:
+        """Validate that ANTI_SURGE and PRESSURE_CONTROL strategies are compatible."""
+        for yaml_target_item in yaml_process_simulation.targets:
+            item = self._resolve_train_reference(yaml_target_item.target)
+            pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
+
+            if not pipeline_constraints:
+                raise EcalcValidationException(f"Missing constraint for pipeline '{item.name}'")
+
+            for i, constraint in enumerate(pipeline_constraints):
+                if (item.anti_surge, constraint.pressure_control) in INCOMPATIBLE_STRATEGIES:
+                    raise EcalcValidationException(
+                        f"ANTI_SURGE '{item.anti_surge}' incompatible with "
+                        f"PRESSURE_CONTROL '{constraint.pressure_control}' "
+                        f"in constraint {i} for pipeline '{item.name}'"
+                    )
+
     def map_process_simulation(
         self, yaml_process_simulation: YamlProcessSimulation, process_periods: list[Period]
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
+        self._validate_strategy_compatibility(yaml_process_simulation)
         process_pipelines: list[ProcessPipeline] = []
         constraints: dict[ProcessPipelineId, Constraint] = {}
         anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
