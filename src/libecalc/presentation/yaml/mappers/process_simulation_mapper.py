@@ -95,6 +95,8 @@ from libecalc.process.stream_distribution.priorities_stream_distribution import 
 )
 
 INCOMPATIBLE_STRATEGIES = [
+    ("COMMON_ASV", "INDIVIDUAL_ASV_RATE"),
+    ("COMMON_ASV", "INDIVIDUAL_ASV_PRESSURE"),
     ("INDIVIDUAL_ASV", "COMMON_ASV"),
 ]
 

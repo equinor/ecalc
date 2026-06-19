@@ -262,6 +262,38 @@ def test_incompatible_strategies_raises_validation_exception(process_simulation_
     assert "COMMON_ASV" in str(exc_info.value)
 
 
+def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_mapper):
+    """Test that COMMON_ASV anti-surge + INDIVIDUAL_ASV_RATE pressure control raises exception."""
+    mapper = process_simulation_mapper
+
+    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+
+    pipeline = yaml_simulation.targets[0].target
+    pipeline.anti_surge = "COMMON_ASV"
+
+    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.pressure_control = "INDIVIDUAL_ASV_RATE"
+
+    with pytest.raises(EcalcValidationException):
+        mapper.map_process_simulation(yaml_simulation, process_periods=[...])
+
+
+def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation_mapper):
+    """Test that COMMON_ASV anti-surge + INDIVIDUAL_ASV_PRESSURE pressure control raises exception."""
+    mapper = process_simulation_mapper
+
+    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+
+    pipeline = yaml_simulation.targets[0].target
+    pipeline.anti_surge = "COMMON_ASV"
+
+    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
+
+    with pytest.raises(EcalcValidationException):
+        mapper.map_process_simulation(yaml_simulation, process_periods=[...])
+
+
 def test_compatible_strategies_succeeds(process_simulation_mapper):
     """Test that compatible strategies pass validation."""
     mapper = process_simulation_mapper
