@@ -19,6 +19,8 @@ def propagate_stream_many(process_units: Sequence[ProcessUnit], inlet_stream: Fl
                 unit_type=process_unit.__class__.__name__,
                 inlet_pressure=current_stream.pressure_bara,
                 inlet_rate=current_stream.standard_rate_sm3_per_day,
+                inlet_actual_rate_m3h=current_stream.volumetric_rate_m3_per_hour,
+                inlet_temperature_celsius=current_stream.temperature_kelvin - 273.15,
             )
         current_stream = process_unit.propagate_stream(current_stream)
         if debug:
@@ -28,6 +30,8 @@ def propagate_stream_many(process_units: Sequence[ProcessUnit], inlet_stream: Fl
                 unit_type=process_unit.__class__.__name__,
                 outlet_pressure=current_stream.pressure_bara,
                 outlet_rate=current_stream.standard_rate_sm3_per_day,
+                outlet_actual_rate_m3h=current_stream.volumetric_rate_m3_per_hour,
+                outlet_temperature_celsius=current_stream.temperature_kelvin - 273.15,
             )
     return current_stream
 

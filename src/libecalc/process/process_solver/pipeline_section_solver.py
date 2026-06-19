@@ -135,7 +135,9 @@ class PipelineSectionSolver:
                 failure=speed_solution.failure,
             )
 
-        solver_debug.set_phase("anti_surge")
+        solver_debug.set_phase(
+            "anti_surge", reason="speed_found" if speed_solution.success else "max_speed_below_target"
+        )
         self._pipeline_section.runner.apply_configuration(shaft_config)
         self._anti_surge_solution = self._pipeline_section.anti_surge_strategy.apply(inlet_stream=inlet_stream)
 
@@ -180,7 +182,12 @@ class PipelineSectionSolver:
                 direction=TargetDirection.MAX_BELOW_TARGET,
             )
 
-        solver_debug.set_phase("pressure_control")
+        solver_debug.set_phase(
+            "pressure_control",
+            reason="outlet_pressure_above_target"
+            if outlet_at_chosen_speed.pressure_bara > pressure_constraint.value
+            else "anti_surge_complete",
+        )
         pressure_control_solution = self._pipeline_section.pressure_control_strategy.apply(
             target_pressure=pressure_constraint,
             inlet_stream=inlet_stream,
