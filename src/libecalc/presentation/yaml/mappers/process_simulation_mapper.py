@@ -459,12 +459,16 @@ class ProcessSimulationMapper:
             process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
 
-        for pipeline_ref, pipeline_constraints in yaml_process_simulation.constraints.items():
-            process_pipeline_id = process_pipeline_reference_to_id_map.get(pipeline_ref)
+        for process_pipeline_reference, pipeline_constraints in yaml_process_simulation.constraints.items():
+            process_pipeline_id = process_pipeline_reference_to_id_map.get(process_pipeline_reference)
             if process_pipeline_id is None:
-                raise EcalcValidationException(f"Constraint specified for unknown process system '{pipeline_ref}'")
+                raise EcalcValidationException(
+                    f"Constraint specified for unknown process system '{process_pipeline_reference}'"
+                )
             if not pipeline_constraints:
-                raise EcalcValidationException(f"Empty constraint list for process system '{pipeline_ref}'")
+                raise EcalcValidationException(
+                    f"Empty constraint list for process system '{process_pipeline_reference}'"
+                )
             outlet_constraint = pipeline_constraints[-1]
             constraints[process_pipeline_id] = Constraint(
                 outlet_pressure=TimeSeriesExpression(
