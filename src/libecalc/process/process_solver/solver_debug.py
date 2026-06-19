@@ -195,7 +195,7 @@ _HTML = """<!DOCTYPE html>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100vh;overflow:hidden;font-family:ui-monospace,"SF Mono",Consolas,monospace;background:#0d1117;color:#e6edf3;font-size:12px}
-.grid{display:grid;grid-template-rows:46px 1fr 110px 82px 170px;grid-template-columns:1fr 310px;height:100vh;gap:1px;background:#21262d}
+.grid{display:grid;grid-template-rows:46px 1fr 165px 82px 170px;grid-template-columns:1fr 480px;height:100vh;gap:1px;background:#21262d}
 header{grid-column:1/-1;background:#161b22;display:flex;align-items:center;padding:0 16px;gap:14px;border-bottom:1px solid #30363d}
 header h1{font-size:14px;font-weight:700;color:#58a6ff;letter-spacing:-0.02em}
 #conn{font-size:11px;color:#f85149}
@@ -205,7 +205,7 @@ header h1{font-size:14px;font-weight:700;color:#58a6ff;letter-spacing:-0.02em}
 .panel-title{font-size:10px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px;flex-shrink:0}
 #right-col{display:flex;flex-direction:column;gap:1px;background:#21262d;min-height:0}
 #p-compressor{flex:1;min-height:0}
-#p-search{height:190px;flex-shrink:0}
+#p-search{height:230px;flex-shrink:0}
 #comp-selector{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:4px;flex-shrink:0}
 .comp-btn{background:none;border:1px solid #30363d;color:#8b949e;padding:1px 7px;border-radius:3px;cursor:pointer;font-size:10px}
 .comp-btn.active{border-color:#58a6ff;color:#58a6ff;background:#1f3a5a}
@@ -214,7 +214,7 @@ header h1{font-size:14px;font-weight:700;color:#58a6ff;letter-spacing:-0.02em}
 .stat{flex:1;background:#0d1117;padding:6px 14px;display:flex;flex-direction:column;justify-content:center}
 .stat-lbl{font-size:10px;color:#8b949e;text-transform:uppercase;letter-spacing:.05em}
 .stat-val{font-size:20px;font-weight:700;color:#e6edf3;margin-top:1px;transition:color .3s}
-.stat-note{font-size:9px;color:#484f58;margin-top:2px;min-height:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat-note{font-size:13px;color:#8b949e;margin-top:3px;min-height:16px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #pipeline{grid-column:1/-1;background:#161b22;padding:6px 12px;display:flex;flex-direction:column;min-height:0}
 #stats{grid-column:1/-1;display:flex;background:#21262d;gap:1px}
 #log{grid-column:1/-1;background:#0d1117;display:flex;flex-direction:column;overflow:hidden}
@@ -222,11 +222,11 @@ header h1{font-size:14px;font-weight:700;color:#58a6ff;letter-spacing:-0.02em}
 #log-hdr span{font-size:10px;font-weight:700;color:#8b949e;text-transform:uppercase;letter-spacing:.07em}
 #log-hdr button{margin-left:auto;background:none;border:1px solid #30363d;color:#8b949e;padding:2px 9px;border-radius:4px;cursor:pointer;font-size:10px}
 #log-hdr button:hover{background:#21262d;color:#e6edf3}
-#log-body{flex:1;overflow-y:auto;font-size:11px}
-.entry{display:flex;align-items:baseline;gap:7px;padding:1px 12px;line-height:1.6;animation:fi .15s ease}
+#log-body{flex:1;overflow-y:auto;font-size:13px}
+.entry{display:flex;align-items:baseline;gap:7px;padding:2px 12px;line-height:1.6;animation:fi .15s ease}
 .entry:hover{background:#161b22}
-.ts{color:#484f58;flex-shrink:0;font-size:10px}
-.tag{flex-shrink:0;padding:0 5px;border-radius:3px;font-size:10px;font-weight:700}
+.ts{color:#484f58;flex-shrink:0;font-size:12px}
+.tag{flex-shrink:0;padding:0 5px;border-radius:3px;font-size:12px;font-weight:700}
 .kv{color:#8b949e;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 svg{width:100%;height:100%;overflow:visible}
 .gl{stroke:#21262d;stroke-width:1}
@@ -266,17 +266,17 @@ svg{width:100%;height:100%;overflow:visible}
     <div class="panel" id="p-compressor">
       <div class="panel-title">Compressor Chart</div>
       <div id="comp-selector"></div>
-      <svg id="svg-compressor" viewBox="0 0 290 190" preserveAspectRatio="xMidYMid meet" style="flex:1;min-height:0;width:100%"></svg>
+      <svg id="svg-compressor" viewBox="0 0 460 210" preserveAspectRatio="xMidYMid meet" style="flex:1;min-height:0;width:100%"></svg>
     </div>
     <div class="panel" id="p-search">
       <div class="panel-title">Search Convergence</div>
-      <svg id="svg-search" viewBox="0 0 290 155" preserveAspectRatio="xMidYMid meet" style="flex:1;min-height:0;width:100%"></svg>
+      <svg id="svg-search" viewBox="0 0 460 195" preserveAspectRatio="xMidYMid meet" style="flex:1;min-height:0;width:100%"></svg>
     </div>
   </div>
 
   <div id="pipeline">
     <div id="pipeline-title">Process Pipeline</div>
-    <svg id="pipeline-svg" viewBox="0 0 800 88" preserveAspectRatio="xMidYMid meet"></svg>
+    <svg id="pipeline-svg" viewBox="0 0 800 148" preserveAspectRatio="xMidYMid meet"></svg>
   </div>
 
   <div id="stats">
@@ -480,7 +480,16 @@ function setPhase(ph){
   const sv=document.getElementById('s-phase');sv.textContent=PL[ph]||ph;sv.style.color=PTC[ph]||'#e6edf3';
 }
 function set(id,v){document.getElementById(id).textContent=v;}
-function setNote(v){const el=document.getElementById('s-reason');if(el)el.textContent=v||'';}
+function setNote(v){
+  const el=document.getElementById('s-reason');
+  if(!el)return;
+  el.textContent=v||'';
+  if(!v){el.style.color='#8b949e';return;}
+  if(v.includes('\u26a0'))el.style.color='#f78166';
+  else if(v.startsWith('\u0394p'))el.style.color=PTC[S.phase]||'#8b949e';
+  else if(v.startsWith('\u2192'))el.style.color=PTC[S.phase]||'#8b949e';
+  else el.style.color='#8b949e';
+}
 function fmt(v,d){if(v==null||isNaN(v))return'\\u2014';return Number(v).toFixed(d);}
 
 // ── Render scheduling ─────────────────────────────────────────────
@@ -603,7 +612,7 @@ function drawSpeed(){
 // ── Search convergence chart ──────────────────────────────────────
 function drawSearch(){
   const svg=document.getElementById('svg-search');
-  const VW=295,VH=230,ml=38,mt=15,mr=16,mb=38;
+  const VW=460,VH=195,ml=44,mt=15,mr=20,mb=38;
   const W=VW-ml-mr,H=VH-mt-mb;
 
   if(S.steps.length===0&&S.roots.length===0){
@@ -642,7 +651,6 @@ function drawSearch(){
     o+=`<line x1="${ml}" y1="${mt+H}" x2="${ml+W}" y2="${mt+H}" class="al"/>`;
     o+=`<text x="${ml+W/2}" y="${VH-3}" text-anchor="middle" class="albl">Iteration</text>`;
     o+=`<text x="9" y="${mt+H/2}" text-anchor="middle" class="albl" transform="rotate(-90 9 ${mt+H/2})">\u0394P (bara)</text>`;
-
     // bars + connecting line
     const pts=[];
     for(let i=0;i<n;i++){
@@ -731,7 +739,7 @@ function drawCompressor(){
   const {curves,opTrail}=S.compressorCharts[uid];
   if(!curves||!curves.length){svg.innerHTML='<text x="145" y="95" text-anchor="middle" fill="#484f58" font-size="11">No chart data</text>';return;}
 
-  const VW=290,VH=190,ml=44,mt=12,mr=18,mb=32;
+  const VW=460,VH=210,ml=52,mt=14,mr=22,mb=36;
   const W=VW-ml-mr,H=VH-mt-mb;
 
   const allR=curves.flatMap(c=>c.rates);
@@ -762,8 +770,8 @@ function drawCompressor(){
   }
   o+=`<line x1="${ml}" y1="${mt}" x2="${ml}" y2="${mt+H}" class="al"/>`;
   o+=`<line x1="${ml}" y1="${mt+H}" x2="${ml+W}" y2="${mt+H}" class="al"/>`;
-  o+=`<text x="${ml+W/2}" y="${VH-2}" text-anchor="middle" class="albl">Rate (Am\u00b3/h)</text>`;
-  o+=`<text x="9" y="${mt+H/2}" text-anchor="middle" class="albl" transform="rotate(-90 9 ${mt+H/2})">Head (kJ/kg)</text>`;
+  o+=`<text x="${ml+W/2}" y="${VH-4}" text-anchor="middle" class="albl">Rate (Am\u00b3/h)</text>`;
+  o+=`<text x="10" y="${mt+H/2}" text-anchor="middle" class="albl" transform="rotate(-90 10 ${mt+H/2})">Head (kJ/kg)</text>`;
 
   // Speed curves (grey, background)
   for(const curve of curves){
@@ -858,14 +866,14 @@ function drawPipeline(){
   const units=S.units;
 
   if(!units||units.length===0){
-    svg.innerHTML='<text x="400" y="44" text-anchor="middle" fill="#484f58" font-size="12">No pipeline topology received yet \u2014 waiting for solve.start event</text>';
+    svg.innerHTML='<text x="400" y="74" text-anchor="middle" fill="#484f58" font-size="14">No pipeline topology received yet \u2014 waiting for solve.start event</text>';
     return;
   }
 
-  const VW=800,VH=88;
-  const boxW=Math.min(120, Math.max(72, (VW - 40) / units.length - 26));
-  const boxH=72;
-  const arrowW=22;
+  const VW=800,VH=148;
+  const boxW=Math.min(180, Math.max(108, (VW - 60) / units.length - 30));
+  const boxH=108;
+  const arrowW=28;
   const totalW=units.length*boxW+(units.length-1)*arrowW;
   const startX=(VW-totalW)/2;
   const boxY=(VH-boxH)/2;
@@ -881,66 +889,66 @@ function drawPipeline(){
     const calls=stats.calls||0;
 
     if(isActive){
-      o+=`<rect x="${x-3}" y="${boxY-3}" width="${boxW+6}" height="${boxH+6}" rx="7" fill="${cfg.border}" opacity=".18"/>`;
+      o+=`<rect x="${x-4}" y="${boxY-4}" width="${boxW+8}" height="${boxH+8}" rx="9" fill="${cfg.border}" opacity=".18"/>`;
     }
 
     const borderColor=isActive?cfg.border:(calls>0?cfg.border:'#30363d');
     const bgColor=isActive?cfg.bg:(calls>0?cfg.bg+'88':'#161b22');
-    o+=`<rect x="${x}" y="${boxY}" width="${boxW}" height="${boxH}" rx="5" fill="${bgColor}" stroke="${borderColor}" stroke-width="${isActive?2:1}"/>`;
+    o+=`<rect x="${x}" y="${boxY}" width="${boxW}" height="${boxH}" rx="7" fill="${bgColor}" stroke="${borderColor}" stroke-width="${isActive?2.5:1.5}"/>`;
 
-    const iconR=10;
-    const iconX=x+iconR+5;
-    const iconY=boxY+13;
+    const iconR=15;
+    const iconX=x+iconR+7;
+    const iconY=boxY+20;
     o+=`<circle cx="${iconX}" cy="${iconY}" r="${iconR}" fill="${isActive?cfg.border:borderColor}" opacity="${calls>0?1:0.4}"/>`;
-    o+=`<text x="${iconX}" y="${iconY+4}" text-anchor="middle" fill="#0d1117" font-size="10" font-weight="700">${cfg.icon}</text>`;
+    o+=`<text x="${iconX}" y="${iconY+5}" text-anchor="middle" fill="#0d1117" font-size="13" font-weight="700">${cfg.icon}</text>`;
 
-    const lx=x+iconR*2+11;
-    const lw=boxW-(iconR*2+13);
+    const lx=x+iconR*2+14;
     const fc=isActive?cfg.border:'#e6edf3';
     const dc=calls>0?(isActive?cfg.border:'#8b949e'):'#484f58';
 
-    o+=`<text x="${lx}" y="${boxY+14}" fill="${fc}" font-size="9" font-weight="${isActive?700:600}">${cfg.label}</text>`;
-    o+=`<text x="${lx}" y="${boxY+26}" fill="${dc}" font-size="8">calls: ${calls}</text>`;
+    o+=`<text x="${lx}" y="${boxY+20}" fill="${fc}" font-size="13" font-weight="${isActive?700:600}">${cfg.label}</text>`;
+    o+=`<text x="${lx}" y="${boxY+36}" fill="${dc}" font-size="12">calls: ${calls}</text>`;
 
     if(stats.lastOutP!=null){
-      o+=`<text x="${lx}" y="${boxY+38}" fill="${dc}" font-size="8">${fmt(stats.lastOutP,1)} bara</text>`;
+      o+=`<text x="${lx}" y="${boxY+54}" fill="${dc}" font-size="12">${fmt(stats.lastOutP,1)} bara</text>`;
     } else {
-      o+=`<text x="${lx}" y="${boxY+38}" fill="#484f58" font-size="8">\u2014 bara</text>`;
+      o+=`<text x="${lx}" y="${boxY+54}" fill="#484f58" font-size="12">\u2014 bara</text>`;
     }
     if(stats.lastOutRate!=null){
-      o+=`<text x="${lx}" y="${boxY+50}" fill="${dc}" font-size="8">${fmt(stats.lastOutRate,0)} Am\u00b3/h</text>`;
+      o+=`<text x="${lx}" y="${boxY+72}" fill="${dc}" font-size="12">${fmt(stats.lastOutRate,0)} Am\u00b3/h</text>`;
     } else {
-      o+=`<text x="${lx}" y="${boxY+50}" fill="#484f58" font-size="8">\u2014 Am\u00b3/h</text>`;
+      o+=`<text x="${lx}" y="${boxY+72}" fill="#484f58" font-size="12">\u2014 Am\u00b3/h</text>`;
     }
     if(stats.lastOutTemp!=null){
-      o+=`<text x="${lx}" y="${boxY+62}" fill="${dc}" font-size="8">${fmt(stats.lastOutTemp,1)} \u00b0C</text>`;
+      o+=`<text x="${lx}" y="${boxY+90}" fill="${dc}" font-size="12">${fmt(stats.lastOutTemp,1)} \u00b0C</text>`;
     } else {
-      o+=`<text x="${lx}" y="${boxY+62}" fill="#484f58" font-size="8">\u2014 \u00b0C</text>`;
+      o+=`<text x="${lx}" y="${boxY+90}" fill="#484f58" font-size="12">\u2014 \u00b0C</text>`;
     }
 
     if(i<units.length-1){
       const ax=x+boxW;
       const ay=boxY+boxH/2;
       const ax2=ax+arrowW;
-      o+=`<line x1="${ax}" y1="${ay}" x2="${ax2-5}" y2="${ay}" stroke="#30363d" stroke-width="1.5"/>`;
-      o+=`<polygon points="${ax2-5},${ay-4} ${ax2},${ay} ${ax2-5},${ay+4}" fill="#30363d"/>`;
+      o+=`<line x1="${ax}" y1="${ay}" x2="${ax2-6}" y2="${ay}" stroke="#30363d" stroke-width="2"/>`;
+      o+=`<polygon points="${ax2-6},${ay-5} ${ax2},${ay} ${ax2-6},${ay+5}" fill="#30363d"/>`;
     }
   }
 
   if(units.length>0){
-    o+=`<line x1="${startX-20}" y1="${VH/2}" x2="${startX-2}" y2="${VH/2}" stroke="#30363d" stroke-width="1.5"/>`;
-    o+=`<polygon points="${startX-2},${VH/2-4} ${startX+3},${VH/2} ${startX-2},${VH/2+4}" fill="#30363d"/>`;
-    o+=`<text x="${startX-22}" y="${VH/2+4}" text-anchor="end" fill="#484f58" font-size="9">in</text>`;
+    const ay=VH/2;
+    o+=`<line x1="${startX-24}" y1="${ay}" x2="${startX-3}" y2="${ay}" stroke="#30363d" stroke-width="2"/>`;
+    o+=`<polygon points="${startX-3},${ay-5} ${startX+3},${ay} ${startX-3},${ay+5}" fill="#30363d"/>`;
+    o+=`<text x="${startX-26}" y="${ay+5}" text-anchor="end" fill="#484f58" font-size="13">in</text>`;
     const lastX=startX+(units.length-1)*(boxW+arrowW)+boxW;
-    o+=`<line x1="${lastX}" y1="${VH/2}" x2="${lastX+18}" y2="${VH/2}" stroke="#30363d" stroke-width="1.5"/>`;
-    o+=`<polygon points="${lastX+14},${VH/2-4} ${lastX+20},${VH/2} ${lastX+14},${VH/2+4}" fill="#30363d"/>`;
-    o+=`<text x="${lastX+22}" y="${VH/2-10}" fill="#484f58" font-size="9">out</text>`;
+    o+=`<line x1="${lastX}" y1="${ay}" x2="${lastX+22}" y2="${ay}" stroke="#30363d" stroke-width="2"/>`;
+    o+=`<polygon points="${lastX+17},${ay-5} ${lastX+24},${ay} ${lastX+17},${ay+5}" fill="#30363d"/>`;
+    o+=`<text x="${lastX+26}" y="${ay-14}" fill="#484f58" font-size="13">out</text>`;
     if(S.pipelineOutletPressure!=null){
       const pc=PC[S.phase]||'#8b949e';
       const lastStats=S.unitStats[units[units.length-1].id]||{};
-      o+=`<text x="${lastX+22}" y="${VH/2+2}" fill="${pc}" font-size="9" font-weight="700">${fmt(S.pipelineOutletPressure,1)} bara</text>`;
-      if(lastStats.lastOutRate!=null)o+=`<text x="${lastX+22}" y="${VH/2+13}" fill="${pc}" font-size="8">${fmt(lastStats.lastOutRate,0)} Am\u00b3/h</text>`;
-      if(lastStats.lastOutTemp!=null)o+=`<text x="${lastX+22}" y="${VH/2+23}" fill="${pc}" font-size="8">${fmt(lastStats.lastOutTemp,1)} \u00b0C</text>`;
+      o+=`<text x="${lastX+26}" y="${ay+2}" fill="${pc}" font-size="13" font-weight="700">${fmt(S.pipelineOutletPressure,1)} bara</text>`;
+      if(lastStats.lastOutRate!=null)o+=`<text x="${lastX+26}" y="${ay+18}" fill="${pc}" font-size="12">${fmt(lastStats.lastOutRate,0)} Am\u00b3/h</text>`;
+      if(lastStats.lastOutTemp!=null)o+=`<text x="${lastX+26}" y="${ay+33}" fill="${pc}" font-size="12">${fmt(lastStats.lastOutTemp,1)} \u00b0C</text>`;
     }
   }
 
