@@ -1,5 +1,8 @@
 from datetime import datetime
 
+import pytest
+
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.process_units.choke import Choke
@@ -235,6 +238,45 @@ def test_mapper_attaches_anti_surge_config_to_process_problem(process_simulation
 
     assert sim_common.process_problems[0].get_anti_surge_strategy().type == "COMMON_ASV"
     assert sim_individual.process_problems[0].get_anti_surge_strategy().type == "INDIVIDUAL_ASV"
+
+
+def test_incompatible_strategies_raises_validation_exception(process_simulation_mapper):
+    """Test that incompatible ANTI_SURGE and PRESSURE_CONTROL strategies raise exception."""
+    mapper = process_simulation_mapper
+
+    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+
+    # Use incompatible combinations
+    pipeline = yaml_simulation.targets[0].target
+    pipeline.anti_surge = "INDIVIDUAL_ASV"
+
+    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.pressure_control = "COMMON_ASV"
+
+    # Check that validation fails
+    with pytest.raises(EcalcValidationException) as exc_info:
+        mapper.map_process_simulation(yaml_simulation, process_periods=[...])
+
+    assert "incompatible" in str(exc_info.value)
+    assert "INDIVIDUAL_ASV" in str(exc_info.value)
+    assert "COMMON_ASV" in str(exc_info.value)
+
+
+def test_compatible_strategies_succeeds(process_simulation_mapper):
+    """Test that compatible strategies pass validation."""
+    mapper = process_simulation_mapper
+
+    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+
+    # Use compatible combinations
+    pipeline = yaml_simulation.targets[0].target
+    pipeline.anti_surge = "INDIVIDUAL_ASV"
+
+    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
+
+    # Run without exception
+    mapper.map_process_simulation(yaml_simulation, process_periods=[...])
 
 
 # ---------------------------------------------------------------------------
