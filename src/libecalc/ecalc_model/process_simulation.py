@@ -39,13 +39,14 @@ class IndividualStreamDistributionConfig:
 
 
 @value_object
-class Constraint:  # should this instead be more flexible wrt. matching one or more stream conditions?
-    outlet_pressure: TimeSeriesExpression
+class PressureControlConfig:  # Spec
+    type: PressureControlType
 
 
 @value_object
-class PressureControlConfig:  # Spec
-    type: PressureControlType
+class Constraint:  # should this instead be more flexible wrt. matching one or more stream conditions?
+    outlet_pressure: TimeSeriesExpression
+    pressure_control: PressureControlConfig
 
 
 @value_object

@@ -15,6 +15,7 @@ from libecalc.ecalc_model.process_simulation import (
     CommonStreamSettings,
     Constraint,
     IndividualStreamDistributionConfig,
+    PressureControlConfig,
     ProcessProblem,
     ProcessSimulation,
 )
@@ -474,6 +475,9 @@ class ProcessSimulationMapper:
                 outlet_pressure=TimeSeriesExpression(
                     expression=outlet_constraint.outlet_pressure,
                     expression_evaluator=self._expression_evaluator,
+                ),
+                pressure_control=PressureControlConfig(
+                    type=outlet_constraint.pressure_control,
                 ),
             )
 
