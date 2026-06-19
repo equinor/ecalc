@@ -5,7 +5,6 @@ from libecalc.process.process_pipeline.process_error import RateTooLowError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import (
     Configuration,
-    RecirculationConfiguration,
     SpeedConfiguration,
     merge_configurations,
 )
@@ -32,7 +31,6 @@ class PipelineSectionSolver:
 
     def __init__(self, pipeline_section: PipelineSection) -> None:
         self._pipeline_section = pipeline_section
-        self._anti_surge_solution: Solution[Sequence[Configuration[RecirculationConfiguration]]] | None = None
 
     def _get_initial_speed_boundary(self) -> Boundary:
         return self._pipeline_section.speed_boundary
@@ -69,9 +67,6 @@ class PipelineSectionSolver:
         self._pipeline_section.runner.apply_configurations(configurations)
         return self._pipeline_section.runner.run(inlet_stream=inlet_stream)
 
-    def get_anti_surge_solution(self) -> Solution[Sequence[Configuration[RecirculationConfiguration]]] | None:
-        return self._anti_surge_solution
-
     def find_solution(
         self,
         pressure_constraint: FloatConstraint,
@@ -91,14 +86,14 @@ class PipelineSectionSolver:
             return Solution(configuration=[shaft_config], failure=speed_finding.failure)
 
         self._pipeline_section.runner.apply_configuration(shaft_config)
-        self._anti_surge_solution = self._pipeline_section.anti_surge_strategy.apply(inlet_stream=inlet_stream)
+        anti_surge_solution = self._pipeline_section.anti_surge_strategy.apply(inlet_stream=inlet_stream)
 
-        speed_and_anti_surge_configurations = [shaft_config, *self._anti_surge_solution.configuration]
+        speed_and_anti_surge_configurations = [shaft_config, *anti_surge_solution.configuration]
 
-        if not self._anti_surge_solution.success:
+        if not anti_surge_solution.success:
             return Solution(
                 configuration=speed_and_anti_surge_configurations,
-                failure=self._anti_surge_solution.failure,
+                failure=anti_surge_solution.failure,
             )
 
         if isinstance(speed_finding.failure, TargetPressureUnreachableFailure) and (
