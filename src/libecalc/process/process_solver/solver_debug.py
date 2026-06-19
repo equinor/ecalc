@@ -427,7 +427,6 @@ function handle(ev){
     case 'compressor.op_point':
       if(S.compressorCharts[ev.unit_id]){
         S.compressorCharts[ev.unit_id].opTrail.push({rate:ev.rate,head:ev.head,phase:ev.phase,status:ev.status,speed:ev.speed});
-        if(ev.status==='ok')S.activeCompressorId=ev.unit_id;
         scheduleRender('compressor');
       }break;
 
@@ -476,7 +475,7 @@ function doRender(){
   if(dirty.speed){drawSpeed();dirty.speed=false;}
   if(dirty.search){drawSearch();dirty.search=false;}
   if(dirty.pipeline){drawPipeline();dirty.pipeline=false;}
-  if(dirty.compressor){drawCompressor();dirty.compressor=false;}
+  if(dirty.compressor){renderCompSelector();drawCompressor();dirty.compressor=false;}
 }
 function drawSpeed(){
   const svg=document.getElementById('svg-speed');
@@ -688,7 +687,11 @@ function renderCompSelector(){
   const sel=document.getElementById('comp-selector');
   const ids=Object.keys(S.compressorCharts);
   if(ids.length<=1){sel.innerHTML='';return;}
-  sel.innerHTML=ids.map((id,i)=>`<button class="comp-btn${id===S.activeCompressorId?' active':''}" onclick="S.activeCompressorId='${id}';renderCompSelector();scheduleRender('compressor')">C${i+1}</button>`).join('');
+  sel.innerHTML=ids.map((id,i)=>{
+    const n=S.compressorCharts[id].opTrail.filter(p=>p.status==='ok').length;
+    const active=id===S.activeCompressorId;
+    return `<button class="comp-btn${active?' active':''}" onclick="S.activeCompressorId='${id}';renderCompSelector();scheduleRender('compressor')">C${i+1}<span style="margin-left:4px;font-size:9px;opacity:.7">${n}</span></button>`;
+  }).join('');
 }
 
 function drawCompressor(){
