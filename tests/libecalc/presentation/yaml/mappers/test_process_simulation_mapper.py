@@ -6,7 +6,9 @@ from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
+from libecalc.process.process_units.inlet import Inlet
 from libecalc.process.process_units.liquid_remover import LiquidRemover
+from libecalc.process.process_units.outlet import Outlet
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.testing.process_builders import (
@@ -108,7 +110,9 @@ def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulat
     )
 
     units = pipelines[0].get_process_units()
-    assert isinstance(units[0], DirectMixer)
+    assert isinstance(units[0], Inlet)
+    assert isinstance(units[1], DirectMixer)
+    assert isinstance(units[-1], Outlet)
     splitter_index = next(i for i, u in enumerate(units) if isinstance(u, DirectSplitter))
     compressor_index = next(i for i, u in enumerate(units) if isinstance(u, Compressor))
     assert splitter_index > compressor_index
@@ -144,7 +148,9 @@ def test_mapper_adds_choke_for_downstream_choke_pressure_control(process_simulat
     )
 
     units = pipelines[0].get_process_units()
-    assert isinstance(units[-1], Choke)
+    assert isinstance(units[0], Inlet)
+    assert isinstance(units[-2], Choke)
+    assert isinstance(units[-1], Outlet)
 
 
 def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulation_mapper):
@@ -157,7 +163,9 @@ def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulatio
     )
 
     units = pipelines[0].get_process_units()
-    assert isinstance(units[0], Choke)
+    assert isinstance(units[0], Inlet)
+    assert isinstance(units[1], Choke)
+    assert isinstance(units[-1], Outlet)
 
 
 def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapper):
@@ -188,6 +196,7 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
     unit_types = [type(u).__name__ for u in units]
 
     assert unit_types == [
+        "Inlet",
         "DirectMixer",
         "TemperatureSetter",
         "Compressor",
@@ -198,6 +207,7 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
         "TemperatureSetter",
         "Compressor",
         "DirectSplitter",  # ASV loop 2
+        "Outlet",
     ]
 
 
@@ -260,6 +270,6 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
     splitter_indices = [i for i, u in enumerate(units) if isinstance(u, DirectSplitter)]
     assert len(splitter_indices) == 2
 
-    trailing_temp_index = len(units) - 1
+    trailing_temp_index = len(units) - 2
     assert isinstance(units[trailing_temp_index], TemperatureSetter)
     assert trailing_temp_index > max(splitter_indices)

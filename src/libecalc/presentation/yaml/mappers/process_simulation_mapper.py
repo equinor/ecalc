@@ -78,8 +78,10 @@ from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
+from libecalc.process.process_units.inlet import Inlet
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.mixer import Mixer
+from libecalc.process.process_units.outlet import Outlet
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.splitter import Splitter
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
@@ -440,6 +442,10 @@ class ProcessSimulationMapper:
                 choke, choke_configuration_handler = choke_factory(fluid_service=self._fluid_service)
                 problem_configuration_handlers.append(choke_configuration_handler)
                 process_units = [choke, *process_units]
+
+            # A pipeline must have a start and an end - always add process units for that (ie owner of inlet and outlet streams)
+            process_units.append(Outlet())
+            process_units.insert(0, Inlet())
 
             process_pipeline = ProcessPipeline(
                 name=item.name,
