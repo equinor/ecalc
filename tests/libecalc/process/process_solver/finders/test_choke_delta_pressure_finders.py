@@ -1,7 +1,7 @@
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.finders.choke_delta_pressure_finders import (
@@ -10,7 +10,7 @@ from libecalc.process.process_solver.finders.choke_delta_pressure_finders import
     UpstreamChokeDeltaPressureFinder,
 )
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
-from libecalc.process.process_solver.solver import RateTooHighFailure
+from libecalc.process.process_solver.solver import CompressorStonewallFailure
 
 
 def test_upstream_choke_solver(
@@ -47,7 +47,7 @@ def test_upstream_choke_solver_handles_rate_too_high_at_max_choke(
 ):
     """
     When the upstream choke drops suction pressure so low that the downstream process unit
-    raises RateTooHighError, the solver must still converge to the correct choke setting.
+    raises CompressorStonewallError, the solver must still converge to the correct choke setting.
     """
     inlet_pressure = 100.0
     feasible_suction_pressure = 20.0
@@ -63,7 +63,7 @@ def test_upstream_choke_solver_handles_rate_too_high_at_max_choke(
     def choke_func(configuration: ChokeConfiguration) -> FluidStream:
         suction_pressure = inlet_pressure - configuration.delta_pressure
         if suction_pressure < feasible_suction_pressure:
-            raise RateTooHighError(process_unit_id=ProcessUnitId(ecalc_id_generator()))
+            raise CompressorStonewallError(process_unit_id=ProcessUnitId(ecalc_id_generator()))
         return stream_factory(
             standard_rate_m3_per_day=1000,
             pressure_bara=suction_pressure + pressure_added,
@@ -78,8 +78,8 @@ def test_upstream_choke_solver_reports_rate_too_high_when_stonewall_prevents_rea
     root_finding_strategy,
     stream_factory,
 ):
-    """When choking further would raise RateTooHighError AND the maximum feasible choke
-    still leaves outlet pressure above target, the failure must be RateTooHighFailure.
+    """When choking further would raise CompressorStonewallError AND the maximum feasible choke
+    still leaves outlet pressure above target, the failure must be CompressorStonewallFailure.
     """
     inlet_pressure = 100.0
     feasible_suction_minimum = 60.0
@@ -95,7 +95,7 @@ def test_upstream_choke_solver_reports_rate_too_high_when_stonewall_prevents_rea
     def choke_func(configuration: ChokeConfiguration) -> FluidStream:
         suction_pressure = inlet_pressure - configuration.delta_pressure
         if suction_pressure < feasible_suction_minimum:
-            raise RateTooHighError(process_unit_id=ProcessUnitId(ecalc_id_generator()))
+            raise CompressorStonewallError(process_unit_id=ProcessUnitId(ecalc_id_generator()))
         return stream_factory(
             standard_rate_m3_per_day=1000,
             pressure_bara=suction_pressure + pressure_added,
@@ -104,7 +104,7 @@ def test_upstream_choke_solver_reports_rate_too_high_when_stonewall_prevents_rea
     result = upstream_choke_search.find(choke_func)
 
     assert not result.success
-    assert isinstance(result.failure, RateTooHighFailure)
+    assert isinstance(result.failure, CompressorStonewallFailure)
 
 
 def test_upstream_choke_solver_reports_failure_when_max_choke_still_above_target(

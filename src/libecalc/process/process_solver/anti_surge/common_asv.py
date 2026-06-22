@@ -20,7 +20,7 @@ class CommonASVAntiSurgeStrategy(AntiSurgeStrategy):
     Ensure the train can be propagated at the current speed without going below minimum flow.
 
     This strategy is used during speed search when the train cannot be propagated with
-    recirculation=0 because one or more stages fall below minimum flow (RateTooLowError).
+    recirculation=0 because one or more stages fall below minimum flow (CompressorSurgeError).
 
     Contract:
       - Mutates the recirculation loop by setting a recirculation rate.

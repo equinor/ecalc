@@ -19,7 +19,7 @@ def test_mismatched_targets_raises(single_compressor_pipeline_section_factory, s
     solver = MultiShaftSolver(pipeline_sections=pipelines)
     inlet = stream_factory(standard_rate_m3_per_day=1_500_000.0, pressure_bara=30.0, temperature_kelvin=303.15)
 
-    with pytest.raises(AssertionError, match="must match"):
+    with pytest.raises(ValueError):
         solver.find_solution([FloatConstraint(50.0), FloatConstraint(100.0)], inlet)
 
 

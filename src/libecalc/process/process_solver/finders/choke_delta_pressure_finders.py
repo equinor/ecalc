@@ -2,12 +2,16 @@ from collections.abc import Callable
 
 from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import ChokeConfiguration
 from libecalc.process.process_solver.finder import Finder, Finding
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy
-from libecalc.process.process_solver.solver import RateTooHighFailure, TargetDirection, TargetPressureUnreachableFailure
+from libecalc.process.process_solver.solver import (
+    CompressorStonewallFailure,
+    TargetDirection,
+    TargetPressureUnreachableFailure,
+)
 
 
 class UpstreamChokeDeltaPressureFinder(Finder):
@@ -35,11 +39,11 @@ class UpstreamChokeDeltaPressureFinder(Finder):
         # Upstream choking increase the rate (lower pressure, higher volume)
         # If we choke too much, to rate will exceed the capacity / stonewall
         # If so, bisect to the highest ΔP that doesn't exceed stonewall
-        stonewall_error: RateTooHighError | None = None
+        stonewall_error: CompressorStonewallError | None = None
         try:
             outlet_pressure(self._boundary.max)
             search_max = self._boundary.max
-        except RateTooHighError as e:
+        except CompressorStonewallError as e:
             stonewall_error = e
             lo, hi = self._boundary.min, self._boundary.max
             while hi - lo > PRESSURE_CALCULATION_TOLERANCE:
@@ -47,7 +51,7 @@ class UpstreamChokeDeltaPressureFinder(Finder):
                 try:
                     outlet_pressure(mid)
                     lo = mid
-                except RateTooHighError as bisect_error:
+                except CompressorStonewallError as bisect_error:
                     stonewall_error = bisect_error
                     hi = mid
             search_max = lo
@@ -57,7 +61,7 @@ class UpstreamChokeDeltaPressureFinder(Finder):
 
         if max_pressure > self._target_pressure:
             if stonewall_error is not None:
-                return Finding(configuration=closest, failure=RateTooHighFailure.from_error(stonewall_error))
+                return Finding(configuration=closest, failure=CompressorStonewallFailure.from_error(stonewall_error))
             return Finding(
                 configuration=closest,
                 failure=TargetPressureUnreachableFailure(
