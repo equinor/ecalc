@@ -12,12 +12,12 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 
+from ..utils import project_matrix
 from .cases import TEST_CASES, TrialCase
 from .golden_snapshot import (
     GOLDEN_SNAPSHOT_DIR,
     GOLDEN_SNAPSHOT_NAME,
     project_legacy_result,
-    project_matrix,
 )
 
 
