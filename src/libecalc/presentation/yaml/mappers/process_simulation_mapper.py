@@ -69,8 +69,6 @@ from libecalc.process.process_solver.configuration_handler import ConfigurationH
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_units.compressor import Compressor
-from libecalc.process.process_units.direct_mixer import DirectMixer
-from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.inlet import Inlet
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.mixer import Mixer
@@ -349,6 +347,10 @@ class ProcessSimulationMapper:
             for section in pipeline_constraint_sections:
                 process_units.extend(section.process_units)
                 problem_configuration_handlers.extend(section.configuration_handlers)
+
+            # A pipeline must have a start and an end - always add process units for that (ie owner of inlet and outlet streams)
+            process_units.append(Outlet())
+            process_units.insert(0, Inlet())
 
             process_pipeline = ProcessPipeline(name=item.name, stream_propagators=process_units)
 
