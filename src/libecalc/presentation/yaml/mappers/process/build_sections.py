@@ -43,20 +43,22 @@ def wrap_section(section_: PipelineConstraintSection, fluid_service: FluidServic
         handlers.append(loop)
     else:
         pipeline = []
-        anti_surge_group: list[ProcessUnit] = []
+        pending_units: list[
+            ProcessUnit
+        ] = []  # held until a boundary (compressor → wrapped; mixer/splitter/end → unwrapped)
         for unit in section_.units:
             if isinstance(unit, (Mixer, Splitter)):
-                pipeline.extend(anti_surge_group)  # units with no compressor: leave unwrapped
-                anti_surge_group = []  # start a new group
+                pipeline.extend(pending_units)  # units with no compressor: leave unwrapped
+                pending_units = []  # start a new group
                 pipeline.append(unit)  # mixer/splitter stays outside the loop
                 continue
-            anti_surge_group.append(unit)  # hold until we reach the compressor
+            pending_units.append(unit)  # hold until we reach the compressor
             if isinstance(unit, Compressor):
-                loop, wrapped = _wrap_compressor_in_recirculation_loop(anti_surge_group)
+                loop, wrapped = _wrap_compressor_in_recirculation_loop(pending_units)
                 handlers.append(loop)
                 pipeline.extend(wrapped)  # add the wrapped group
-                anti_surge_group = []  # start a new group
-        pipeline.extend(anti_surge_group)  # units after the last compressor
+                pending_units = []  # start a new group
+        pipeline.extend(pending_units)  # units after the last compressor
 
     if section_.pressure_control in ("UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE"):
         choke = Choke(fluid_service=fluid_service)
