@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Final, Literal, NewType, Self, assert_never
+from typing import Final, NewType, Self, assert_never
 from uuid import UUID
 
 from libecalc.common.ddd import value_object
@@ -16,6 +16,7 @@ from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
@@ -44,14 +45,15 @@ class PressureControlConfig:  # Spec
 
 
 @value_object
-class Constraint:  # should this instead be more flexible wrt. matching one or more stream conditions?
-    outlet_pressure: TimeSeriesExpression
-    pressure_control: PressureControlConfig
+class AntiSurgeConfig:
+    type: AntiSurgeType | None = None
 
 
 @value_object
-class AntiSurgeConfig:
-    type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"]
+class Constraint:  # should this instead be more flexible wrt. matching one or more stream conditions?
+    outlet_pressure: TimeSeriesExpression
+    pressure_control: PressureControlConfig
+    anti_surge: AntiSurgeConfig
 
 
 ProcessProblemId = NewType("ProcessProblemId", UUID)
@@ -64,14 +66,12 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 
     def __init__(
         self,
-        anti_surge_strategy: AntiSurgeConfig,
-        constraint: Constraint,
+        constraints: list[Constraint],
         configuration_handlers: Sequence[ConfigurationHandler],
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
-        self.anti_surge_strategy = anti_surge_strategy
-        self.constraint = constraint
+        self.constraints = constraints
         self.process_pipeline_id = process_pipeline_id
         self.configuration_handlers = configuration_handlers
         self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
@@ -83,11 +83,8 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
     def _create_id(cls: type[Self]) -> ProcessProblemId:
         return ProcessProblemId(ecalc_id_generator())
 
-    def get_constraint(self) -> Constraint:
-        return self.constraint
-
-    def get_anti_surge_strategy(self) -> AntiSurgeConfig:
-        return self.anti_surge_strategy
+    def get_constraints(self) -> list[Constraint]:
+        return self.constraints
 
 
 ProcessSimulationId = NewType("ProcessSimulationId", UUID)

@@ -215,29 +215,8 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
 
 
 # ---------------------------------------------------------------------------
-# Tests: process problem / strategy mapping
+# Tests: strategy mapping
 # ---------------------------------------------------------------------------
-
-
-def test_mapper_attaches_anti_surge_config_to_process_problem(process_simulation_mapper):
-    """Anti-surge strategy follows from pressure control choice."""
-    pipeline_common = _simple_pipeline("train_common")
-    pipeline_common.anti_surge = "COMMON_ASV"
-    yaml_common = _build_simulation_with_pipeline(pipeline_common)
-    pipeline_individual = _simple_pipeline("train_individual")
-    yaml_individual = _build_simulation_with_pipeline(pipeline_individual)
-
-    _, sim_common = process_simulation_mapper.map_process_simulation(
-        yaml_process_simulation=yaml_common,
-        process_periods=[PERIOD],
-    )
-    _, sim_individual = process_simulation_mapper.map_process_simulation(
-        yaml_process_simulation=yaml_individual,
-        process_periods=[PERIOD],
-    )
-
-    assert sim_common.process_problems[0].get_anti_surge_strategy().type == "COMMON_ASV"
-    assert sim_individual.process_problems[0].get_anti_surge_strategy().type == "INDIVIDUAL_ASV"
 
 
 def test_incompatible_strategies_raises_validation_exception(process_simulation_mapper):
@@ -248,18 +227,16 @@ def test_incompatible_strategies_raises_validation_exception(process_simulation_
 
     # Use incompatible combinations
     pipeline = yaml_simulation.targets[0].target
-    pipeline.anti_surge = "INDIVIDUAL_ASV"
 
     constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.anti_surge = "INDIVIDUAL_ASV"
     constraint.pressure_control = "COMMON_ASV"
 
     # Check that validation fails
     with pytest.raises(EcalcValidationException) as exc_info:
         mapper.map_process_simulation(yaml_simulation, process_periods=[...])
 
-    assert "incompatible" in str(exc_info.value)
-    assert "INDIVIDUAL_ASV" in str(exc_info.value)
-    assert "COMMON_ASV" in str(exc_info.value)
+    assert "PRESSURE_CONTROL 'COMMON_ASV' requires ANTI_SURGE 'COMMON_ASV', got 'INDIVIDUAL_ASV'" in str(exc_info.value)
 
 
 def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_mapper):
@@ -269,9 +246,9 @@ def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_map
     yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
 
     pipeline = yaml_simulation.targets[0].target
-    pipeline.anti_surge = "COMMON_ASV"
 
     constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.anti_surge = "COMMON_ASV"
     constraint.pressure_control = "INDIVIDUAL_ASV_RATE"
 
     with pytest.raises(EcalcValidationException):
@@ -285,9 +262,9 @@ def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation
     yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
 
     pipeline = yaml_simulation.targets[0].target
-    pipeline.anti_surge = "COMMON_ASV"
 
     constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.anti_surge = "COMMON_ASV"
     constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
 
     with pytest.raises(EcalcValidationException):
@@ -302,9 +279,9 @@ def test_compatible_strategies_succeeds(process_simulation_mapper):
 
     # Use compatible combinations
     pipeline = yaml_simulation.targets[0].target
-    pipeline.anti_surge = "INDIVIDUAL_ASV"
 
     constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.anti_surge = "INDIVIDUAL_ASV"
     constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
 
     # Run without exception

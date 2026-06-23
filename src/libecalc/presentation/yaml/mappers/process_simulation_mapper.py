@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Literal, assert_never, get_args
+from typing import assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException
@@ -37,11 +37,13 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
     predefined_fluid_model_mapper,
 )
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
+from libecalc.presentation.yaml.mappers.process.build_sections import PipelineConstraintSectionBuilder
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressor,
@@ -63,18 +65,9 @@ from libecalc.process.process_pipeline.process_pipeline import (
     ProcessPipelineId,
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
-from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
-from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
-from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
-from libecalc.process.process_solver.configuration import ConfigurationHandlerId
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.process_runner import ProcessRunner
-from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
-from libecalc.process.process_solver.search_strategies import ScipyRootFindingStrategy
-from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
 from libecalc.process.process_units.direct_splitter import DirectSplitter
@@ -93,12 +86,6 @@ from libecalc.process.stream_distribution.common_stream_distribution import (
 from libecalc.process.stream_distribution.priorities_stream_distribution import (
     HasValidity,
 )
-
-INCOMPATIBLE_STRATEGIES = [
-    ("COMMON_ASV", "INDIVIDUAL_ASV_RATE"),
-    ("COMMON_ASV", "INDIVIDUAL_ASV_PRESSURE"),
-    ("INDIVIDUAL_ASV", "COMMON_ASV"),
-]
 
 
 class StreamDistributionItem(HasExcessRate, HasValidity):
@@ -121,29 +108,6 @@ class StreamDistributionItem(HasExcessRate, HasValidity):
         return self._feasibility_solver.get_excess_rate(
             inlet_stream=inlet_stream, target_pressure=self._target_pressure
         )
-
-
-def with_asv(units: Sequence[ProcessUnit]) -> tuple[ConfigurationHandler, list[ProcessUnit]]:
-    mixer = DirectMixer()
-    splitter = DirectSplitter()
-    recirculation_loop = RecirculationLoop(
-        mixer=mixer,
-        splitter=splitter,
-    )
-    process_pipeline = [
-        mixer,
-        *units,
-        splitter,
-    ]
-    return recirculation_loop, process_pipeline
-
-
-def choke_factory(fluid_service: FluidService) -> tuple[Choke, ChokeConfigurationHandler]:
-    choke = Choke(fluid_service=fluid_service)
-
-    return choke, ChokeConfigurationHandler(
-        choke=choke,
-    )
 
 
 class ProcessSimulationMapper:
@@ -272,54 +236,11 @@ class ProcessSimulationMapper:
             case _:
                 assert_never(yaml_fluid_model)
 
-    def map_anti_surge_strategy(
-        self,
-        simulator: ProcessRunner,
-        recirculation_loop_ids: Sequence[ConfigurationHandlerId],
-        compressors: Sequence[Compressor],
-        recirculation_type: Literal["INDIVIDUAL_ASV", "COMMON_ASV"],
-    ) -> AntiSurgeStrategy:
-        match recirculation_type:
-            case "COMMON_ASV":
-                return CommonASVAntiSurgeStrategy(
-                    simulator=simulator,
-                    root_finding_strategy=ScipyRootFindingStrategy(),
-                    first_compressor=compressors[0],
-                    recirculation_loop_id=recirculation_loop_ids[0],
-                )
-            case "INDIVIDUAL_ASV":
-                return IndividualASVAntiSurgeStrategy(
-                    simulator=simulator,
-                    recirculation_loop_ids=recirculation_loop_ids,
-                    compressors=compressors,
-                )
-            case _:
-                assert_never(recirculation_type)
-
-    def _validate_strategy_compatibility(self, yaml_process_simulation: YamlProcessSimulation) -> None:
-        """Validate that ANTI_SURGE and PRESSURE_CONTROL strategies are compatible."""
-        for yaml_target_item in yaml_process_simulation.targets:
-            item = self._resolve_train_reference(yaml_target_item.target)
-            pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
-
-            if not pipeline_constraints:
-                raise EcalcValidationException(f"Missing constraint for pipeline '{item.name}'")
-
-            for i, constraint in enumerate(pipeline_constraints):
-                if (item.anti_surge, constraint.pressure_control) in INCOMPATIBLE_STRATEGIES:
-                    raise EcalcValidationException(
-                        f"ANTI_SURGE '{item.anti_surge}' incompatible with "
-                        f"PRESSURE_CONTROL '{constraint.pressure_control}' "
-                        f"in constraint {i} for pipeline '{item.name}'"
-                    )
-
     def map_process_simulation(
         self, yaml_process_simulation: YamlProcessSimulation, process_periods: list[Period]
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
-        self._validate_strategy_compatibility(yaml_process_simulation)
         process_pipelines: list[ProcessPipeline] = []
-        constraints: dict[ProcessPipelineId, Constraint] = {}
-        anti_surge_configs: dict[ProcessPipelineId, AntiSurgeConfig] = {}
+        constraints: dict[ProcessPipelineId, list[Constraint]] = {}
         configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
 
         # Some configurations are not found/set by the solver, but set by user upon process_simulation creation
@@ -335,12 +256,14 @@ class ProcessSimulationMapper:
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
+        section_builder = PipelineConstraintSectionBuilder(fluid_service=self._fluid_service)
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
             compressor_ids: list[ProcessUnitId] = []
+            unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId] = {}
             problem_time_series_configurations: dict[
                 ProcessUnitId,
                 TimeSeriesTemperatureSetterConfiguration
@@ -349,11 +272,6 @@ class ProcessSimulationMapper:
                 | TimeSeriesSplitterConfiguration,
             ] = {}
 
-            # Group units into compressor segments: each segment contains the units leading up to
-            # (and including) one compressor. Used downstream to wrap each segment in its own ASV
-            # recirculation loop when pressure_control is INDIVIDUAL_ASV.
-            pipeline_segments: list[tuple[bool, list[ProcessUnitId]]] = []  # (wrap_in_asv, ids)
-            current_segment_unit_ids: list[ProcessUnitId] = []
             for yaml_pipeline_item in item.items:
                 yaml_process_unit = yaml_pipeline_item.target
                 if isinstance(yaml_process_unit, str):
@@ -361,44 +279,29 @@ class ProcessSimulationMapper:
 
                 match yaml_process_unit:
                     case YamlCompressor():
-                        compressor = self._get_compressor(yaml_process_unit)
-                        process_unit_map[compressor.get_id()] = compressor
-                        compressor_ids.append(compressor.get_id())
-                        current_segment_unit_ids.append(compressor.get_id())
-                        # Compressor should be wrapped in ASV-loop
-                        pipeline_segments.append((True, current_segment_unit_ids))
-                        current_segment_unit_ids = []
+                        unit = self._get_compressor(yaml_process_unit)
+                        compressor_ids.append(unit.get_id())
 
                     case YamlPressureDropper():
-                        pressure_dropper = PressureDropper(fluid_service=self._fluid_service)
-                        problem_time_series_configurations[pressure_dropper.get_id()] = (
-                            TimeSeriesPressureDropperConfiguration(
-                                pressure_drop_in_bara=self._map_pressure(yaml_process_unit.pressure_drop)
-                            )
+                        unit = PressureDropper(fluid_service=self._fluid_service)
+                        problem_time_series_configurations[unit.get_id()] = TimeSeriesPressureDropperConfiguration(
+                            pressure_drop_in_bara=self._map_pressure(yaml_process_unit.pressure_drop)
                         )
-                        process_unit_map[pressure_dropper.get_id()] = pressure_dropper
-                        current_segment_unit_ids.append(pressure_dropper.get_id())
 
                     case YamlTemperatureSetter():
-                        temperature_setter = TemperatureSetter(fluid_service=self._fluid_service)
-                        problem_time_series_configurations[temperature_setter.get_id()] = (
-                            TimeSeriesTemperatureSetterConfiguration(
-                                temperature_in_celsius=self._map_temperature(yaml_process_unit.temperature)
-                            )
+                        unit = TemperatureSetter(fluid_service=self._fluid_service)
+                        problem_time_series_configurations[unit.get_id()] = TimeSeriesTemperatureSetterConfiguration(
+                            temperature_in_celsius=self._map_temperature(yaml_process_unit.temperature)
                         )
-                        process_unit_map[temperature_setter.get_id()] = temperature_setter
-                        current_segment_unit_ids.append(temperature_setter.get_id())
 
                     case YamlLiquidRemover():
-                        liquid_remover = LiquidRemover(fluid_service=self._fluid_service)
-                        process_unit_map[liquid_remover.get_id()] = liquid_remover
-                        current_segment_unit_ids.append(liquid_remover.get_id())
+                        unit = LiquidRemover(fluid_service=self._fluid_service)
 
                     case YamlMixer():
                         yaml_stream = self._resolve_stream_reference(yaml_process_unit.sidestream)
                         yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
-                        mixer = Mixer(fluid_service=self._fluid_service)
-                        problem_time_series_configurations[mixer.get_id()] = TimeSeriesMixerConfiguration(
+                        unit = Mixer(fluid_service=self._fluid_service)
+                        problem_time_series_configurations[unit.get_id()] = TimeSeriesMixerConfiguration(
                             sidestream=TimeSeriesStream(
                                 pressure_bara=self._map_pressure(yaml_stream.pressure),
                                 standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
@@ -406,17 +309,12 @@ class ProcessSimulationMapper:
                                 fluid_model=self._map_fluid_model(yaml_fluid_model),
                             )
                         )
-                        process_unit_map[mixer.get_id()] = mixer
-                        # Mixer should not be wrapped in ASV-loop
-                        pipeline_segments.append((False, [mixer.get_id()]))
 
                     case YamlSplitter():
-                        splitter = Splitter(fluid_service=self._fluid_service)
-                        problem_time_series_configurations[splitter.get_id()] = TimeSeriesSplitterConfiguration(
+                        unit = Splitter(fluid_service=self._fluid_service)
+                        problem_time_series_configurations[unit.get_id()] = TimeSeriesSplitterConfiguration(
                             offtake_rate=self._map_rate(yaml_process_unit.offtake_rate),
                         )
-                        process_unit_map[splitter.get_id()] = splitter
-                        pipeline_segments.append((False, [splitter.get_id()]))
 
                     case _:
                         # Unreachable for valid YAML (pydantic discriminator rejects unknown types).
@@ -427,6 +325,14 @@ class ProcessSimulationMapper:
                             f"in a process pipeline. Allowed types are: {', '.join(allowed_types)}."
                         )
 
+                process_unit_map[unit.get_id()] = unit
+                if yaml_process_unit.name:
+                    unit_name_to_id[yaml_process_unit.name] = unit.get_id()
+
+            pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
+            if not pipeline_constraints:
+                raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
+
             for compressor_id in compressor_ids:
                 compressor = process_unit_map[compressor_id]
                 assert isinstance(compressor, Compressor)
@@ -434,53 +340,21 @@ class ProcessSimulationMapper:
 
             problem_configuration_handlers.append(shaft)
 
-            pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
-            if not pipeline_constraints:
-                raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
-            pressure_control = pipeline_constraints[-1].pressure_control
-
-            process_units = []
-            if pressure_control == "COMMON_ASV":
-                recirculation_loop, process_units = with_asv(units=list(process_unit_map.values()))
-                problem_configuration_handlers.append(recirculation_loop)
-            else:  # INDIVIDUAL ASV (ASV per stage) assumed if not COMMON ASV explicitly set
-                for wrap_in_asv, unit_ids in pipeline_segments:
-                    segment_units = [process_unit_map[uid] for uid in unit_ids]
-                    if wrap_in_asv:
-                        recirculation_loop, stage_process_units = with_asv(units=segment_units)
-                        problem_configuration_handlers.append(recirculation_loop)
-                        process_units.extend(stage_process_units)
-                    else:
-                        process_units.extend(segment_units)
-
-                # Trailing units after last compressor — outside any ASV loop
-                if current_segment_unit_ids:
-                    process_units.extend([process_unit_map[uid] for uid in current_segment_unit_ids])
-
-            if pressure_control == "DOWNSTREAM_CHOKE":
-                choke, choke_configuration_handler = choke_factory(fluid_service=self._fluid_service)
-                problem_configuration_handlers.append(choke_configuration_handler)
-                process_units.append(choke)
-            elif pressure_control == "UPSTREAM_CHOKE":
-                choke, choke_configuration_handler = choke_factory(fluid_service=self._fluid_service)
-                problem_configuration_handlers.append(choke_configuration_handler)
-                process_units = [choke, *process_units]
-
-            # A pipeline must have a start and an end - always add process units for that (ie owner of inlet and outlet streams)
-            process_units.append(Outlet())
-            process_units.insert(0, Inlet())
-
-            process_pipeline = ProcessPipeline(
-                name=item.name,
-                stream_propagators=process_units,
+            process_units: list[ProcessUnit] = []
+            pipeline_constraint_sections = section_builder.build_sections(
+                unit_name_to_id=unit_name_to_id,
+                process_unit_map=process_unit_map,
+                pipeline_constraints=pipeline_constraints,
             )
+            for section in pipeline_constraint_sections:
+                process_units.extend(section.process_units)
+                problem_configuration_handlers.extend(section.configuration_handlers)
+
+            process_pipeline = ProcessPipeline(name=item.name, stream_propagators=process_units)
 
             configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
-            anti_surge_configs[process_pipeline.get_id()] = AntiSurgeConfig(
-                type=item.anti_surge,
-            )
             process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
 
@@ -490,20 +364,17 @@ class ProcessSimulationMapper:
                 raise EcalcValidationException(
                     f"Constraint specified for unknown process system '{process_pipeline_reference}'"
                 )
-            if not pipeline_constraints:
-                raise EcalcValidationException(
-                    f"Empty constraint list for process system '{process_pipeline_reference}'"
+
+            constraints[process_pipeline_id] = [
+                Constraint(
+                    outlet_pressure=TimeSeriesExpression(
+                        expression=c.outlet_pressure, expression_evaluator=self._expression_evaluator
+                    ),
+                    pressure_control=PressureControlConfig(type=c.pressure_control),
+                    anti_surge=AntiSurgeConfig(c.anti_surge),
                 )
-            outlet_constraint = pipeline_constraints[-1]
-            constraints[process_pipeline_id] = Constraint(
-                outlet_pressure=TimeSeriesExpression(
-                    expression=outlet_constraint.outlet_pressure,
-                    expression_evaluator=self._expression_evaluator,
-                ),
-                pressure_control=PressureControlConfig(
-                    type=outlet_constraint.pressure_control,
-                ),
-            )
+                for c in pipeline_constraints
+            ]
 
         yaml_stream_distribution = yaml_process_simulation.stream_distribution
 
@@ -584,8 +455,7 @@ class ProcessSimulationMapper:
         process_problems = [
             ProcessProblem(
                 process_pipeline_id=process_pipeline.get_id(),
-                constraint=constraints[process_pipeline.get_id()],
-                anti_surge_strategy=anti_surge_configs[process_pipeline.get_id()],
+                constraints=constraints[process_pipeline.get_id()],
                 configuration_handlers=configuration_handlers[process_pipeline.get_id()],
             )
             for process_pipeline in process_pipelines

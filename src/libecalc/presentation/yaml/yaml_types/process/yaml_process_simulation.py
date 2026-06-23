@@ -11,6 +11,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 
 
@@ -36,6 +37,13 @@ class YamlProcessConstraint(YamlBase):
             description="How to meet the target pressure at this constraint point.",
         ),
     ]
+    anti_surge: Annotated[
+        AntiSurgeType | None,
+        Field(
+            title="ANTI_SURGE",
+            description="Anti-surge strategy to keep the compressor train within safe operating capacity.",
+        ),
+    ] = None
 
 
 class YamlProcessSimulation(YamlBase):

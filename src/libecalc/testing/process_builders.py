@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Literal
 
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
@@ -143,9 +143,14 @@ class YamlCompressorBuilder(Builder[YamlCompressor]):
     def __init__(self):
         self.type = "COMPRESSOR"
         self.compressor_model = None
+        self.name = "default_compressor"
 
     def with_compressor_model(self, compressor_model: YamlCompressorModelChart) -> Self:
         self.compressor_model = compressor_model
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
         return self
 
     def with_test_data(self) -> Self:
@@ -157,9 +162,14 @@ class YamlPressureDropperBuilder(Builder[YamlPressureDropper]):
     def __init__(self):
         self.type = "PRESSURE_DROPPER"
         self.pressure_drop = None
+        self.name = "default_pressure_dropper"
 
     def with_pressure_drop(self, pressure_drop: YamlExpressionType) -> Self:
         self.pressure_drop = pressure_drop
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
         return self
 
     def with_test_data(self) -> Self:
@@ -171,9 +181,14 @@ class YamlTemperatureSetterBuilder(Builder[YamlTemperatureSetter]):
     def __init__(self):
         self.type = "TEMPERATURE_SETTER"
         self.temperature = None
+        self.name = "default_temperature_setter"
 
     def with_temperature(self, temperature: YamlExpressionType) -> Self:
         self.temperature = temperature
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
         return self
 
     def with_test_data(self) -> Self:
@@ -184,6 +199,11 @@ class YamlTemperatureSetterBuilder(Builder[YamlTemperatureSetter]):
 class YamlLiquidRemoverBuilder(Builder[YamlLiquidRemover]):
     def __init__(self):
         self.type = "LIQUID_REMOVER"
+        self.name = "default_liquid_remover"
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
 
     def with_test_data(self) -> Self:
         # LIQUID_REMOVER has no configurable fields beyond `type`,
@@ -196,9 +216,14 @@ class YamlMixerBuilder(Builder[YamlMixer]):
     def __init__(self):
         self.type = "MIXER"
         self.sidestream = None
+        self.name = "default_mixer"
 
     def with_sidestream(self, sidestream: str | YamlInletStream) -> Self:
         self.sidestream = sidestream
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
         return self
 
     def with_test_data(self) -> Self:
@@ -216,9 +241,14 @@ class YamlSplitterBuilder(Builder[YamlSplitter]):
     def __init__(self):
         self.type = "SPLITTER"
         self.offtake_rate = None
+        self.name = "default_splitter"
 
     def with_offtake_rate(self, offtake_rate: YamlInletStreamRate) -> Self:
         self.offtake_rate = offtake_rate
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
         return self
 
     def with_test_data(self) -> Self:
@@ -436,13 +466,18 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         self,
         pipeline: YamlProcessPipeline,
         pressure_control: PressureControlType = "DOWNSTREAM_CHOKE",
+        anti_surge: Literal["COMMON_ASV", "INDIVIDUAL_ASV"] = "INDIVIDUAL_ASV",
         outlet_pressure: YamlExpressionType = 100.0,
     ) -> Self:
         self.targets.append(YamlItem(target=pipeline))
+        last_unit = pipeline.items[-1].target
+        assert not isinstance(last_unit, str), "Builder pipelines use inline units, not references."
         self.constraints[pipeline.name] = [
             YamlProcessConstraint(
+                unit=last_unit.name,
                 outlet_pressure=outlet_pressure,
                 pressure_control=pressure_control,
+                anti_surge=anti_surge,
             )
         ]
         return self
