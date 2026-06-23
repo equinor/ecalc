@@ -58,6 +58,12 @@ class PipelineSectionPartitioner:
         if len(set(outlet_indices)) != len(outlet_indices):
             raise EcalcValidationException("Two constraints cannot point to the same unit.")
 
+        if outlet_indices != sorted(outlet_indices):
+            raise EcalcValidationException(
+                "Constraints must be listed in pipeline order (each constraint's unit must come "
+                "after the previous constraint's unit)."
+            )
+
         last_constraint_index = outlet_indices[-1]
         trailing_units = ordered_units[last_constraint_index + 1 :]
         if any(isinstance(u, Compressor) for u in trailing_units):
@@ -70,6 +76,9 @@ class PipelineSectionPartitioner:
         start = 0
         for i, (end, constraint) in enumerate(zip(outlet_indices, pipeline_constraints)):
             is_last = i == len(pipeline_constraints) - 1
+            # Constraints are validated to be in pipeline order, so each section ends at its
+            # constraint's unit. The last section extends to the end of the pipeline so any
+            # trailing conditioning units (no compressor) are absorbed into it.
             section_end = len(ordered_unit_ids) - 1 if is_last else end  # last section absorbs trailing units
             unit_ids = ordered_unit_ids[start : section_end + 1]
             sections.append(
