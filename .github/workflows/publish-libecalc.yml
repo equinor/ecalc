@@ -1,15 +1,22 @@
 name: Publish libeCalc package to PyPI
 
 on:
+  # zizmor: ignore[dangerous-triggers]
+  # The workflow is not prone to dangerous-triggers:
+  #   1. The triggering `release-please` workflow only runs on `push` to `main` / `workflow_dispatch` (never on
+  #      forked PRs), so the artifact consumed here cannot be attacker-controlled.
+  #   2. The publish job checks out the repository default branch (not the triggering ref) and uses
+  #      `persist-credentials: false`, so no untrusted code from the triggering run is executed.
+  # `workflow_run` is required because Trusted Publishing to PyPI cannot be done from a reusable workflow.
   workflow_run:
     workflows: [ release-please ]
     types:
       - completed
-  # Note! We cannot trigger on published event, since that can only be triggered when done manually (or with a
-  # separate PAT token, not the standard GITHUB_TOKEN), and we want to use the standard GITHUB_TOKEN).
-  # Therefore we trigger this workflow independently, after the trigger-publish workflow has run, in
-  # order for this workflow to be the owner of the PyPI publishing job, and can be verified. This limits
-  # us to only allow this workflow to be allowed to publish to PyPI trustedly.
+  # Note! We cannot trigger on published event, since that can only be triggered when done manually
+  # (or with a separate PAT token, not the standard GITHUB_TOKEN), and we want to use the standard GITHUB_TOKEN).
+  # Therefore, we trigger this workflow independently, after the trigger-publish workflow has run,
+  # in order for this workflow to be the owner of the PyPI publishing job, and can be verified.
+  # This limits us to only allow this workflow to be allowed to publish to PyPI trustedly.
 
   workflow_dispatch: # Trigger manually, if needed.
 
@@ -64,7 +71,8 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
         with:
-          enable-cache: true
+          # NOTE: Disabled caching in the publishing workflow to avoid a cache-poisoning risk.
+          enable-cache: false
 
       - name: Set up Python
         run: uv python install

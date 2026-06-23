@@ -6,7 +6,7 @@ updates:
     schedule:
       interval: "daily"
     cooldown:
-      default-days: 3
+      default-days: 7
   # We do not want to automatically create PRs for other deps, as we update them ourselves with our tooling.
 
   # UV when properly supported!
@@ -17,7 +17,7 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 0
     cooldown:
-      default-days: 3
+      default-days: 7
 
   # Monitor npm/node dependencies for security vulnerabilities only
   - package-ecosystem: "npm"
@@ -26,7 +26,7 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 0
     cooldown:
-      default-days: 3
+      default-days: 7
 
   # Monitor docker dependencies for security vulnerabilities only
   - package-ecosystem: "docker"
@@ -38,4 +38,4 @@ updates:
       interval: "daily"
     open-pull-requests-limit: 0
     cooldown:
-      default-days: 3
+      default-days: 7

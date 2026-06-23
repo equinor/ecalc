@@ -35,7 +35,9 @@ jobs:
       - name: Create output directory
         run: mkdir -p release-please-data
       - name: echo release_created output
-        run: echo ${{ needs.release-please.outputs.release_created }}
+        run: echo ${NEEDS_RELEASE_PLEASE_OUTPUTS_RELEASE_CREATED}
+        env:
+          NEEDS_RELEASE_PLEASE_OUTPUTS_RELEASE_CREATED: ${{ needs.release-please.outputs.release_created }}
       - name: set release created
         if: ${{ needs.release-please.outputs.release_created == 'true' }}
         run: |
