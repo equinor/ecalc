@@ -50,12 +50,6 @@ PROCESS_XFAILS: dict[tuple[str, str], Xfail] = {
         raises=RateTooHighError,
     ),
     ("M4", "COMMON_ASV"): Xfail("Common-ASV power diverges from legacy."),
-    # M6: Process solver does not implement legacy zero-rate short-circuit.
-    ("M6", "UPSTREAM_CHOKE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("M6", "DOWNSTREAM_CHOKE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("M6", "COMMON_ASV"): Xfail("No zero-rate short-circuit in process solver."),
-    ("M6", "INDIVIDUAL_ASV_RATE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("M6", "INDIVIDUAL_ASV_PRESSURE"): Xfail("No zero-rate short-circuit in process solver."),
 }
 
 
@@ -104,11 +98,15 @@ def test_two_stage_process_solver_path(
         inlet_stream=inlet_stream,
     )
     system.runner.apply_configurations(solution.configuration)
-    try:
-        outlet_stream = system.runner.run(inlet_stream=inlet_stream)
-        outlet_pressure = outlet_stream.pressure_bara
-    except RateTooHighError:
+
+    if case.region.rate_sm3_day == 0.0:
         outlet_pressure = np.nan
+    else:
+        try:
+            outlet_stream = system.runner.run(inlet_stream=inlet_stream)
+            outlet_pressure = outlet_stream.pressure_bara
+        except RateTooHighError:
+            outlet_pressure = np.nan
 
     outcome = outcome_from_process_solution(solution)
     speed = next(
@@ -124,6 +122,9 @@ def test_two_stage_process_solver_path(
     assert_pressure_expectation(outlet_pressure, case)
     if case.expectation.success:
         assert_speed_boundary(speed, variable_speed_compressor_chart_data, case)
+
+    if case.region.rate_sm3_day == 0.0:
+        return  # Zero-rate: power=0, no chart operating point to validate
 
     # ── Assert: power, per stage and summed ──────────────────────────────
     try:

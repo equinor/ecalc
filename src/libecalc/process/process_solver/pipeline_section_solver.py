@@ -75,6 +75,16 @@ class PipelineSectionSolver:
         """
         Finds the speed and recirculation rates for each compressor to meet the pressure constraint.
         """
+        if inlet_stream.mass_rate_kg_per_h == 0.0:
+            return Solution(
+                configuration=[
+                    Configuration(
+                        configuration_handler_id=self._pipeline_section.shaft_id,
+                        value=SpeedConfiguration(speed=0.0),
+                    )
+                ]
+            )
+
         speed_finding = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
 
         shaft_config = Configuration(
