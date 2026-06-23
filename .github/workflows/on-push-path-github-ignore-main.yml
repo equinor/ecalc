@@ -1,0 +1,15 @@
+name: On push to .github/** (ignore main)
+on:
+  push:
+    paths:
+      - '.github/**'
+    branches-ignore:
+      - 'main'
+
+jobs:
+  zizmor:
+    name: zizmor
+    uses: ./.github/workflows/zizmor-action.yml
+    permissions:
+      security-events: write
+
