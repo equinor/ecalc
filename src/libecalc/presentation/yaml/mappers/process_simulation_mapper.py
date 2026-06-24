@@ -339,7 +339,7 @@ class ProcessSimulationMapper:
             problem_configuration_handlers.append(shaft)
 
             process_units: list[ProcessUnit] = []
-            process_sections = section_builder.build_sections(
+            process_sections = section_builder.build_solver_process_units(
                 unit_name_to_id=unit_name_to_id,
                 process_unit_map=process_unit_map,
                 pipeline_constraints=pipeline_constraints,

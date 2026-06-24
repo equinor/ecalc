@@ -38,7 +38,7 @@ def _wrap_compressor_in_recirculation_loop(
     return loop, [mixer, *process_units, splitter]
 
 
-def wrap_section(section: MappedSection, fluid_service: FluidService) -> SolverProcessUnits:
+def build_solver_process_units_for_section(section: MappedSection, fluid_service: FluidService) -> SolverProcessUnits:
     """Wrap a section's units into ASV/choke topology, producing solver-ready units + handlers."""
     handlers: list[ConfigurationHandler] = []
 
@@ -105,7 +105,7 @@ class ProcessSectionBuilder:
         self._validator.validate(sections)
         return sections
 
-    def build_sections(
+    def build_solver_process_units(
         self,
         process_unit_map: dict[ProcessUnitId, ProcessUnit],
         unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
@@ -116,4 +116,4 @@ class ProcessSectionBuilder:
             unit_name_to_id=unit_name_to_id,
             pipeline_constraints=pipeline_constraints,
         )
-        return [wrap_section(s, self._fluid_service) for s in sections]
+        return [build_solver_process_units_for_section(s, self._fluid_service) for s in sections]
