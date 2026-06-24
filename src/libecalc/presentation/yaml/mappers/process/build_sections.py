@@ -1,8 +1,8 @@
 from libecalc.common.ddd import value_object
-from libecalc.presentation.yaml.mappers.process.pipeline_constraint_validator import PipelineConstraintValidator
-from libecalc.presentation.yaml.mappers.process.pipeline_section_partitioner import (
-    PipelineConstraintSection,
-    PipelineSectionPartitioner,
+from libecalc.presentation.yaml.mappers.process.process_section_validator import ProcessSectionValidator
+from libecalc.presentation.yaml.mappers.process.process_partitioner import (
+    ProcessSection,
+    ProcessPartitioner,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
@@ -34,7 +34,7 @@ def _wrap_compressor_in_recirculation_loop(group: list[ProcessUnit]) -> tuple[Re
     return loop, [mixer, *group, splitter]
 
 
-def wrap_section(section_: PipelineConstraintSection, fluid_service: FluidService) -> WrappedSection:
+def wrap_section(section_: ProcessSection, fluid_service: FluidService) -> WrappedSection:
     """Wrap a section's units into ASV/choke topology, producing solver-ready units + handlers."""
     handlers: list[ConfigurationHandler] = []
 
@@ -77,7 +77,7 @@ def wrap_section(section_: PipelineConstraintSection, fluid_service: FluidServic
     )
 
 
-class PipelineConstraintSectionBuilder:
+class ProcessSectionBuilder:
     """
     Core entry point: partition → validate → wrap.
 
@@ -87,8 +87,8 @@ class PipelineConstraintSectionBuilder:
 
     def __init__(self, fluid_service: FluidService):
         self._fluid_service = fluid_service
-        self._partitioner = PipelineSectionPartitioner()
-        self._validator = PipelineConstraintValidator()
+        self._partitioner = ProcessPartitioner()
+        self._validator = ProcessSectionValidator()
 
     def partition_and_validate(
         self,

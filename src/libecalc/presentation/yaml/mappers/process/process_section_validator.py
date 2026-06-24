@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.presentation.yaml.mappers.process.pipeline_section_partitioner import PipelineConstraintSection
+from libecalc.presentation.yaml.mappers.process.process_partitioner import ProcessSection
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.splitter import Splitter
@@ -16,10 +16,10 @@ _PRESSURE_CONTROL_REQUIRES_ANTI_SURGE = {
 }
 
 
-class PipelineConstraintValidator:
-    """Validates section strategies and unit composition. Operates on pipeline constraint sections only."""
+class ProcessSectionValidator:
+    """Validates section strategies and unit composition. Operates on process sections only."""
 
-    def validate(self, sections: Sequence[PipelineConstraintSection]) -> None:
+    def validate(self, sections: Sequence[ProcessSection]) -> None:
         for s in sections:
             self._validate_strategy_compatibility(s)
             self._validate_anti_surge_vs_compressors(s)
@@ -27,7 +27,7 @@ class PipelineConstraintValidator:
             self._validate_common_asv_units(s)
 
     @staticmethod
-    def _validate_strategy_compatibility(s: PipelineConstraintSection) -> None:
+    def _validate_strategy_compatibility(s: ProcessSection) -> None:
         required = _PRESSURE_CONTROL_REQUIRES_ANTI_SURGE.get(s.pressure_control)
         if required and s.anti_surge != required:
             raise EcalcValidationException(
@@ -35,7 +35,7 @@ class PipelineConstraintValidator:
             )
 
     @staticmethod
-    def _validate_anti_surge_vs_compressors(s: PipelineConstraintSection) -> None:
+    def _validate_anti_surge_vs_compressors(s: ProcessSection) -> None:
         has_compressors = any(isinstance(u, Compressor) for u in s.units)
         if has_compressors and s.anti_surge not in _ANTI_SURGE:
             raise EcalcValidationException(
@@ -47,7 +47,7 @@ class PipelineConstraintValidator:
             )
 
     @staticmethod
-    def _validate_pressure_control_vs_compressors(s: PipelineConstraintSection) -> None:
+    def _validate_pressure_control_vs_compressors(s: ProcessSection) -> None:
         has_compressors = any(isinstance(u, Compressor) for u in s.units)
         if not has_compressors and s.pressure_control not in _CHOKE:
             raise EcalcValidationException(
@@ -56,6 +56,6 @@ class PipelineConstraintValidator:
             )
 
     @staticmethod
-    def _validate_common_asv_units(s: PipelineConstraintSection) -> None:
+    def _validate_common_asv_units(s: ProcessSection) -> None:
         if s.anti_surge == "COMMON_ASV" and any(isinstance(u, (Mixer, Splitter)) for u in s.units):
             raise EcalcValidationException(f"Section {s.index}: COMMON_ASV cannot contain a mixer or splitter.")

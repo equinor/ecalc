@@ -10,7 +10,7 @@ from libecalc.process.process_units.compressor import Compressor
 
 
 @value_object
-class PipelineConstraintSection:
+class ProcessSection:
     """
     A contiguous range of process units governed by one constraint.
 
@@ -30,7 +30,7 @@ class PipelineConstraintSection:
         return self.start == 0
 
 
-class PipelineSectionPartitioner:
+class ProcessPartitioner:
     """
     Splits process units ino pipeline sections based on constraints.
     """
@@ -40,7 +40,7 @@ class PipelineSectionPartitioner:
         process_unit_map: dict[ProcessUnitId, ProcessUnit],
         unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
         pipeline_constraints: list[YamlProcessConstraint],
-    ) -> list[PipelineConstraintSection]:
+    ) -> list[ProcessSection]:
         ordered_unit_ids = list(process_unit_map.keys())
         ordered_units = list(process_unit_map.values())
         index_of = {uid: i for i, uid in enumerate(ordered_unit_ids)}
@@ -72,7 +72,7 @@ class PipelineSectionPartitioner:
                 "every compressor must be covered by a constraint."
             )
 
-        sections: list[PipelineConstraintSection] = []
+        sections: list[ProcessSection] = []
         start = 0
         for i, (end, constraint) in enumerate(zip(outlet_indices, pipeline_constraints)):
             is_last = i == len(pipeline_constraints) - 1
@@ -82,7 +82,7 @@ class PipelineSectionPartitioner:
             section_end = len(ordered_unit_ids) - 1 if is_last else end  # last section absorbs trailing units
             unit_ids = ordered_unit_ids[start : section_end + 1]
             sections.append(
-                PipelineConstraintSection(
+                ProcessSection(
                     index=i,
                     start=start,
                     end=section_end,

@@ -37,7 +37,7 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
     predefined_fluid_model_mapper,
 )
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
-from libecalc.presentation.yaml.mappers.process.build_sections import PipelineConstraintSectionBuilder
+from libecalc.presentation.yaml.mappers.process.build_sections import ProcessSectionBuilder
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
@@ -254,7 +254,7 @@ class ProcessSimulationMapper:
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
-        section_builder = PipelineConstraintSectionBuilder(fluid_service=self._fluid_service)
+        section_builder = ProcessSectionBuilder(fluid_service=self._fluid_service)
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
