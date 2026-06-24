@@ -83,7 +83,7 @@ class ProcessSectionBuilder:
     Core entry point: partition → validate → wrap.
 
     To move wrapping to the backend, call `partition_and_validate` from core and
-    have the backend invoke `wrap_section` on the returned sections.
+    have the backend invoke `build_solver_process_units` on the returned sections.
     """
 
     def __init__(self, fluid_service: FluidService):
