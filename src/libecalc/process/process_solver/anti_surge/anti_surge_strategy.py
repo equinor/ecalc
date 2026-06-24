@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
 from collections.abc import Sequence
-from typing import Literal
+from enum import StrEnum
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.configuration import Configuration, RecirculationConfiguration
 from libecalc.process.process_solver.solver import Solution
 
-AntiSurgeType = Literal["INDIVIDUAL_ASV", "COMMON_ASV"]
+
+class AntiSurgeType(StrEnum):
+    NO_ASV = "NO_ASV"
+    INDIVIDUAL_ASV = "INDIVIDUAL_ASV"
+    COMMON_ASV = "COMMON_ASV"
 
 
 class AntiSurgeStrategy(ABC):

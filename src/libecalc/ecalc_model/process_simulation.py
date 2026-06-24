@@ -50,7 +50,7 @@ class AntiSurgeConfig:
 
 
 @value_object
-class Constraint:  # should this instead be more flexible wrt. matching one or more stream conditions?
+class Constraint:
     outlet_pressure: TimeSeriesExpression
     pressure_control: PressureControlConfig
     anti_surge: AntiSurgeConfig

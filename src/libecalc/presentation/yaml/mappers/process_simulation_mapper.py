@@ -339,12 +339,12 @@ class ProcessSimulationMapper:
             problem_configuration_handlers.append(shaft)
 
             process_units: list[ProcessUnit] = []
-            pipeline_constraint_sections = section_builder.build_sections(
+            process_sections = section_builder.build_sections(
                 unit_name_to_id=unit_name_to_id,
                 process_unit_map=process_unit_map,
                 pipeline_constraints=pipeline_constraints,
             )
-            for section in pipeline_constraint_sections:
+            for section in process_sections:
                 process_units.extend(section.process_units)
                 problem_configuration_handlers.extend(section.configuration_handlers)
 

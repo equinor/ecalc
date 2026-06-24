@@ -1,33 +1,21 @@
 from libecalc.common.ddd import value_object
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
-from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.process_units.compressor import Compressor
 
 
 @value_object
-class ProcessSection:
+class MappedSection:
     """
     A contiguous range of process units governed by one constraint.
 
-    Pure data: indices + units + the section's strategies/target. No wrapping.
+    Pure data: units + the section's constraint. No wrapping.
     """
 
-    index: int
-    start: int
-    end: int  # inclusive
-    units: list[ProcessUnit]
-    anti_surge: AntiSurgeType | None
-    pressure_control: PressureControlType
-    outlet_pressure: YamlExpressionType
-
-    @property
-    def is_first(self) -> bool:
-        return self.start == 0
+    process_units: list[ProcessUnit]
+    constraint: YamlProcessConstraint
 
 
 class ProcessPartitioner:
@@ -40,57 +28,63 @@ class ProcessPartitioner:
         process_unit_map: dict[ProcessUnitId, ProcessUnit],
         unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
         pipeline_constraints: list[YamlProcessConstraint],
-    ) -> list[ProcessSection]:
-        ordered_unit_ids = list(process_unit_map.keys())
-        ordered_units = list(process_unit_map.values())
-        index_of = {uid: i for i, uid in enumerate(ordered_unit_ids)}
+    ) -> list[MappedSection]:
+        process_units = list(process_unit_map.values())
+        constraint_by_unit_id: dict[ProcessUnitId, YamlProcessConstraint] = {}
+        terminal_constraint: YamlProcessConstraint | None = None
 
-        outlet_indices: list[int] = []
         for constraint in pipeline_constraints:
-            if constraint.unit is None:
-                outlet_indices.append(len(ordered_units) - 1)
+            if constraint.process_unit is None:
+                if terminal_constraint is not None:
+                    raise EcalcValidationException("Only one constraint can target the process pipeline outlet.")
+                terminal_constraint = constraint
                 continue
-            unit_id = unit_name_to_id.get(constraint.unit)
+            unit_id = unit_name_to_id.get(constraint.process_unit)
             if unit_id is None:
-                raise EcalcValidationException(f"Constraint references unknown unit '{constraint.unit}'.")
-            outlet_indices.append(index_of[unit_id])
+                raise EcalcValidationException(f"Constraint references unknown unit '{constraint.process_unit}'.")
 
-        if len(set(outlet_indices)) != len(outlet_indices):
-            raise EcalcValidationException("Two constraints cannot point to the same unit.")
+            if unit_id in constraint_by_unit_id:
+                raise EcalcValidationException(
+                    f"Two constraints cannot point to the same unit '{constraint.process_unit}'."
+                )
+            constraint_by_unit_id[unit_id] = constraint
 
-        if outlet_indices != sorted(outlet_indices):
-            raise EcalcValidationException(
-                "Constraints must be listed in pipeline order (each constraint's unit must come "
-                "after the previous constraint's unit)."
+        sections: list[MappedSection] = []
+        current_units: list[ProcessUnit] = []
+
+        for process_unit in process_units:
+            current_units.append(process_unit)
+
+            constraint = constraint_by_unit_id.get(process_unit.get_id())
+            if constraint is None:
+                continue
+
+            sections.append(
+                MappedSection(
+                    process_units=current_units,
+                    constraint=constraint,
+                )
             )
+            current_units = []
 
-        last_constraint_index = outlet_indices[-1]
-        trailing_units = ordered_units[last_constraint_index + 1 :]
-        if any(isinstance(u, Compressor) for u in trailing_units):
+        if terminal_constraint is not None:
+            sections.append(
+                MappedSection(
+                    process_units=current_units,
+                    constraint=terminal_constraint,
+                )
+            )
+        elif any(isinstance(unit, Compressor) for unit in current_units):
             raise EcalcValidationException(
                 "A compressor cannot appear after the last constraint; "
                 "every compressor must be covered by a constraint."
             )
-
-        sections: list[ProcessSection] = []
-        start = 0
-        for i, (end, constraint) in enumerate(zip(outlet_indices, pipeline_constraints)):
-            is_last = i == len(pipeline_constraints) - 1
-            # Constraints are validated to be in pipeline order, so each section ends at its
-            # constraint's unit. The last section extends to the end of the pipeline so any
-            # trailing conditioning units (no compressor) are absorbed into it.
-            section_end = len(ordered_unit_ids) - 1 if is_last else end  # last section absorbs trailing units
-            unit_ids = ordered_unit_ids[start : section_end + 1]
-            sections.append(
-                ProcessSection(
-                    index=i,
-                    start=start,
-                    end=section_end,
-                    units=[process_unit_map[uid] for uid in unit_ids],
-                    anti_surge=constraint.anti_surge,
-                    pressure_control=constraint.pressure_control,
-                    outlet_pressure=constraint.outlet_pressure,
-                )
+        elif sections and current_units:
+            # trailing non-compressor units are absorbed into last section
+            last = sections[-1]
+            sections[-1] = MappedSection(
+                process_units=[*last.process_units, *current_units],
+                constraint=last.constraint,
             )
-            start = section_end + 1
+
         return sections

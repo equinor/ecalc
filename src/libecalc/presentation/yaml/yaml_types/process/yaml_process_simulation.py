@@ -16,7 +16,7 @@ from libecalc.process.process_solver.pressure_control.pressure_control_strategy 
 
 
 class YamlProcessConstraint(YamlBase):
-    unit: Annotated[
+    process_unit: Annotated[
         ProcessUnitReference | None,
         Field(
             title="UNIT",
