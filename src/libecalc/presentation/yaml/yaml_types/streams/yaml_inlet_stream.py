@@ -3,7 +3,6 @@ from typing import Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
-from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
@@ -75,14 +74,14 @@ class YamlInletStream(YamlBase):
     )
 
     temperature: YamlExpressionType = Field(
-        STANDARD_TEMPERATURE_KELVIN,
+        ...,
         title="TEMPERATURE",
-        description="Temperature in K. Optional; defaults to standard temperature if omitted.",
+        description="Temperature in K.",
     )
     pressure: YamlExpressionType = Field(
-        STANDARD_PRESSURE_BARA,
+        ...,
         title="PRESSURE",
-        description="Pressure in Pa. Optional; defaults to standard pressure if omitted.",
+        description="Pressure in Bara",
     )
 
     rate: YamlInletStreamRate = Field(
