@@ -19,7 +19,7 @@ class YamlProcessConstraint(YamlBase):
     process_unit: Annotated[
         ProcessUnitReference | None,
         Field(
-            title="UNIT",
+            title="PROCESS_UNIT",
             description="Reference to a named unit within the pipeline. If omitted, the constraint applies to the pipeline outlet.",
         ),
     ] = None
