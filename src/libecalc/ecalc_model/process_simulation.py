@@ -46,7 +46,7 @@ class PressureControlConfig:  # Spec
 
 @value_object
 class AntiSurgeConfig:
-    type: AntiSurgeType | None = None
+    type: AntiSurgeType
 
 
 @value_object

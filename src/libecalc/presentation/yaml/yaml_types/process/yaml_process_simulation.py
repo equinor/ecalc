@@ -38,12 +38,12 @@ class YamlProcessConstraint(YamlBase):
         ),
     ]
     anti_surge: Annotated[
-        AntiSurgeType | None,
+        AntiSurgeType,
         Field(
             title="ANTI_SURGE",
             description="Anti-surge strategy to keep the compressor train within safe operating capacity.",
         ),
-    ] = None
+    ]
 
 
 class YamlProcessSimulation(YamlBase):
