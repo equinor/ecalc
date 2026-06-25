@@ -37,7 +37,7 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
     predefined_fluid_model_mapper,
 )
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
-from libecalc.presentation.yaml.mappers.process.build_sections import ProcessSectionBuilder, assemble_section
+from libecalc.presentation.yaml.mappers.process.build_sections import ProcessSectionBuilder
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
@@ -344,7 +344,7 @@ class ProcessSimulationMapper:
                 unit_name_to_id=unit_name_to_id,
                 pipeline_constraints=pipeline_constraints,
             )
-            assembled_sections = [assemble_section(s, self._fluid_service) for s in mapped_sections]
+            assembled_sections = section_builder.assemble_sections(mapped_sections=mapped_sections)
             for section in assembled_sections:
                 process_units.extend(section.process_units)
                 problem_configuration_handlers.extend(section.configuration_handlers)

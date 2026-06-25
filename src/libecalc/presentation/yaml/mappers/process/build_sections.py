@@ -103,3 +103,6 @@ class ProcessSectionBuilder:
         )
         self._validator.validate(sections)
         return sections
+
+    def assemble_sections(self, mapped_sections: list[MappedSection]) -> list[AssembledSection]:
+        return [assemble_section(s, self._fluid_service) for s in mapped_sections]
