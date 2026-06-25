@@ -5,11 +5,13 @@ from pydantic import Field
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    ProcessPipelineReference,
     YamlItem,
     YamlProcessPipeline,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
+    ProcessPipelineReference,
+    ProcessUnitReference,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
@@ -20,7 +22,7 @@ class YamlProcessConstraint(YamlBase):
         ProcessUnitReference | None,
         Field(
             title="PROCESS_UNIT",
-            description="Reference to a named unit within the pipeline. If omitted, the constraint applies to the pipeline outlet.",
+            description="Reference to a named unit within the pipeline. If omitted, the constraint applies to the last process unit in the pipeline section.",
         ),
     ] = None
     outlet_pressure: Annotated[

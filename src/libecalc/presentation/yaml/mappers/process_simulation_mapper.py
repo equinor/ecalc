@@ -272,6 +272,7 @@ class ProcessSimulationMapper:
 
             for yaml_pipeline_item in item.items:
                 yaml_process_unit = yaml_pipeline_item.target
+                process_unit_name = yaml_pipeline_item.name
                 if isinstance(yaml_process_unit, str):
                     yaml_process_unit = self._reference_service.get_process_unit(yaml_process_unit)
 
@@ -324,13 +325,13 @@ class ProcessSimulationMapper:
                         )
 
                 process_unit_map[unit.get_id()] = unit
-                if yaml_process_unit.name:
-                    if yaml_process_unit.name in unit_name_to_id:
+                if process_unit_name:
+                    if process_unit_name in unit_name_to_id:
                         raise EcalcValidationException(
-                            f"Duplicate process unit name '{yaml_process_unit.name}'. "
+                            f"Duplicate process unit name '{process_unit_name}'. "
                             f"Process unit names must be unique within a process."
                         )
-                    unit_name_to_id[yaml_process_unit.name] = unit.get_id()
+                    unit_name_to_id[process_unit_name] = unit.get_id()
 
             for compressor_id in compressor_ids:
                 compressor = process_unit_map[compressor_id]
@@ -372,6 +373,11 @@ class ProcessSimulationMapper:
                 )
                 for s in mapped_sections
             ]
+            if len(constraints[process_pipeline.get_id()]) != 1:
+                raise EcalcValidationException(
+                    "We currently only support one constraint per problem. Please come back later for multi-constraint problem support."
+                )
+
             configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 

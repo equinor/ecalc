@@ -36,7 +36,6 @@ class YamlCompressor(YamlBase):
     """
 
     type: Literal["COMPRESSOR"]
-    name: str | None = None
     compressor_model: YamlCompressorModelChart
 
 
@@ -44,7 +43,6 @@ class YamlPressureDropper(YamlBase):
     """A pressure dropper unit — reduces stream pressure by a fixed amount."""
 
     type: Literal["PRESSURE_DROPPER"]
-    name: str | None = None
     pressure_drop: Annotated[
         YamlExpressionType,
         Field(
@@ -58,7 +56,6 @@ class YamlTemperatureSetter(YamlBase):
     """A temperature setter unit — forces the stream to a specified temperature."""
 
     type: Literal["TEMPERATURE_SETTER"]
-    name: str | None = None
     temperature: Annotated[
         YamlExpressionType,
         Field(
@@ -76,7 +73,6 @@ class YamlLiquidRemover(YamlBase):
     """
 
     type: Literal["LIQUID_REMOVER"]
-    name: str | None = None
 
 
 class YamlMixer(YamlBase):
@@ -84,7 +80,6 @@ class YamlMixer(YamlBase):
     intermediate point in the pipeline."""
 
     type: Literal["MIXER"]
-    name: str | None = None
     sidestream: Annotated[
         StreamRef | YamlInletStream,
         Field(
@@ -99,7 +94,6 @@ class YamlSplitter(YamlBase):
     intermediate point in the pipeline (e.g. fuel gas offtake)."""
 
     type: Literal["SPLITTER"]
-    name: str | None = None
     offtake_rate: Annotated[
         YamlInletStreamRate,
         Field(

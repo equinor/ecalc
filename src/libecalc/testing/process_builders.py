@@ -39,7 +39,6 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlItem,
     YamlProcessPipeline,
-    ProcessPipelineReference,
 )
 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -481,7 +480,7 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         assert not isinstance(last_unit, str), "Builder pipelines use inline units, not references."
         self.constraints[pipeline.name] = [
             YamlProcessConstraint(
-                process_unit=last_unit.name,
+                process_unit=pipeline.items[-1].name,
                 outlet_pressure=outlet_pressure,
                 pressure_control=pressure_control,
                 anti_surge=anti_surge,
