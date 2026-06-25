@@ -37,7 +37,7 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
     predefined_fluid_model_mapper,
 )
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
-from libecalc.presentation.yaml.mappers.process.build_sections import ProcessSectionBuilder
+from libecalc.presentation.yaml.mappers.process.build_sections import ProcessSectionBuilder, assemble_section
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
@@ -339,12 +339,13 @@ class ProcessSimulationMapper:
             if not pipeline_constraints:
                 raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
 
-            process_sections = section_builder.build_sections(
-                unit_name_to_id=unit_name_to_id,
+            mapped_sections = section_builder.partition_and_validate(
                 process_unit_map=process_unit_map,
+                unit_name_to_id=unit_name_to_id,
                 pipeline_constraints=pipeline_constraints,
             )
-            for section in process_sections:
+            assembled_sections = [assemble_section(s, self._fluid_service) for s in mapped_sections]
+            for section in assembled_sections:
                 process_units.extend(section.process_units)
                 problem_configuration_handlers.extend(section.configuration_handlers)
 
@@ -356,14 +357,14 @@ class ProcessSimulationMapper:
             constraints[process_pipeline.get_id()] = [
                 Constraint(
                     outlet_pressure=TimeSeriesExpression(
-                        expression=c.outlet_pressure, expression_evaluator=self._expression_evaluator
+                        expression=s.constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
                     ),
-                    pressure_control=PressureControlConfig(type=c.pressure_control),
-                    anti_surge=AntiSurgeConfig(c.anti_surge),
-                    process_unit_id=unit_name_to_id[c.process_unit] if c.process_unit else None,
+                    pressure_control=PressureControlConfig(type=s.constraint.pressure_control),
+                    anti_surge=AntiSurgeConfig(s.constraint.anti_surge),
+                    target_process_unit_id=s.target_process_unit_id,
                     # None means constraint applies to process outlet
                 )
-                for c in pipeline_constraints
+                for s in mapped_sections
             ]
             configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations

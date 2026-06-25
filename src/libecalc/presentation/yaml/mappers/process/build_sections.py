@@ -105,16 +105,3 @@ class ProcessSectionBuilder:
         )
         self._validator.validate(sections)
         return sections
-
-    def build_sections(
-        self,
-        process_unit_map: dict[ProcessUnitId, ProcessUnit],
-        unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
-        pipeline_constraints: list[YamlProcessConstraint],
-    ) -> list[AssembledSection]:
-        mapped_sections = self.partition_and_validate(
-            process_unit_map=process_unit_map,
-            unit_name_to_id=unit_name_to_id,
-            pipeline_constraints=pipeline_constraints,
-        )
-        return [assemble_section(s, self._fluid_service) for s in mapped_sections]

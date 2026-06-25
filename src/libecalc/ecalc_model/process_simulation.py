@@ -54,7 +54,7 @@ class Constraint:
     outlet_pressure: TimeSeriesExpression
     pressure_control: PressureControlConfig
     anti_surge: AntiSurgeConfig
-    process_unit_id: ProcessUnitId | None = None
+    target_process_unit_id: ProcessUnitId | None = None
 
 
 ProcessProblemId = NewType("ProcessProblemId", UUID)

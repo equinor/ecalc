@@ -16,6 +16,7 @@ class MappedSection:
 
     process_units: list[ProcessUnit]
     constraint: YamlProcessConstraint
+    target_process_unit_id: ProcessUnitId
 
 
 class ProcessPartitioner:
@@ -63,6 +64,7 @@ class ProcessPartitioner:
                 MappedSection(
                     process_units=current_units,
                     constraint=constraint,
+                    target_process_unit_id=current_units[-1].get_id(),
                 )
             )
             current_units = []
@@ -72,6 +74,7 @@ class ProcessPartitioner:
                 MappedSection(
                     process_units=current_units,
                     constraint=terminal_constraint,
+                    target_process_unit_id=current_units[-1].get_id(),
                 )
             )
         elif any(isinstance(unit, Compressor) for unit in current_units):
@@ -85,6 +88,7 @@ class ProcessPartitioner:
             sections[-1] = MappedSection(
                 process_units=[*last.process_units, *current_units],
                 constraint=last.constraint,
+                target_process_unit_id=last.target_process_unit_id,
             )
 
         return sections
