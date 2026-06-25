@@ -118,6 +118,14 @@ REGIONS = {
         discharge_pressure_bara=100.0,
         speed_boundary_class=SpeedBoundaryClass.NOT_ASSERTED,
     ),
+    # M7: Over-compression where common-ASV LP max overloads HP but mid-range solution exists
+    "M7": TwoStageRegion(
+        id="M7",
+        rate_sm3_day=3_500_000.0,
+        suction_pressure_bara=40.0,
+        discharge_pressure_bara=95.0,
+        speed_boundary_class=SpeedBoundaryClass.MINIMUM,
+    ),
 }
 
 
@@ -131,6 +139,8 @@ _CHOKE_CONTROL_ACTIONS: dict[tuple[str, str], ExpectedControlAction] = {
     ("M1", "DOWNSTREAM_CHOKE"): ExpectedControlAction.DOWNSTREAM_CHOKE,
     ("M2", "UPSTREAM_CHOKE"): ExpectedControlAction.UPSTREAM_CHOKE,
     ("M2", "DOWNSTREAM_CHOKE"): ExpectedControlAction.DOWNSTREAM_CHOKE,
+    ("M7", "UPSTREAM_CHOKE"): ExpectedControlAction.UPSTREAM_CHOKE,
+    ("M7", "DOWNSTREAM_CHOKE"): ExpectedControlAction.DOWNSTREAM_CHOKE,
 }
 
 
