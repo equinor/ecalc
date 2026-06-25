@@ -327,10 +327,6 @@ class ProcessSimulationMapper:
                 if yaml_process_unit.name:
                     unit_name_to_id[yaml_process_unit.name] = unit.get_id()
 
-            pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
-            if not pipeline_constraints:
-                raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
-
             for compressor_id in compressor_ids:
                 compressor = process_unit_map[compressor_id]
                 assert isinstance(compressor, Compressor)
@@ -339,7 +335,11 @@ class ProcessSimulationMapper:
             problem_configuration_handlers.append(shaft)
 
             process_units: list[ProcessUnit] = []
-            process_sections = section_builder.build_solver_process_units(
+            pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
+            if not pipeline_constraints:
+                raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
+
+            process_sections = section_builder.build_sections(
                 unit_name_to_id=unit_name_to_id,
                 process_unit_map=process_unit_map,
                 pipeline_constraints=pipeline_constraints,
@@ -353,30 +353,30 @@ class ProcessSimulationMapper:
             process_units.insert(0, Inlet())
 
             process_pipeline = ProcessPipeline(name=item.name, stream_propagators=process_units)
-
-            configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
-            predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
-
-            process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
-            process_pipelines.append(process_pipeline)
-
-        for process_pipeline_reference, pipeline_constraints in yaml_process_simulation.constraints.items():
-            process_pipeline_id = process_pipeline_reference_to_id_map.get(process_pipeline_reference)
-            if process_pipeline_id is None:
-                raise EcalcValidationException(
-                    f"Constraint specified for unknown process system '{process_pipeline_reference}'"
-                )
-
-            constraints[process_pipeline_id] = [
+            constraints[process_pipeline.get_id()] = [
                 Constraint(
                     outlet_pressure=TimeSeriesExpression(
                         expression=c.outlet_pressure, expression_evaluator=self._expression_evaluator
                     ),
                     pressure_control=PressureControlConfig(type=c.pressure_control),
                     anti_surge=AntiSurgeConfig(c.anti_surge),
+                    process_unit_id=unit_name_to_id[c.process_unit] if c.process_unit else None,
+                    # None means constraint applies to process outlet
                 )
                 for c in pipeline_constraints
             ]
+            configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
+            predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
+
+            process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
+            process_pipelines.append(process_pipeline)
+
+        for process_pipeline_reference in yaml_process_simulation.constraints:
+            process_pipeline_id = process_pipeline_reference_to_id_map.get(process_pipeline_reference)
+            if process_pipeline_id is None:
+                raise EcalcValidationException(
+                    f"Constraint specified for unknown process system '{process_pipeline_reference}'"
+                )
 
         yaml_stream_distribution = yaml_process_simulation.stream_distribution
 

@@ -23,7 +23,7 @@ from libecalc.process.process_units.splitter import Splitter
 
 
 @value_object
-class SolverProcessUnits:
+class AssembledSection:
     """Solver-ready process units + handlers for a given process section."""
 
     process_units: list[ProcessUnit]
@@ -38,30 +38,31 @@ def _wrap_compressor_in_recirculation_loop(
     return loop, [mixer, *process_units, splitter]
 
 
-def build_solver_process_units_for_section(section: MappedSection, fluid_service: FluidService) -> SolverProcessUnits:
-    """Wrap a section's units into ASV/choke topology, producing solver-ready units + handlers."""
+def assemble_section(section: MappedSection, fluid_service: FluidService) -> AssembledSection:
+    """Assemble a validated mapped section into solver-ready process units and configuration handlers."""
     handlers: list[ConfigurationHandler] = []
 
-    if section.constraint.anti_surge == "COMMON_ASV":
+    if section.constraint.anti_surge == AntiSurgeType.COMMON_ASV:
         loop, solver_units = _wrap_compressor_in_recirculation_loop(section.process_units)
         handlers.append(loop)
     else:
         solver_units = []
         pending_units: list[
             ProcessUnit
-        ] = []  # held until a boundary (compressor → wrapped; mixer/splitter/end → unwrapped)
+        ] = []  # held until a boundary (compressor → assembled with ASV; mixer/splitter/end → unchanged)
         for unit in section.process_units:
+            # Mixer and Splitter are always kept outside recirculation loops.
             if isinstance(unit, (Mixer, Splitter)):
-                solver_units.extend(pending_units)  # units with no compressor: leave unwrapped
-                pending_units = []  # start a new group
+                solver_units.extend(pending_units)  # units without a compressor are left unchanged
+                pending_units = []
                 solver_units.append(unit)  # mixer/splitter stays outside the loop
                 continue
             pending_units.append(unit)  # hold until we reach the compressor
             if isinstance(unit, Compressor):
-                loop, wrapped = _wrap_compressor_in_recirculation_loop(pending_units)
+                loop, assembled = _wrap_compressor_in_recirculation_loop(pending_units)
                 handlers.append(loop)
-                solver_units.extend(wrapped)  # add the wrapped group
-                pending_units = []  # start a new group
+                solver_units.extend(assembled)  # add the assembled group
+                pending_units = []
         solver_units.extend(pending_units)  # units after the last compressor
 
     if section.constraint.pressure_control in ("UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE"):
@@ -72,7 +73,7 @@ def build_solver_process_units_for_section(section: MappedSection, fluid_service
         else:
             solver_units = [*solver_units, choke]
 
-    return SolverProcessUnits(
+    return AssembledSection(
         process_units=solver_units,
         configuration_handlers=handlers,
     )
@@ -105,15 +106,15 @@ class ProcessSectionBuilder:
         self._validator.validate(sections)
         return sections
 
-    def build_solver_process_units(
+    def build_sections(
         self,
         process_unit_map: dict[ProcessUnitId, ProcessUnit],
         unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
         pipeline_constraints: list[YamlProcessConstraint],
-    ) -> list[SolverProcessUnits]:
-        sections = self.partition_and_validate(
+    ) -> list[AssembledSection]:
+        mapped_sections = self.partition_and_validate(
             process_unit_map=process_unit_map,
             unit_name_to_id=unit_name_to_id,
             pipeline_constraints=pipeline_constraints,
         )
-        return [build_solver_process_units_for_section(s, self._fluid_service) for s in sections]
+        return [assemble_section(s, self._fluid_service) for s in mapped_sections]
