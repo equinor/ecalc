@@ -1,0 +1,98 @@
+name: NeqSim Compatibility Suite
+
+# The NeqSim compatibility suite pins the behaviour of the vendored
+# NeqSim jar (src/ecalc_neqsim_wrapper/lib/NeqSim.jar) over the
+# operating envelope ecalc exercises. It is deselected from the default
+# test run (see pyproject.toml `addopts`) and is intended to run only
+# when the jar, the wrapper, or the suite itself changes.
+
+on:
+  pull_request:
+    paths:
+      - 'src/ecalc_neqsim_wrapper/lib/NeqSim.jar'
+      - 'src/ecalc_neqsim_wrapper/lib/neqsim_version_info.md'
+      - 'src/ecalc_neqsim_wrapper/**.py'
+      - 'tests/ecalc_neqsim_wrapper/compatibility/**'
+      - '.github/workflows/test-neqsim-compatibility.yml'
+  workflow_dispatch:
+
+permissions: { }
+
+jobs:
+  enforce-version-note-update:
+    name: Enforce neqsim_version_info.md update when the jar changes
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      - name: Refuse jar bump without version-note update
+        run: |
+          set -euo pipefail
+          base="origin/${{ github.base_ref }}"
+          changed=$(git diff --name-only "$base"...HEAD)
+          echo "Changed files:"
+          echo "$changed"
+          if echo "$changed" | grep -qx 'src/ecalc_neqsim_wrapper/lib/NeqSim.jar'; then
+            if ! echo "$changed" | grep -qx 'src/ecalc_neqsim_wrapper/lib/neqsim_version_info.md'; then
+              echo "::error::NeqSim.jar changed but neqsim_version_info.md was not updated."
+              exit 1
+            fi
+          fi
+
+  test-neqsim-compatibility:
+    name: Run NeqSim compatibility suite
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.12", "3.14"]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python-version }}
+
+      - name: Set up Python
+        run: uv python install
+
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+
+      - name: Report NeqSim jar fingerprint
+        run: |
+          ls -l src/ecalc_neqsim_wrapper/lib/NeqSim.jar
+          sha256sum src/ecalc_neqsim_wrapper/lib/NeqSim.jar
+          echo '--- neqsim_version_info.md ---'
+          cat src/ecalc_neqsim_wrapper/lib/neqsim_version_info.md || true
+
+      - name: Run NeqSim compatibility suite
+        timeout-minutes: 60
+        run: |
+          uv run python -m pytest \
+            -m neqsim_compat \
+            tests/ecalc_neqsim_wrapper/compatibility/ \
+            --junitxml=neqsim-compatibility.xml \
+            -v
+
+      - name: Upload JUnit results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: neqsim-compatibility-${{ matrix.python-version }}
+          path: neqsim-compatibility.xml
+          if-no-files-found: ignore

@@ -40,7 +40,7 @@ jobs:
         # in order to verify that the package is correctly installed
       - name: Run tests
         timeout-minutes: 10
-        run: uv run python -m pytest  -m "not arch" --splits 5 --splitting-algorithm least_duration --group=${{ matrix.group }}
+        run: uv run python -m pytest  -m "not arch and not neqsim_compat" --splits 5 --splitting-algorithm least_duration --group=${{ matrix.group }}
 
       - name: Build artifacts
         run: uv build
