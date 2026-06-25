@@ -4,7 +4,6 @@ from libecalc.presentation.yaml.mappers.process.process_partitioner import (
     MappedSection,
     ProcessPartitioner,
 )
-from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.fluid_stream.fluid_service import FluidService
@@ -12,7 +11,6 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessU
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
-from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
