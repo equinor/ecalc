@@ -9,7 +9,7 @@ from libecalc.process.process_units.compressor import Compressor
 @value_object
 class MappedSection:
     """
-    A contiguous range of process units governed by one constraint.
+    A group of consecutive process units governed by one constraint.
 
     Pure data: units + the section's constraint. No wrapping.
     """
@@ -20,7 +20,7 @@ class MappedSection:
 
 class ProcessPartitioner:
     """
-    Splits process units ino pipeline sections based on constraints.
+    Splits process units ino mapped process sections based on constraints.
     """
 
     @staticmethod

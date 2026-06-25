@@ -81,10 +81,10 @@ def assemble_section(section: MappedSection, fluid_service: FluidService) -> Ass
 
 class ProcessSectionBuilder:
     """
-    Core entry point: partition → validate → wrap.
+    Partition → validate → assemble.
 
-    To move wrapping to the backend, call `partition_and_validate` from core and
-    have the backend invoke `build_solver_process_units` on the returned sections.
+    To move section building to the backend, call `partition_and_validate` from core and
+    have the backend invoke `assemble_section` over the returned sections.
     """
 
     def __init__(self, fluid_service: FluidService):
