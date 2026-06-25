@@ -325,6 +325,11 @@ class ProcessSimulationMapper:
 
                 process_unit_map[unit.get_id()] = unit
                 if yaml_process_unit.name:
+                    if yaml_process_unit.name in unit_name_to_id:
+                        raise EcalcValidationException(
+                            f"Duplicate process unit name '{yaml_process_unit.name}'. "
+                            f"Process unit names must be unique within a process."
+                        )
                     unit_name_to_id[yaml_process_unit.name] = unit.get_id()
 
             for compressor_id in compressor_ids:

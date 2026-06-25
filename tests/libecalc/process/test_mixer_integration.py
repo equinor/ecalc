@@ -36,11 +36,11 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper, fluid_s
         .with_name("train_with_mixer")
         .with_items(
             [
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                YamlCompressorBuilder().with_test_data().validate(),
+                YamlTemperatureSetterBuilder().with_name("temp_setter_1").with_test_data().validate(),
+                YamlCompressorBuilder().with_name("compressor_1").with_test_data().validate(),
                 yaml_mixer,
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                YamlCompressorBuilder().with_test_data().validate(),
+                YamlTemperatureSetterBuilder().with_name("temp_setter_2").with_test_data().validate(),
+                YamlCompressorBuilder().with_name("compressor_2").with_test_data().validate(),
             ]
         )
         .validate()
