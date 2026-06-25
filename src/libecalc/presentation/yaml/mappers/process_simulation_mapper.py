@@ -367,7 +367,6 @@ class ProcessSimulationMapper:
                     pressure_control=PressureControlConfig(type=s.constraint.pressure_control),
                     anti_surge=AntiSurgeConfig(s.constraint.anti_surge),
                     target_process_unit_id=s.target_process_unit_id,
-                    # None means constraint applies to process outlet
                 )
                 for s in mapped_sections
             ]
