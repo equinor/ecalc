@@ -234,7 +234,7 @@ def test_incompatible_strategies_raises_validation_exception(process_simulation_
 
     # Check that validation fails
     with pytest.raises(EcalcValidationException) as exc_info:
-        mapper.map_process_simulation(yaml_simulation, process_periods=[...])
+        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
     assert "PRESSURE_CONTROL 'COMMON_ASV' requires ANTI_SURGE 'COMMON_ASV', got 'INDIVIDUAL_ASV'" in str(exc_info.value)
 
@@ -252,7 +252,7 @@ def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_map
     constraint.pressure_control = "INDIVIDUAL_ASV_RATE"
 
     with pytest.raises(EcalcValidationException):
-        mapper.map_process_simulation(yaml_simulation, process_periods=[...])
+        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
 
 def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation_mapper):
@@ -268,7 +268,7 @@ def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation
     constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
 
     with pytest.raises(EcalcValidationException):
-        mapper.map_process_simulation(yaml_simulation, process_periods=[...])
+        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
 
 def test_compatible_strategies_succeeds(process_simulation_mapper):
@@ -285,7 +285,7 @@ def test_compatible_strategies_succeeds(process_simulation_mapper):
     constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
 
     # Run without exception
-    mapper.map_process_simulation(yaml_simulation, process_periods=[...])
+    mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
 
 # ---------------------------------------------------------------------------
@@ -350,6 +350,6 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper):
     yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
     with pytest.raises(EcalcValidationException) as exc_info:
-        process_simulation_mapper.map_process_simulation(yaml_simulation, process_periods=[...])
+        process_simulation_mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
     assert "Duplicate process unit name 'temp_setter_1'" in str(exc_info.value)
