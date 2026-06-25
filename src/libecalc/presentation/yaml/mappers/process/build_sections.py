@@ -85,8 +85,7 @@ class ProcessSectionBuilder:
     have the backend invoke `assemble_section` over the returned sections.
     """
 
-    def __init__(self, fluid_service: FluidService):
-        self._fluid_service = fluid_service
+    def __init__(self):
         self._partitioner = ProcessPartitioner()
         self._validator = MappedSectionValidator()
 
@@ -104,5 +103,7 @@ class ProcessSectionBuilder:
         self._validator.validate(sections)
         return sections
 
-    def assemble_sections(self, mapped_sections: list[MappedSection]) -> list[AssembledSection]:
-        return [assemble_section(s, self._fluid_service) for s in mapped_sections]
+    def assemble_sections(
+        self, mapped_sections: list[MappedSection], fluid_service: FluidService
+    ) -> list[AssembledSection]:
+        return [assemble_section(s, fluid_service) for s in mapped_sections]

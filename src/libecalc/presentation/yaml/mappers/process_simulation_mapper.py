@@ -254,7 +254,7 @@ class ProcessSimulationMapper:
         ] = {}
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
-        section_builder = ProcessSectionBuilder(fluid_service=self._fluid_service)
+        section_builder = ProcessSectionBuilder()
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
@@ -349,7 +349,9 @@ class ProcessSimulationMapper:
                 unit_name_to_id=unit_name_to_id,
                 pipeline_constraints=pipeline_constraints,
             )
-            assembled_sections = section_builder.assemble_sections(mapped_sections=mapped_sections)
+            assembled_sections = section_builder.assemble_sections(
+                mapped_sections=mapped_sections, fluid_service=self._fluid_service
+            )
             for section in assembled_sections:
                 process_units.extend(section.process_units)
                 problem_configuration_handlers.extend(section.configuration_handlers)
