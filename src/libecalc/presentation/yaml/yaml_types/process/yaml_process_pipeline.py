@@ -15,5 +15,5 @@ class YamlItem[TTarget](YamlBase):
 
 class YamlProcessPipeline(YamlBase):
     type: Literal["SERIAL"]
-    name: ProcessPipelineReference
+    name: str
     items: list[YamlItem[YamlProcessUnit]]
