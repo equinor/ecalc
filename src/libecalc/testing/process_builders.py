@@ -1,4 +1,4 @@
-from typing import Self
+from typing import Self, Literal
 
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
@@ -9,8 +9,9 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlFluidModelType,
     YamlPredefinedFluidModel,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlProcessConstraints,
+    YamlProcessConstraint,
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
@@ -24,6 +25,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
     YamlInletStream,
     YamlStreamRateUnit,
 )
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.testing.yaml_builder import Builder
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
@@ -38,7 +40,6 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlItem,
     YamlProcessPipeline,
-    ProcessPipelineReference,
 )
 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -236,26 +237,40 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self.type = "SERIAL"
         self.name = None
         self.items = []
+        self.anti_surge = "INDIVIDUAL_ASV"
 
     def with_name(self, name: str) -> Self:
         self.name = name
         return self
 
-    def with_items(self, units: list[YamlProcessUnit]) -> Self:
+    def with_item(self, target: YamlProcessUnit | ProcessUnitReference, name: str | None = None) -> Self:
+        self.items.append(YamlItem(name=name, target=target))
+        return self
+
+    def with_items(self, items: list[tuple[str | None, YamlProcessUnit | ProcessUnitReference]]) -> Self:
         """Pass a list of validated process units (or string references).
         Each is wrapped in a YamlItem automatically."""
-        self.items = [YamlItem(target=u) for u in units]
+        for name, target in items:
+            self.with_item(name=name, target=target)
+        return self
+
+    def with_anti_surge(self, anti_surge: str) -> Self:
+        self.anti_surge = anti_surge
         return self
 
     def with_test_data(self) -> Self:
         self.name = "DefaultPipeline"
-        self.items = [
-            YamlItem(target=YamlPressureDropperBuilder().with_test_data().validate()),
-            YamlItem(target=YamlTemperatureSetterBuilder().with_test_data().validate()),
-            YamlItem(target=YamlLiquidRemoverBuilder().with_test_data().validate()),
-            YamlItem(target=YamlCompressorBuilder().with_test_data().validate()),
-        ]
-        return self
+
+        return (
+            self.with_item(
+                name="default_pressure_dropper", target=YamlPressureDropperBuilder().with_test_data().validate()
+            )
+            .with_item(
+                name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
+            )
+            .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
+            .with_item(name="default_compressor", target=YamlCompressorBuilder().with_test_data().validate())
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -414,8 +429,7 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         self.name: str | None = None
         self.targets: list[YamlItem[YamlProcessPipeline]] = []
         self.stream_distribution = None
-        self.pressure_control: dict[ProcessPipelineReference, PressureControlType] = {}
-        self.constraints: dict[ProcessPipelineReference, YamlProcessConstraints] = {}
+        self.constraints: dict[str, list[YamlProcessConstraint]] = {}
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -432,11 +446,18 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         self,
         pipeline: YamlProcessPipeline,
         pressure_control: PressureControlType = "DOWNSTREAM_CHOKE",
+        anti_surge: AntiSurgeType = AntiSurgeType.INDIVIDUAL_ASV,
         outlet_pressure: YamlExpressionType = 100.0,
     ) -> Self:
         self.targets.append(YamlItem(target=pipeline))
-        self.pressure_control[pipeline.name] = pressure_control
-        self.constraints[pipeline.name] = YamlProcessConstraints(outlet_pressure=outlet_pressure)
+        self.constraints[pipeline.name] = [
+            YamlProcessConstraint(
+                process_unit=pipeline.items[-1].name,
+                outlet_pressure=outlet_pressure,
+                pressure_control=pressure_control,
+                anti_surge=anti_surge,
+            )
+        ]
         return self
 
     def with_test_data(self) -> Self:

@@ -77,7 +77,7 @@ class TargetPressureUnreachableFailure(SolverFailure):
     achievable_pressure_bara: float
     target_pressure_bara: float
     direction: TargetDirection
-    source_id: ProcessPipelineId | None = None
+    source_id: ProcessPipelineId | None = None  # TODO: Replace with failing process unit!
 
     def with_source_id(self, source_id: ProcessPipelineId) -> Self:
         return dataclasses.replace(self, source_id=source_id)

@@ -1,23 +1,49 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    ProcessPipelineReference,
     YamlItem,
     YamlProcessPipeline,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
+    ProcessPipelineReference,
+    ProcessUnitReference,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 
 
-class YamlProcessConstraints(YamlBase):
+class YamlProcessConstraint(YamlBase):
+    process_unit: Annotated[
+        ProcessUnitReference | None,
+        Field(
+            title="PROCESS_UNIT",
+            description="Reference to a named unit within the pipeline. If omitted, the constraint applies to the last process unit in the pipeline section.",
+        ),
+    ] = None
     outlet_pressure: Annotated[
         YamlExpressionType,
         Field(
             title="OUTLET_PRESSURE",
             description="Target outlet pressure [bara].",
+        ),
+    ]
+    pressure_control: Annotated[
+        PressureControlType,
+        Field(
+            title="PRESSURE_CONTROL",
+            description="How to meet the target pressure at this constraint point.",
+        ),
+    ]
+    anti_surge: Annotated[
+        AntiSurgeType,
+        Field(
+            title="ANTI_SURGE",
+            description="Anti-surge strategy to keep the compressor train within safe operating capacity.",
         ),
     ]
 
@@ -29,22 +55,10 @@ class YamlProcessSimulation(YamlBase):
         Field(title="TARGETS"),
     ]
     stream_distribution: YamlStreamDistribution
-    pressure_control: Annotated[
-        dict[
-            ProcessPipelineReference,
-            Literal[
-                "COMMON_ASV", "INDIVIDUAL_ASV_RATE", "INDIVIDUAL_ASV_PRESSURE", "DOWNSTREAM_CHOKE", "UPSTREAM_CHOKE"
-            ],
-        ],
-        Field(
-            title="PRESSURE_CONTROLS",
-            description="Pressure control strategy per target",
-        ),
-    ]
     constraints: Annotated[
-        dict[ProcessPipelineReference, YamlProcessConstraints],
+        dict[ProcessPipelineReference, list[YamlProcessConstraint]],
         Field(
             title="CONSTRAINTS",
-            description="Constraints per target.",
+            description="Constraints per target. Key is pipeline name, value is list of constraints.",
         ),
     ]

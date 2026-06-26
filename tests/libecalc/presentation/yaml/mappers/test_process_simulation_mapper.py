@@ -1,5 +1,8 @@
 from datetime import datetime
 
+import pytest
+
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.process_units.choke import Choke
@@ -35,14 +38,10 @@ def _simple_pipeline(name: str = "train_1"):
     return (
         YamlProcessPipelineBuilder()
         .with_name(name)
-        .with_items(
-            [
-                YamlPressureDropperBuilder().with_test_data().validate(),
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                YamlLiquidRemoverBuilder().validate(),
-                YamlCompressorBuilder().with_test_data().validate(),
-            ]
-        )
+        .with_item(target=YamlPressureDropperBuilder().with_test_data().validate())
+        .with_item(target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(target=YamlLiquidRemoverBuilder().with_test_data().validate())
+        .with_item(target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
 
@@ -173,16 +172,12 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer_and_splitter")
-        .with_items(
-            [
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                YamlCompressorBuilder().with_test_data().validate(),
-                YamlSplitterBuilder().with_test_data().validate(),
-                YamlMixerBuilder().with_test_data().validate(),
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                YamlCompressorBuilder().with_test_data().validate(),
-            ]
-        )
+        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_item(target=YamlSplitterBuilder().with_test_data().validate())
+        .with_item(target=YamlMixerBuilder().with_test_data().validate())
+        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
     yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
@@ -212,28 +207,77 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
 
 
 # ---------------------------------------------------------------------------
-# Tests: process problem / strategy mapping
+# Tests: strategy mapping
 # ---------------------------------------------------------------------------
 
 
-def test_mapper_attaches_anti_surge_config_to_process_problem(process_simulation_mapper):
-    """Anti-surge strategy follows from pressure control choice."""
-    yaml_common = _build_simulation_with_pipeline(_simple_pipeline("train_common"), pressure_control="COMMON_ASV")
-    yaml_individual = _build_simulation_with_pipeline(
-        _simple_pipeline("train_individual"), pressure_control="INDIVIDUAL_ASV_RATE"
-    )
+def test_incompatible_strategies_raises_validation_exception(process_simulation_mapper):
+    """Test that incompatible ANTI_SURGE and PRESSURE_CONTROL strategies raise exception."""
+    mapper = process_simulation_mapper
 
-    _, sim_common = process_simulation_mapper.map_process_simulation(
-        yaml_process_simulation=yaml_common,
-        process_periods=[PERIOD],
-    )
-    _, sim_individual = process_simulation_mapper.map_process_simulation(
-        yaml_process_simulation=yaml_individual,
-        process_periods=[PERIOD],
-    )
+    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
 
-    assert sim_common.process_problems[0].get_anti_surge_strategy().type == "COMMON_ASV"
-    assert sim_individual.process_problems[0].get_anti_surge_strategy().type == "INDIVIDUAL_ASV"
+    # Use incompatible combinations
+    pipeline = yaml_simulation.targets[0].target
+
+    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.anti_surge = "INDIVIDUAL_ASV"
+    constraint.pressure_control = "COMMON_ASV"
+
+    # Check that validation fails
+    with pytest.raises(EcalcValidationException) as exc_info:
+        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+
+    assert "PRESSURE_CONTROL 'COMMON_ASV' requires ANTI_SURGE 'COMMON_ASV', got 'INDIVIDUAL_ASV'" in str(exc_info.value)
+
+
+def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_mapper):
+    """Test that COMMON_ASV anti-surge + INDIVIDUAL_ASV_RATE pressure control raises exception."""
+    mapper = process_simulation_mapper
+
+    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+
+    pipeline = yaml_simulation.targets[0].target
+
+    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.anti_surge = "COMMON_ASV"
+    constraint.pressure_control = "INDIVIDUAL_ASV_RATE"
+
+    with pytest.raises(EcalcValidationException):
+        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+
+
+def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation_mapper):
+    """Test that COMMON_ASV anti-surge + INDIVIDUAL_ASV_PRESSURE pressure control raises exception."""
+    mapper = process_simulation_mapper
+
+    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+
+    pipeline = yaml_simulation.targets[0].target
+
+    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.anti_surge = "COMMON_ASV"
+    constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
+
+    with pytest.raises(EcalcValidationException):
+        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+
+
+def test_compatible_strategies_succeeds(process_simulation_mapper):
+    """Test that compatible strategies pass validation."""
+    mapper = process_simulation_mapper
+
+    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+
+    # Use compatible combinations
+    pipeline = yaml_simulation.targets[0].target
+
+    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint.anti_surge = "INDIVIDUAL_ASV"
+    constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
+
+    # Run without exception
+    mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
 
 # ---------------------------------------------------------------------------
@@ -246,15 +290,11 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_aftercooler")
-        .with_items(
-            [
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                YamlCompressorBuilder().with_test_data().validate(),
-                YamlTemperatureSetterBuilder().with_test_data().validate(),
-                YamlCompressorBuilder().with_test_data().validate(),
-                YamlTemperatureSetterBuilder().with_test_data().validate(),  # trailing
-            ]
-        )
+        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_item(name="temp_setter_3", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .validate()
     )
     yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
@@ -273,3 +313,27 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
     trailing_temp_index = len(units) - 2
     assert isinstance(units[trailing_temp_index], TemperatureSetter)
     assert trailing_temp_index > max(splitter_indices)
+
+
+# ---------------------------------------------------------------------------
+# Tests: process units
+# ---------------------------------------------------------------------------
+
+
+def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper):
+    """Duplicate process unit names are not allowed within a process."""
+    yaml_pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("train_with_duplicate_unit_names")
+        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .validate()
+    )
+    yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
+
+    with pytest.raises(EcalcValidationException) as exc_info:
+        process_simulation_mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+
+    assert "Duplicate process unit name 'temp_setter_1'" in str(exc_info.value)
