@@ -260,19 +260,17 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
 
     def with_test_data(self) -> Self:
         self.name = "DefaultPipeline"
-        (
+
+        return (
             self.with_item(
                 name="default_pressure_dropper", target=YamlPressureDropperBuilder().with_test_data().validate()
-            ),
-        )
-        (
-            self.with_item(
+            )
+            .with_item(
                 name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
-            ),
+            )
+            .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
+            .with_item(name="default_compressor", target=YamlCompressorBuilder().with_test_data().validate())
         )
-        (self.with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate()),)
-        (self.with_item(name="default_compressor", target=YamlCompressorBuilder().with_test_data().validate()),)
-        return self
 
 
 # ---------------------------------------------------------------------------
