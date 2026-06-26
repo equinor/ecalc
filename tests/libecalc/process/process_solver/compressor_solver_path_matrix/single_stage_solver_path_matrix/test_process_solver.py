@@ -34,13 +34,20 @@ from .cases import TEST_CASES, TrialCase
 # Expected failures — remove entries as the process solver improves
 # ---------------------------------------------------------------------------
 PROCESS_XFAILS: dict[tuple[str, str], Xfail] = {
-    # R8 — process solver does not implement the legacy zero-rate short-circuit: it returns a
-    # real (non-NaN) outlet pressure instead, so this is a wrong-but-structured outcome (no crash).
-    ("R8", "UPSTREAM_CHOKE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("R8", "DOWNSTREAM_CHOKE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("R8", "INDIVIDUAL_ASV_RATE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("R8", "INDIVIDUAL_ASV_PRESSURE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("R8", "COMMON_ASV"): Xfail("No zero-rate short-circuit in process solver."),
+    # R8: at zero inlet rate, legacy short-circuits to power=0, pressure=NaN (compressor off).
+    # The process solver has no zero-rate guard - it solves normally, finding a speed and
+    # recirculation rate that hits target pressure with all flow circulating internally
+    # (outlet mass rate = 0). Whether this or legacy's behavior is "correct" is a design
+    # decision that depends on what zero-rate means operationally.
+    ("R8", "UPSTREAM_CHOKE"): Xfail("Zero-rate: process solver solves normally; legacy short-circuits to power=0."),
+    ("R8", "DOWNSTREAM_CHOKE"): Xfail("Zero-rate: process solver solves normally; legacy short-circuits to power=0."),
+    ("R8", "INDIVIDUAL_ASV_RATE"): Xfail(
+        "Zero-rate: process solver solves normally; legacy short-circuits to power=0."
+    ),
+    ("R8", "INDIVIDUAL_ASV_PRESSURE"): Xfail(
+        "Zero-rate: process solver solves normally; legacy short-circuits to power=0."
+    ),
+    ("R8", "COMMON_ASV"): Xfail("Zero-rate: process solver solves normally; legacy short-circuits to power=0."),
 }
 
 

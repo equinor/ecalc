@@ -38,24 +38,41 @@ PROCESS_XFAILS: dict[tuple[str, str], Xfail] = {
     # M1-UPSTREAM_CHOKE: process solver reports NOT_CALCULATED instead of ABOVE_MAX_FLOW
     # when upstream choke pushes HP stage above max at low target discharge.
     ("M1", "UPSTREAM_CHOKE"): Xfail("Upstream choke failure not classified as ABOVE_MAX_FLOW."),
-    # COMMON_ASV multi-stage: the single common recirculation loop is sized from the
-    # LP stage and overloads the narrower HP stage, which raises RateTooHighError
-    # (uncaught) instead of returning a structured ABOVE_MAX_FLOW failure.
+    # M1/M2-COMMON_ASV: process solver returns PRESSURE_TOO_LOW (can't reduce pressure
+    # within feasible common-ASV recirculation range) while legacy returns ABOVE_MAX_FLOW.
+    # Both are valid descriptions of the same physical situation.
     ("M1", "COMMON_ASV"): Xfail(
-        "Common-ASV single loop overloads HP stage; raises instead of ABOVE_MAX_FLOW.",
-        raises=RateTooHighError,
+        "Common-ASV failure classified as PRESSURE_TOO_LOW instead of legacy's ABOVE_MAX_FLOW."
     ),
     ("M2", "COMMON_ASV"): Xfail(
-        "Common-ASV single loop overloads HP stage; raises instead of ABOVE_MAX_FLOW.",
-        raises=RateTooHighError,
+        "Common-ASV failure classified as PRESSURE_TOO_LOW instead of legacy's ABOVE_MAX_FLOW."
     ),
-    ("M4", "COMMON_ASV"): Xfail("Common-ASV power diverges from legacy."),
-    # M6: Process solver does not implement legacy zero-rate short-circuit.
-    ("M6", "UPSTREAM_CHOKE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("M6", "DOWNSTREAM_CHOKE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("M6", "COMMON_ASV"): Xfail("No zero-rate short-circuit in process solver."),
-    ("M6", "INDIVIDUAL_ASV_RATE"): Xfail("No zero-rate short-circuit in process solver."),
-    ("M6", "INDIVIDUAL_ASV_PRESSURE"): Xfail("No zero-rate short-circuit in process solver."),
+    # M4-COMMON_ASV: process solver succeeds but at higher power (11.87 vs 11.19 MW).
+    # Legacy applies per-stage anti-surge (only HP recirculates 648K, LP stays at 0)
+    # even in COMMON_ASV mode. Process solver uses the actual common loop topology
+    # where anti-surge recirculation flows through both stages.
+    ("M4", "COMMON_ASV"): Xfail(
+        "Common-ASV anti-surge topology differs: process uses common loop, legacy uses per-stage."
+    ),
+    # M7-COMMON_ASV: legacy checks chart area flag against the PRE-ASV rate (2336 m3/h)
+    # but computes head/efficiency at the ASV-corrected rate (2742 m3/h). The process
+    # solver checks the full flow (2742) against the speed-based max (2527) and correctly
+    # rejects it. Legacy reports INTERNAL_POINT because 2336 < 2527, even though the
+    # compressor physically processes 2742 m3/h.
+    ("M7", "COMMON_ASV"): Xfail("Legacy checks chart area at pre-ASV rate; process solver checks at full flow."),
+    # M6: at zero inlet rate, legacy short-circuits to power=0, pressure=NaN (compressor off).
+    # The process solver has no zero-rate guard - it solves normally, finding a speed and
+    # recirculation rate that hits target pressure with all flow circulating internally.
+    # Whether this or legacy's behavior is "correct" is a design decision.
+    ("M6", "UPSTREAM_CHOKE"): Xfail("Zero-rate: process solver solves normally; legacy short-circuits to power=0."),
+    ("M6", "DOWNSTREAM_CHOKE"): Xfail("Zero-rate: process solver solves normally; legacy short-circuits to power=0."),
+    ("M6", "COMMON_ASV"): Xfail("Zero-rate: process solver solves normally; legacy short-circuits to power=0."),
+    ("M6", "INDIVIDUAL_ASV_RATE"): Xfail(
+        "Zero-rate: process solver solves normally; legacy short-circuits to power=0."
+    ),
+    ("M6", "INDIVIDUAL_ASV_PRESSURE"): Xfail(
+        "Zero-rate: process solver solves normally; legacy short-circuits to power=0."
+    ),
 }
 
 

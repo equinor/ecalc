@@ -12,10 +12,7 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlStrategy
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import Bisect, RootFindingStrategy
-from libecalc.process.process_solver.solver import (
-    Solution,
-    TargetDirection,
-)
+from libecalc.process.process_solver.solver import Solution
 from libecalc.process.process_units.compressor import Compressor
 
 
@@ -57,21 +54,6 @@ class CommonASVPressureControlStrategy(PressureControlStrategy):
 
         compressor_inlet_stream = self._simulator.run(inlet_stream=inlet_stream, to_id=self._first_compressor.get_id())
         boundary = self._first_compressor.get_recirculation_range(compressor_inlet_stream)
-        min_configuration = RecirculationConfiguration(recirculation_rate=boundary.max)
-        min_pressure_stream = recirculation_func(min_configuration)
-
-        if min_pressure_stream.pressure_bara > target_pressure.value:
-            return Solution.target_pressure_unreachable(
-                configuration=[
-                    Configuration(
-                        configuration_handler_id=self._recirculation_loop_id,
-                        value=min_configuration,
-                    )
-                ],
-                achievable_pressure_bara=min_pressure_stream.pressure_bara,
-                target_pressure_bara=target_pressure.value,
-                direction=TargetDirection.MIN_ABOVE_TARGET,
-            )
 
         finder = RecirculationLoopRateFinder(
             search_strategy=Bisect(tolerance=10e-3),
