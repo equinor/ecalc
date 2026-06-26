@@ -325,7 +325,7 @@ class ProcessSimulationMapper:
                         )
 
                 process_unit_map[unit.get_id()] = unit
-                if process_unit_name:
+                if process_unit_name is not None:
                     if process_unit_name in unit_name_to_id:
                         raise EcalcValidationException(
                             f"Duplicate process unit name '{process_unit_name}'. "

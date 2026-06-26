@@ -9,6 +9,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlFluidModelType,
     YamlPredefinedFluidModel,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlProcessConstraint,
     YamlProcessSimulation,
@@ -143,18 +144,12 @@ class YamlCompressorBuilder(Builder[YamlCompressor]):
     def __init__(self):
         self.type = "COMPRESSOR"
         self.compressor_model = None
-        self.name = None
 
     def with_compressor_model(self, compressor_model: YamlCompressorModelChart) -> Self:
         self.compressor_model = compressor_model
         return self
 
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
     def with_test_data(self) -> Self:
-        self.name = self.name or "default_compressor"
         self.compressor_model = YamlCompressorModelChartBuilder().with_test_data().validate()
         return self
 
@@ -163,18 +158,12 @@ class YamlPressureDropperBuilder(Builder[YamlPressureDropper]):
     def __init__(self):
         self.type = "PRESSURE_DROPPER"
         self.pressure_drop = None
-        self.name = None
 
     def with_pressure_drop(self, pressure_drop: YamlExpressionType) -> Self:
         self.pressure_drop = pressure_drop
         return self
 
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
     def with_test_data(self) -> Self:
-        self.name = self.name or "default_pressure_dropper"
         self.pressure_drop = 1.0
         return self
 
@@ -183,18 +172,12 @@ class YamlTemperatureSetterBuilder(Builder[YamlTemperatureSetter]):
     def __init__(self):
         self.type = "TEMPERATURE_SETTER"
         self.temperature = None
-        self.name = None
 
     def with_temperature(self, temperature: YamlExpressionType) -> Self:
         self.temperature = temperature
         return self
 
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
     def with_test_data(self) -> Self:
-        self.name = self.name or "default_temperature_setter"
         self.temperature = 30.0
         return self
 
@@ -202,17 +185,11 @@ class YamlTemperatureSetterBuilder(Builder[YamlTemperatureSetter]):
 class YamlLiquidRemoverBuilder(Builder[YamlLiquidRemover]):
     def __init__(self):
         self.type = "LIQUID_REMOVER"
-        self.name = None
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
 
     def with_test_data(self) -> Self:
         # LIQUID_REMOVER has no configurable fields beyond `type`,
         # so `with_test_data` is a no-op. Kept for API consistency
         # with the other process unit builders.
-        self.name = self.name or "default_liquid_remover"
         return self
 
 
@@ -220,18 +197,12 @@ class YamlMixerBuilder(Builder[YamlMixer]):
     def __init__(self):
         self.type = "MIXER"
         self.sidestream = None
-        self.name = None
 
     def with_sidestream(self, sidestream: str | YamlInletStream) -> Self:
         self.sidestream = sidestream
         return self
 
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
     def with_test_data(self) -> Self:
-        self.name = self.name or "default_mixer"
         self.sidestream = (
             YamlInletStreamBuilder()
             .with_test_data()
@@ -246,18 +217,12 @@ class YamlSplitterBuilder(Builder[YamlSplitter]):
     def __init__(self):
         self.type = "SPLITTER"
         self.offtake_rate = None
-        self.name = None
 
     def with_offtake_rate(self, offtake_rate: YamlInletStreamRate) -> Self:
         self.offtake_rate = offtake_rate
         return self
 
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
     def with_test_data(self) -> Self:
-        self.name = self.name or "default_splitter"
         self.offtake_rate = YamlInletStreamRateBuilder().with_test_data().with_value(50_000).validate()
         return self
 
@@ -278,10 +243,15 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self.name = name
         return self
 
-    def with_items(self, units: list[YamlProcessUnit]) -> Self:
+    def with_item(self, target: YamlProcessUnit | ProcessUnitReference, name: str | None = None) -> Self:
+        self.items.append(YamlItem(name=name, target=target))
+        return self
+
+    def with_items(self, items: list[tuple[str | None, YamlProcessUnit | ProcessUnitReference]]) -> Self:
         """Pass a list of validated process units (or string references).
         Each is wrapped in a YamlItem automatically."""
-        self.items = [YamlItem(target=u) for u in units]
+        for name, target in items:
+            self.with_item(name=name, target=target)
         return self
 
     def with_anti_surge(self, anti_surge: str) -> Self:
@@ -290,12 +260,18 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
 
     def with_test_data(self) -> Self:
         self.name = "DefaultPipeline"
-        self.items = [
-            YamlItem(target=YamlPressureDropperBuilder().with_test_data().validate()),
-            YamlItem(target=YamlTemperatureSetterBuilder().with_test_data().validate()),
-            YamlItem(target=YamlLiquidRemoverBuilder().with_test_data().validate()),
-            YamlItem(target=YamlCompressorBuilder().with_test_data().validate()),
-        ]
+        (
+            self.with_item(
+                name="default_pressure_dropper", target=YamlPressureDropperBuilder().with_test_data().validate()
+            ),
+        )
+        (
+            self.with_item(
+                name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
+            ),
+        )
+        (self.with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate()),)
+        (self.with_item(name="default_compressor", target=YamlCompressorBuilder().with_test_data().validate()),)
         return self
 
 
@@ -476,8 +452,6 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         outlet_pressure: YamlExpressionType = 100.0,
     ) -> Self:
         self.targets.append(YamlItem(target=pipeline))
-        last_unit = pipeline.items[-1].target
-        assert not isinstance(last_unit, str), "Builder pipelines use inline units, not references."
         self.constraints[pipeline.name] = [
             YamlProcessConstraint(
                 process_unit=pipeline.items[-1].name,
