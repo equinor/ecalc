@@ -388,5 +388,70 @@
     "outcome": "SUCCESS",
     "power_mw": 0.0,
     "speed": null
+  },
+  "M7-COMMON_ASV": {
+    "discharge_pressure_bara": 95.0,
+    "hp_chart_area": "INTERNAL_POINT",
+    "hp_power_mw": 3.192,
+    "hp_recirculation_rate_sm3_day": 608381.284,
+    "is_valid": true,
+    "lp_chart_area": "INTERNAL_POINT",
+    "lp_power_mw": 2.974,
+    "lp_recirculation_rate_sm3_day": 608381.284,
+    "outcome": "SUCCESS",
+    "power_mw": 6.166,
+    "speed": 7689.0
+  },
+  "M7-DOWNSTREAM_CHOKE": {
+    "discharge_pressure_bara": 95.0,
+    "hp_chart_area": "INTERNAL_POINT",
+    "hp_power_mw": 3.107,
+    "hp_recirculation_rate_sm3_day": 0.0,
+    "is_valid": true,
+    "lp_chart_area": "INTERNAL_POINT",
+    "lp_power_mw": 2.848,
+    "lp_recirculation_rate_sm3_day": 0.0,
+    "outcome": "SUCCESS",
+    "power_mw": 5.955,
+    "speed": 7689.0
+  },
+  "M7-INDIVIDUAL_ASV_PRESSURE": {
+    "discharge_pressure_bara": 96.285,
+    "hp_chart_area": "INTERNAL_POINT",
+    "hp_power_mw": 2.984,
+    "hp_recirculation_rate_sm3_day": 340424.539,
+    "is_valid": false,
+    "lp_chart_area": "INTERNAL_POINT",
+    "lp_power_mw": 2.966,
+    "lp_recirculation_rate_sm3_day": 507536.709,
+    "outcome": "PRESSURE_TOO_LOW",
+    "power_mw": 5.95,
+    "speed": 7689.0
+  },
+  "M7-INDIVIDUAL_ASV_RATE": {
+    "discharge_pressure_bara": 95.0,
+    "hp_chart_area": "INTERNAL_POINT",
+    "hp_power_mw": 2.915,
+    "hp_recirculation_rate_sm3_day": 188063.505,
+    "is_valid": true,
+    "lp_chart_area": "INTERNAL_POINT",
+    "lp_power_mw": 2.977,
+    "lp_recirculation_rate_sm3_day": 685073.773,
+    "outcome": "SUCCESS",
+    "power_mw": 5.892,
+    "speed": 7689.0
+  },
+  "M7-UPSTREAM_CHOKE": {
+    "discharge_pressure_bara": 95.0,
+    "hp_chart_area": "INTERNAL_POINT",
+    "hp_power_mw": 2.857,
+    "hp_recirculation_rate_sm3_day": 0.0,
+    "is_valid": true,
+    "lp_chart_area": "INTERNAL_POINT",
+    "lp_power_mw": 2.72,
+    "lp_recirculation_rate_sm3_day": 0.0,
+    "outcome": "SUCCESS",
+    "power_mw": 5.577,
+    "speed": 7689.0
   }
 }
