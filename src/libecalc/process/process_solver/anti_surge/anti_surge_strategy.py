@@ -19,7 +19,7 @@ class AntiSurgeStrategy(ABC):
     """
     Strategy for keeping the train within compressor chart capacity at the current speed.
 
-    Used primarily during speed search when propagation may fail (e.g. RateTooLowError).
+    Used primarily during speed search when propagation may fail (e.g. CompressorSurgeError).
     Implementations may adjust control elements (e.g. ASV recirculation) and may
     propagate internally in order to establish a feasible operating point.
     """

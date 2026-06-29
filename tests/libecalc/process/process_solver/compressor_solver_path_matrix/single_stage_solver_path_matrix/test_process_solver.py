@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError, CompressorSurgeError
 from libecalc.process.process_solver.configuration import (
     ChokeConfiguration,
     RecirculationConfiguration,
@@ -90,7 +90,7 @@ def test_process_solver_path(
     try:
         outlet_stream = system.runner.run(inlet_stream=inlet_stream)
         outlet_pressure = outlet_stream.pressure_bara
-    except RateTooHighError:
+    except CompressorStonewallError:
         outlet_pressure = np.nan
 
     outcome = outcome_from_process_solution(solution)
@@ -112,7 +112,7 @@ def test_process_solver_path(
         compressor_inlet = system.runner.run(inlet_stream=inlet_stream, to_id=compressor.get_id())
         power_mw = _calculate_compressor_power_mw(compressor, compressor_inlet)
         assert power_mw == pytest.approx(case.expectation.power_mw, abs=POWER_TOLERANCE)
-    except (RateTooHighError, RateTooLowError):
+    except (CompressorStonewallError, CompressorSurgeError):
         pass
 
     recirculation_rates = tuple(

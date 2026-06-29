@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import ProcessError, RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError, CompressorSurgeError, ProcessError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.finders.recirculation_loop_rate_finder import (
@@ -32,9 +32,9 @@ class RateCompressor(ProcessUnit):
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         if inlet_stream.volumetric_rate_m3_per_hour < self._minimum_rate:
-            raise RateTooLowError(process_unit_id=self._id)
+            raise CompressorSurgeError(process_unit_id=self._id)
         if inlet_stream.volumetric_rate_m3_per_hour > self._maximum_rate:
-            raise RateTooHighError(process_unit_id=self._id)
+            raise CompressorStonewallError(process_unit_id=self._id)
         return self._fluid_service.create_stream_from_standard_rate(
             fluid_model=inlet_stream.fluid_model,
             pressure_bara=inlet_stream.pressure_bara + inlet_stream.standard_rate_sm3_per_day,

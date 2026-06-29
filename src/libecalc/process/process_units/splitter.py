@@ -2,6 +2,7 @@ from typing import Final
 
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import OfftakeExceedsInletError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
@@ -29,6 +30,12 @@ class Splitter(ProcessUnit):
 
     def propagate_stream(self, inlet_stream: FluidStream) -> FluidStream:
         remaining_rate = inlet_stream.standard_rate_sm3_per_day - self._rate
+        if remaining_rate < 0.0:
+            raise OfftakeExceedsInletError(
+                process_unit_id=self._id,
+                available_rate=inlet_stream.standard_rate_sm3_per_day,
+                offtake_rate=self._rate,
+            )
         return self._fluid_service.create_stream_from_standard_rate(
             fluid_model=inlet_stream.fluid_model,
             pressure_bara=inlet_stream.pressure_bara,
