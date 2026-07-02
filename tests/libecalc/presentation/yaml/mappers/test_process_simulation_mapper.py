@@ -4,7 +4,12 @@ import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.process_simulation import Constraint
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
+from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
+from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
+from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.direct_mixer import DirectMixer
@@ -14,6 +19,7 @@ from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.outlet import Outlet
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
+from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompressorBuilder,
@@ -337,3 +343,79 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper):
         process_simulation_mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
     assert "Duplicate process unit name 'temp_setter_1'" in str(exc_info.value)
+
+
+# ---------------------------------------------------------------------------
+# Tests: process sections
+# ---------------------------------------------------------------------------
+
+
+def test_mapper_builds_single_process_problem_section(process_simulation_mapper):
+    """A single constraint pipeline produces one ProcessProblemSection."""
+    yaml_simulation = _build_simulation_with_pipeline(_simple_pipeline())
+    _, simulation = process_simulation_mapper.map_process_simulation(
+        yaml_process_simulation=yaml_simulation,
+        process_periods=[PERIOD],
+    )
+    assert len(simulation.process_problems) == 1
+    problem = simulation.process_problems[0]
+
+    assert len(problem.configuration_handlers) == 1
+    assert isinstance(problem.configuration_handlers[0], VariableSpeedShaft)
+
+    assert len(problem.sections) == 1
+
+    section = problem.sections[0]
+
+    assert isinstance(section.constraint, Constraint)
+
+    # Section-specific solver handlers (ASV-loop, chokes etc.) live on the section.
+    assert any(isinstance(h, RecirculationLoop) for h in section.configuration_handlers)
+
+
+def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapper):
+    """Each mapped process section becomes a ProcessProblemSection"""
+    yaml_pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("train_with_intermediate_constraint")
+        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_item(target=YamlMixerBuilder().with_test_data().validate())
+        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .validate()
+    )
+
+    yaml_simulation = _build_simulation_with_pipeline(pipeline=yaml_pipeline, pressure_control="DOWNSTREAM_CHOKE")
+
+    constraint = YamlProcessConstraint(
+        process_unit="compressor_1",
+        outlet_pressure=30,
+        pressure_control="INDIVIDUAL_ASV_RATE",
+        anti_surge=AntiSurgeType.INDIVIDUAL_ASV,
+    )
+    yaml_simulation.constraints[yaml_pipeline.name].insert(0, constraint)
+
+    _, simulation = process_simulation_mapper.map_process_simulation(
+        yaml_process_simulation=yaml_simulation,
+        process_periods=[PERIOD],
+    )
+
+    problem = simulation.process_problems[0]
+
+    # Train-wide handlers (currently only Shaft) remain on ProcessProblem.
+    assert len(problem.configuration_handlers) == 1
+    assert isinstance(problem.configuration_handlers[0], VariableSpeedShaft)
+
+    # Each solver section owns its own constraint and section-specific handlers.
+    assert len(problem.sections) == 2
+
+    assert problem.sections[0].constraint.pressure_control.type == "INDIVIDUAL_ASV_RATE"
+    assert problem.sections[1].constraint.pressure_control.type == "DOWNSTREAM_CHOKE"
+
+    assert any(isinstance(h, RecirculationLoop) for h in problem.sections[0].configuration_handlers)
+    assert any(isinstance(h, ChokeConfigurationHandler) for h in problem.sections[1].configuration_handlers)
+
+    assert (
+        problem.sections[0].constraint.target_process_unit_id != problem.sections[1].constraint.target_process_unit_id
+    )

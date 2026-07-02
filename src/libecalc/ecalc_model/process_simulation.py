@@ -15,7 +15,7 @@ from libecalc.ecalc_model.time_series_configuration import (
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
-from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
@@ -60,6 +60,15 @@ class Constraint:
 ProcessProblemId = NewType("ProcessProblemId", UUID)
 
 
+@value_object
+class ProcessProblemSection:
+    """A process section assembled for solver execution."""
+
+    process_units: list[ProcessUnit]
+    configuration_handlers: Sequence[ConfigurationHandler]
+    constraint: Constraint
+
+
 class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
     # can a problem exist wo. a simulation? yes, e.g. get max rate ...
     # given a physical pipeline (a contained problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
@@ -67,14 +76,14 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 
     def __init__(
         self,
-        constraints: list[Constraint],
+        sections: Sequence[ProcessProblemSection],
         configuration_handlers: Sequence[ConfigurationHandler],
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
-        self.constraints = constraints
-        self.process_pipeline_id = process_pipeline_id
+        self.sections = sections
         self.configuration_handlers = configuration_handlers
+        self.process_pipeline_id = process_pipeline_id
         self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:
@@ -85,7 +94,7 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
         return ProcessProblemId(ecalc_id_generator())
 
     def get_constraints(self) -> list[Constraint]:
-        return self.constraints
+        return [section.constraint for section in self.sections]
 
 
 ProcessSimulationId = NewType("ProcessSimulationId", UUID)
