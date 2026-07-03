@@ -40,7 +40,7 @@ def assemble_process_section(
     handlers: list[ConfigurationHandler] = []
 
     if anti_surge == AntiSurgeType.COMMON_ASV:
-        loop, solver_units = _wrap_compressor_in_recirculation_loop(process_units)
+        loop, solver_units = recirculation_loop(process_units)
         handlers.append(loop)
     else:
         solver_units = []
@@ -56,7 +56,7 @@ def assemble_process_section(
                 continue
             pending_units.append(unit)  # hold until we reach the compressor
             if isinstance(unit, Compressor):
-                loop, assembled = _wrap_compressor_in_recirculation_loop(pending_units)
+                loop, assembled = recirculation_loop(pending_units)
                 handlers.append(loop)
                 solver_units.extend(assembled)  # add the assembled group
                 pending_units = []

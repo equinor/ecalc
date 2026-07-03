@@ -363,9 +363,9 @@ def test_mapper_builds_single_process_problem_section(process_simulation_mapper)
     assert len(problem.configuration_handlers) == 1
     assert isinstance(problem.configuration_handlers[0], VariableSpeedShaft)
 
-    assert len(problem.sections) == 1
+    assert len(problem.process_problem_sections) == 1
 
-    section = problem.sections[0]
+    section = problem.process_problem_sections[0]
 
     assert isinstance(section.constraint, Constraint)
 
@@ -408,14 +408,17 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
     assert isinstance(problem.configuration_handlers[0], VariableSpeedShaft)
 
     # Each solver section owns its own constraint and section-specific handlers.
-    assert len(problem.sections) == 2
+    assert len(problem.process_problem_sections) == 2
 
-    assert problem.sections[0].constraint.pressure_control.type == "INDIVIDUAL_ASV_RATE"
-    assert problem.sections[1].constraint.pressure_control.type == "DOWNSTREAM_CHOKE"
+    assert problem.process_problem_sections[0].constraint.pressure_control.type == "INDIVIDUAL_ASV_RATE"
+    assert problem.process_problem_sections[1].constraint.pressure_control.type == "DOWNSTREAM_CHOKE"
 
-    assert any(isinstance(h, RecirculationLoop) for h in problem.sections[0].configuration_handlers)
-    assert any(isinstance(h, ChokeConfigurationHandler) for h in problem.sections[1].configuration_handlers)
+    assert any(isinstance(h, RecirculationLoop) for h in problem.process_problem_sections[0].configuration_handlers)
+    assert any(
+        isinstance(h, ChokeConfigurationHandler) for h in problem.process_problem_sections[1].configuration_handlers
+    )
 
     assert (
-        problem.sections[0].constraint.target_process_unit_id != problem.sections[1].constraint.target_process_unit_id
+        problem.process_problem_sections[0].constraint.target_process_unit_id
+        != problem.process_problem_sections[1].constraint.target_process_unit_id
     )

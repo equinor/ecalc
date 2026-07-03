@@ -76,12 +76,12 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 
     def __init__(
         self,
-        sections: Sequence[ProcessProblemSection],
+        process_problem_sections: Sequence[ProcessProblemSection],
         configuration_handlers: Sequence[ConfigurationHandler],
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
-        self.sections = sections
+        self.process_problem_sections = process_problem_sections
         self.configuration_handlers = configuration_handlers
         self.process_pipeline_id = process_pipeline_id
         self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
@@ -94,7 +94,7 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
         return ProcessProblemId(ecalc_id_generator())
 
     def get_constraints(self) -> list[Constraint]:
-        return [section.constraint for section in self.sections]
+        return [section.constraint for section in self.process_problem_sections]
 
 
 ProcessSimulationId = NewType("ProcessSimulationId", UUID)

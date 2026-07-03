@@ -385,7 +385,7 @@ class ProcessSimulationMapper:
             process_pipelines.append(process_pipeline)
             process_problems.append(
                 ProcessProblem(
-                    sections=process_problem_sections,
+                    process_problem_sections=process_problem_sections,
                     configuration_handlers=problem_configuration_handlers,
                     process_pipeline_id=process_pipeline.get_id(),
                 )
