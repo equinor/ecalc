@@ -22,7 +22,7 @@ class AssembledSection:
     configuration_handlers: list[ConfigurationHandler]
 
 
-def _wrap_compressor_in_recirculation_loop(
+def recirculation_loop(
     process_units: list[ProcessUnit],
 ) -> tuple[RecirculationLoop, list[ProcessUnit]]:
     mixer, splitter = DirectMixer(), DirectSplitter()
