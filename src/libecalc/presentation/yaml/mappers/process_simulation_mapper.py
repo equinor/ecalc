@@ -366,7 +366,7 @@ class ProcessSimulationMapper:
                 )
                 process_problem_sections.append(
                     ProcessProblemSection(
-                        process_units=assembled_section.process_units,
+                        process_unit_ids=[u.get_id() for u in assembled_section.process_units],
                         configuration_handlers=assembled_section.configuration_handlers,
                         constraint=constraint,
                     )

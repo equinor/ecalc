@@ -15,7 +15,7 @@ from libecalc.ecalc_model.time_series_configuration import (
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
-from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
@@ -64,7 +64,7 @@ ProcessProblemId = NewType("ProcessProblemId", UUID)
 class ProcessProblemSection:
     """A process section assembled for solver execution."""
 
-    process_units: list[ProcessUnit]
+    process_unit_ids: list[ProcessUnitId]
     configuration_handlers: Sequence[ConfigurationHandler]
     constraint: Constraint
 
