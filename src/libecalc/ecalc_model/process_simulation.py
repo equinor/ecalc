@@ -60,6 +60,15 @@ class Constraint:
 ProcessProblemId = NewType("ProcessProblemId", UUID)
 
 
+@value_object
+class ProcessProblemSection:
+    """A process section assembled for solver execution."""
+
+    process_unit_ids: list[ProcessUnitId]
+    configuration_handlers: Sequence[ConfigurationHandler]
+    constraint: Constraint
+
+
 class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
     # can a problem exist wo. a simulation? yes, e.g. get max rate ...
     # given a physical pipeline (a contained problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
@@ -67,14 +76,14 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
 
     def __init__(
         self,
-        constraints: list[Constraint],
+        process_problem_sections: Sequence[ProcessProblemSection],
         configuration_handlers: Sequence[ConfigurationHandler],
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
-        self.constraints = constraints
-        self.process_pipeline_id = process_pipeline_id
+        self.process_problem_sections = process_problem_sections
         self.configuration_handlers = configuration_handlers
+        self.process_pipeline_id = process_pipeline_id
         self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:
@@ -85,7 +94,7 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
         return ProcessProblemId(ecalc_id_generator())
 
     def get_constraints(self) -> list[Constraint]:
-        return self.constraints
+        return [section.constraint for section in self.process_problem_sections]
 
 
 ProcessSimulationId = NewType("ProcessSimulationId", UUID)

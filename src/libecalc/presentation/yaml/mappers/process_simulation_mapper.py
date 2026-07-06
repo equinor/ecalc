@@ -1,4 +1,3 @@
-from collections.abc import Sequence
 from typing import assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
@@ -17,6 +16,7 @@ from libecalc.ecalc_model.process_simulation import (
     IndividualStreamDistributionConfig,
     PressureControlConfig,
     ProcessProblem,
+    ProcessProblemSection,
     ProcessSimulation,
 )
 from libecalc.ecalc_model.time_series_configuration import (
@@ -65,7 +65,6 @@ from libecalc.process.process_pipeline.process_pipeline import (
     ProcessPipelineId,
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_units.compressor import Compressor
@@ -238,8 +237,7 @@ class ProcessSimulationMapper:
         self, yaml_process_simulation: YamlProcessSimulation, process_periods: list[Period]
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         process_pipelines: list[ProcessPipeline] = []
-        constraints: dict[ProcessPipelineId, list[Constraint]] = {}
-        configuration_handlers: dict[ProcessPipelineId, Sequence[ConfigurationHandler]] = {}
+        process_problems: list[ProcessProblem] = []
 
         # Some configurations are not found/set by the solver, but set by user upon process_simulation creation
         predefined_configurations: dict[
@@ -341,7 +339,9 @@ class ProcessSimulationMapper:
             problem_configuration_handlers.append(shaft)
 
             process_units: list[ProcessUnit] = []
+            process_problem_sections: list[ProcessProblemSection] = []
             pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
+
             if not pipeline_constraints:
                 raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
 
@@ -353,36 +353,43 @@ class ProcessSimulationMapper:
             assembled_sections = section_builder.assemble_sections(
                 mapped_sections=mapped_sections, fluid_service=self._fluid_service
             )
-            for section in assembled_sections:
-                process_units.extend(section.process_units)
-                problem_configuration_handlers.extend(section.configuration_handlers)
+
+            for mapped_section, assembled_section in zip(mapped_sections, assembled_sections, strict=True):
+                constraint = Constraint(
+                    outlet_pressure=TimeSeriesExpression(
+                        expression=mapped_section.constraint.outlet_pressure,
+                        expression_evaluator=self._expression_evaluator,
+                    ),
+                    pressure_control=PressureControlConfig(type=mapped_section.constraint.pressure_control),
+                    anti_surge=AntiSurgeConfig(mapped_section.constraint.anti_surge),
+                    target_process_unit_id=mapped_section.target_process_unit_id,
+                )
+                process_problem_sections.append(
+                    ProcessProblemSection(
+                        process_unit_ids=[u.get_id() for u in assembled_section.process_units],
+                        configuration_handlers=assembled_section.configuration_handlers,
+                        constraint=constraint,
+                    )
+                )
+                process_units.extend(assembled_section.process_units)
 
             # A pipeline must have a start and an end - always add process units for that (ie owner of inlet and outlet streams)
             process_units.append(Outlet())
             process_units.insert(0, Inlet())
 
             process_pipeline = ProcessPipeline(name=item.name, stream_propagators=process_units)
-            constraints[process_pipeline.get_id()] = [
-                Constraint(
-                    outlet_pressure=TimeSeriesExpression(
-                        expression=s.constraint.outlet_pressure, expression_evaluator=self._expression_evaluator
-                    ),
-                    pressure_control=PressureControlConfig(type=s.constraint.pressure_control),
-                    anti_surge=AntiSurgeConfig(s.constraint.anti_surge),
-                    target_process_unit_id=s.target_process_unit_id,
-                )
-                for s in mapped_sections
-            ]
-            if len(constraints[process_pipeline.get_id()]) != 1:
-                raise EcalcValidationException(
-                    "We currently only support one constraint per problem. Please come back later for multi-constraint problem support."
-                )
 
-            configuration_handlers[process_pipeline.get_id()] = problem_configuration_handlers
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
             process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
+            process_problems.append(
+                ProcessProblem(
+                    process_problem_sections=process_problem_sections,
+                    configuration_handlers=problem_configuration_handlers,
+                    process_pipeline_id=process_pipeline.get_id(),
+                )
+            )
 
         for process_pipeline_reference in yaml_process_simulation.constraints:
             process_pipeline_id = process_pipeline_reference_to_id_map.get(process_pipeline_reference)
@@ -466,15 +473,6 @@ class ProcessSimulationMapper:
                 )
             case _:
                 assert_never(yaml_stream_distribution.method)
-
-        process_problems = [
-            ProcessProblem(
-                process_pipeline_id=process_pipeline.get_id(),
-                constraints=constraints[process_pipeline.get_id()],
-                configuration_handlers=configuration_handlers[process_pipeline.get_id()],
-            )
-            for process_pipeline in process_pipelines
-        ]
 
         return (
             process_pipelines,
