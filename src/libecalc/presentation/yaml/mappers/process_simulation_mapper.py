@@ -63,6 +63,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_pipeline import (
     ProcessPipeline,
     ProcessPipelineId,
+    ProcessPipelineSection,
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
@@ -339,6 +340,7 @@ class ProcessSimulationMapper:
             problem_configuration_handlers.append(shaft)
 
             process_units: list[ProcessUnit] = []
+            process_pipeline_sections: list[ProcessPipelineSection] = []
             process_problem_sections: list[ProcessProblemSection] = []
             pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
 
@@ -354,7 +356,18 @@ class ProcessSimulationMapper:
                 mapped_sections=mapped_sections, fluid_service=self._fluid_service
             )
 
-            for mapped_section, assembled_section in zip(mapped_sections, assembled_sections, strict=True):
+            for nr, (mapped_section, assembled_section) in enumerate(
+                zip(mapped_sections, assembled_sections, strict=True)
+            ):
+                process_section_process_units = assembled_section.process_units
+                if nr == 0:  # first section
+                    process_section_process_units.insert(0, Inlet())
+                if nr == len(mapped_sections) - 1:  # last section
+                    process_section_process_units.append(Outlet())
+                process_pipeline_section = ProcessPipelineSection(process_units=process_section_process_units)
+
+                process_pipeline_sections.append(process_pipeline_section)
+
                 constraint = Constraint(
                     outlet_pressure=TimeSeriesExpression(
                         expression=mapped_section.constraint.outlet_pressure,
@@ -366,18 +379,17 @@ class ProcessSimulationMapper:
                 )
                 process_problem_sections.append(
                     ProcessProblemSection(
-                        process_unit_ids=[u.get_id() for u in assembled_section.process_units],
+                        process_pipeline_section_id=process_pipeline_section.get_id(),
                         configuration_handlers=assembled_section.configuration_handlers,
                         constraint=constraint,
                     )
                 )
                 process_units.extend(assembled_section.process_units)
 
-            # A pipeline must have a start and an end - always add process units for that (ie owner of inlet and outlet streams)
-            process_units.append(Outlet())
-            process_units.insert(0, Inlet())
-
-            process_pipeline = ProcessPipeline(name=item.name, stream_propagators=process_units)
+            process_pipeline = ProcessPipeline(
+                name=item.name,
+                process_pipeline_sections=process_pipeline_sections,
+            )
 
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 

@@ -14,7 +14,7 @@ from libecalc.ecalc_model.time_series_configuration import (
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessPipelineSectionId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
@@ -64,18 +64,29 @@ ProcessProblemSectionId = NewType("ProcessProblemSectionId", UUID)
 class ProcessProblemSection(Entity[ProcessProblemSectionId]):
     def __init__(
         self,
-        process_unit_ids: Sequence[ProcessUnitId],
-        configuration_handlers: Sequence[ConfigurationHandler],
+        process_pipeline_section_id: ProcessPipelineSectionId,
+        configuration_handlers: Sequence[
+            ConfigurationHandler
+        ],  # contained conf handlers within a section only? cannot be shared!
         constraint: Constraint,
         process_problem_section_id: ProcessProblemSectionId | None = None,
     ):
-        self.process_unit_ids = process_unit_ids
-        self.configuration_handlers = configuration_handlers
-        self.constraint = constraint
+        self._process_pipeline_section_id = process_pipeline_section_id
+        self._configuration_handlers = configuration_handlers
+        self._constraint = constraint
         self._id: Final[ProcessProblemSectionId] = process_problem_section_id or ProcessProblemSection._create_id()
 
     def get_id(self) -> ProcessProblemSectionId:
         return self._id
+
+    def get_process_pipeline_section_id(self) -> ProcessPipelineSectionId:
+        return self._process_pipeline_section_id
+
+    def get_configuration_handlers(self) -> Sequence[ConfigurationHandler]:
+        return self._configuration_handlers
+
+    def get_constraint(self) -> Constraint:
+        return self._constraint
 
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessProblemSectionId:
@@ -86,28 +97,37 @@ class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
     # can a problem exist wo. a simulation? yes, e.g. get max rate ...
     # given a physical pipeline (a contained problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
     # TODO: might have subproblems, or dependencies, but we may want to add those as problems that depend on each other and needs to be evaluated in a given order
+    # sections are currently the first part of adding "subproblems" or dependencies, lets see where that gets us ..
 
     def __init__(
         self,
         process_problem_sections: Sequence[ProcessProblemSection],
-        configuration_handlers: Sequence[ConfigurationHandler],
+        configuration_handlers: Sequence[
+            ConfigurationHandler
+        ],  # global handlers across sections? or all? all is wrong bec then it has 2 entry points ...
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
-        self.process_problem_sections = process_problem_sections
-        self.configuration_handlers = configuration_handlers
-        self.process_pipeline_id = process_pipeline_id
+        self._process_problem_sections = process_problem_sections
+        self._configuration_handlers = configuration_handlers
+        self._process_pipeline_id = process_pipeline_id
         self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:
         return self._id
 
+    def get_process_pipeline_id(self) -> ProcessPipelineId:
+        return self._process_pipeline_id
+
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessProblemId:
         return ProcessProblemId(ecalc_id_generator())
 
-    def get_constraints(self) -> list[Constraint]:
-        return [section.constraint for section in self.process_problem_sections]
+    def get_process_problem_sections(self) -> Sequence[ProcessProblemSection]:
+        return self._process_problem_sections
+
+    def get_configuration_handlers(self) -> Sequence[ConfigurationHandler]:
+        return self._configuration_handlers
 
 
 ProcessSimulationId = NewType("ProcessSimulationId", UUID)

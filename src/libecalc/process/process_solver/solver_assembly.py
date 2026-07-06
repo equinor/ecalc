@@ -13,7 +13,7 @@ from collections.abc import Sequence
 from typing import assert_never
 
 from libecalc.common.ddd import value_object
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineSection
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
@@ -101,7 +101,9 @@ def assemble_solver(
     if root_finding_strategy is None:
         root_finding_strategy = ScipyRootFindingStrategy()
 
-    pipeline = ProcessPipeline(name=pipeline_name, stream_propagators=process_units)
+    pipeline = ProcessPipeline(
+        name=pipeline_name, process_pipeline_sections=[ProcessPipelineSection(process_units=process_units)]
+    )
     runner = ProcessPipelineRunner(units=process_units, configuration_handlers=configuration_handlers)
 
     anti_surge_strategy = _resolve_anti_surge_strategy(
