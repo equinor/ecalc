@@ -58,15 +58,28 @@ class Constraint:
 
 
 ProcessProblemId = NewType("ProcessProblemId", UUID)
+ProcessProblemSectionId = NewType("ProcessProblemSectionId", UUID)
 
 
-@value_object
-class ProcessProblemSection:
-    """A process section assembled for solver execution."""
+class ProcessProblemSection(Entity[ProcessProblemSectionId]):
+    def __init__(
+        self,
+        process_unit_ids: Sequence[ProcessUnitId],
+        configuration_handlers: Sequence[ConfigurationHandler],
+        constraint: Constraint,
+        process_problem_section_id: ProcessProblemSectionId | None = None,
+    ):
+        self.process_unit_ids = process_unit_ids
+        self.configuration_handlers = configuration_handlers
+        self.constraint = constraint
+        self._id: Final[ProcessProblemSectionId] = process_problem_section_id or ProcessProblemSection._create_id()
 
-    process_unit_ids: list[ProcessUnitId]
-    configuration_handlers: Sequence[ConfigurationHandler]
-    constraint: Constraint
+    def get_id(self) -> ProcessProblemSectionId:
+        return self._id
+
+    @classmethod
+    def _create_id(cls: type[Self]) -> ProcessProblemSectionId:
+        return ProcessProblemSectionId(ecalc_id_generator())
 
 
 class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
