@@ -4,7 +4,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class Outlet(ProcessUnit):
+class Outlet(ProcessUnit[FluidStream]):
     """
     A process unit that is the destination for the outlet streams, and where we test the
     outlet criteria on. Does not alter the process stream, and the stream does not go through it,

@@ -5,7 +5,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class TemperatureSetter(ProcessUnit):
+class TemperatureSetter(ProcessUnit[FluidStream]):
     def __init__(
         self,
         fluid_service: FluidService,

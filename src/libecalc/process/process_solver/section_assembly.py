@@ -1,5 +1,6 @@
 from libecalc.common.ddd import value_object
 from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
@@ -18,20 +19,20 @@ from libecalc.process.process_units.splitter import Splitter
 class AssembledSection:
     """Solver-ready process units + handlers for a given process section."""
 
-    process_units: list[ProcessUnit]
+    process_units: list[ProcessUnit[FluidStream]]
     configuration_handlers: list[ConfigurationHandler]
 
 
 def recirculation_loop(
-    process_units: list[ProcessUnit],
-) -> tuple[RecirculationLoop, list[ProcessUnit]]:
+    process_units: list[ProcessUnit[FluidStream]],
+) -> tuple[RecirculationLoop, list[ProcessUnit[FluidStream]]]:
     mixer, splitter = DirectMixer(), DirectSplitter()
     loop = RecirculationLoop(mixer=mixer, splitter=splitter)
     return loop, [mixer, *process_units, splitter]
 
 
 def assemble_process_section(
-    process_units: list[ProcessUnit],
+    process_units: list[ProcessUnit[FluidStream]],
     anti_surge: AntiSurgeType,
     pressure_control: PressureControlType,
     fluid_service: FluidService,
@@ -45,7 +46,7 @@ def assemble_process_section(
     else:
         solver_units = []
         pending_units: list[
-            ProcessUnit
+            ProcessUnit[FluidStream]
         ] = []  # held until a boundary (compressor → assembled with ASV; mixer/splitter/end → unchanged)
         for unit in process_units:
             # Mixer and Splitter are always kept outside recirculation loops.

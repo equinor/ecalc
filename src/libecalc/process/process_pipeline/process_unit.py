@@ -9,7 +9,7 @@ from libecalc.process.process_pipeline.stream_propagator import StreamPropagator
 ProcessUnitId = NewType("ProcessUnitId", UUID)
 
 
-class ProcessUnit(Entity[ProcessUnitId], StreamPropagator, abc.ABC):
+class ProcessUnit[TStream](Entity[ProcessUnitId], StreamPropagator[TStream], abc.ABC):
     @abc.abstractmethod
     def get_id(self) -> ProcessUnitId: ...
 

@@ -9,9 +9,12 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnit
 ProcessPipelineId = NewType("ProcessPipelineId", UUID)
 
 
-class ProcessPipeline(Entity[ProcessPipelineId]):
+class ProcessPipeline[TStream](Entity[ProcessPipelineId]):
     def __init__(
-        self, name: str, stream_propagators: Sequence[ProcessUnit], process_pipeline_id: ProcessPipelineId | None = None
+        self,
+        name: str,
+        stream_propagators: Sequence[ProcessUnit[TStream]],
+        process_pipeline_id: ProcessPipelineId | None = None,
     ):
         self._name = name
         self._stream_propagators = stream_propagators
@@ -23,7 +26,7 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
     def get_name(self) -> str:
         return self._name
 
-    def get_process_units(self) -> list[ProcessUnit]:
+    def get_process_units(self) -> list[ProcessUnit[TStream]]:
         return list(self._stream_propagators)
 
     @classmethod

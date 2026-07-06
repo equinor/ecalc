@@ -4,7 +4,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class Inlet(ProcessUnit):
+class Inlet(ProcessUnit[FluidStream]):
     """
     Inlet, or Feed, is where a process stream is considered born/created in eCalc. We just know
     that the inlet stream conditions are given at this point.

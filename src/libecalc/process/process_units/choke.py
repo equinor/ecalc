@@ -6,7 +6,7 @@ from libecalc.process.process_pipeline.process_error import OutsideCapacityError
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class Choke(ProcessUnit):
+class Choke(ProcessUnit[FluidStream]):
     def __init__(
         self,
         fluid_service: FluidService,

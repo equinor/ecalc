@@ -6,7 +6,7 @@ from libecalc.process.fluid_stream.stream_mixer import StreamMixer
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class Mixer(ProcessUnit):
+class Mixer(ProcessUnit[FluidStream]):
     """Mixes one external stream into the through-stream.
 
     The external stream is set via `set_stream` before propagation. This models

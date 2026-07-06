@@ -5,7 +5,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class Splitter(ProcessUnit):
+class Splitter(ProcessUnit[FluidStream]):
     """Removes a fixed standard rate from the through-stream.
 
     The split rate is set via `set_rate` before propagation. This models a gas

@@ -5,7 +5,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class DirectSplitter(ProcessUnit):
+class DirectSplitter(ProcessUnit[FluidStream]):
     def __init__(self, process_unit_id: ProcessUnitId | None = None, split_rate: float = 0):
         self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._split_rate = split_rate

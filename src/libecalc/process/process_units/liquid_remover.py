@@ -7,7 +7,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class LiquidRemover(ProcessUnit):
+class LiquidRemover(ProcessUnit[FluidStream]):
     def __init__(self, fluid_service: FluidService, process_unit_id: ProcessUnitId | None = None):
         self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._fluid_service = fluid_service

@@ -13,7 +13,7 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessU
 from libecalc.process.process_solver.boundary import Boundary
 
 
-class Compressor(ProcessUnit):
+class Compressor(ProcessUnit[FluidStream]):
     def __init__(
         self,
         compressor_chart: ChartData,

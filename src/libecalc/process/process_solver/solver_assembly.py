@@ -13,6 +13,7 @@ from collections.abc import Sequence
 from typing import assert_never
 
 from libecalc.common.ddd import value_object
+from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
@@ -62,7 +63,7 @@ class ProcessSolverSystem:
 
 def assemble_solver(
     *,
-    process_units: Sequence[ProcessUnit],
+    process_units: Sequence[ProcessUnit[FluidStream]],
     configuration_handlers: Sequence[ConfigurationHandler],
     compressors: Sequence[Compressor],
     recirculation_loops: Sequence[RecirculationLoop],

@@ -7,7 +7,7 @@ from libecalc.process.process_solver.configuration_handler import ConfigurationH
 from libecalc.process.process_solver.process_runner import ProcessRunner
 
 
-def propagate_stream_many(process_units: Sequence[ProcessUnit], inlet_stream: FluidStream) -> FluidStream:
+def propagate_stream_many[TStream](process_units: Sequence[ProcessUnit[TStream]], inlet_stream: TStream) -> TStream:
     current_stream = inlet_stream
     for process_unit in process_units:
         current_stream = process_unit.propagate_stream(current_stream)
@@ -15,7 +15,9 @@ def propagate_stream_many(process_units: Sequence[ProcessUnit], inlet_stream: Fl
 
 
 class ProcessPipelineRunner(ProcessRunner):
-    def __init__(self, configuration_handlers: Sequence[ConfigurationHandler], units: Sequence[ProcessUnit]):
+    def __init__(
+        self, configuration_handlers: Sequence[ConfigurationHandler], units: Sequence[ProcessUnit[FluidStream]]
+    ):
         self._configuration_handlers = {handler.get_id(): handler for handler in configuration_handlers}
         self._units = {unit.get_id(): unit for unit in units}
 
@@ -36,7 +38,7 @@ class ProcessPipelineRunner(ProcessRunner):
     def _propagate_stream_to_id(
         self,
         inlet_stream: FluidStream,
-        units: Iterable[ProcessUnit],
+        units: Iterable[ProcessUnit[FluidStream]],
         to_id: ProcessUnitId,
     ) -> tuple[FluidStream, bool]:
         current_stream = inlet_stream

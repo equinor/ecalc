@@ -5,7 +5,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 
-class DirectMixer(ProcessUnit):
+class DirectMixer(ProcessUnit[FluidStream]):
     def __init__(self, mix_rate: float = 0, process_unit_id: ProcessUnitId | None = None):
         self._id: Final[ProcessUnitId] = process_unit_id or ProcessUnit._create_id()
         self._mix_rate = mix_rate
