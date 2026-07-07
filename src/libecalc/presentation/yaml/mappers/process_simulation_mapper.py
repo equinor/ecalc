@@ -398,8 +398,6 @@ class ProcessSimulationMapper:
                             expression=mapped_section.constraint.outlet_pressure,
                             expression_evaluator=self._expression_evaluator,
                         ),
-                        pressure_control=PressureControlConfig(type=mapped_section.constraint.pressure_control),
-                        anti_surge=AntiSurgeConfig(mapped_section.constraint.anti_surge),
                         target_process_unit_id=mapped_section.target_process_unit_id,
                         target_process_connection_id=next(
                             process_unit_connection.get_id()
@@ -416,10 +414,13 @@ class ProcessSimulationMapper:
                 process_problem_sections.append(
                     ProcessProblemSection(
                         process_pipeline_section_id=pipeline_section.get_id(),
-                        configuration_handlers=assembled_section.configuration_handlers,
+                        # configuration_handlers=assembled_section.configuration_handlers,  # TODO: We currently store config handlers at problem level. They may be inter or intra section ...
                         constraint=constraint,
+                        pressure_control=PressureControlConfig(type=mapped_section.constraint.pressure_control),
+                        anti_surge=AntiSurgeConfig(mapped_section.constraint.anti_surge),
                     )
                 )
+                problem_configuration_handlers.append(assembled_section.configuration_handlers)
 
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
