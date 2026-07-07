@@ -12,7 +12,6 @@ from typing import assert_never
 from libecalc.common.ddd import value_object
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
-from libecalc.ecalc_model.process_simulation import ProcessProblem, ProcessProblemSection
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy, AntiSurgeType
@@ -34,6 +33,7 @@ from libecalc.process.process_solver.pressure_control.pressure_control_strategy 
 )
 from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
 from libecalc.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
+from libecalc.process.process_solver.process_problem_input import ProcessProblemInput, ProcessProblemSectionInput
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, ScipyRootFindingStrategy
 from libecalc.process.process_units.compressor import Compressor
@@ -51,7 +51,7 @@ class PreparedActivePipelineSection:
     """
 
     pipeline_section: PipelineSection
-    process_problem_section: ProcessProblemSection
+    process_problem_section: ProcessProblemSectionInput
 
     def get_pressure_target(self, period: Period) -> FloatConstraint:
         return _get_pressure_target(self.process_problem_section, period)
@@ -68,7 +68,7 @@ class PreparedPassivePipelineSection:
 
     process_units: list[ProcessUnit]
     configuration_handlers: Sequence[ConfigurationHandler]
-    process_problem_section: ProcessProblemSection
+    process_problem_section: ProcessProblemSectionInput
 
     def get_pressure_target(self, period: Period) -> FloatConstraint:
         return _get_pressure_target(self.process_problem_section, period)
@@ -80,7 +80,7 @@ type PreparedPipelineSection = PreparedActivePipelineSection | PreparedPassivePi
 # Public API
 def prepare_pipeline_sections(
     process_pipeline: ProcessPipeline,
-    process_problem: ProcessProblem,
+    process_problem: ProcessProblemInput,
     root_finding_strategy: RootFindingStrategy | None = None,
 ) -> list[PreparedPipelineSection]:
     if process_problem.process_pipeline_id != process_pipeline.get_id():
@@ -101,7 +101,7 @@ def prepare_pipeline_sections(
 # Private preparation/assembly flow
 def _prepare_pipeline_section(
     process_pipeline: ProcessPipeline,
-    process_problem_section: ProcessProblemSection,
+    process_problem_section: ProcessProblemSectionInput,
     problem_configuration_handlers: Sequence[ConfigurationHandler],
     root_finding_strategy: RootFindingStrategy | None,
 ) -> PreparedPipelineSection:
@@ -137,7 +137,7 @@ def _prepare_pipeline_section(
 
 def _assemble_active_pipeline_section(
     process_pipeline: ProcessPipeline,
-    process_problem_section: ProcessProblemSection,
+    process_problem_section: ProcessProblemSectionInput,
     problem_configuration_handlers: Sequence[ConfigurationHandler],
     root_finding_strategy: RootFindingStrategy | None = None,
 ) -> PreparedActivePipelineSection:
@@ -203,7 +203,7 @@ def _assemble_active_pipeline_section(
 # Section lookup
 def _get_section_units(
     process_pipeline: ProcessPipeline,
-    process_problem_section: ProcessProblemSection,
+    process_problem_section: ProcessProblemSectionInput,
 ) -> list[ProcessUnit]:
     """Return section units in process pipeline order."""
     if not process_problem_section.process_unit_ids:
@@ -405,7 +405,7 @@ def _validate_target_belongs_to_section(
 
 
 # Pressure target extraction
-def _get_pressure_target(process_problem_section: ProcessProblemSection, period: Period) -> FloatConstraint:
+def _get_pressure_target(process_problem_section: ProcessProblemSectionInput, period: Period) -> FloatConstraint:
     outlet_pressure = process_problem_section.constraint.outlet_pressure
 
     matches = [
