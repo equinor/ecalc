@@ -2,8 +2,8 @@
 Process-side contracts for pipeline section preparation.
 
 The concrete process problem model lives in ecalc_model, which process should
-not import. These protocols keep the solver typed while avoiding dependency to
-ecalc_model.
+not import. These protocols describe the input shape needed to prepare pipeline
+sections, while avoiding the dependency to ecalc_model.
 """
 
 from collections.abc import Sequence
