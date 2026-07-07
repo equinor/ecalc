@@ -14,7 +14,11 @@ from libecalc.ecalc_model.time_series_configuration import (
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessPipelineSectionId
+from libecalc.process.process_pipeline.process_pipeline import (
+    ProcessPipelineId,
+    ProcessPipelineSectionId,
+    ProcessUnitConnectionId,
+)
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
@@ -55,6 +59,7 @@ class Constraint:
     pressure_control: PressureControlConfig
     anti_surge: AntiSurgeConfig
     target_process_unit_id: ProcessUnitId
+    target_process_connection_id: ProcessUnitConnectionId  # Currently the outlet of the process_unit above
 
 
 ProcessProblemId = NewType("ProcessProblemId", UUID)

@@ -102,7 +102,9 @@ def assemble_solver(
         root_finding_strategy = ScipyRootFindingStrategy()
 
     pipeline = ProcessPipeline(
-        name=pipeline_name, process_pipeline_sections=[ProcessPipelineSection(process_units=process_units)]
+        name=pipeline_name,
+        process_pipeline_sections=[ProcessPipelineSection(process_units=process_units)],
+        process_unit_connections=[],  # Not needed here
     )
     runner = ProcessPipelineRunner(units=process_units, configuration_handlers=configuration_handlers)
 
