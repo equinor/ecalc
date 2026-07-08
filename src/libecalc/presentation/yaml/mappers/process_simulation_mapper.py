@@ -420,7 +420,7 @@ class ProcessSimulationMapper:
                         anti_surge=AntiSurgeConfig(mapped_section.constraint.anti_surge),
                     )
                 )
-                problem_configuration_handlers.append(assembled_section.configuration_handlers)
+                problem_configuration_handlers.extend(assembled_section.configuration_handlers)
 
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 

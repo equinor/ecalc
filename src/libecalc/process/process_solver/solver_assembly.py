@@ -129,6 +129,7 @@ def assemble_solver(
     pipeline_section = PipelineSection(
         shaft_id=shaft.get_id(),
         process_pipeline_id=pipeline.get_id(),
+        process_pipeline_section_id=pipeline.get_process_pipeline_sections()[0].get_id(),
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
