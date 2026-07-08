@@ -18,7 +18,7 @@ from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, 
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.process.process_solver.pipeline_section_assembly import (
+from libecalc.process.process_solver.pipeline_section_preparation import (
     PreparedActivePipelineSection,
     PreparedPassivePipelineSection,
     prepare_pipeline_sections,
