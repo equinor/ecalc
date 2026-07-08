@@ -4,6 +4,7 @@ from uuid import UUID
 
 from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.ecalc_model.time_series_configuration import (
@@ -95,6 +96,21 @@ class ProcessProblemSection(Entity[ProcessProblemSectionId]):
 
     def get_anti_surge(self) -> AntiSurgeConfig:
         return self._anti_surge
+    def __post_init__(self) -> None:
+        duplicate_unit_ids = {unit_id for unit_id in self.process_unit_ids if self.process_unit_ids.count(unit_id) > 1}
+        if duplicate_unit_ids:
+            raise EcalcValidationException(
+                f"Process problem section references duplicate process units: {duplicate_unit_ids}"
+            )
+
+        if self.constraint.target_process_unit_id not in self.process_unit_ids:
+            raise EcalcValidationException(
+                "Process problem section pressure target must reference a unit in the section."
+            )
+
+        if not self.process_unit_ids:
+            raise EcalcValidationException("Process problem section must reference at least one process unit.")
+
 
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessProblemSectionId:
