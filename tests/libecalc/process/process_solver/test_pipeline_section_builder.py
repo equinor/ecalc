@@ -6,6 +6,7 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
+from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.pipeline_section_builder import (
     build_pipeline_sections,
 )
@@ -16,7 +17,9 @@ from libecalc.process.process_solver.pipeline_section_build_input import (
     PipelineSectionBuildProblemSection,
     PressureControlInput,
 )
+from libecalc.process.process_solver.pressure_control.individual_asv import IndividualASVRateControlStrategy
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
+from libecalc.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
 from libecalc.process.process_solver.section_assembly import AssembledSection, assemble_process_section
 from libecalc.process.shaft import VariableSpeedShaft
 
@@ -42,7 +45,7 @@ def _process_problem_section(assembled_process_section: AssembledSection) -> Pip
     )
 
 
-def test_prepares_two_sections_from_one_pipeline(
+def test_build_pipeline_sections_builds_two_sections_from_one_pipeline(
     stream_factory,
     chart_data_factory,
     compressor_factory,
@@ -117,7 +120,6 @@ def test_prepares_two_sections_from_one_pipeline(
         process_pipeline_id=process_pipeline.get_id(),
     )
 
-    # Prepare sections for the shared-shaft MultiPressureSolver.
     pipeline_sections = build_pipeline_sections(
         process_pipeline=process_pipeline,
         process_problem=process_problem,
@@ -125,13 +127,17 @@ def test_prepares_two_sections_from_one_pipeline(
     )
 
     assert len(pipeline_sections) == 2
-    assert pipeline_sections[0].process_pipeline_id == process_pipeline.get_id()
-    assert pipeline_sections[1].process_pipeline_id == process_pipeline.get_id()
-    assert pipeline_sections[0].shaft_id == shaft.get_id()
-    assert pipeline_sections[1].shaft_id == shaft.get_id()
+
+    for pipeline_section in pipeline_sections:
+        assert pipeline_section.process_pipeline_id == process_pipeline.get_id()
+        assert pipeline_section.shaft_id == shaft.get_id()
+        assert pipeline_section.root_finding_strategy is root_finding_strategy
+        assert isinstance(pipeline_section.runner, ProcessPipelineRunner)
+        assert isinstance(pipeline_section.anti_surge_strategy, IndividualASVAntiSurgeStrategy)
+        assert isinstance(pipeline_section.pressure_control_strategy, IndividualASVRateControlStrategy)
 
 
-def test_prepare_pipeline_sections_raises_when_section_references_unit_missing_from_pipeline():
+def test_build_pipeline_sections_raises_when_section_references_unit_missing_from_pipeline():
     section = PipelineSectionBuildProblemSection(
         process_unit_ids=[ProcessUnitId(uuid4())],
         configuration_handlers=[],
