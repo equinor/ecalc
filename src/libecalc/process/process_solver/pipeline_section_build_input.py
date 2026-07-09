@@ -1,7 +1,7 @@
 """
-Process-side input objects for pipeline section preparation.
+Process-side input objects for building pipeline sections.
 
-These objects define the explicit process-owned input shape used to prepare
+These objects define the explicit process-owned input shape used to build
 runtime PipelineSection objects without depending on ecalc_model.
 """
 
