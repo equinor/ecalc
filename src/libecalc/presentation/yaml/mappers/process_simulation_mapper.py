@@ -64,7 +64,6 @@ from libecalc.process.process_pipeline.process_pipeline import (
     ProcessPipeline,
     ProcessPipelineId,
     ProcessPipelineSection,
-    ProcessUnitConnection,
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
@@ -338,10 +337,11 @@ class ProcessSimulationMapper:
                 assert isinstance(compressor, Compressor)
                 shaft.connect(compressor)
 
+            # Shaft is currently (potentially) an inter-section configuration handler
             problem_configuration_handlers.append(shaft)
 
             # Since we, in addition to intra-section connection, have inter-section connections, we keep them separate
-            process_unit_connections: list[ProcessUnitConnection] = []
+            # from section, and keep track of them at pipeline level
             process_pipeline_sections: list[ProcessPipelineSection] = []
             process_problem_sections: list[ProcessProblemSection] = []
             pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
@@ -360,7 +360,7 @@ class ProcessSimulationMapper:
 
             # Set up pipeline and pipeline sections
             for nr, assembled_section in enumerate(assembled_sections):
-                process_section_process_units = assembled_section.process_units
+                process_section_process_units = list(assembled_section.process_units)
                 if nr == 0:  # first section
                     process_section_process_units.insert(0, Inlet())
                 if nr == len(mapped_sections) - 1:  # last section
@@ -368,24 +368,11 @@ class ProcessSimulationMapper:
 
                 process_pipeline_sections.append(ProcessPipelineSection(process_units=process_section_process_units))
 
-            # Complete by adding intra and inter connections between process units
-            previous_process_unit: ProcessUnit | None = None
-            for process_section in process_pipeline_sections:  # Ordered, in sequence!
-                for process_unit in process_section.get_process_units():  # Ordered, in sequence!
-                    if previous_process_unit is not None:
-                        process_unit_connections.append(
-                            ProcessUnitConnection(
-                                from_process_unit_id=previous_process_unit.get_id(),
-                                to_process_unit_id=process_unit.get_id(),
-                            )
-                        )
-
-                    previous_process_unit = process_unit
-
+            # TODO: We should move this class to this module/layer
+            # in particular because it creates necessary connections, which means that they will get new IDs
             process_pipeline = ProcessPipeline(
                 name=item.name,
                 process_pipeline_sections=process_pipeline_sections,
-                process_unit_connections=process_unit_connections,
             )
 
             # Set up problem and problem sections
@@ -401,7 +388,7 @@ class ProcessSimulationMapper:
                         target_process_unit_id=mapped_section.target_process_unit_id,
                         target_process_connection_id=next(
                             process_unit_connection.get_id()
-                            for process_unit_connection in process_unit_connections
+                            for process_unit_connection in process_pipeline.get_process_unit_connections()
                             if process_unit_connection.get_from_process_unit_id()
                             == mapped_section.target_process_unit_id
                         ),
@@ -420,6 +407,7 @@ class ProcessSimulationMapper:
                         anti_surge=AntiSurgeConfig(mapped_section.constraint.anti_surge),
                     )
                 )
+                # Choke and recirculation configuration handlers are currently intra-section config handlers
                 problem_configuration_handlers.extend(assembled_section.configuration_handlers)
 
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations

@@ -6,7 +6,7 @@ from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.ecalc_model.process_simulation import PressureControlType
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessPipelineSectionId
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
@@ -116,6 +116,9 @@ def pipeline_section_factory(root_finding_strategy):
         return PipelineSection(
             shaft_id=shaft.get_id(),
             process_pipeline_id=process_pipeline_id,
+            process_pipeline_section_id=ProcessPipelineSectionId(
+                ecalc_id_generator()
+            ),  # Just generating on the fly, until we know if we need to supply a valid ref or not
             runner=runner,
             anti_surge_strategy=anti_surge_strategy,
             pressure_control_strategy=pressure_control_strategy,

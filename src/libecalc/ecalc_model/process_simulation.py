@@ -101,10 +101,12 @@ class ProcessProblemSection(Entity[ProcessProblemSectionId]):
         return ProcessProblemSectionId(ecalc_id_generator())
 
 
-class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
+class ProcessProblem(Entity[ProcessProblemId]):
     def __init__(
         self,
-        process_problem_sections: Sequence[ProcessProblemSection],
+        process_problem_sections: Sequence[
+            ProcessProblemSection
+        ],  # Currently we consider that ProblemSections needs to be solved in sequence, therefore we have instance here and not ID
         configuration_handlers: Sequence[
             ConfigurationHandler
         ],  # inter or intra section config handlers, stored here for now

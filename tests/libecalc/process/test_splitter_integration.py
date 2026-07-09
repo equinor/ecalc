@@ -58,10 +58,10 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper, flui
 
     units = pipelines[0].get_process_units()
     problem = simulation.process_problems[0]
-    configs = simulation.process_configurations[problem.process_pipeline_id]
+    configs = simulation.process_configurations[problem.get_process_pipeline_id()]
 
     # -- Configure units --
-    shaft = next(h for h in problem.configuration_handlers if isinstance(h, Shaft))
+    shaft = next(h for h in problem.get_configuration_handlers() if isinstance(h, Shaft))
     shaft.set_speed(10000)
 
     for unit_id, config in configs.items():

@@ -13,7 +13,8 @@ class PipelineSection:
     """A self-contained, solvable single-shaft process pipeline section"""
 
     shaft_id: ConfigurationHandlerId
-    process_pipeline_id: ProcessPipelineId  # TODO: Set this anyways?
+    # We currently set this to have a reference to the pipeline when needed, since that is e.g. what we expose to users
+    process_pipeline_id: ProcessPipelineId
     process_pipeline_section_id: ProcessPipelineSectionId
     runner: ProcessRunner
     anti_surge_strategy: AntiSurgeStrategy

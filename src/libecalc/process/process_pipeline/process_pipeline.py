@@ -63,19 +63,24 @@ class ProcessPipelineSection(Entity[ProcessPipelineSectionId]):
 
 
 class ProcessPipeline(Entity[ProcessPipelineId]):
+    """
+    TODO: We define this class in process, but we do not use it here. We use it in the ephemeral mapping layer,
+    when storing in db And some testing. We should move it.
+    In particular because it creates the necessary connections, which means that they will get new IDs
+    """
+
     def __init__(
         self,
         name: str,
-        process_pipeline_sections: Sequence[ProcessPipelineSection],  # TODO: Reassure that they are in order
-        process_unit_connections: Sequence[
-            ProcessUnitConnection
-        ],  # Because we have both intra and inter connections ...
+        process_pipeline_sections: Sequence[ProcessPipelineSection],
         process_pipeline_id: ProcessPipelineId | None = None,
-        # TODO: Start and end process units to not belong to a section but to a pipeline?
     ):
         self._name = name
         self._process_pipeline_sections = process_pipeline_sections
-        self._process_unit_connections = process_unit_connections
+        self._process_unit_connections = ProcessPipeline._create_process_unit_connections(
+            process_pipeline_sections=process_pipeline_sections
+        )
+        self._process_pipeline_id = process_pipeline_id
         self._id: Final[ProcessPipelineId] = process_pipeline_id or ProcessPipeline._create_id()
 
     def get_id(self) -> ProcessPipelineId:
@@ -90,9 +95,57 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
     def get_process_unit_connections(self) -> Sequence[ProcessUnitConnection]:
         return self._process_unit_connections
 
+    def get_process_units(self) -> Sequence[ProcessUnit]:
+        return [
+            process_unit
+            for process_section in self.get_process_pipeline_sections()
+            for process_unit in process_section.get_process_units()
+        ]
+
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessPipelineId:
         return ProcessPipelineId(ecalc_id_generator())
+
+    @staticmethod
+    def _create_process_unit_connections(
+        process_pipeline_sections: Sequence[ProcessPipelineSection],
+    ) -> Sequence[ProcessUnitConnection]:
+        """
+        Connections kept at this level for now. Could potentially be handled at section level, which makes more sense,
+        if we define the owner of a connection to be the process unit with the OUTLET (the last process unit will then not
+        own any connections, as it doesn't have an outlet ...). In this class we can therefore just gather/build connections
+        from the process unit sections, either represented as connections or just "outlet"s, which is what we need to store
+        stream info on. inlet is just the result from previous process unit or section or sth else. The parameter basically.
+
+        Currently we keep it here though, because inlet and outlet are "equivalent", and we therefore have
+        intra and inter connections between process units, ie. across sections. So, we need to make a decision on who,
+        is the owner - the section or the pipeline. Since it is just an identifier based on the surrogate of from and to,
+        with a unique id, with no extra information, we can generate it on the fly.
+
+        Private, because this should be internal information handled by pipeline, and only exposed for read
+
+        Args:
+            process_pipeline_sections:
+
+        Returns:
+
+        """
+        process_unit_connections: list[ProcessUnitConnection] = []
+
+        previous_process_unit: ProcessUnit | None = None
+        for process_section in process_pipeline_sections:  # Ordered, in sequence!
+            for process_unit in process_section.get_process_units():  # Ordered, in sequence!
+                if previous_process_unit is not None:
+                    process_unit_connections.append(
+                        ProcessUnitConnection(
+                            from_process_unit_id=previous_process_unit.get_id(),
+                            to_process_unit_id=process_unit.get_id(),
+                        )
+                    )
+
+                previous_process_unit = process_unit
+
+        return process_unit_connections
 
     def __str__(self):
         return f"ProcessPipeline(process_pipeline_id={self._id}, name={self._name}, process_pipeline_sections={self._process_pipeline_sections})"

@@ -26,7 +26,7 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineSection
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
@@ -240,7 +240,10 @@ def name_factory():
 @pytest.fixture(scope="session")
 def process_pipeline_factory(name_factory):
     def create_process_pipeline(units: list[ProcessUnit], name: str = None) -> ProcessPipeline:
-        return ProcessPipeline(stream_propagators=units, name=name or name_factory("Pipeline"))
+        return ProcessPipeline(
+            process_pipeline_sections=[ProcessPipelineSection(process_units=units)],
+            name=name or name_factory("Pipeline"),
+        )
 
     return create_process_pipeline
 
