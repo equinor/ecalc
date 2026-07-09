@@ -15,9 +15,9 @@ from libecalc.process.process_solver.anti_surge.individual_asv import Individual
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.pipeline_section import PipelineSection
-from libecalc.process.process_solver.pipeline_section_preparation_input import (
-    PipelineSectionPreparationProblem,
-    PipelineSectionPreparationProblemSection,
+from libecalc.process.process_solver.pipeline_section_build_input import (
+    PipelineSectionBuildProblem,
+    PipelineSectionBuildProblemSection,
 )
 from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
@@ -39,7 +39,7 @@ from libecalc.process.shaft import Shaft
 
 def build_pipeline_sections(
     process_pipeline: ProcessPipeline,
-    process_problem: PipelineSectionPreparationProblem,
+    process_problem: PipelineSectionBuildProblem,
     root_finding_strategy: RootFindingStrategy | None = None,
 ) -> list[PipelineSection]:
     """Build PipelineSection objects with runner, shaft and solver strategies resolved."""
@@ -49,13 +49,13 @@ def build_pipeline_sections(
         )
 
     root_finding_strategy = root_finding_strategy or ScipyRootFindingStrategy()
-    pipeline_units = tuple(process_pipeline.get_process_units())
+    pipeline_units = process_pipeline.get_process_units()
 
     context = _PipelineSectionBuildContext(
         process_pipeline_id=process_pipeline.get_id(),
         pipeline_units=pipeline_units,
         pipeline_unit_ids=frozenset(unit.get_id() for unit in pipeline_units),
-        problem_configuration_handlers=tuple(process_problem.configuration_handlers),
+        problem_configuration_handlers=process_problem.configuration_handlers,
         root_finding_strategy=root_finding_strategy,
     )
 
@@ -68,9 +68,9 @@ def build_pipeline_sections(
 @dataclass(frozen=True)
 class _PipelineSectionBuildContext:
     process_pipeline_id: ProcessPipelineId
-    pipeline_units: tuple[ProcessUnit, ...]
+    pipeline_units: Sequence[ProcessUnit]
     pipeline_unit_ids: frozenset[ProcessUnitId]
-    problem_configuration_handlers: tuple[ConfigurationHandler, ...]
+    problem_configuration_handlers: Sequence[ConfigurationHandler]
     root_finding_strategy: RootFindingStrategy
 
 
@@ -78,14 +78,14 @@ class _PipelineSectionBuilder:
     def __init__(
         self,
         context: _PipelineSectionBuildContext,
-        process_problem_section: PipelineSectionPreparationProblemSection,
+        process_problem_section: PipelineSectionBuildProblemSection,
     ) -> None:
         self._context = context
         self._section_unit_ids = frozenset(process_problem_section.process_unit_ids)
-        self._section_handlers = tuple(process_problem_section.configuration_handlers)
-        self._recirculation_loops = tuple(
+        self._section_handlers = process_problem_section.configuration_handlers
+        self._recirculation_loops = [
             handler for handler in self._section_handlers if isinstance(handler, RecirculationLoop)
-        )
+        ]
         self._pressure_control_type: PressureControlType = process_problem_section.constraint.pressure_control.type
         self._anti_surge_type: AntiSurgeType = process_problem_section.constraint.anti_surge.type
         self._choke_handler = self._get_choke_handler()
@@ -119,6 +119,16 @@ class _PipelineSectionBuilder:
             root_finding_strategy=self._context.root_finding_strategy,
         )
 
+    def _get_choke_handler(self) -> ChokeConfigurationHandler | None:
+        choke_handlers = [
+            handler for handler in self._section_handlers if isinstance(handler, ChokeConfigurationHandler)
+        ]
+
+        if len(choke_handlers) > 1:
+            raise EcalcValidationException("A pipeline section can only have one choke configuration handler.")
+
+        return choke_handlers[0] if choke_handlers else None
+
     def _get_section_units(self) -> list[ProcessUnit]:
         missing_ids = self._section_unit_ids - self._context.pipeline_unit_ids
         if missing_ids:
@@ -146,16 +156,6 @@ class _PipelineSectionBuilder:
             raise EcalcValidationException("PipelineSection build requires exactly one matching shaft.")
 
         return matching_shafts[0]
-
-    def _get_choke_handler(self) -> ChokeConfigurationHandler | None:
-        choke_handlers = [
-            handler for handler in self._section_handlers if isinstance(handler, ChokeConfigurationHandler)
-        ]
-
-        if len(choke_handlers) > 1:
-            raise EcalcValidationException("A pipeline section can only have one choke configuration handler.")
-
-        return choke_handlers[0] if choke_handlers else None
 
     def _get_required_choke_handler(self, pressure_control_type: PressureControlType) -> ChokeConfigurationHandler:
         if self._choke_handler is None:

@@ -9,11 +9,11 @@ from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiS
 from libecalc.process.process_solver.pipeline_section_builder import (
     build_pipeline_sections,
 )
-from libecalc.process.process_solver.pipeline_section_preparation_input import (
+from libecalc.process.process_solver.pipeline_section_build_input import (
     AntiSurgeInput,
-    PipelineSectionPreparationConstraint,
-    PipelineSectionPreparationProblem,
-    PipelineSectionPreparationProblemSection,
+    PipelineSectionBuildConstraint,
+    PipelineSectionBuildProblem,
+    PipelineSectionBuildProblemSection,
     PressureControlInput,
 )
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
@@ -24,15 +24,15 @@ from libecalc.process.shaft import VariableSpeedShaft
 def _constraint(
     pressure_control: PressureControlType,
     anti_surge: AntiSurgeType,
-) -> PipelineSectionPreparationConstraint:
-    return PipelineSectionPreparationConstraint(
+) -> PipelineSectionBuildConstraint:
+    return PipelineSectionBuildConstraint(
         pressure_control=PressureControlInput(type=pressure_control),
         anti_surge=AntiSurgeInput(type=anti_surge),
     )
 
 
-def _process_problem_section(assembled_process_section: AssembledSection) -> PipelineSectionPreparationProblemSection:
-    return PipelineSectionPreparationProblemSection(
+def _process_problem_section(assembled_process_section: AssembledSection) -> PipelineSectionBuildProblemSection:
+    return PipelineSectionBuildProblemSection(
         process_unit_ids=[unit.get_id() for unit in assembled_process_section.process_units],
         configuration_handlers=assembled_process_section.configuration_handlers,
         constraint=_constraint(
@@ -111,7 +111,7 @@ def test_prepares_two_sections_from_one_pipeline(
     lp_process_problem_section = _process_problem_section(lp_assembled_process_section)
     hp_process_problem_section = _process_problem_section(hp_assembled_process_section)
 
-    process_problem = PipelineSectionPreparationProblem(
+    process_problem = PipelineSectionBuildProblem(
         process_problem_sections=[lp_process_problem_section, hp_process_problem_section],
         configuration_handlers=[shaft],
         process_pipeline_id=process_pipeline.get_id(),
@@ -132,7 +132,7 @@ def test_prepares_two_sections_from_one_pipeline(
 
 
 def test_prepare_pipeline_sections_raises_when_section_references_unit_missing_from_pipeline():
-    section = PipelineSectionPreparationProblemSection(
+    section = PipelineSectionBuildProblemSection(
         process_unit_ids=[ProcessUnitId(uuid4())],
         configuration_handlers=[],
         constraint=_constraint(
@@ -141,7 +141,7 @@ def test_prepare_pipeline_sections_raises_when_section_references_unit_missing_f
         ),
     )
 
-    process_problem = PipelineSectionPreparationProblem(
+    process_problem = PipelineSectionBuildProblem(
         process_problem_sections=[section],
         configuration_handlers=[],
         process_pipeline_id=ProcessPipelineId(uuid4()),

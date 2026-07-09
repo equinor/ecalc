@@ -26,20 +26,20 @@ class AntiSurgeInput:
 
 
 @value_object
-class PipelineSectionPreparationConstraint:
+class PipelineSectionBuildConstraint:
     pressure_control: PressureControlInput
     anti_surge: AntiSurgeInput
 
 
 @value_object
-class PipelineSectionPreparationProblemSection:
+class PipelineSectionBuildProblemSection:
     process_unit_ids: Sequence[ProcessUnitId]
     configuration_handlers: Sequence[ConfigurationHandler]
-    constraint: PipelineSectionPreparationConstraint
+    constraint: PipelineSectionBuildConstraint
 
 
 @value_object
-class PipelineSectionPreparationProblem:
+class PipelineSectionBuildProblem:
     process_pipeline_id: ProcessPipelineId
     configuration_handlers: Sequence[ConfigurationHandler]
-    process_problem_sections: Sequence[PipelineSectionPreparationProblemSection]
+    process_problem_sections: Sequence[PipelineSectionBuildProblemSection]
