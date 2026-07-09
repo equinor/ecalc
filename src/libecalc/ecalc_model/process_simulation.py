@@ -14,11 +14,17 @@ from libecalc.ecalc_model.time_series_configuration import (
 )
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.process_pipeline import (
+    ProcessPipelineId,
+    ProcessPipelineSectionId,
+    ProcessUnitConnectionId,
+)
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
-from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
+from libecalc.process.process_solver.pressure_control.pressure_control_strategy import (
+    PressureControlType,
+)
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
 
 
@@ -52,60 +58,87 @@ class AntiSurgeConfig:
 @value_object
 class Constraint:
     outlet_pressure: TimeSeriesExpression
-    pressure_control: PressureControlConfig
-    anti_surge: AntiSurgeConfig
     target_process_unit_id: ProcessUnitId
+    target_process_connection_id: ProcessUnitConnectionId  # Currently the outlet of the process_unit above
 
 
 ProcessProblemId = NewType("ProcessProblemId", UUID)
+ProcessProblemSectionId = NewType("ProcessProblemSectionId", UUID)
 
 
-@value_object
-class ProcessProblemSection:
-    """A process section assembled for solver execution."""
-
-    process_unit_ids: list[ProcessUnitId]
-    configuration_handlers: Sequence[ConfigurationHandler]
-    constraint: Constraint
-
-
-class ProcessProblem(Entity[ProcessProblemId]):  # TODO: Rename to subproblem?
-    # can a problem exist wo. a simulation? yes, e.g. get max rate ...
-    # given a physical pipeline (a contained problem, such as a compressor train), the user needs to define strategies to find a solution for the sub problem
-    # TODO: might have subproblems, or dependencies, but we may want to add those as problems that depend on each other and needs to be evaluated in a given order
-
+class ProcessProblemSection(Entity[ProcessProblemSectionId]):
     def __init__(
         self,
-        process_problem_sections: Sequence[ProcessProblemSection],
-        configuration_handlers: Sequence[ConfigurationHandler],
+        process_pipeline_section_id: ProcessPipelineSectionId,
+        constraint: Constraint,
+        pressure_control: PressureControlConfig,
+        anti_surge: AntiSurgeConfig,
+        process_problem_section_id: ProcessProblemSectionId | None = None,
+    ):
+        self._process_pipeline_section_id = process_pipeline_section_id
+        self._constraint = constraint
+        self._pressure_control = pressure_control
+        self._anti_surge = anti_surge
+        self._id: Final[ProcessProblemSectionId] = process_problem_section_id or ProcessProblemSection._create_id()
+
+    def get_id(self) -> ProcessProblemSectionId:
+        return self._id
+
+    def get_process_pipeline_section_id(self) -> ProcessPipelineSectionId:
+        return self._process_pipeline_section_id
+
+    def get_constraint(self) -> Constraint:
+        return self._constraint
+
+    def get_pressure_control(self) -> PressureControlConfig:
+        return self._pressure_control
+
+    def get_anti_surge(self) -> AntiSurgeConfig:
+        return self._anti_surge
+
+    @classmethod
+    def _create_id(cls: type[Self]) -> ProcessProblemSectionId:
+        return ProcessProblemSectionId(ecalc_id_generator())
+
+
+class ProcessProblem(Entity[ProcessProblemId]):
+    def __init__(
+        self,
+        process_problem_sections: Sequence[
+            ProcessProblemSection
+        ],  # Currently we consider that ProblemSections needs to be solved in sequence, therefore we have instance here and not ID
+        configuration_handlers: Sequence[
+            ConfigurationHandler
+        ],  # inter or intra section config handlers, stored here for now
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
     ):
-        self.process_problem_sections = process_problem_sections
-        self.configuration_handlers = configuration_handlers
-        self.process_pipeline_id = process_pipeline_id
+        self._process_problem_sections = process_problem_sections
+        self._configuration_handlers = configuration_handlers
+        self._process_pipeline_id = process_pipeline_id
         self._id: Final[ProcessProblemId] = process_problem_id or ProcessProblem._create_id()
 
     def get_id(self) -> ProcessProblemId:
         return self._id
 
+    def get_process_pipeline_id(self) -> ProcessPipelineId:
+        return self._process_pipeline_id
+
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessProblemId:
         return ProcessProblemId(ecalc_id_generator())
 
-    def get_constraints(self) -> list[Constraint]:
-        return [section.constraint for section in self.process_problem_sections]
+    def get_process_problem_sections(self) -> Sequence[ProcessProblemSection]:
+        return self._process_problem_sections
+
+    def get_configuration_handlers(self) -> Sequence[ConfigurationHandler]:
+        return self._configuration_handlers
 
 
 ProcessSimulationId = NewType("ProcessSimulationId", UUID)
 
 
 class ProcessSimulation(Entity[ProcessSimulationId]):  # process_model?
-    """
-    TODO: one or more subproblems, where we first need to find the stream distribution before looking at each subproblem separately
-    quit and notify as soon as we notice we are not able to find a solution, or always finish?
-    """
-
     def __init__(
         self,
         name: str,

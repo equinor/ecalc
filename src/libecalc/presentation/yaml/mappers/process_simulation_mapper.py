@@ -1,7 +1,7 @@
 from typing import assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.common.errors.exceptions import InvalidResourceException
+from libecalc.common.errors.exceptions import InvalidResourceException, ProgrammingError
 from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
@@ -63,6 +63,7 @@ from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_pipeline import (
     ProcessPipeline,
     ProcessPipelineId,
+    ProcessPipelineSection,
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
@@ -336,9 +337,12 @@ class ProcessSimulationMapper:
                 assert isinstance(compressor, Compressor)
                 shaft.connect(compressor)
 
+            # Shaft is currently (potentially) an inter-section configuration handler
             problem_configuration_handlers.append(shaft)
 
-            process_units: list[ProcessUnit] = []
+            # Since we, in addition to intra-section connection, have inter-section connections, we keep them separate
+            # from section, and keep track of them at pipeline level
+            process_pipeline_sections: list[ProcessPipelineSection] = []
             process_problem_sections: list[ProcessProblemSection] = []
             pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
 
@@ -354,30 +358,57 @@ class ProcessSimulationMapper:
                 mapped_sections=mapped_sections, fluid_service=self._fluid_service
             )
 
-            for mapped_section, assembled_section in zip(mapped_sections, assembled_sections, strict=True):
-                constraint = Constraint(
-                    outlet_pressure=TimeSeriesExpression(
-                        expression=mapped_section.constraint.outlet_pressure,
-                        expression_evaluator=self._expression_evaluator,
-                    ),
-                    pressure_control=PressureControlConfig(type=mapped_section.constraint.pressure_control),
-                    anti_surge=AntiSurgeConfig(mapped_section.constraint.anti_surge),
-                    target_process_unit_id=mapped_section.target_process_unit_id,
-                )
+            # Set up pipeline and pipeline sections
+            for nr, assembled_section in enumerate(assembled_sections):
+                process_section_process_units = list(assembled_section.process_units)
+                if nr == 0:  # first section
+                    process_section_process_units.insert(0, Inlet())
+                if nr == len(mapped_sections) - 1:  # last section
+                    process_section_process_units.append(Outlet())
+
+                process_pipeline_sections.append(ProcessPipelineSection(process_units=process_section_process_units))
+
+            # TODO: We should move this class to this module/layer
+            # in particular because it creates necessary connections, which means that they will get new IDs
+            process_pipeline = ProcessPipeline(
+                name=item.name,
+                process_pipeline_sections=process_pipeline_sections,
+            )
+
+            # Set up problem and problem sections
+            for pipeline_section, mapped_section, assembled_section in zip(
+                process_pipeline_sections, mapped_sections, assembled_sections, strict=True
+            ):
+                try:
+                    constraint = Constraint(
+                        outlet_pressure=TimeSeriesExpression(
+                            expression=mapped_section.constraint.outlet_pressure,
+                            expression_evaluator=self._expression_evaluator,
+                        ),
+                        target_process_unit_id=mapped_section.target_process_unit_id,
+                        target_process_connection_id=next(
+                            process_unit_connection.get_id()
+                            for process_unit_connection in process_pipeline.get_process_unit_connections()
+                            if process_unit_connection.get_from_process_unit_id()
+                            == mapped_section.target_process_unit_id
+                        ),
+                    )
+                except StopIteration:
+                    raise ProgrammingError(
+                        f"Not able to set constraint on OUTLET of process unit '{mapped_section.target_process_unit_id}' because the Connection ID was not found."
+                    ) from None
+
                 process_problem_sections.append(
                     ProcessProblemSection(
-                        process_unit_ids=[u.get_id() for u in assembled_section.process_units],
-                        configuration_handlers=assembled_section.configuration_handlers,
+                        process_pipeline_section_id=pipeline_section.get_id(),
+                        # configuration_handlers=assembled_section.configuration_handlers,  # TODO: We currently store config handlers at problem level. They may be inter or intra section ...
                         constraint=constraint,
+                        pressure_control=PressureControlConfig(type=mapped_section.constraint.pressure_control),
+                        anti_surge=AntiSurgeConfig(mapped_section.constraint.anti_surge),
                     )
                 )
-                process_units.extend(assembled_section.process_units)
-
-            # A pipeline must have a start and an end - always add process units for that (ie owner of inlet and outlet streams)
-            process_units.append(Outlet())
-            process_units.insert(0, Inlet())
-
-            process_pipeline = ProcessPipeline(name=item.name, stream_propagators=process_units)
+                # Choke and recirculation configuration handlers are currently intra-section config handlers
+                problem_configuration_handlers.extend(assembled_section.configuration_handlers)
 
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
