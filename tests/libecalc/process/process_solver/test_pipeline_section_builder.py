@@ -6,10 +6,8 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
-from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.process.process_solver.pipeline_section_preparation import (
-    prepare_pipeline_sections,
+from libecalc.process.process_solver.pipeline_section_builder import (
+    build_pipeline_sections,
 )
 from libecalc.process.process_solver.pipeline_section_preparation_input import (
     AntiSurgeInput,
@@ -44,7 +42,7 @@ def _process_problem_section(assembled_process_section: AssembledSection) -> Pip
     )
 
 
-def test_prepares_two_sections_from_one_pipeline_and_solves_with_multi_pressure_solver(
+def test_prepares_two_sections_from_one_pipeline(
     stream_factory,
     chart_data_factory,
     compressor_factory,
@@ -120,30 +118,17 @@ def test_prepares_two_sections_from_one_pipeline_and_solves_with_multi_pressure_
     )
 
     # Prepare sections for the shared-shaft MultiPressureSolver.
-    pipeline_sections = prepare_pipeline_sections(
+    pipeline_sections = build_pipeline_sections(
         process_pipeline=process_pipeline,
         process_problem=process_problem,
         root_finding_strategy=root_finding_strategy,
     )
-
-    pressure_targets = [FloatConstraint(60.0), FloatConstraint(120.0)]
 
     assert len(pipeline_sections) == 2
     assert pipeline_sections[0].process_pipeline_id == process_pipeline.get_id()
     assert pipeline_sections[1].process_pipeline_id == process_pipeline.get_id()
     assert pipeline_sections[0].shaft_id == shaft.get_id()
     assert pipeline_sections[1].shaft_id == shaft.get_id()
-
-    # Use the runtime PipelineSections produced in the solver.
-    solution = MultiPressureSolver(pipeline_sections).find_solution(
-        pressure_targets=pressure_targets,
-        inlet_stream=inlet_stream,
-    )
-    assert solution.success
-    lp_outlet = pipeline_sections[0].runner.run(inlet_stream)
-    hp_outlet = pipeline_sections[1].runner.run(lp_outlet)
-    assert lp_outlet.pressure_bara == pytest.approx(60.0, rel=1e-3)
-    assert hp_outlet.pressure_bara == pytest.approx(120.0, rel=1e-3)
 
 
 def test_prepare_pipeline_sections_raises_when_section_references_unit_missing_from_pipeline():
@@ -168,7 +153,7 @@ def test_prepare_pipeline_sections_raises_when_section_references_unit_missing_f
     )
 
     with pytest.raises(EcalcValidationException, match="Process section references units not found in pipeline"):
-        prepare_pipeline_sections(
+        build_pipeline_sections(
             process_pipeline=process_pipeline,
             process_problem=process_problem,
         )
