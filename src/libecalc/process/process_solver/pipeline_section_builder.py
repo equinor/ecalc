@@ -87,7 +87,7 @@ class _PipelineSectionBuilder:
             handler for handler in self._section_handlers if isinstance(handler, RecirculationLoop)
         )
         self._pressure_control_type: PressureControlType = process_problem_section.constraint.pressure_control.type
-        self._anti_surge_type = process_problem_section.constraint.anti_surge.type
+        self._anti_surge_type: AntiSurgeType = process_problem_section.constraint.anti_surge.type
         self._choke_handler = self._get_choke_handler()
 
     def build(self) -> PipelineSection:
