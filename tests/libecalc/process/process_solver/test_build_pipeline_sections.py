@@ -88,7 +88,7 @@ def test_build_pipeline_sections_builds_two_sections_from_one_pipeline(
         fluid_service=fluid_service,
     )
 
-    # Store both assembled sections in one physical process pipeline.
+    # Store both assembled sections in one process pipeline.
     lp_pipeline_section = ProcessPipelineSection(process_units=lp_assembled_section.process_units)
     hp_pipeline_section = ProcessPipelineSection(process_units=hp_assembled_section.process_units)
 
@@ -97,7 +97,7 @@ def test_build_pipeline_sections_builds_two_sections_from_one_pipeline(
         process_pipeline_sections=[lp_pipeline_section, hp_pipeline_section],
     )
 
-    # Build input for section
+    # Build input for each pipeline section
     lp_build_section_input = _build_section_input(lp_pipeline_section)
     hp_build_section_input = _build_section_input(hp_pipeline_section)
 
