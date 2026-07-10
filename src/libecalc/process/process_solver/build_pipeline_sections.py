@@ -13,7 +13,7 @@ from libecalc.process.process_pipeline.process_pipeline import (
     ProcessPipelineSection,
     ProcessPipelineSectionId,
 )
-from libecalc.process.process_pipeline.process_unit import ProcessUnit
+from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy, AntiSurgeType
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
@@ -86,37 +86,49 @@ class _PipelineSectionBuilder:
     ) -> None:
         self._context = context
         self._process_pipeline_section_id = section_input.process_pipeline_section_id
-        self._process_pipeline_section = self._get_process_pipeline_section()
-        self._section_units = self._process_pipeline_section.get_process_units()
-        self._section_unit_ids = {unit.get_id() for unit in self._section_units}
-        self._compressors = self._get_compressors(self._section_units)
-        self._shaft = self._get_section_shaft()
-        self._section_handlers = self._get_section_configuration_handlers()
-        self._recirculation_loops = [
-            handler for handler in self._section_handlers if isinstance(handler, RecirculationLoop)
-        ]
-        self._choke_handler = self._get_choke_handler()
         self._pressure_control_type: PressureControlType = section_input.pressure_control
         self._anti_surge_type: AntiSurgeType = section_input.anti_surge
-        self._runner = ProcessPipelineRunner(
-            units=self._section_units,
-            configuration_handlers=self._section_handlers,
-        )
 
     def build(self) -> PipelineSection:
-        anti_surge_strategy = self._create_anti_surge_strategy()
+        process_pipeline_section = self._get_process_pipeline_section()
+        section_units = process_pipeline_section.get_process_units()
+        section_unit_ids = {unit.get_id() for unit in section_units}
+
+        compressors = self._get_compressors(section_units)
+        shaft = self._get_section_shaft(compressors)
+        section_handlers = self._get_section_configuration_handlers(
+            section_unit_ids=section_unit_ids,
+            shaft=shaft,
+        )
+        recirculation_loops = [handler for handler in section_handlers if isinstance(handler, RecirculationLoop)]
+        choke_handler = self._get_choke_handler(section_handlers)
+
+        runner = ProcessPipelineRunner(
+            units=section_units,
+            configuration_handlers=section_handlers,
+        )
+
+        anti_surge_strategy = self._create_anti_surge_strategy(
+            runner=runner,
+            compressors=compressors,
+            recirculation_loops=recirculation_loops,
+        )
         pressure_control_strategy = self._create_pressure_control_strategy(
+            runner=runner,
+            compressors=compressors,
+            recirculation_loops=recirculation_loops,
+            choke_handler=choke_handler,
             anti_surge_strategy=anti_surge_strategy,
         )
 
         return PipelineSection(
-            shaft_id=self._shaft.get_id(),
+            shaft_id=shaft.get_id(),
             process_pipeline_id=self._context.process_pipeline_id,
-            process_pipeline_section_id=self._process_pipeline_section.get_id(),
-            runner=self._runner,
+            process_pipeline_section_id=process_pipeline_section.get_id(),
+            runner=runner,
             anti_surge_strategy=anti_surge_strategy,
             pressure_control_strategy=pressure_control_strategy,
-            speed_boundary=self._shaft.get_speed_boundary(),
+            speed_boundary=shaft.get_speed_boundary(),
             root_finding_strategy=self._context.root_finding_strategy,
         )
 
@@ -136,8 +148,8 @@ class _PipelineSectionBuilder:
             raise EcalcValidationException("Pipeline section builder only supports sections with compressors.")
         return compressors
 
-    def _get_section_shaft(self) -> Shaft:
-        compressor_ids = {compressor.get_id() for compressor in self._compressors}
+    def _get_section_shaft(self, compressors: Sequence[Compressor]) -> Shaft:
+        compressor_ids = {compressor.get_id() for compressor in compressors}
 
         matching_shafts = [
             handler
@@ -150,53 +162,60 @@ class _PipelineSectionBuilder:
 
         return matching_shafts[0]
 
-    def _get_section_configuration_handlers(self) -> list[ConfigurationHandler]:
+    def _get_section_configuration_handlers(
+        self,
+        section_unit_ids: set[ProcessUnitId],
+        shaft: Shaft,
+    ) -> list[ConfigurationHandler]:
         return [
             handler
             for handler in self._context.configuration_handlers
-            if handler.get_id() == self._shaft.get_id()
+            if handler.get_id() == shaft.get_id()
             or (
                 isinstance(handler, RecirculationLoop)
-                and handler.get_mixer_id() in self._section_unit_ids
-                and handler.get_splitter_id() in self._section_unit_ids
+                and handler.get_mixer_id() in section_unit_ids
+                and handler.get_splitter_id() in section_unit_ids
             )
-            or (isinstance(handler, ChokeConfigurationHandler) and handler.get_choke_id() in self._section_unit_ids)
+            or (isinstance(handler, ChokeConfigurationHandler) and handler.get_choke_id() in section_unit_ids)
         ]
 
-    def _get_choke_handler(self) -> ChokeConfigurationHandler | None:
-        choke_handlers = [
-            handler for handler in self._section_handlers if isinstance(handler, ChokeConfigurationHandler)
-        ]
+    @staticmethod
+    def _get_choke_handler(section_handlers: Sequence[ConfigurationHandler]) -> ChokeConfigurationHandler | None:
+        choke_handlers = [handler for handler in section_handlers if isinstance(handler, ChokeConfigurationHandler)]
 
         if len(choke_handlers) > 1:
             raise EcalcValidationException("A pipeline section can only have one choke configuration handler.")
 
         return choke_handlers[0] if choke_handlers else None
 
+    @staticmethod
     def _get_required_choke_handler(
-        self,
+        choke_handler: ChokeConfigurationHandler | None,
         pressure_control_type: PressureControlType,
     ) -> ChokeConfigurationHandler:
-        if self._choke_handler is None:
+        if choke_handler is None:
             raise EcalcValidationException(f"{pressure_control_type} requires a choke configuration handler.")
-        return self._choke_handler
+        return choke_handler
 
     def _create_anti_surge_strategy(
         self,
+        runner: ProcessPipelineRunner,
+        compressors: Sequence[Compressor],
+        recirculation_loops: Sequence[RecirculationLoop],
     ) -> AntiSurgeStrategy:
         match self._anti_surge_type:
             case AntiSurgeType.COMMON_ASV:
                 return CommonASVAntiSurgeStrategy(
-                    simulator=self._runner,
+                    simulator=runner,
                     root_finding_strategy=self._context.root_finding_strategy,
-                    first_compressor=self._compressors[0],
-                    recirculation_loop_id=self._recirculation_loops[0].get_id(),
+                    first_compressor=compressors[0],
+                    recirculation_loop_id=recirculation_loops[0].get_id(),
                 )
             case AntiSurgeType.INDIVIDUAL_ASV:
                 return IndividualASVAntiSurgeStrategy(
-                    simulator=self._runner,
-                    recirculation_loop_ids=[loop.get_id() for loop in self._recirculation_loops],
-                    compressors=self._compressors,
+                    simulator=runner,
+                    recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
+                    compressors=compressors,
                 )
             case AntiSurgeType.NO_ASV:
                 raise EcalcValidationException(
@@ -208,42 +227,46 @@ class _PipelineSectionBuilder:
 
     def _create_pressure_control_strategy(
         self,
+        runner: ProcessPipelineRunner,
+        compressors: Sequence[Compressor],
         anti_surge_strategy: AntiSurgeStrategy,
+        recirculation_loops: Sequence[RecirculationLoop],
+        choke_handler: ChokeConfigurationHandler | None,
     ) -> PressureControlStrategy:
         match self._pressure_control_type:
             case "DOWNSTREAM_CHOKE":
-                choke_handler = self._get_required_choke_handler("DOWNSTREAM_CHOKE")
+                choke_handler = self._get_required_choke_handler(choke_handler, "DOWNSTREAM_CHOKE")
                 return DownstreamChokePressureControlStrategy(
-                    simulator=self._runner,
+                    simulator=runner,
                     choke_configuration_handler_id=choke_handler.get_id(),
                 )
             case "UPSTREAM_CHOKE":
-                choke_handler = self._get_required_choke_handler("UPSTREAM_CHOKE")
+                choke_handler = self._get_required_choke_handler(choke_handler, "UPSTREAM_CHOKE")
                 return UpstreamChokePressureControlStrategy(
-                    simulator=self._runner,
+                    simulator=runner,
                     choke_configuration_handler_id=choke_handler.get_id(),
                     root_finding_strategy=self._context.root_finding_strategy,
                     anti_surge_strategy=anti_surge_strategy,
                 )
             case "COMMON_ASV":
                 return CommonASVPressureControlStrategy(
-                    simulator=self._runner,
-                    recirculation_loop_id=self._recirculation_loops[0].get_id(),
-                    first_compressor=self._compressors[0],
+                    simulator=runner,
+                    recirculation_loop_id=recirculation_loops[0].get_id(),
+                    first_compressor=compressors[0],
                     root_finding_strategy=self._context.root_finding_strategy,
                 )
             case "INDIVIDUAL_ASV_RATE":
                 return IndividualASVRateControlStrategy(
-                    simulator=self._runner,
-                    recirculation_loop_ids=[loop.get_id() for loop in self._recirculation_loops],
-                    compressors=self._compressors,
+                    simulator=runner,
+                    recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
+                    compressors=compressors,
                     root_finding_strategy=self._context.root_finding_strategy,
                 )
             case "INDIVIDUAL_ASV_PRESSURE":
                 return IndividualASVPressureControlStrategy(
-                    simulator=self._runner,
-                    recirculation_loop_ids=[loop.get_id() for loop in self._recirculation_loops],
-                    compressors=self._compressors,
+                    simulator=runner,
+                    recirculation_loop_ids=[loop.get_id() for loop in recirculation_loops],
+                    compressors=compressors,
                     root_finding_strategy=self._context.root_finding_strategy,
                 )
             case _:
