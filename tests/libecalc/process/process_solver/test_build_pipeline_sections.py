@@ -3,45 +3,32 @@ from uuid import uuid4
 import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineId
-from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.process.process_pipeline.process_pipeline import (
+    ProcessPipeline,
+    ProcessPipelineId,
+    ProcessPipelineSection,
+    ProcessPipelineSectionId,
+)
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
-from libecalc.process.process_solver.pipeline_section_builder import (
+from libecalc.process.process_solver.build_pipeline_sections import (
     build_pipeline_sections,
 )
-from libecalc.process.process_solver.pipeline_section_build_input import (
-    AntiSurgeInput,
-    PipelineSectionBuildConstraint,
-    PipelineSectionBuildProblem,
-    PipelineSectionBuildProblemSection,
-    PressureControlInput,
+from libecalc.process.process_solver.build_pipeline_sections_input import (
+    BuildPipelineSectionsInput,
+    BuildPipelineSectionInput,
 )
 from libecalc.process.process_solver.pressure_control.individual_asv import IndividualASVRateControlStrategy
-from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.process.process_solver.process_pipeline_runner import ProcessPipelineRunner
-from libecalc.process.process_solver.section_assembly import AssembledSection, assemble_process_section
+from libecalc.process.process_solver.section_assembly import assemble_process_section
 from libecalc.process.shaft import VariableSpeedShaft
 
 
-def _constraint(
-    pressure_control: PressureControlType,
-    anti_surge: AntiSurgeType,
-) -> PipelineSectionBuildConstraint:
-    return PipelineSectionBuildConstraint(
-        pressure_control=PressureControlInput(type=pressure_control),
-        anti_surge=AntiSurgeInput(type=anti_surge),
-    )
-
-
-def _process_problem_section(assembled_process_section: AssembledSection) -> PipelineSectionBuildProblemSection:
-    return PipelineSectionBuildProblemSection(
-        process_unit_ids=[unit.get_id() for unit in assembled_process_section.process_units],
-        configuration_handlers=assembled_process_section.configuration_handlers,
-        constraint=_constraint(
-            pressure_control="INDIVIDUAL_ASV_RATE",
-            anti_surge=AntiSurgeType.INDIVIDUAL_ASV,
-        ),
+def _build_section_input(process_pipeline_section: ProcessPipelineSection) -> BuildPipelineSectionInput:
+    return BuildPipelineSectionInput(
+        process_pipeline_section_id=process_pipeline_section.get_id(),
+        pressure_control="INDIVIDUAL_ASV_RATE",
+        anti_surge=AntiSurgeType.INDIVIDUAL_ASV,
     )
 
 
@@ -88,13 +75,13 @@ def test_build_pipeline_sections_builds_two_sections_from_one_pipeline(
     hp_units_raw = stage_units_factory(compressor=hp_compressor, shaft=shaft, temperature_kelvin=temperature)
 
     # Add solver topology for each section: ASV loops and section handlers.
-    lp_assembled_process_section = assemble_process_section(
+    lp_assembled_section = assemble_process_section(
         process_units=lp_units_raw,
         anti_surge=AntiSurgeType.INDIVIDUAL_ASV,
         pressure_control="INDIVIDUAL_ASV_RATE",
         fluid_service=fluid_service,
     )
-    hp_assembled_process_section = assemble_process_section(
+    hp_assembled_section = assemble_process_section(
         process_units=hp_units_raw,
         anti_surge=AntiSurgeType.INDIVIDUAL_ASV,
         pressure_control="INDIVIDUAL_ASV_RATE",
@@ -102,31 +89,37 @@ def test_build_pipeline_sections_builds_two_sections_from_one_pipeline(
     )
 
     # Store both assembled sections in one physical process pipeline.
+    lp_pipeline_section = ProcessPipelineSection(process_units=lp_assembled_section.process_units)
+    hp_pipeline_section = ProcessPipelineSection(process_units=hp_assembled_section.process_units)
+
     process_pipeline = ProcessPipeline(
         name="two-section-pipeline",
-        stream_propagators=[
-            *lp_assembled_process_section.process_units,
-            *hp_assembled_process_section.process_units,
-        ],
+        process_pipeline_sections=[lp_pipeline_section, hp_pipeline_section],
     )
 
-    # Define the section boundaries as ProcessProblemSections.
-    lp_process_problem_section = _process_problem_section(lp_assembled_process_section)
-    hp_process_problem_section = _process_problem_section(hp_assembled_process_section)
+    # Build input for section
+    lp_build_section_input = _build_section_input(lp_pipeline_section)
+    hp_build_section_input = _build_section_input(hp_pipeline_section)
 
-    process_problem = PipelineSectionBuildProblem(
-        process_problem_sections=[lp_process_problem_section, hp_process_problem_section],
-        configuration_handlers=[shaft],
+    build_input = BuildPipelineSectionsInput(
+        sections=[lp_build_section_input, hp_build_section_input],
+        configuration_handlers=[
+            shaft,
+            *lp_assembled_section.configuration_handlers,
+            *hp_assembled_section.configuration_handlers,
+        ],
         process_pipeline_id=process_pipeline.get_id(),
     )
 
     pipeline_sections = build_pipeline_sections(
         process_pipeline=process_pipeline,
-        process_problem=process_problem,
+        build_input=build_input,
         root_finding_strategy=root_finding_strategy,
     )
 
     assert len(pipeline_sections) == 2
+    assert pipeline_sections[0].process_pipeline_section_id == lp_pipeline_section.get_id()
+    assert pipeline_sections[1].process_pipeline_section_id == hp_pipeline_section.get_id()
 
     for pipeline_section in pipeline_sections:
         assert pipeline_section.process_pipeline_id == process_pipeline.get_id()
@@ -137,29 +130,26 @@ def test_build_pipeline_sections_builds_two_sections_from_one_pipeline(
         assert isinstance(pipeline_section.pressure_control_strategy, IndividualASVRateControlStrategy)
 
 
-def test_build_pipeline_sections_raises_when_section_references_unit_missing_from_pipeline():
-    section = PipelineSectionBuildProblemSection(
-        process_unit_ids=[ProcessUnitId(uuid4())],
-        configuration_handlers=[],
-        constraint=_constraint(
-            pressure_control="INDIVIDUAL_ASV_RATE",
-            anti_surge=AntiSurgeType.INDIVIDUAL_ASV,
-        ),
+def test_build_pipeline_sections_raises_when_section_references_pipeline_section_missing_from_pipeline():
+    section = BuildPipelineSectionInput(
+        process_pipeline_section_id=ProcessPipelineSectionId(uuid4()),
+        pressure_control="INDIVIDUAL_ASV_RATE",
+        anti_surge=AntiSurgeType.INDIVIDUAL_ASV,
     )
 
-    process_problem = PipelineSectionBuildProblem(
-        process_problem_sections=[section],
+    build_input = BuildPipelineSectionsInput(
+        sections=[section],
         configuration_handlers=[],
         process_pipeline_id=ProcessPipelineId(uuid4()),
     )
     process_pipeline = ProcessPipeline(
         name="empty-pipeline",
-        stream_propagators=[],
-        process_pipeline_id=process_problem.process_pipeline_id,
+        process_pipeline_sections=[],
+        process_pipeline_id=build_input.process_pipeline_id,
     )
 
-    with pytest.raises(EcalcValidationException, match="Process section references units not found in pipeline"):
+    with pytest.raises(EcalcValidationException, match="pipeline section not found"):
         build_pipeline_sections(
             process_pipeline=process_pipeline,
-            process_problem=process_problem,
+            build_input=build_input,
         )
