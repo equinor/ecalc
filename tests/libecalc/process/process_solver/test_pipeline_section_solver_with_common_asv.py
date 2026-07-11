@@ -72,20 +72,18 @@ def test_pipeline_section_solver_with_common_asv(
 
     speed_configuration = config_dict[shaft.get_id()]
 
+    recirculation_at_capacity_solution = common_asv_solver.get_anti_surge_solution()
+    assert recirculation_at_capacity_solution is not None
+
     assert solution.success
     assert speed_configuration.speed == pytest.approx(94.40, rel=1e-3)
+
+    recirculation_rate_at_capacity = recirculation_at_capacity_solution.configuration[0].value.recirculation_rate
 
     recirculation_configuration = [
         config for config in solution.configuration if isinstance(config.value, RecirculationConfiguration)
     ][0]
     recirculation_rate_after_pressure_control = recirculation_configuration.value.recirculation_rate
-
-    # Get the anti-surge floor at the solution speed, without pressure control.
-    runner.apply_configurations(
-        [config for config in solution.configuration if not isinstance(config.value, RecirculationConfiguration)]
-    )
-    anti_surge_solution = anti_surge_strategy.apply(inlet_stream=inlet_stream)
-    recirculation_rate_at_capacity = anti_surge_solution.configuration[0].value.recirculation_rate
 
     assert recirculation_rate_at_capacity == pytest.approx(336264.9, rel=1e-4)
     assert recirculation_rate_after_pressure_control >= recirculation_rate_at_capacity
