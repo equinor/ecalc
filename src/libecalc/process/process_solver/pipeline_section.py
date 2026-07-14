@@ -7,6 +7,8 @@ from libecalc.process.process_solver.pressure_control.pressure_control_strategy 
 from libecalc.process.process_solver.process_runner import ProcessRunner
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy
 
+# TODO: Change to entities
+
 
 @value_object
 class PipelineSection:
@@ -21,3 +23,10 @@ class PipelineSection:
     pressure_control_strategy: PressureControlStrategy
     speed_boundary: Boundary
     root_finding_strategy: RootFindingStrategy
+
+
+# This is currently the aggregate as this is the interface to solve, and it delegates further to sections etc
+@value_object
+class Pipeline:
+    process_pipeline_id: ProcessPipelineId
+    pipeline_sections: list[PipelineSection]
