@@ -1,0 +1,327 @@
+"""A single-speed / variable-speed pump for an incompressible liquid.
+
+The pump raises an inlet liquid stream toward a required (target) discharge pressure. The head
+follows directly from the pressure rise and the density (``head = (p_d - p_s) / rho``), and the
+pump chart supplies the efficiency and the feasible operating window. Everything is closed-form:
+the operating point is read off the chart envelope, so there is no solver and no iteration.
+
+When the pump cannot sit exactly on the target - a single-speed pump is pinned to its curve, and a
+variable-speed pump cannot deliver less head than its minimum-speed curve - it delivers a higher
+(operating) head than required. The result exposes both the required and the operating discharge
+pressure; the excess would be dropped by a downstream choke.
+"""
+
+from __future__ import annotations
+
+from enum import StrEnum
+from typing import Final
+
+import numpy as np
+
+from libecalc.common.ddd import value_object
+from libecalc.common.ddd.entity import Entity
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
+from libecalc.common.units import Unit, UnitConstants
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.domain.process.value_objects.chart import Chart
+from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.process.pump.exceptions import NonPositivePressureException
+from libecalc.process.pump.liquid_stream import LiquidStream
+from libecalc.process.pump.liquid_stream_propagator import LiquidStreamPropagator
+
+
+class PumpFailureStatus(StrEnum):
+    """Feasibility outcome of a pump evaluation."""
+
+    NO_FAILURE = "NO_FAILURE"
+    ABOVE_MAXIMUM_PUMP_RATE = "ABOVE_MAXIMUM_PUMP_RATE"
+    ABOVE_MAXIMUM_HEAD_AT_RATE = "ABOVE_MAXIMUM_HEAD_AT_RATE"
+    ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE = "ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE"
+
+
+@value_object
+class PumpResult:
+    """Result of a single pump evaluation.
+
+    Attributes:
+        inlet_stream: The liquid stream at suction conditions the pump was evaluated for
+            (carries suction pressure, density and requested rate).
+        power_mw: Shaft power demand [MW].
+        required_head_joule_per_kg: Head implied by the suction and required discharge pressures,
+            ``(p_d - p_s) / rho`` [J/kg].
+        operational_head_joule_per_kg: Actual head the pump operates at [J/kg], after min-head
+            choking. It exceeds the required head when the pump cannot deliver less head than its
+            (minimum-speed) curve at the operating rate; otherwise it equals the required head.
+        operational_volumetric_rate_m3_per_hour: Actual volumetric rate the pump operates at
+            [m3/h], i.e. the requested rate raised to the minimum flow when recirculating.
+        recirculation_rate_m3_per_hour: Internal recirculation [m3/h] to maintain the minimum flow
+            = operational rate minus requested rate; zero when not recirculating.
+        required_discharge_pressure_bara: Discharge pressure the pump was asked to deliver [bara].
+        operational_discharge_pressure_bara: Discharge pressure the pump actually delivers [bara],
+            from the operational head. Exceeds the required discharge pressure when the pump
+            over-delivers head; the difference is what a downstream choke would drop.
+        speed_rpm: Operating speed [rpm] of the pump (the speed curve through the operating point);
+            the single curve's speed for a single-speed pump, ``None`` when not running.
+        failure_status: Feasibility outcome; ``NO_FAILURE`` when within the chart envelope.
+        process_unit_id: Identity of the pump that produced this result; lets a stored result be
+            traced back to its pump (e.g. for persistence or a downstream energy calculation).
+    """
+
+    inlet_stream: LiquidStream
+    power_mw: float
+    required_head_joule_per_kg: float
+    operational_head_joule_per_kg: float
+    operational_volumetric_rate_m3_per_hour: float
+    recirculation_rate_m3_per_hour: float
+    required_discharge_pressure_bara: float
+    operational_discharge_pressure_bara: float
+    speed_rpm: float | None
+    failure_status: PumpFailureStatus
+    process_unit_id: ProcessUnitId
+
+    @property
+    def is_valid(self) -> bool:
+        return self.failure_status == PumpFailureStatus.NO_FAILURE
+
+    @property
+    def choke_pressure_drop_bara(self) -> float:
+        """Pressure a downstream choke would drop to reach the required discharge pressure [bara].
+
+        The excess the pump over-delivers = operational minus required discharge pressure (>= 0).
+        """
+        return max(0.0, self.operational_discharge_pressure_bara - self.required_discharge_pressure_bara)
+
+
+class Pump(Entity[ProcessUnitId], LiquidStreamPropagator):
+    """A single-speed / variable-speed pump.
+
+    Args:
+        pump_chart: Chart data (rate/head/efficiency curves). A single curve gives a
+            single-speed pump; multiple curves give a variable-speed pump.
+        minimum_flow_rate_m3_per_hour: Required minimum continuous flow [actual m3/h]. A fixed
+            vertical line in the rate-head plane; the operating rate is recirculated up to it.
+            Must be at least the chart's minimum rate.
+        process_unit_id: Identity used to reference the pump; generated when not provided.
+    """
+
+    def __init__(
+        self,
+        pump_chart: ChartData,
+        minimum_flow_rate_m3_per_hour: float,
+        process_unit_id: ProcessUnitId | None = None,
+    ):
+        self._id: Final[ProcessUnitId] = process_unit_id or Pump._create_id()
+        self._pump_chart = Chart(pump_chart)
+        self._validate_pump_chart_efficiency()
+        if minimum_flow_rate_m3_per_hour < self._pump_chart.minimum_rate:
+            raise EcalcValidationException(
+                f"Minimum flow rate ({minimum_flow_rate_m3_per_hour} m3/h) cannot be below the "
+                f"chart's minimum rate ({self._pump_chart.minimum_rate} m3/h); the operating "
+                f"point would fall outside the pump chart."
+            )
+        self._minimum_flow_rate_m3_per_hour = minimum_flow_rate_m3_per_hour
+        self._discharge_pressure_bara: float | None = None
+
+    def get_id(self) -> ProcessUnitId:
+        return self._id
+
+    @classmethod
+    def _create_id(cls) -> ProcessUnitId:
+        return ProcessUnitId(ecalc_id_generator())
+
+    @property
+    def pump_chart(self) -> Chart:
+        return self._pump_chart
+
+    @property
+    def minimum_flow_rate_m3_per_hour(self) -> float:
+        """The pump's minimum continuous flow [actual m3/h] - the fixed vertical line in the
+        rate-head plane, for plotting the min-flow line on the chart."""
+        return self._minimum_flow_rate_m3_per_hour
+
+    def set_discharge_pressure(self, discharge_pressure_bara: float) -> None:
+        """Set the required (target) discharge pressure used by ``propagate_stream``."""
+        self._validate_discharge_pressure(discharge_pressure_bara)
+        self._discharge_pressure_bara = discharge_pressure_bara
+
+    def propagate_stream(self, inlet_stream: LiquidStream) -> LiquidStream:
+        """Propagate the inlet stream to the pump's delivered outlet stream.
+
+        The delivered stream is at the requested (demand) rate - recirculation is internal - at the
+        operational discharge pressure. For the full evaluation (power, heads, speed, feasibility),
+        call ``evaluate``; it is closed-form and deterministic, so it reproduces this outlet exactly.
+        """
+        if self._discharge_pressure_bara is None:
+            raise ValueError("Discharge pressure not set. Call set_discharge_pressure first.")
+        result = self.evaluate(inlet_stream, self._discharge_pressure_bara)
+        return inlet_stream.with_pressure(result.operational_discharge_pressure_bara)
+
+    def evaluate(self, inlet_stream: LiquidStream, discharge_pressure_bara: float) -> PumpResult:
+        """Evaluate the pump for a given inlet liquid stream and required discharge pressure.
+
+        Points that fall outside the chart envelope still produce a power value but are flagged via
+        ``failure_status``. A non-positive rate means the pump is not running: power and heads are
+        zero and the result is valid.
+        """
+        self._validate_discharge_pressure(discharge_pressure_bara)
+
+        density = inlet_stream.density_kg_per_m3
+        rate_m3_per_hour = inlet_stream.volumetric_rate_m3_per_hour
+
+        required_head = self._calculate_head(
+            suction_pressure=inlet_stream.pressure_bara,
+            discharge_pressure=discharge_pressure_bara,
+            density=density,
+        )
+
+        if rate_m3_per_hour <= 0:
+            # Pump not running: no head produced, so the operational discharge equals the suction
+            # pressure. The required side still reflects the requested duty.
+            return PumpResult(
+                inlet_stream=inlet_stream,
+                power_mw=0.0,
+                required_head_joule_per_kg=required_head,
+                operational_head_joule_per_kg=0.0,
+                operational_volumetric_rate_m3_per_hour=0.0,
+                recirculation_rate_m3_per_hour=0.0,
+                required_discharge_pressure_bara=discharge_pressure_bara,
+                operational_discharge_pressure_bara=inlet_stream.pressure_bara,
+                speed_rpm=None,
+                failure_status=PumpFailureStatus.NO_FAILURE,
+                process_unit_id=self._id,
+            )
+
+        # Recirculation (internal): clamp the operating rate up to the largest binding minimum
+        # flow - the user-defined vertical line and the chart's minimum-flow line at the required
+        # head (which collapses to the chart minimum rate for a single-speed chart).
+        chart_minimum_flow_at_head = float(self._pump_chart.minimum_rate_as_function_of_head(required_head))
+        operating_rate_m3_per_hour = max(
+            rate_m3_per_hour,
+            self._minimum_flow_rate_m3_per_hour,
+            chart_minimum_flow_at_head,
+        )
+
+        minimum_head_at_rate = float(self._pump_chart.minimum_head_as_function_of_rate(operating_rate_m3_per_hour))
+        operational_head = max(required_head, minimum_head_at_rate)
+
+        maximum_head_at_rate = float(self._pump_chart.maximum_head_as_function_of_rate(operating_rate_m3_per_hour))
+
+        failure_status = self._determine_failure_status(
+            head=operational_head,
+            maximum_head_at_rate=maximum_head_at_rate,
+            rate_m3_per_hour=operating_rate_m3_per_hour,
+        )
+
+        efficiency = self._efficiency(rate_m3_per_hour=operating_rate_m3_per_hour, head=operational_head)
+        power = self._calculate_power(
+            density=density,
+            head_joule_per_kg=operational_head,
+            rate=operating_rate_m3_per_hour,
+            efficiency=efficiency,
+        )
+
+        return PumpResult(
+            inlet_stream=inlet_stream,
+            power_mw=power,
+            required_head_joule_per_kg=required_head,
+            operational_head_joule_per_kg=operational_head,
+            operational_volumetric_rate_m3_per_hour=operating_rate_m3_per_hour,
+            recirculation_rate_m3_per_hour=operating_rate_m3_per_hour - rate_m3_per_hour,
+            required_discharge_pressure_bara=discharge_pressure_bara,
+            operational_discharge_pressure_bara=self._discharge_pressure(
+                suction_pressure=inlet_stream.pressure_bara,
+                head_joule_per_kg=operational_head,
+                density=density,
+            ),
+            speed_rpm=self._speed_at_operating_point(operating_rate_m3_per_hour, operational_head),
+            failure_status=failure_status,
+            process_unit_id=self._id,
+        )
+
+    def get_max_volumetric_rate_m3_per_day(
+        self, suction_pressure: float, discharge_pressure: float, density: float
+    ) -> float:
+        """Maximum volumetric rate [m3/day] the pump can deliver at the given pressures and density."""
+        head = self._calculate_head(
+            suction_pressure=suction_pressure, discharge_pressure=discharge_pressure, density=density
+        )
+        return float(self._pump_chart.maximum_rate_as_function_of_head(head) * UnitConstants.HOURS_PER_DAY)
+
+    def _speed_at_operating_point(self, rate_m3_per_hour: float, head_joule_per_kg: float) -> float:
+        """Speed [rpm] of the speed curve through the operating point (rate, head).
+
+        Single-speed chart: the single curve's speed. Variable-speed: linear interpolation between
+        the adjacent speed curves whose head at the operating rate brackets the operating head.
+        """
+        curves = sorted(self._pump_chart.curves, key=lambda c: c.speed_rpm)
+        if len(curves) == 1:
+            return float(curves[0].speed_rpm)
+
+        speeds = [float(c.speed_rpm) for c in curves]
+        heads = [float(c.head_as_function_of_rate(rate_m3_per_hour)) for c in curves]
+        if head_joule_per_kg <= heads[0]:
+            return speeds[0]
+        if head_joule_per_kg >= heads[-1]:
+            return speeds[-1]
+        for i in range(len(curves) - 1):
+            head_low, head_high = heads[i], heads[i + 1]
+            if head_low <= head_joule_per_kg <= head_high:
+                fraction = (head_joule_per_kg - head_low) / (head_high - head_low) if head_high != head_low else 0.0
+                return speeds[i] + fraction * (speeds[i + 1] - speeds[i])
+        return speeds[-1]
+
+    def _efficiency(self, rate_m3_per_hour: float, head: float) -> float:
+        if self._pump_chart.is_100_percent_efficient:
+            return 1.0
+        return float(
+            self._pump_chart.efficiency_as_function_of_rate_and_head(
+                rates=np.asarray([rate_m3_per_hour]),
+                heads=np.asarray([head]),
+            )[0]
+        )
+
+    def _determine_failure_status(
+        self, head: float, maximum_head_at_rate: float, rate_m3_per_hour: float
+    ) -> PumpFailureStatus:
+        above_max_head = head > maximum_head_at_rate
+        above_max_rate = rate_m3_per_hour > float(self._pump_chart.maximum_rate)
+
+        if above_max_head and above_max_rate:
+            return PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE
+        if above_max_head:
+            return PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE
+        if above_max_rate:
+            return PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE
+        return PumpFailureStatus.NO_FAILURE
+
+    @staticmethod
+    def _validate_discharge_pressure(discharge_pressure_bara: float) -> None:
+        if discharge_pressure_bara <= 0:
+            raise NonPositivePressureException(discharge_pressure_bara)
+
+    def _validate_pump_chart_efficiency(self) -> None:
+        if any(efficiency <= 0 for curve in self._pump_chart.curves for efficiency in curve.efficiency):
+            raise EcalcValidationException("Pump efficiency must be greater than zero.")
+
+    @staticmethod
+    def _calculate_head(suction_pressure: float, discharge_pressure: float, density: float) -> float:
+        """Head in joule per kg [J/kg]."""
+        return Unit.BARA.to(Unit.PASCAL)(discharge_pressure - suction_pressure) / density
+
+    @staticmethod
+    def _discharge_pressure(suction_pressure: float, head_joule_per_kg: float, density: float) -> float:
+        """Discharge pressure [bara] corresponding to a head at the given suction and density."""
+        return suction_pressure + Unit.PASCAL.to(Unit.BARA)(head_joule_per_kg * density)
+
+    @staticmethod
+    def _calculate_power(density: float, head_joule_per_kg: float, efficiency: float, rate: float) -> float:
+        """Pump power [MW] from density, head [J/kg], actual rate [m3/h] and efficiency."""
+        return float(
+            density
+            * head_joule_per_kg
+            * rate
+            / UnitConstants.SECONDS_PER_HOUR
+            / UnitConstants.WATT_PER_MEGAWATT
+            / efficiency
+        )
