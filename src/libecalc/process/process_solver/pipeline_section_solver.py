@@ -13,7 +13,6 @@ from libecalc.process.process_solver.finders.shaft_speed_finder import ShaftSpee
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section import PipelineSection
 from libecalc.process.process_solver.pipeline_solver import PipelineSolver
-from libecalc.process.process_solver.search_strategies import Bisect
 from libecalc.process.process_solver.search_strategies import Bisect, DidNotConvergeError
 from libecalc.process.process_solver.solver import (
     CompressorStonewallFailure,
@@ -100,10 +99,10 @@ class PipelineSectionSolver(PipelineSolver):
 
     def _find_solution(
         self,
-        pressure_constraint: FloatConstraint,
+        pressure_target: FloatConstraint,
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration]]:
-        speed_finding = self._find_speed_solution(pressure_constraint=pressure_constraint, inlet_stream=inlet_stream)
+        speed_finding = self._find_speed_solution(pressure_constraint=pressure_target, inlet_stream=inlet_stream)
 
         shaft_config = Configuration(
             configuration_handler_id=self._pipeline_section.get_shaft_id(),
