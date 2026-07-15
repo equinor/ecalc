@@ -22,6 +22,10 @@ class DidNotConvergeError(EcalcError):
         tolerance: float,
         iterations: int,
     ):
+        self.lower_bound = boundary.min
+        self.upper_bound = boundary.max
+        self.tolerance = tolerance
+        self.iterations = iterations
         super().__init__(
             title="No solution found",
             message=f"Did not reach convergence after maximum number of iterations: {iterations}."

@@ -1,7 +1,7 @@
 from collections.abc import Sequence
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorSurgeError, ProcessError
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import (
     Configuration,
@@ -13,14 +13,16 @@ from libecalc.process.process_solver.finders.shaft_speed_finder import ShaftSpee
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section import PipelineSection
 from libecalc.process.process_solver.pipeline_solver import PipelineSolver
-from libecalc.process.process_solver.search_strategies import Bisect
+from libecalc.process.process_solver.search_strategies import Bisect, DidNotConvergeError
 from libecalc.process.process_solver.solver import (
-    EosFailure,
-    RateTooHighFailure,
-    RateTooLowFailure,
+    CompressorStonewallFailure,
+    CompressorSurgeFailure,
+    ConvergenceFailure,
     Solution,
     TargetDirection,
     TargetPressureUnreachableFailure,
+    ThermodynamicCalculationFailure,
+    process_error_to_failure,
 )
 
 
@@ -57,7 +59,7 @@ class PipelineSectionSolver(PipelineSolver):
             )
             try:
                 return self._pipeline_section.get_runner().run(inlet_stream=inlet_stream)
-            except RateTooLowError:
+            except CompressorSurgeError:
                 solution = self._pipeline_section.get_anti_surge_strategy().apply(inlet_stream=inlet_stream)
                 self._pipeline_section.get_runner().apply_configurations(solution.configuration)
                 return self._pipeline_section.get_runner().run(inlet_stream=inlet_stream)
@@ -81,6 +83,27 @@ class PipelineSectionSolver(PipelineSolver):
         assert len(pressure_targets) == 1
         pressure_target = pressure_targets[0]
 
+        shaft_config = Configuration(
+            configuration_handler_id=self._pipeline_section.get_shaft_id(),
+            value=SpeedConfiguration(
+                speed=self._pipeline_section.get_speed_boundary().min
+            ),  # TODO: Min or max? Or nothing because we dont know? Last x we tried?
+        )
+        try:
+            return self._find_solution(pressure_target, inlet_stream)
+        except DidNotConvergeError as e:
+            return Solution(
+                configuration=[shaft_config],
+                failure=ConvergenceFailure.from_error(e, source_id=self._pipeline_section.get_process_pipeline_id()),
+            )
+        except ProcessError as e:
+            return Solution(configuration=[shaft_config], failure=process_error_to_failure(e))
+
+    def _find_solution(
+        self,
+        pressure_target: FloatConstraint,
+        inlet_stream: FluidStream,
+    ) -> Solution[Sequence[Configuration]]:
         speed_finding = self._find_speed_solution(pressure_constraint=pressure_target, inlet_stream=inlet_stream)
 
         shaft_config = Configuration(
@@ -88,7 +111,9 @@ class PipelineSectionSolver(PipelineSolver):
             value=speed_finding.configuration,
         )
 
-        if isinstance(speed_finding.failure, (RateTooHighFailure, RateTooLowFailure, EosFailure)):
+        if isinstance(
+            speed_finding.failure, (CompressorStonewallFailure, CompressorSurgeFailure, ThermodynamicCalculationFailure)
+        ):
             return Solution(configuration=[shaft_config], failure=speed_finding.failure)
 
         self._pipeline_section.get_runner().apply_configuration(shaft_config)
@@ -105,9 +130,7 @@ class PipelineSectionSolver(PipelineSolver):
         if isinstance(speed_finding.failure, TargetPressureUnreachableFailure) and (
             speed_finding.failure.direction == TargetDirection.MAX_BELOW_TARGET
         ):
-            failure = speed_finding.failure.with_source_id(
-                self._pipeline_section.get_process_pipeline_id()
-            )  # TODO: Here we do not have the parent pipeline id
+            failure = speed_finding.failure.with_source_id(self._pipeline_section.get_process_pipeline_id())
             return Solution(configuration=speed_and_anti_surge_configurations, failure=failure)
 
         outlet_at_chosen_speed = self._get_outlet_stream(

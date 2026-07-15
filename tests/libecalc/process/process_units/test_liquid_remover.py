@@ -3,7 +3,6 @@ from unittest.mock import MagicMock
 import pytest
 
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
-from libecalc.process.fluid_stream.exceptions import InvalidStreamException
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_units.liquid_remover import LiquidRemover
@@ -82,5 +81,5 @@ def test_liquid_remover_raises_on_non_positive_inlet_molar_mass():
     fluid_service = MagicMock()
     remover = LiquidRemover(fluid_service=fluid_service)
 
-    with pytest.raises(InvalidStreamException, match="non-positive molar mass"):
+    with pytest.raises(AssertionError, match="non-positive molar mass"):
         remover.propagate_stream(inlet_stream)

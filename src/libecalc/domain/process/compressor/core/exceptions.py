@@ -1,7 +1,9 @@
 from collections.abc import Mapping
 
+from libecalc.process.process_pipeline.process_error import ProcessError
 
-class CompressorThermodynamicCalculationError(Exception):
+
+class CompressorThermodynamicCalculationError(ProcessError):
     """Raised when compressor thermodynamics cannot produce a usable state."""
 
     def __init__(

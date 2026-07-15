@@ -3,6 +3,7 @@ from typing import Final
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.process_pipeline.process_error import ProcessError
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section import Pipeline, PipelineSection
@@ -10,7 +11,13 @@ from libecalc.process.process_solver.pipeline_section_solver import PipelineSect
 from libecalc.process.process_solver.pipeline_solver import PipelineSolver
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
 from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
-from libecalc.process.process_solver.solver import Solution, TargetDirection
+from libecalc.process.process_solver.search_strategies import DidNotConvergeError
+from libecalc.process.process_solver.solver import (
+    ConvergenceFailure,
+    Solution,
+    TargetDirection,
+    process_error_to_failure,
+)
 
 
 class MultiPressureSolver(PipelineSolver):
@@ -69,10 +76,22 @@ class MultiPressureSolver(PipelineSolver):
                 f"Number of pressure targets ({len(pressure_targets)}) must match "
                 f"number of pipeline sections ({len(self._pipeline_sections)})."
             )
+        try:
+            return self._find_solution(pressure_targets, inlet_stream)
+        except DidNotConvergeError as e:
+            return Solution(configuration=[], failure=ConvergenceFailure.from_error(e))
+        except ProcessError as e:
+            return Solution(configuration=[], failure=process_error_to_failure(e))
+
+    def _find_solution(
+        self,
+        pressure_targets: list[FloatConstraint],
+        inlet_stream: FluidStream,
+    ) -> Solution[Sequence[Configuration]]:
 
         speed_configurations: list[SpeedConfiguration] = []
         current_inlet = inlet_stream
-        for pipeline_section, target in zip(self._pipeline_sections, pressure_targets):
+        for pipeline_section, target in zip(self._pipeline_sections, pressure_targets, strict=True):
             solution_for_pipeline_section = PipelineSectionSolver(pipeline_section).find_solution(
                 pressure_targets=[target], inlet_stream=current_inlet
             )
@@ -92,13 +111,16 @@ class MultiPressureSolver(PipelineSolver):
 
         current_inlet = inlet_stream
 
-        for pipeline_section, target in zip(self._pipeline_sections, pressure_targets):
+        for pipeline_section, target in zip(self._pipeline_sections, pressure_targets, strict=True):
             pipeline_section.get_pressure_control_strategy().reset()  #  to clear a potential upstream/downstream choke
             pipeline_section.get_runner().apply_configuration(shaft_config)
 
             anti_surge_solution = pipeline_section.get_anti_surge_strategy().apply(inlet_stream=current_inlet)
             pipeline_section.get_runner().apply_configurations(anti_surge_solution.configuration)
             solution = solution.combine(anti_surge_solution)
+
+            if not solution.success:
+                return solution
 
             outlet = pipeline_section.get_runner().run(inlet_stream=current_inlet)
 
@@ -108,10 +130,12 @@ class MultiPressureSolver(PipelineSolver):
                     inlet_stream=current_inlet,
                 )
                 solution = solution.combine(pressure_control_solution)
+                if not solution.success:
+                    return solution
                 pipeline_section.get_runner().apply_configurations(pressure_control_solution.configuration)
                 outlet = pipeline_section.get_runner().run(inlet_stream=current_inlet)
             elif outlet.pressure_bara < target:
-                solution = Solution.target_pressure_unreachable(
+                return Solution.target_pressure_unreachable(
                     configuration=solution.configuration,
                     achievable_pressure_bara=outlet.pressure_bara,
                     target_pressure_bara=target.value,

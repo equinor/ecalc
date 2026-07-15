@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.process.process_pipeline.process_error import RateTooHighError, RateTooLowError
+from libecalc.process.process_pipeline.process_error import CompressorStonewallError, CompressorSurgeError
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
 
@@ -45,13 +45,13 @@ class TestCompressorFlowLimits:
     def test_raises_rate_too_low_below_minimum_flow(self, stream_factory, compressor, shaft):
         shaft.set_speed(shaft.get_speed_boundary().min)
         inlet = stream_factory(standard_rate_m3_per_day=1.0, pressure_bara=30.0, temperature_kelvin=300.0)
-        with pytest.raises(RateTooLowError):
+        with pytest.raises(CompressorSurgeError):
             compressor.propagate_stream(inlet_stream=inlet)
 
     def test_raises_rate_too_high_above_maximum_flow(self, stream_factory, compressor, shaft):
         shaft.set_speed(shaft.get_speed_boundary().max)
         inlet = stream_factory(standard_rate_m3_per_day=1e12, pressure_bara=30.0, temperature_kelvin=300.0)
-        with pytest.raises(RateTooHighError):
+        with pytest.raises(CompressorStonewallError):
             compressor.propagate_stream(inlet_stream=inlet)
 
 
