@@ -81,7 +81,7 @@ def test_pipeline_section_solver_applies_downstream_choke_when_speed_solution_is
     target_pressure = FloatConstraint(28.0, abs_tol=1e-12)
 
     solution = solver.find_solution(
-        pressure_constraint=target_pressure,
+        pressure_targets=[target_pressure],
         inlet_stream=inlet_stream,
     )
     speed_configuration = solution.get_configuration(shaft.get_id())

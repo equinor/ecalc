@@ -142,7 +142,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
         process_pipeline_id=process_pipeline.get_id(),
     )
     solution = train_solver.find_solution(
-        pressure_constraint=FloatConstraint(target_pressure),
+        pressure_targets=[FloatConstraint(target_pressure)],
         inlet_stream=inlet_stream,
     )
     config_dict = {config.configuration_handler_id: config for config in solution.configuration}
@@ -284,7 +284,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
         process_pipeline_id=process_pipeline.get_id(),
     )
     solution = train_solver.find_solution(
-        pressure_constraint=FloatConstraint(target_pressure),
+        pressure_targets=[FloatConstraint(target_pressure)],
         inlet_stream=inlet_stream,
     )
     runner.apply_configurations(solution.configuration)
@@ -373,7 +373,7 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
     assert inlet_stream.volumetric_rate_m3_per_hour > 300.0
 
     solution = solver.find_solution(
-        pressure_constraint=FloatConstraint(75.0),
+        pressure_targets=[FloatConstraint(75.0)],
         inlet_stream=inlet_stream,
     )
 

@@ -10,12 +10,13 @@ from libecalc.process.process_solver.configuration import Configuration, Operati
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section import PipelineSection
 from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
+from libecalc.process.process_solver.pipeline_solver import PipelineSolver
 from libecalc.process.process_solver.solver import Solution
 
 logger = logging.getLogger(__name__)
 
 
-class MultiShaftSolver:
+class MultiShaftSolver(PipelineSolver):
     """Sequences independently-shafted process pipeline sections, each driven toward a
     caller-supplied pressure target. The outlet of one pipeline section feeds the inlet of the next.
     """
@@ -27,7 +28,7 @@ class MultiShaftSolver:
         self,
         pressure_targets: Sequence[FloatConstraint],
         inlet_stream: FluidStream,
-    ) -> Solution[Sequence[Configuration[OperatingConfiguration]]]:
+    ) -> Solution[Sequence[Configuration]]:
         """Run each pipeline section in flow order against its supplied pressure target."""
         assert len(pressure_targets) == len(self._pipeline_sections), (
             f"Number of pressure targets ({len(pressure_targets)}) must match "
@@ -42,7 +43,7 @@ class MultiShaftSolver:
         failure = None
 
         for i, (pipeline_section, target) in enumerate(zip(self._pipeline_sections, pressure_targets)):
-            solution = PipelineSectionSolver(pipeline_section).find_solution(target, current_inlet)
+            solution = PipelineSectionSolver(pipeline_section).find_solution([target], current_inlet)
             all_configurations.extend(solution.configuration)
 
             if not solution.success:
@@ -50,8 +51,8 @@ class MultiShaftSolver:
                     failure = solution.failure
                 logger.debug("PipelineSection %d failed to reach target %.1f bara.", i, target.value)
 
-            pipeline_section.runner.apply_configurations(solution.configuration)
-            current_inlet = pipeline_section.runner.run(current_inlet)
+            pipeline_section.get_runner().apply_configurations(solution.configuration)
+            current_inlet = pipeline_section.get_runner().run(current_inlet)
 
         return Solution(
             configuration=all_configurations,

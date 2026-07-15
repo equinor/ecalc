@@ -117,7 +117,7 @@ def test_two_stage_process_solver_path(
 
     # ── Act ──────────────────────────────────────────────────────────────
     solution = system.solver.find_solution(
-        pressure_constraint=FloatConstraint(case.region.discharge_pressure_bara, abs_tol=PRESSURE_TOLERANCE),
+        pressure_targets=[FloatConstraint(case.region.discharge_pressure_bara, abs_tol=PRESSURE_TOLERANCE)],
         inlet_stream=inlet_stream,
     )
     system.runner.apply_configurations(solution.configuration)

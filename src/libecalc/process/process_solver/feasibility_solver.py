@@ -72,6 +72,6 @@ class FeasibilitySolver:
 
     def _is_feasible(self, inlet_stream: FluidStream, target_pressure: FloatConstraint) -> bool:
         try:
-            return self._solver.find_solution(target_pressure, inlet_stream).success
+            return self._solver.find_solution([target_pressure], inlet_stream).success
         except (DidNotConvergeError, OutsideCapacityError):
             return False

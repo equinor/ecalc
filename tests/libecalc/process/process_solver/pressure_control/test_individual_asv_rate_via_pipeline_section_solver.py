@@ -84,7 +84,7 @@ def test_individual_asv_rate_via_pipeline_section_solver_two_stages(
 
     target_pressure_bara = 70.0
     solution = solver.find_solution(
-        pressure_constraint=FloatConstraint(target_pressure_bara),
+        pressure_targets=[FloatConstraint(target_pressure_bara)],
         inlet_stream=inlet_stream,
     )
 

@@ -155,7 +155,7 @@ def test_common_asv_solver_vs_legacy_train(
         process_pipeline_id=process_pipeline.get_id(),
     )
     solution = train_solver.find_solution(
-        pressure_constraint=FloatConstraint(target_pressure),
+        pressure_targets=[FloatConstraint(target_pressure)],
         inlet_stream=inlet_stream,
     )
     runner.apply_configurations(solution.configuration)

@@ -5,14 +5,15 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.configuration import Configuration, OperatingConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.pipeline_section import PipelineSection
+from libecalc.process.process_solver.pipeline_section import Pipeline, PipelineSection
 from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
+from libecalc.process.process_solver.pipeline_solver import PipelineSolver
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
 from libecalc.process.process_solver.pressure_control.upstream_choke import UpstreamChokePressureControlStrategy
 from libecalc.process.process_solver.solver import Solution, TargetDirection
 
 
-class MultiPressureSolver:
+class MultiPressureSolver(PipelineSolver):
     """Tries to find the shaft speed satisfying N ordered pressure targets, one per pipeline section. Pipeline sections share a
     single physical shaft. Each pipeline section's runner covers a disjoint sub-sequence of the stream propagation chain.
 
@@ -27,13 +28,13 @@ class MultiPressureSolver:
     is re-evaluated from scratch.
     """
 
-    def __init__(
-        self,
-        pipeline_sections: list[PipelineSection],
-    ) -> None:
-        if len(pipeline_sections) < 2:
+    def __init__(self, pipeline: Pipeline) -> None:
+        if len(pipeline.get_process_pipeline_sections()) < 2:
             raise EcalcValidationException("MultiPressureSolver requires at least 2 pipeline sections.")
-        shaft_ids = {pipeline_section.shaft_id for pipeline_section in pipeline_sections}
+
+        self._pipeline: Pipeline = pipeline
+        pipeline_sections: list[PipelineSection] = pipeline.get_process_pipeline_sections()
+        shaft_ids = {pipeline_section.get_shaft_id() for pipeline_section in pipeline_sections}
         if len(shaft_ids) != 1:
             raise EcalcValidationException("All pipeline sections must share the same shaft_id.")
         self._shaft_id: Final = next(iter(shaft_ids))
@@ -44,7 +45,7 @@ class MultiPressureSolver:
     def _validate_pressure_control_placement(pipeline_sections: list[PipelineSection]) -> None:
         """Upstream choke is only valid on the first pipeline_section; downstream choke only on the last."""
         for i, pipeline_section in enumerate(pipeline_sections):
-            strategy = pipeline_section.pressure_control_strategy
+            strategy = pipeline_section.get_pressure_control_strategy()
             is_first = i == 0
             is_last = i == len(pipeline_sections) - 1
             if isinstance(strategy, UpstreamChokePressureControlStrategy) and not is_first:
@@ -73,15 +74,15 @@ class MultiPressureSolver:
         current_inlet = inlet_stream
         for pipeline_section, target in zip(self._pipeline_sections, pressure_targets):
             solution_for_pipeline_section = PipelineSectionSolver(pipeline_section).find_solution(
-                pressure_constraint=target, inlet_stream=current_inlet
+                pressure_targets=[target], inlet_stream=current_inlet
             )
             if not solution_for_pipeline_section.success:
                 return solution_for_pipeline_section
             speed_configuration = solution_for_pipeline_section.get_configuration(self._shaft_id)
             assert isinstance(speed_configuration, SpeedConfiguration)
             speed_configurations.append(speed_configuration)
-            pipeline_section.runner.apply_configurations(solution_for_pipeline_section.configuration)
-            current_inlet = pipeline_section.runner.run(inlet_stream=current_inlet)
+            pipeline_section.get_runner().apply_configurations(solution_for_pipeline_section.configuration)
+            current_inlet = pipeline_section.get_runner().run(inlet_stream=current_inlet)
 
         shaft_config = Configuration(
             configuration_handler_id=self._shaft_id,
@@ -92,29 +93,29 @@ class MultiPressureSolver:
         current_inlet = inlet_stream
 
         for pipeline_section, target in zip(self._pipeline_sections, pressure_targets):
-            pipeline_section.pressure_control_strategy.reset()  #  to clear a potential upstream/downstream choke
-            pipeline_section.runner.apply_configuration(shaft_config)
+            pipeline_section.get_pressure_control_strategy().reset()  #  to clear a potential upstream/downstream choke
+            pipeline_section.get_runner().apply_configuration(shaft_config)
 
-            anti_surge_solution = pipeline_section.anti_surge_strategy.apply(inlet_stream=current_inlet)
-            pipeline_section.runner.apply_configurations(anti_surge_solution.configuration)
+            anti_surge_solution = pipeline_section.get_anti_surge_strategy().apply(inlet_stream=current_inlet)
+            pipeline_section.get_runner().apply_configurations(anti_surge_solution.configuration)
             solution = solution.combine(anti_surge_solution)
 
-            outlet = pipeline_section.runner.run(inlet_stream=current_inlet)
+            outlet = pipeline_section.get_runner().run(inlet_stream=current_inlet)
 
             if outlet.pressure_bara > target:
-                pressure_control_solution = pipeline_section.pressure_control_strategy.apply(
+                pressure_control_solution = pipeline_section.get_pressure_control_strategy().apply(
                     target_pressure=target,
                     inlet_stream=current_inlet,
                 )
                 solution = solution.combine(pressure_control_solution)
-                pipeline_section.runner.apply_configurations(pressure_control_solution.configuration)
-                outlet = pipeline_section.runner.run(inlet_stream=current_inlet)
+                pipeline_section.get_runner().apply_configurations(pressure_control_solution.configuration)
+                outlet = pipeline_section.get_runner().run(inlet_stream=current_inlet)
             elif outlet.pressure_bara < target:
                 solution = Solution.target_pressure_unreachable(
                     configuration=solution.configuration,
                     achievable_pressure_bara=outlet.pressure_bara,
                     target_pressure_bara=target.value,
-                    source_id=pipeline_section.process_pipeline_id,
+                    source_id=self._pipeline.get_id(),  # TODO: Might want to change to section or unit id, or include both/thrith (yes, I just invented that word)
                     direction=TargetDirection.MAX_BELOW_TARGET,
                 )
 
