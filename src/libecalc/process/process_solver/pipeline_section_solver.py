@@ -85,7 +85,9 @@ class PipelineSectionSolver(PipelineSolver):
 
         shaft_config = Configuration(
             configuration_handler_id=self._pipeline_section.get_shaft_id(),
-            value=SpeedConfiguration(speed=self._pipeline_section.get_speed_boundary().min),
+            value=SpeedConfiguration(
+                speed=self._pipeline_section.get_speed_boundary().min
+            ),  # TODO: Min or max? Or nothing because we dont know? Last x we tried?
         )
         try:
             return self._find_solution(pressure_target, inlet_stream)
@@ -128,9 +130,7 @@ class PipelineSectionSolver(PipelineSolver):
         if isinstance(speed_finding.failure, TargetPressureUnreachableFailure) and (
             speed_finding.failure.direction == TargetDirection.MAX_BELOW_TARGET
         ):
-            failure = speed_finding.failure.with_source_id(
-                self._pipeline_section.get_process_pipeline_id()
-            )  # TODO: Here we do not have the parent pipeline id
+            failure = speed_finding.failure.with_source_id(self._pipeline_section.get_process_pipeline_id())
             return Solution(configuration=speed_and_anti_surge_configurations, failure=failure)
 
         outlet_at_chosen_speed = self._get_outlet_stream(
