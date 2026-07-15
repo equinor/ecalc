@@ -66,7 +66,7 @@ def inlet_stream(stream_factory) -> FluidStream:
 
 def _run_solver(system: ProcessSolverSystem, inlet_stream: FluidStream) -> SolverRunResult:
     target_pressure = FloatConstraint(75.0, abs_tol=1e-3)
-    solution = system.solver.find_solution(pressure_constraint=target_pressure, inlet_stream=inlet_stream)
+    solution = system.solver.find_solution(pressure_targets=[target_pressure], inlet_stream=inlet_stream)
     system.runner.apply_configurations(solution.configuration)
     outlet_stream = system.runner.run(inlet_stream=inlet_stream)
     speed = solution.get_configuration(system.shaft.get_id()).speed
@@ -114,7 +114,7 @@ def test_builder_wires_expected_solver_strategies(
         fluid_service=fluid_service,
     ).build()
     assert isinstance(
-        system.pipeline_section.pressure_control_strategy, PRESSURE_CONTROL_STRATEGY_TYPES[pressure_control_type]
+        system.pipeline_section.get_pressure_control_strategy(), PRESSURE_CONTROL_STRATEGY_TYPES[pressure_control_type]
     )
 
 

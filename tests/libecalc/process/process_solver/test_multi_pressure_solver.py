@@ -5,6 +5,7 @@ from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
+from libecalc.process.process_solver.pipeline_section import Pipeline
 from libecalc.process.process_solver.solver import TargetPressureUnreachableFailure
 from libecalc.process.process_units.mixer import Mixer
 from libecalc.process.process_units.splitter import Splitter
@@ -155,7 +156,7 @@ def test_two_stage_train_with_interstage_pressure_vs_legacy(
     )
 
     solver = multi_pressure_solver_factory(
-        pipeline_sections=[low_pressure_segment, high_pressure_segment],
+        pipeline=Pipeline(process_pipeline_sections=[low_pressure_segment, high_pressure_segment]),
     )
     solution = solver.find_solution(
         pressure_targets=[
@@ -302,20 +303,25 @@ def test_three_stage_train_with_mixers_and_splitters_at_interstage(
         )
 
     solver = multi_pressure_solver_factory(
-        pipeline_sections=[
-            make_segment(
-                low_pressure_runner, low_pressure_loop_ids, low_pressure_compressors, low_pressure_process_pipeline
-            ),
-            make_segment(
-                medium_pressure_runner,
-                medium_pressure_loop_ids,
-                medium_pressure_compressors,
-                medium_pressure_process_pipeline,
-            ),
-            make_segment(
-                high_pressure_runner, high_pressure_loop_ids, high_pressure_compressors, high_pressure_process_pipeline
-            ),
-        ],
+        pipeline=Pipeline(
+            process_pipeline_sections=[
+                make_segment(
+                    low_pressure_runner, low_pressure_loop_ids, low_pressure_compressors, low_pressure_process_pipeline
+                ),
+                make_segment(
+                    medium_pressure_runner,
+                    medium_pressure_loop_ids,
+                    medium_pressure_compressors,
+                    medium_pressure_process_pipeline,
+                ),
+                make_segment(
+                    high_pressure_runner,
+                    high_pressure_loop_ids,
+                    high_pressure_compressors,
+                    high_pressure_process_pipeline,
+                ),
+            ]
+        ),
     )
     solution = solver.find_solution(
         pressure_targets=[
@@ -407,7 +413,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
         process_pipeline_id=hp_process_pipeline.get_id(),
     )
 
-    solver = MultiPressureSolver(pipeline_sections=[lp_segment, hp_segment])
+    solver = MultiPressureSolver(Pipeline(process_pipeline_sections=[lp_segment, hp_segment]))
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
 
@@ -492,7 +498,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
         process_pipeline_id=hp_process_pipeline.get_id(),
     )
 
-    solver = MultiPressureSolver(pipeline_sections=[lp_segment, hp_segment])
+    solver = MultiPressureSolver(pipeline=Pipeline(process_pipeline_sections=[lp_segment, hp_segment]))
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
 

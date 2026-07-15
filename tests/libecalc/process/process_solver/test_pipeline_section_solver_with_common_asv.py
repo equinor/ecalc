@@ -65,7 +65,7 @@ def test_pipeline_section_solver_with_common_asv(
     assert inlet_stream.volumetric_rate_m3_per_hour == pytest.approx(681.253, rel=1e-4)
 
     solution = common_asv_solver.find_solution(
-        pressure_constraint=target_pressure,
+        pressure_targets=[target_pressure],
         inlet_stream=inlet_stream,
     )
     config_dict = {config.configuration_handler_id: config.value for config in solution.configuration}
@@ -154,7 +154,7 @@ def test_find_solution_returns_failure_when_rate_above_stonewall(
     assert inlet_stream.volumetric_rate_m3_per_hour > 300.0
 
     solution = solver.find_solution(
-        pressure_constraint=FloatConstraint(75.0),
+        pressure_targets=[FloatConstraint(75.0)],
         inlet_stream=inlet_stream,
     )
 
@@ -206,7 +206,7 @@ def test_pressure_control_boundary_not_affected_by_residual_anti_surge_recircula
 
     # A moderate target pressure that the compressor can deliver at high recirculation.
     solution = solver.find_solution(
-        pressure_constraint=FloatConstraint(60.0),
+        pressure_targets=[FloatConstraint(60.0)],
         inlet_stream=inlet_stream,
     )
 

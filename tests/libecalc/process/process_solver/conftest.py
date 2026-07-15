@@ -13,7 +13,7 @@ from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiS
 from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.configuration import ConfigurationHandlerId
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
-from libecalc.process.process_solver.pipeline_section import PipelineSection
+from libecalc.process.process_solver.pipeline_section import Pipeline, PipelineSection
 from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
 from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.process.process_solver.pressure_control.downstream_choke import (
@@ -269,9 +269,9 @@ def downstream_choke_pressure_control_strategy_factory():
 @pytest.fixture
 def multi_pressure_solver_factory():
     def create_multi_pressure_solver(
-        pipeline_sections: list[PipelineSection],
+        pipeline: Pipeline,
     ) -> MultiPressureSolver:
-        return MultiPressureSolver(pipeline_sections=pipeline_sections)
+        return MultiPressureSolver(pipeline=pipeline)
 
     return create_multi_pressure_solver
 

@@ -83,7 +83,7 @@ def test_process_solver_path(
     system, inlet_stream = process_solver_case_factory(chart_data=variable_speed_compressor_chart_data, case=case)
 
     solution = system.solver.find_solution(
-        pressure_constraint=FloatConstraint(case.region.discharge_pressure_bara, abs_tol=PRESSURE_TOLERANCE),
+        pressure_targets=[FloatConstraint(case.region.discharge_pressure_bara, abs_tol=PRESSURE_TOLERANCE)],
         inlet_stream=inlet_stream,
     )
     system.runner.apply_configurations(solution.configuration)
@@ -127,7 +127,7 @@ def test_process_solver_path(
     system.runner.apply_configurations(
         [c for c in solution.configuration if not isinstance(c.value, RecirculationConfiguration)]
     )
-    anti_surge_solution = system.pipeline_section.anti_surge_strategy.apply(inlet_stream=inlet_stream)
+    anti_surge_solution = system.pipeline_section.get_anti_surge_strategy().apply(inlet_stream=inlet_stream)
     anti_surge_recirculation_rates = tuple(c.value.recirculation_rate for c in anti_surge_solution.configuration)
 
     assert_control_behavior(

@@ -124,7 +124,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
         process_pipeline_id=process_pipeline.get_id(),
     )
     solution = train_solver.find_solution(
-        pressure_constraint=FloatConstraint(target_pressure),
+        pressure_targets=[FloatConstraint(target_pressure)],
         inlet_stream=inlet_stream,
     )
     config_dict = {config.configuration_handler_id: config for config in solution.configuration}

@@ -63,13 +63,13 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
         for _ in range(_N_STAGES)
     ]
     solver = MultiShaftEqualRatioSolver(pipeline_sections=solver_pipelines)
-    solution = solver.find_solution(FloatConstraint(_P_OUT_BARA, abs_tol=1.0), inlet_stream)
+    solution = solver.find_solution([FloatConstraint(_P_OUT_BARA, abs_tol=1.0)], inlet_stream)
 
     assert solution.success, f"Solver failed: {solution.failure}"
 
     current = inlet_stream
     for pipeline in solver_pipelines:
-        current = pipeline.runner.run(current)
+        current = pipeline.get_runner().run(current)
     new_outlet = current
 
     assert new_outlet.pressure_bara == pytest.approx(legacy_outlet.pressure_bara, rel=0.01)
