@@ -12,7 +12,6 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.pipeline_section import PipelineSection
 from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
 from libecalc.process.process_solver.pipeline_solver import PipelineSolver
-from libecalc.process.process_solver.solver import Solution
 from libecalc.process.process_solver.search_strategies import DidNotConvergeError
 from libecalc.process.process_solver.solver import (
     ConvergenceFailure,

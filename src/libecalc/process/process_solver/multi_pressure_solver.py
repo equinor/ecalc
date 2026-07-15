@@ -84,9 +84,9 @@ class MultiPressureSolver(PipelineSolver):
             return Solution(configuration=[], failure=process_error_to_failure(e))
 
     def _find_solution(
-            self,
-            pressure_targets: list[FloatConstraint],
-            inlet_stream: FluidStream,
+        self,
+        pressure_targets: list[FloatConstraint],
+        inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration]]:
 
         speed_configurations: list[SpeedConfiguration] = []
