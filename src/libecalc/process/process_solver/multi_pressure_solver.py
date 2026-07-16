@@ -139,7 +139,7 @@ class MultiPressureSolver(PipelineSolver):
                     configuration=solution.configuration,
                     achievable_pressure_bara=outlet.pressure_bara,
                     target_pressure_bara=target.value,
-                    source_id=self._pipeline.get_id(),  # TODO: Might want to change to section or unit id, or include both/thrith (yes, I just invented that word)
+                    source_id=pipeline_section.get_id(),
                     direction=TargetDirection.MAX_BELOW_TARGET,
                 )
 

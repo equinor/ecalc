@@ -77,7 +77,7 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
     ):
         self._name = name
         self._process_pipeline_sections = process_pipeline_sections
-        self._process_unit_connections = ProcessPipeline._create_process_unit_connections(
+        self._process_unit_connections = ProcessPipeline._create_process_unit_connections(  # NOTE: this can currently only be used in mapper, to create connections first time!
             process_pipeline_sections=process_pipeline_sections
         )
         self._process_pipeline_id = process_pipeline_id

@@ -17,7 +17,7 @@ from libecalc.process.process_pipeline.process_error import (
     OfftakeExceedsInletError,
     ProcessError,
 )
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessPipelineSectionId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import (
     Configuration,
@@ -157,9 +157,16 @@ class TargetPressureUnreachableFailure(SolverFailure):
     achievable_pressure_bara: float
     target_pressure_bara: float
     direction: TargetDirection
-    source_id: ProcessPipelineId | None = None  # TODO: Replace with failing process unit!
+    source_id: ProcessPipelineSectionId | None = (
+        None  # NOTE: This currently uniquely identifies the unit and connection as well, the last one in the section
+    )
 
-    def with_source_id(self, source_id: ProcessPipelineId) -> Self:  # TODO: Change to processunitid? ...
+    def with_source_id(self, source_id: ProcessPipelineSectionId) -> Self:
+        """
+        This is a smart way of potentially adding more metadata to the failure as it is sent up the hierarchy. We
+        do not necessarily need to send all kinds of metadata and irrelevant data to a given function just to
+        add metadata to the failure. Instead, we can add more metadata as it is being sent up the hierarchy.
+        """
         return dataclasses.replace(self, source_id=source_id)
 
 
@@ -189,7 +196,7 @@ class Solution[TConfiguration]:
         achievable_pressure_bara: float,
         target_pressure_bara: float,
         direction: TargetDirection,
-        source_id: ProcessPipelineId | None = None,
+        source_id: ProcessPipelineSectionId | None = None,
     ) -> Solution[T]:
         """Build an unsuccessful Solution carrying a TargetPressureUnreachableFailure."""
         return Solution(

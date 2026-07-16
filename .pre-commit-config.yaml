@@ -38,6 +38,7 @@ repos:
         name: Check for typos in code
         additional_dependencies: [ tomli ]
         exclude: docs/docs/changelog/changelog.md|.*\.ipynb
+        args: ["--write-changes"]  # Instead of just complaining about typos, automatically fix them in the files.
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
     rev: 1d7031e6d0bbfce76e5a625b0cec24fb22e517a0  # frozen: v9.25.0
 
