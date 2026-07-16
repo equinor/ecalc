@@ -130,7 +130,7 @@ class PipelineSectionSolver(PipelineSolver):
         if isinstance(speed_finding.failure, TargetPressureUnreachableFailure) and (
             speed_finding.failure.direction == TargetDirection.MAX_BELOW_TARGET
         ):
-            failure = speed_finding.failure.with_source_id(self._pipeline_section.get_process_pipeline_id())
+            failure = speed_finding.failure.with_source_id(self._pipeline_section.get_id())
             return Solution(configuration=speed_and_anti_surge_configurations, failure=failure)
 
         outlet_at_chosen_speed = self._get_outlet_stream(
@@ -147,7 +147,7 @@ class PipelineSectionSolver(PipelineSolver):
         )
         failure = pressure_control_solution.failure
         if isinstance(failure, TargetPressureUnreachableFailure) and failure.source_id is None:
-            failure = failure.with_source_id(self._pipeline_section.get_process_pipeline_id())
+            failure = failure.with_source_id(self._pipeline_section.get_id())
         return Solution(
             configuration=merge_configurations(
                 speed_and_anti_surge_configurations, pressure_control_solution.configuration
