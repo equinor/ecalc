@@ -3,6 +3,7 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.process.process_solver.pipeline_section import Pipeline
@@ -380,7 +381,6 @@ def test_target_not_achievable_event_identifies_failing_segment(
     lp_units, lp_loops = with_individual_asv(lp_units_raw)
     lp_loop_ids = [loop.get_id() for loop in lp_loops]
     lp_runner = process_runner_factory(units=lp_units, configuration_handlers=[shaft, *lp_loops])
-    lp_process_pipeline = process_pipeline_factory(units=lp_units)
 
     hp_compressor = compressor_factory(chart_data=chart_data)
     hp_units_raw = stage_units_factory(compressor=hp_compressor, shaft=shaft, temperature_kelvin=temperature)
@@ -388,7 +388,8 @@ def test_target_not_achievable_event_identifies_failing_segment(
     hp_units, hp_loops = with_individual_asv(hp_units_raw)
     hp_loop_ids = [loop.get_id() for loop in hp_loops]
     hp_runner = process_runner_factory(units=hp_units, configuration_handlers=[shaft, *hp_loops])
-    hp_process_pipeline = process_pipeline_factory(units=hp_units)
+
+    process_pipeline_id = ProcessPipeline._create_id()
 
     lp_segment = pipeline_section_factory(
         runner=lp_runner,
@@ -399,7 +400,7 @@ def test_target_not_achievable_event_identifies_failing_segment(
             runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
         ),
         shaft=shaft,
-        process_pipeline_id=lp_process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
     hp_segment = pipeline_section_factory(
         runner=hp_runner,
@@ -410,10 +411,13 @@ def test_target_not_achievable_event_identifies_failing_segment(
             runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
         ),
         shaft=shaft,
-        process_pipeline_id=hp_process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
 
-    solver = MultiPressureSolver(Pipeline(process_pipeline_sections=[lp_segment, hp_segment]))
+    process_pipeline = Pipeline(
+        process_pipeline_sections=[lp_segment, hp_segment], process_pipeline_id=process_pipeline_id
+    )
+    solver = MultiPressureSolver(pipeline=process_pipeline)
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
 
@@ -425,7 +429,9 @@ def test_target_not_achievable_event_identifies_failing_segment(
 
     assert not solution.success
     assert isinstance(solution.failure, TargetPressureUnreachableFailure)
-    assert solution.failure.source_id == hp_process_pipeline.get_id()
+    assert (
+        solution.failure.source_id == process_pipeline.get_process_pipeline_sections()[1].get_id()
+    )  # HP section fails
 
 
 def test_target_not_achievable_event_when_first_segment_fails(
@@ -465,7 +471,6 @@ def test_target_not_achievable_event_when_first_segment_fails(
     lp_units, lp_loops = with_individual_asv(lp_units_raw)
     lp_loop_ids = [loop.get_id() for loop in lp_loops]
     lp_runner = process_runner_factory(units=lp_units, configuration_handlers=[shaft, *lp_loops])
-    lp_process_pipeline = process_pipeline_factory(units=lp_units)
 
     hp_compressor = compressor_factory(chart_data=chart_data)
     hp_units_raw = stage_units_factory(compressor=hp_compressor, shaft=shaft, temperature_kelvin=temperature)
@@ -473,7 +478,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
     hp_units, hp_loops = with_individual_asv(hp_units_raw)
     hp_loop_ids = [loop.get_id() for loop in hp_loops]
     hp_runner = process_runner_factory(units=hp_units, configuration_handlers=[shaft, *hp_loops])
-    hp_process_pipeline = process_pipeline_factory(units=hp_units)
+    process_pipeline_id = ProcessPipeline._create_id()
 
     lp_segment = pipeline_section_factory(
         runner=lp_runner,
@@ -484,7 +489,7 @@ def test_target_not_achievable_event_when_first_segment_fails(
             runner=lp_runner, recirculation_loop_ids=lp_loop_ids, compressors=lp_compressors
         ),
         shaft=shaft,
-        process_pipeline_id=lp_process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
     hp_segment = pipeline_section_factory(
         runner=hp_runner,
@@ -495,10 +500,14 @@ def test_target_not_achievable_event_when_first_segment_fails(
             runner=hp_runner, recirculation_loop_ids=hp_loop_ids, compressors=hp_compressors
         ),
         shaft=shaft,
-        process_pipeline_id=hp_process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
 
-    solver = MultiPressureSolver(pipeline=Pipeline(process_pipeline_sections=[lp_segment, hp_segment]))
+    process_pipeline = Pipeline(
+        process_pipeline_sections=[lp_segment, hp_segment], process_pipeline_id=process_pipeline_id
+    )
+
+    solver = MultiPressureSolver(pipeline=process_pipeline)
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=10_000, pressure_bara=30.0, temperature_kelvin=temperature)
 
@@ -510,4 +519,6 @@ def test_target_not_achievable_event_when_first_segment_fails(
 
     assert not solution.success
     assert isinstance(solution.failure, TargetPressureUnreachableFailure)
-    assert solution.failure.source_id == lp_process_pipeline.get_id()
+    assert (
+        solution.failure.source_id == process_pipeline.get_process_pipeline_sections()[0].get_id()
+    )  # LP section fails
