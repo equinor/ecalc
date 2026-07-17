@@ -1,5 +1,6 @@
 from typing import Final
 
+from libecalc.common.ddd import value_object
 from libecalc.domain.process.compressor.core.train.utils.common import (
     RECIRCULATION_BOUNDARY_TOLERANCE,
     calculate_outlet_pressure_and_stream,
@@ -16,6 +17,13 @@ from libecalc.process.process_pipeline.process_error import (
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
+
+
+@value_object
+class OperationalPoint:
+    actual_rate_am3_h: float
+    polytropic_efficiency: float
+    polytropic_head_joule_per_kg: float
 
 
 class Compressor(ProcessUnit):
@@ -53,24 +61,43 @@ class Compressor(ProcessUnit):
                 process_unit_id=self._id,
             )
 
+        operational_point: OperationalPoint = self.get_operational_point(inlet_stream=inlet_stream)
+
+        return calculate_outlet_pressure_and_stream(
+            polytropic_efficiency=operational_point.polytropic_efficiency,
+            polytropic_head_joule_per_kg=operational_point.polytropic_head_joule_per_kg,
+            inlet_stream=inlet_stream,
+            fluid_service=self._fluid_service,
+        )
+
+    def get_operational_point(self, inlet_stream: FluidStream) -> OperationalPoint:
+        """
+        The compressor chart is set, and the shaft speed has been configured and is fixed on the compressor.
+        We will then quickly calculate/look up in the chart to get polytropic efficiency and polytropic head,
+        for the given inlet stream and speed.
+
+        TODO: Might want to move this to CompressorChart, to avoid dependency to internal speed and chart,
+        but can invoke it and test it statelessy :)
+
+        Unless, we do not want to move stuff there because its legacy code ...?
+        """
+        actual_rate_am3_h = inlet_stream.volumetric_rate_m3_per_hour
         chart_curve_at_given_speed = self.compressor_chart.get_curve_by_speed(speed=self.speed)
         if chart_curve_at_given_speed is not None:
-            polytropic_head = float(chart_curve_at_given_speed.head_as_function_of_rate(actual_rate))
-            polytropic_efficiency = float(chart_curve_at_given_speed.efficiency_as_function_of_rate(actual_rate))
+            polytropic_head = float(chart_curve_at_given_speed.head_as_function_of_rate(actual_rate_am3_h))
+            polytropic_efficiency = float(chart_curve_at_given_speed.efficiency_as_function_of_rate(actual_rate_am3_h))
         else:
             (
                 polytropic_head,
                 polytropic_efficiency,
             ) = self.compressor_chart.calculate_head_and_efficiency_for_internal_point_between_given_speeds(
                 speed=self.speed,
-                rate=actual_rate,
+                rate=actual_rate_am3_h,
             )
-
-        return calculate_outlet_pressure_and_stream(
+        return OperationalPoint(
+            actual_rate_am3_h=actual_rate_am3_h,
             polytropic_efficiency=polytropic_efficiency,
             polytropic_head_joule_per_kg=polytropic_head,
-            inlet_stream=inlet_stream,
-            fluid_service=self._fluid_service,
         )
 
     @property
