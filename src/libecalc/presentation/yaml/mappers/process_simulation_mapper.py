@@ -376,11 +376,15 @@ class ProcessSimulationMapper:
             )
 
             # Set up problem and problem sections
-            for pipeline_section, mapped_section, assembled_section in zip(
-                process_pipeline_sections, mapped_sections, assembled_sections, strict=True
+            for nr, (pipeline_section, mapped_section, assembled_section) in enumerate(
+                zip(process_pipeline_sections, mapped_sections, assembled_sections, strict=True)
             ):
+                # For the first n-1 sections, we put it at the last unit, for the nth section we put it before the outlet unit
+                constraint_position = -2
+                if nr == len(process_pipeline_sections):
+                    constraint_position = -1
                 target_process_unit_id = pipeline_section.get_process_units()[
-                    -2
+                    constraint_position
                 ].get_id()  # The last unit is the outlet, so we take the one before that
                 # TODO: The mapped_section.target_process_unit_id is incorrect, as that is before we apply ASV and Pressure Control ...
                 try:
