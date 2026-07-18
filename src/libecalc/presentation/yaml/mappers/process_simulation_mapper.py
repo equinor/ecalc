@@ -379,18 +379,21 @@ class ProcessSimulationMapper:
             for pipeline_section, mapped_section, assembled_section in zip(
                 process_pipeline_sections, mapped_sections, assembled_sections, strict=True
             ):
+                target_process_unit_id = pipeline_section.get_process_units()[
+                    -2
+                ].get_id()  # The last unit is the outlet, so we take the one before that
+                # TODO: The mapped_section.target_process_unit_id is incorrect, as that is before we apply ASV and Pressure Control ...
                 try:
                     constraint = Constraint(
                         outlet_pressure=TimeSeriesExpression(
                             expression=mapped_section.constraint.outlet_pressure,
                             expression_evaluator=self._expression_evaluator,
                         ),
-                        target_process_unit_id=mapped_section.target_process_unit_id,
+                        target_process_unit_id=target_process_unit_id,
                         target_process_connection_id=next(
                             process_unit_connection.get_id()
                             for process_unit_connection in process_pipeline.get_process_unit_connections()
-                            if process_unit_connection.get_from_process_unit_id()
-                            == mapped_section.target_process_unit_id
+                            if process_unit_connection.get_from_process_unit_id() == target_process_unit_id
                         ),
                     )
                 except StopIteration:
