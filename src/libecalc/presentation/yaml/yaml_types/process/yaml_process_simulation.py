@@ -41,13 +41,13 @@ class YamlEcalcEvent(YamlBase):
             description="Start date when this event takes effect.",
         ),
     ]
-    end: Annotated[
-        YamlDefaultDatetime,
-        Field(
-            title="END",
-            description="End date when this event ceases to be in effect.",
-        ),
-    ]
+    # end: Annotated[  # Temp remove. Should be defined by next (for now)
+    #    YamlDefaultDatetime,
+    #    Field(
+    #        title="END",
+    #        description="End date when this event ceases to be in effect.",
+    #    ),
+    # ]
     name: Annotated[
         str,
         Field(
