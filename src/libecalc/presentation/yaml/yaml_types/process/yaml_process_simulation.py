@@ -10,6 +10,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
+    EcalcEventReference,
     ProcessPipelineReference,
     ProcessUnitReference,
 )
@@ -61,6 +62,42 @@ class YamlEcalcEvent(YamlBase):
             description="Human-readable description of the event and its purpose.",
         ),
     ] = None
+
+
+class ProcessEventType(StrEnum):
+    REBUNDLE = "REBUNDLE"
+    REVAMP = "REVAMP"
+
+
+class YamlProcessEvent(YamlBase):
+    type: Annotated[
+        ProcessEventType,
+        Field(
+            title="TYPE",
+            description="Type of process event, e.g. REBUNDLE, REVAMP.",
+        ),
+    ]
+    name: Annotated[
+        str,
+        Field(
+            title="NAME",
+            description="Short identifier for the process event.",
+        ),
+    ]
+    description: Annotated[
+        str | None,
+        Field(
+            title="DESCRIPTION",
+            description="Human-readable description of the process event.",
+        ),
+    ] = None
+    ref: Annotated[
+        EcalcEventReference,
+        Field(
+            title="REF",
+            description="Reference to a global ECALC_EVENT by name.",
+        ),
+    ]
 
 
 class YamlProcessConstraint(YamlBase):
