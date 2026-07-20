@@ -274,7 +274,11 @@ class CompressorTrainResult(EnergyFunctionResult):
             if self.stage_results is not None
             else [not isnan(x) for x in self._energy_usage.values]
         )
-        return np.all([failure_status_are_valid, turbine_are_valid, stage_results_are_valid], axis=0).tolist()
+        return (
+            np.asarray(failure_status_are_valid, dtype=bool)
+            & np.asarray(turbine_are_valid, dtype=bool)
+            & np.asarray(stage_results_are_valid, dtype=bool)
+        ).tolist()
 
     @property
     def inlet_stream(self) -> CompressorStreamCondition:

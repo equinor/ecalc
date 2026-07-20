@@ -1720,14 +1720,6 @@
         ],
         "./src/libecalc/domain/process/value_objects/chart/base.py": [
             {
-                "code": "reportOperatorIssue",
-                "range": {
-                    "startColumn": 22,
-                    "endColumn": 81,
-                    "lineCount": 1
-                }
-            },
-            {
                 "code": "reportReturnType",
                 "range": {
                     "startColumn": 15,

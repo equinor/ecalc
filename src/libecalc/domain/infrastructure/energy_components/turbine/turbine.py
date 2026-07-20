@@ -39,7 +39,7 @@ class Turbine:
         self._energy_usage_adjustment_constant = energy_usage_adjustment_constant
 
     @property
-    def max_power(self) -> float | None:
+    def max_power(self) -> float:
         return self._maximum_load * self._energy_usage_adjustment_factor - self._energy_usage_adjustment_constant
 
     def evaluate(self, load: NDArray[np.float64], fuel_lower_heating_value: float = 0) -> TurbineResult:
