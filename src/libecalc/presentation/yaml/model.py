@@ -152,6 +152,8 @@ class YamlModel:
             fluid_service=NeqSimFluidService.instance(),
             resources=facility_resources,
             reference_service=self._get_reference_service(),
+            ecalc_events=self._configuration.ecalc_events,
+            process_events=self._configuration.process_events,
         )
         process_pipelines = []
         for yaml_process_simulation in self._configuration.process_simulations:

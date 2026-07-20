@@ -1,7 +1,9 @@
 from collections.abc import Sequence
+from enum import StrEnum
 from typing import Final, NewType, Self
 from uuid import UUID
 
+from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
@@ -9,6 +11,28 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessU
 ProcessPipelineId = NewType("ProcessPipelineId", UUID)
 ProcessPipelineSectionId = NewType("ProcessPipelineSectionId", UUID)
 ProcessUnitConnectionId = NewType("ProcessUnitConnectionId", UUID)
+
+
+class PipelineEventAction(StrEnum):
+    CHANGE = "CHANGE"
+    ADD = "ADD"
+    REMOVE = "REMOVE"
+
+
+class PipelineEventChangeType(StrEnum):
+    REBUNDLE = "REBUNDLE"
+
+
+@value_object
+class PipelineEvent:
+    """Describes a change to a process unit in a pipeline, e.g. a compressor rebundle."""
+
+    action: PipelineEventAction
+    change_target: str
+    change_from: str
+    change_to: str
+    change_type: PipelineEventChangeType
+    process_event_ref: str | None
 
 
 class ProcessUnitConnection(Entity[ProcessUnitConnectionId]):
@@ -74,9 +98,11 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
         name: str,
         process_pipeline_sections: Sequence[ProcessPipelineSection],
         process_pipeline_id: ProcessPipelineId | None = None,
+        events: Sequence[PipelineEvent] | None = None,
     ):
         self._name = name
         self._process_pipeline_sections = process_pipeline_sections
+        self._events: Sequence[PipelineEvent] = events or []
         self._process_unit_connections = ProcessPipeline._create_process_unit_connections(  # NOTE: this can currently only be used in mapper, to create connections first time!
             process_pipeline_sections=process_pipeline_sections
         )
@@ -101,6 +127,9 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
             for process_section in self.get_process_pipeline_sections()
             for process_unit in process_section.get_process_units()
         ]
+
+    def get_events(self) -> Sequence[PipelineEvent]:
+        return self._events
 
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessPipelineId:
