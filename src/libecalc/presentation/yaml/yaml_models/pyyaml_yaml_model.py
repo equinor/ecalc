@@ -36,6 +36,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlEcalcEvent,
     YamlProcessEvent,
     YamlProcessSimulation,
+    YamlPumpProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
@@ -52,6 +53,7 @@ _FLUID_MODELS_KEY = "FLUID_MODELS"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _ECALC_EVENTS_KEY = "ECALC_EVENTS"
 _PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
+_PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
 _NEW_SECTIONS_WITH_FILE_REFS: tuple[str, ...] = (
     "PROCESS_UNITS",
     "PROCESS_PIPELINES",
@@ -505,6 +507,17 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             except PydanticValidationError:
                 pass
         return process_events
+
+    @property
+    def pump_process_simulations(self) -> list[YamlPumpProcessSimulation]:
+        pump_process_simulations: list[YamlPumpProcessSimulation] = []
+        adapter = TypeAdapter(YamlPumpProcessSimulation)
+        for pump_process_simulation in self._get_yaml_list_or_empty(_PUMP_PROCESS_SIMULATIONS_KEY):
+            try:
+                pump_process_simulations.append(adapter.validate_python(pump_process_simulation))
+            except PydanticValidationError:
+                pass
+        return pump_process_simulations
 
     @property
     def start(self) -> datetime.datetime | None:

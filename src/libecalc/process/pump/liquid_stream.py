@@ -63,7 +63,7 @@ class LiquidStream:
         pressure_bara: float,
         density_kg_per_m3: float,
     ) -> LiquidStream:
-        """Create a stream from an actual volumetric flow rate [m3/day]."""
+        """Create a stream from a volumetric flow rate [m3/day]."""
         mass_rate_kg_per_h = volumetric_rate_m3_per_day * density_kg_per_m3 / UnitConstants.HOURS_PER_DAY
         return cls(
             pressure_bara=pressure_bara,

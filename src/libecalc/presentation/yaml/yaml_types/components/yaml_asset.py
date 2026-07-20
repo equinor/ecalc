@@ -12,6 +12,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlEcalcEvent,
     YamlProcessEvent,
     YamlProcessSimulation,
+    YamlPumpProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
@@ -92,6 +93,11 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="PROCESS_EVENTS",
         description="Defines process-specific events that reference global eCalc events.",
+    )
+    pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
+        default_factory=list,
+        title="PUMP_PROCESS_SIMULATIONS",
+        description="Defines one or more liquid pump process simulations to be run.",
     )
     installations: list[YamlInstallation] = Field(
         ...,
@@ -188,6 +194,10 @@ class YamlAsset(YamlBase):
         if self.process_simulations is not None:
             for process_simulation in self.process_simulations:
                 references.append(process_simulation.name)
+
+        if self.pump_process_simulations is not None:
+            for pump_process_simulation in self.pump_process_simulations:
+                references.append(pump_process_simulation.name)
 
         # TODO: Add ecalc events references?
 

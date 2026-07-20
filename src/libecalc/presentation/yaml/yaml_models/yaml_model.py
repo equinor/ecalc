@@ -21,6 +21,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlEcalcEvent,
     YamlProcessEvent,
     YamlProcessSimulation,
+    YamlPumpProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
@@ -110,6 +111,11 @@ class YamlValidator(abc.ABC):
     @property
     @abc.abstractmethod
     def process_events(self) -> list[YamlProcessEvent]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def pump_process_simulations(self) -> Iterable[YamlPumpProcessSimulation]:
         pass
 
     @property

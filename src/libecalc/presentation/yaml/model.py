@@ -45,6 +45,7 @@ from libecalc.presentation.yaml.domain.time_series_collections import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
+from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
     InvalidEndDate,
@@ -68,6 +69,10 @@ from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContextNames,
 )
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
+from libecalc.process.pump.pump_process_simulation import (
+    PumpOperatingInput,
+    PumpProcessSimulation,
+)
 
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
@@ -164,6 +169,22 @@ class YamlModel:
             process_simulations.append(process_simulation)
 
         return process_pipelines, process_simulations
+
+    def get_pump_process_simulations(
+        self,
+    ) -> list[tuple[PumpProcessSimulation, list[PumpOperatingInput], list[Period]]]:
+        self.validate_for_run()
+        facility_resources, _ = self._resource_service.get_facility_resources()
+        mapper = PumpProcessSimulationMapper(
+            expression_evaluator=self.get_expression_evaluator(),
+            process_simulation_period=self.period,
+            resources=facility_resources,
+            reference_service=self._get_reference_service(),
+        )
+        return [
+            mapper.map(yaml_pump_process_simulation)
+            for yaml_pump_process_simulation in self._configuration.pump_process_simulations
+        ]
 
     def get_periods(self) -> list[Period]:
         """

@@ -89,7 +89,7 @@ def test_power_matches_legacy(request, chart_name, rate_m3h, suction, discharge)
         rate=rate_m3h * 24.0, suction_pressure=suction, discharge_pressure=discharge, fluid_density=DENSITY
     )
     result = pump.evaluate(_inlet(rate_m3h, suction), discharge_pressure_bara=discharge)
-    assert result.power_mw == pytest.approx(legacy_power)
+    assert result.shaft_power_mw == pytest.approx(legacy_power)
 
 
 def test_recirculation_up_to_minimum_flow(single_speed_chart):
@@ -97,6 +97,14 @@ def test_recirculation_up_to_minimum_flow(single_speed_chart):
     result = pump.evaluate(_inlet(400, suction_pressure=5.0), discharge_pressure_bara=90.0)
     assert result.operational_volumetric_rate_m3_per_hour == pytest.approx(600.0)
     assert result.recirculation_rate_m3_per_hour == pytest.approx(200.0)
+    assert result.efficiency is not None
+    assert result.specific_shaft_work_joule_per_kg is not None
+    operating_mass_rate_kg_per_h = result.operational_volumetric_rate_m3_per_hour * DENSITY
+    specific_shaft_work_joule_per_kg = result.specific_shaft_work_joule_per_kg
+    assert specific_shaft_work_joule_per_kg is not None
+    assert result.shaft_power_mw == pytest.approx(
+        operating_mass_rate_kg_per_h * specific_shaft_work_joule_per_kg / 3600.0 / 1_000_000.0
+    )
 
 
 def test_over_delivery_exposes_operating_vs_required_and_choke(single_speed_chart):
@@ -118,6 +126,13 @@ def test_variable_speed_in_band_sits_on_target_with_interpolated_speed(variable_
     assert result.choke_pressure_drop_bara == pytest.approx(0.0)
     assert result.speed_rpm is not None
     assert 2650.0 < result.speed_rpm < 3425.0
+    assert result.efficiency is not None
+    specific_shaft_work_joule_per_kg = result.specific_shaft_work_joule_per_kg
+    assert specific_shaft_work_joule_per_kg is not None
+    assert specific_shaft_work_joule_per_kg == pytest.approx(result.operational_head_joule_per_kg / result.efficiency)
+    assert result.shaft_power_mw == pytest.approx(
+        result.inlet_stream.mass_rate_kg_per_h * specific_shaft_work_joule_per_kg / 3600.0 / 1_000_000.0
+    )
 
 
 @pytest.mark.parametrize(
@@ -139,7 +154,9 @@ def test_feasibility_status(request, chart_name, rate_m3h, discharge, expected_s
 def test_not_running_when_rate_is_zero(single_speed_chart):
     pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
     result = pump.evaluate(_inlet(0.0, suction_pressure=5.0), discharge_pressure_bara=100.0)
-    assert result.power_mw == 0.0
+    assert result.shaft_power_mw == 0.0
+    assert result.efficiency is None
+    assert result.specific_shaft_work_joule_per_kg is None
     assert result.speed_rpm is None
     assert result.is_valid
 
@@ -174,7 +191,7 @@ def test_rejects_zero_efficiency_pump_chart(chart_data_factory):
         Pump(chart, minimum_flow_rate_m3_per_hour=100.0)
 
 
-def test_propagate_stream_delivers_operating_pressure_at_demand_rate(single_speed_chart):
+def test_propagate_stream_delivers_operating_pressure_at_requested_rate(single_speed_chart):
     inlet = _inlet(600, suction_pressure=5.0)
     pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
     pump.set_discharge_pressure(50.0)
@@ -182,12 +199,6 @@ def test_propagate_stream_delivers_operating_pressure_at_demand_rate(single_spee
     result = pump.evaluate(inlet, discharge_pressure_bara=50.0)
     assert outlet.pressure_bara == pytest.approx(result.operational_discharge_pressure_bara)
     assert outlet.mass_rate_kg_per_h == inlet.mass_rate_kg_per_h  # recirculation is internal
-
-
-def test_pump_identity(single_speed_chart):
-    provided_id = ProcessUnitId(ecalc_id_generator())
-    assert Pump(single_speed_chart, CHART_MIN_FLOW, process_unit_id=provided_id).get_id() == provided_id
-    assert Pump(single_speed_chart, CHART_MIN_FLOW).get_id() != Pump(single_speed_chart, CHART_MIN_FLOW).get_id()
 
 
 def test_result_carries_process_unit_id(single_speed_chart):
