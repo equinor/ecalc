@@ -376,21 +376,28 @@ class ProcessSimulationMapper:
             )
 
             # Set up problem and problem sections
-            for pipeline_section, mapped_section, assembled_section in zip(
-                process_pipeline_sections, mapped_sections, assembled_sections, strict=True
+            for nr, (pipeline_section, mapped_section, assembled_section) in enumerate(
+                zip(process_pipeline_sections, mapped_sections, assembled_sections, strict=True)
             ):
+                # For the first n-1 sections, we put it at the last unit, for the nth section we put it before the outlet unit
+                constraint_position = -2
+                if nr == len(process_pipeline_sections):
+                    constraint_position = -1
+                target_process_unit_id = pipeline_section.get_process_units()[
+                    constraint_position
+                ].get_id()  # The last unit is the outlet, so we take the one before that
+                # TODO: The mapped_section.target_process_unit_id is incorrect, as that is before we apply ASV and Pressure Control ...
                 try:
                     constraint = Constraint(
                         outlet_pressure=TimeSeriesExpression(
                             expression=mapped_section.constraint.outlet_pressure,
                             expression_evaluator=self._expression_evaluator,
                         ),
-                        target_process_unit_id=mapped_section.target_process_unit_id,
+                        target_process_unit_id=target_process_unit_id,
                         target_process_connection_id=next(
                             process_unit_connection.get_id()
                             for process_unit_connection in process_pipeline.get_process_unit_connections()
-                            if process_unit_connection.get_from_process_unit_id()
-                            == mapped_section.target_process_unit_id
+                            if process_unit_connection.get_from_process_unit_id() == target_process_unit_id
                         ),
                     )
                 except StopIteration:
