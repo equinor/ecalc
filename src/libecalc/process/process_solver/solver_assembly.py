@@ -104,6 +104,8 @@ def assemble_solver(
     pipeline = ProcessPipeline(
         name=pipeline_name,
         process_pipeline_sections=[ProcessPipelineSection(process_units=process_units)],
+        events=[],
+        process_periods=[],
     )
     runner = ProcessPipelineRunner(units=process_units, configuration_handlers=configuration_handlers)
 
