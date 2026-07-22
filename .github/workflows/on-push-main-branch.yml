@@ -32,8 +32,6 @@ jobs:
     permissions:
       contents: write
     uses: ./.github/workflows/publish-docs.yml
-    secrets:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 #  trigger-external-workflow:
 #    uses: ./.github/workflows/trigger-external-workflow.yml
