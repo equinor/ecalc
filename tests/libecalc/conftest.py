@@ -243,6 +243,8 @@ def process_pipeline_factory(name_factory):
         return ProcessPipeline(
             process_pipeline_sections=[ProcessPipelineSection(process_units=units)],
             name=name or name_factory("Pipeline"),
+            process_periods=[],
+            events=[],
         )
 
     return create_process_pipeline
