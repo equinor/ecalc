@@ -23,7 +23,7 @@ def _type_handler(unit_func: Callable[[Any], Any]) -> Callable[[Any], Any]:
 
     @func.register(list)
     def _(i: list) -> Any:
-        return unit_func(np.asarray(i, dtype=(type(i)))).tolist()
+        return unit_func(np.asarray(i)).tolist()
 
     return func
 
