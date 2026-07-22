@@ -472,7 +472,7 @@ dev = [
 requires-dist = [
     { name = "jneqsim", specifier = ">=3.0.42" },
     { name = "networkx", specifier = "~=3.2" },
-    { name = "numpy", specifier = ">=2.5,<3" },
+    { name = "numpy", specifier = ">=2,<3" },
     { name = "orjson", specifier = "~=3.8" },
     { name = "pandas", specifier = ">=2,<4" },
     { name = "py4j", specifier = "~=0.10" },
