@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
@@ -47,8 +48,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
     ProcessUnitReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -125,23 +124,13 @@ class ProcessSimulationMapper:
         reference_service: ReferenceService,
         process_simulation_period: Period,
         resources: Resources,
-        ecalc_events: list[YamlEcalcEvent] | None = None,
-        process_events: list[YamlProcessEvent] | None = None,
+        process_event_dates: dict[str, datetime] | None = None,
     ):
         self._expression_evaluator = expression_evaluator.get_subset_for_period(process_simulation_period)
         self._fluid_service = fluid_service
         self._reference_service = reference_service
         self._resources = resources
-        self._ecalc_events_by_name: dict[str, YamlEcalcEvent] = {e.name: e for e in (ecalc_events or [])}
-        self._process_events_by_name: dict[str, YamlProcessEvent] = {e.name: e for e in (process_events or [])}
-
-        # Validate that all PROCESS_EVENT REFs point to known ECALC_EVENTs
-        for pe in process_events or []:
-            if pe.ref not in self._ecalc_events_by_name:
-                raise EcalcValidationException(
-                    f"PROCESS_EVENT '{pe.name}' references ECALC_EVENT '{pe.ref}' which does not exist. "
-                    f"Available: {', '.join(sorted(self._ecalc_events_by_name.keys()))}."
-                )
+        self._process_event_dates: dict[str, datetime] = process_event_dates or {}
 
     def _resolve_train_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
@@ -270,7 +259,7 @@ class ProcessSimulationMapper:
                     f"Pipeline event CHANGE_TARGET '{yaml_event.change_target}' does not match any named item "
                     f"in pipeline '{yaml_pipeline.name}'. Available items: {', '.join([str(item.name) for item in yaml_pipeline.items])}."
                 )
-            #
+
             if (change_to_yaml_process_unit := self._reference_service.get_process_unit(yaml_event.change_to)) is None:
                 raise EcalcValidationException(
                     f"Pipeline event CHANGE_TO '{yaml_event.change_to}' does not refer to a known process unit."
@@ -283,16 +272,13 @@ class ProcessSimulationMapper:
                         f"Pipeline event CHANGE_TO '{change_to_yaml_process_unit}' does not match any compressor (chart) unit."
                     )
 
-            # Validate optional REF points to a known process event
+            # Resolve event date from the process_event_dates lookup
             process_event_ref: str | None = yaml_event.ref
-            if process_event_ref is None or process_event_ref not in self._process_events_by_name:
+            if process_event_ref is None or process_event_ref not in self._process_event_dates:
                 raise EcalcValidationException(
                     f"Pipeline event REF '{process_event_ref}' does not match any PROCESS_EVENT. "
-                    f"Available: {', '.join(sorted(self._process_events_by_name.keys()))}."
+                    f"Available: {', '.join(sorted(self._process_event_dates.keys()))}."
                 )
-            process_event = self._process_events_by_name[process_event_ref]
-            # NOTE: We have verified that all process events have correct refs already
-            ecalc_event = self._ecalc_events_by_name[process_event.ref]
 
             events.append(
                 PipelineEvent(
@@ -300,7 +286,7 @@ class ProcessSimulationMapper:
                     change_target=unit_name_to_id[yaml_event.change_target],
                     change_to=change_to_unit,
                     change_type=PipelineEventChangeType(yaml_event.change_type.value),
-                    change_time=ecalc_event.start,
+                    change_time=self._process_event_dates[process_event_ref],
                 )
             )
 

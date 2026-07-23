@@ -35,6 +35,12 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
+from libecalc.ecalc_model.ecalc_event import (
+    EcalcEvent,
+    EcalcEventType,
+    ProcessEvent,
+    ProcessEventType,
+)
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.container_info import ContainerInfo
@@ -151,14 +157,20 @@ class YamlModel:
         self.validate_for_run()
         process_simulations = []
         facility_resources, _ = self._resource_service.get_facility_resources()
+
+        # Build event name → date lookup for the mapper
+        ecalc_events, process_events = self.get_events()
+        ecalc_event_dates = {event.name: event.start for event in ecalc_events}
+        # Map process event name → ecalc event date (the effective date)
+        process_event_dates = {pe.name: ecalc_event_dates[pe.ecalc_event_ref] for pe in process_events}
+
         mapper = ProcessSimulationMapper(
             expression_evaluator=self.get_expression_evaluator(),
             process_simulation_period=self.period,
             fluid_service=NeqSimFluidService.instance(),
             resources=facility_resources,
             reference_service=self._get_reference_service(),
-            ecalc_events=self._configuration.ecalc_events,
-            process_events=self._configuration.process_events,
+            process_event_dates=process_event_dates,
         )
         process_pipelines = []
         for yaml_process_simulation in self._configuration.process_simulations:
@@ -169,6 +181,42 @@ class YamlModel:
             process_simulations.append(process_simulation)
 
         return process_pipelines, process_simulations
+
+    def get_events(self) -> tuple[list[EcalcEvent], list[ProcessEvent]]:
+        """Parse and validate ECALC_EVENTS and PROCESS_EVENTS from YAML, returning domain value objects."""
+        yaml_ecalc_events = self._configuration.ecalc_events
+        yaml_process_events = self._configuration.process_events
+
+        ecalc_events_by_name: dict[str, EcalcEvent] = {}
+        for yaml_event in yaml_ecalc_events:
+            if yaml_event.name in ecalc_events_by_name:
+                raise EcalcValidationException(
+                    f"Duplicate ECALC_EVENT name '{yaml_event.name}'. Event names must be unique."
+                )
+            ecalc_events_by_name[yaml_event.name] = EcalcEvent(
+                name=yaml_event.name,
+                type=EcalcEventType(yaml_event.type.value),
+                start=yaml_event.start,
+                description=yaml_event.description,
+            )
+
+        process_events: list[ProcessEvent] = []
+        for yaml_pe in yaml_process_events:
+            if yaml_pe.ref not in ecalc_events_by_name:
+                raise EcalcValidationException(
+                    f"PROCESS_EVENT '{yaml_pe.name}' references ECALC_EVENT '{yaml_pe.ref}' which does not exist. "
+                    f"Available: {', '.join(sorted(ecalc_events_by_name.keys()))}."
+                )
+            process_events.append(
+                ProcessEvent(
+                    name=yaml_pe.name,
+                    type=ProcessEventType(yaml_pe.type.value),
+                    description=yaml_pe.description,
+                    ecalc_event_ref=yaml_pe.ref,
+                )
+            )
+
+        return list(ecalc_events_by_name.values()), process_events
 
     def get_pump_process_simulations(
         self,
