@@ -9,6 +9,7 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
+from libecalc.ecalc_model.ecalc_event import EcalcEvent
 from libecalc.ecalc_model.process_simulation import (
     AntiSurgeConfig,
     CommonStreamDistributionConfig,
@@ -124,13 +125,21 @@ class ProcessSimulationMapper:
         reference_service: ReferenceService,
         process_simulation_period: Period,
         resources: Resources,
-        process_event_dates: dict[str, datetime] | None = None,
+        ecalc_events: list[EcalcEvent] | None = None,
     ):
         self._expression_evaluator = expression_evaluator.get_subset_for_period(process_simulation_period)
         self._fluid_service = fluid_service
         self._reference_service = reference_service
         self._resources = resources
-        self._process_event_dates: dict[str, datetime] = process_event_dates or {}
+        self._ecalc_events = ecalc_events or []
+
+    def get_event_date_for_process_event(self, process_event_ref: str) -> datetime:
+        """Look up the effective date for a process event by name, traversing the ecalc event hierarchy."""
+        for ecalc_event in self._ecalc_events:
+            for pe in ecalc_event.process_events:
+                if pe.name == process_event_ref:
+                    return ecalc_event.start
+        raise EcalcValidationException(f"Process event '{process_event_ref}' not found in any ECALC_EVENT.")
 
     def _resolve_train_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
@@ -272,13 +281,13 @@ class ProcessSimulationMapper:
                         f"Pipeline event CHANGE_TO '{change_to_yaml_process_unit}' does not match any compressor (chart) unit."
                     )
 
-            # Resolve event date from the process_event_dates lookup
+            # Resolve event date via the ecalc event hierarchy
             process_event_ref: str | None = yaml_event.ref
-            if process_event_ref is None or process_event_ref not in self._process_event_dates:
+            if process_event_ref is None:
                 raise EcalcValidationException(
-                    f"Pipeline event REF '{process_event_ref}' does not match any PROCESS_EVENT. "
-                    f"Available: {', '.join(sorted(self._process_event_dates.keys()))}."
+                    f"Pipeline event in pipeline '{yaml_pipeline.name}' is missing a REF to a PROCESS_EVENT."
                 )
+            change_time = self.get_event_date_for_process_event(process_event_ref)
 
             events.append(
                 PipelineEvent(
@@ -286,7 +295,7 @@ class ProcessSimulationMapper:
                     change_target=unit_name_to_id[yaml_event.change_target],
                     change_to=change_to_unit,
                     change_type=PipelineEventChangeType(yaml_event.change_type.value),
-                    change_time=self._process_event_dates[process_event_ref],
+                    change_time=change_time,
                 )
             )
 

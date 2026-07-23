@@ -16,16 +16,16 @@ class ProcessEventType(StrEnum):
 
 
 @value_object
+class ProcessEvent:
+    name: str
+    type: ProcessEventType
+    description: str | None
+
+
+@value_object
 class EcalcEvent:
     name: str
     type: EcalcEventType
     start: datetime
     description: str | None
-
-
-@value_object
-class ProcessEvent:
-    name: str
-    type: ProcessEventType
-    description: str | None
-    ecalc_event_ref: str  # name of the referenced EcalcEvent
+    process_events: list[ProcessEvent]
