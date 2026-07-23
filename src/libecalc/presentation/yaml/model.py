@@ -37,9 +37,7 @@ from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 from libecalc.ecalc_model.ecalc_event import (
     EcalcEvent,
-    EcalcEventType,
-    ProcessEvent,
-    ProcessEventType,
+    EcalcEventService,
 )
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -50,6 +48,7 @@ from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
+from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapper
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
@@ -153,12 +152,12 @@ class YamlModel:
 
         self._id = uuid.uuid4()  # ID used for "asset" energy container, which is the same as model?
 
-    def get_process_simulations(self) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
+    def get_process_simulations(
+        self, ecalc_event_service: EcalcEventService
+    ) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
         self.validate_for_run()
         process_simulations = []
         facility_resources, _ = self._resource_service.get_facility_resources()
-
-        ecalc_events = self.get_events()
 
         mapper = ProcessSimulationMapper(
             expression_evaluator=self.get_expression_evaluator(),
@@ -166,7 +165,7 @@ class YamlModel:
             fluid_service=NeqSimFluidService.instance(),
             resources=facility_resources,
             reference_service=self._get_reference_service(),
-            ecalc_events=ecalc_events,
+            ecalc_event_service=ecalc_event_service,
         )
         process_pipelines = []
         for yaml_process_simulation in self._configuration.process_simulations:
@@ -179,45 +178,9 @@ class YamlModel:
         return process_pipelines, process_simulations
 
     def get_events(self) -> list[EcalcEvent]:
-        """Parse and validate ECALC_EVENTS and PROCESS_EVENTS from YAML, returning domain value objects."""
-        yaml_ecalc_events = self._configuration.ecalc_events
-        yaml_process_events = self._configuration.process_events
-
-        ecalc_events_by_name: dict[str, list[ProcessEvent]] = {}
-        for yaml_event in yaml_ecalc_events:
-            if yaml_event.name in ecalc_events_by_name:
-                raise EcalcValidationException(
-                    f"Duplicate ECALC_EVENT name '{yaml_event.name}'. Event names must be unique."
-                )
-            ecalc_events_by_name[yaml_event.name] = []
-
-        for yaml_pe in yaml_process_events:
-            if yaml_pe.ref not in ecalc_events_by_name:
-                raise EcalcValidationException(
-                    f"PROCESS_EVENT '{yaml_pe.name}' references ECALC_EVENT '{yaml_pe.ref}' which does not exist. "
-                    f"Available: {', '.join(sorted(ecalc_events_by_name.keys()))}."
-                )
-            ecalc_events_by_name[yaml_pe.ref].append(
-                ProcessEvent(
-                    name=yaml_pe.name,
-                    type=ProcessEventType(yaml_pe.type.value),
-                    description=yaml_pe.description,
-                )
-            )
-
-        ecalc_events: list[EcalcEvent] = []
-        for yaml_event in yaml_ecalc_events:
-            ecalc_events.append(
-                EcalcEvent(
-                    name=yaml_event.name,
-                    type=EcalcEventType(yaml_event.type.value),
-                    start=yaml_event.start,
-                    description=yaml_event.description,
-                    process_events=ecalc_events_by_name[yaml_event.name],
-                )
-            )
-
-        return ecalc_events
+        return EcalcEventMapper().map_events(
+            yaml_ecalc_events=self._configuration.ecalc_events, yaml_process_events=self._configuration.process_events
+        )
 
     def get_pump_process_simulations(
         self,
