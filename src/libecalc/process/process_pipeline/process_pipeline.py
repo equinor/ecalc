@@ -1,14 +1,40 @@
+import datetime
 from collections.abc import Sequence
+from enum import StrEnum
 from typing import Final, NewType, Self
 from uuid import UUID
 
+from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
+from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 
 ProcessPipelineId = NewType("ProcessPipelineId", UUID)
 ProcessPipelineSectionId = NewType("ProcessPipelineSectionId", UUID)
 ProcessUnitConnectionId = NewType("ProcessUnitConnectionId", UUID)
+
+
+class PipelineEventAction(StrEnum):
+    CHANGE = "CHANGE"
+    ADD = "ADD"
+    REMOVE = "REMOVE"
+
+
+class PipelineEventChangeType(StrEnum):
+    REBUNDLE = "REBUNDLE"
+
+
+@value_object
+class PipelineEvent:
+    """Describes a change to a process unit in a pipeline, e.g. a compressor rebundle."""
+
+    action: PipelineEventAction
+    change_target: ProcessUnitId
+    change_to: ProcessUnit  # Specification/definition
+    change_type: PipelineEventChangeType
+    change_time: datetime.datetime  # period only when evaluating "just before storing in db"
+    # process_event_ref: str | None
 
 
 class ProcessUnitConnection(Entity[ProcessUnitConnectionId]):
@@ -73,10 +99,14 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
         self,
         name: str,
         process_pipeline_sections: Sequence[ProcessPipelineSection],
+        process_periods: list[Period],  # Sequential!
         process_pipeline_id: ProcessPipelineId | None = None,
+        events: Sequence[PipelineEvent] | None = None,
     ):
         self._name = name
         self._process_pipeline_sections = process_pipeline_sections
+        self._process_periods = process_periods
+        self._events: Sequence[PipelineEvent] = events or []
         self._process_unit_connections = ProcessPipeline._create_process_unit_connections(  # NOTE: this can currently only be used in mapper, to create connections first time!
             process_pipeline_sections=process_pipeline_sections
         )
@@ -101,6 +131,12 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
             for process_section in self.get_process_pipeline_sections()
             for process_unit in process_section.get_process_units()
         ]
+
+    def get_events(self) -> Sequence[PipelineEvent]:
+        return self._events
+
+    def get_process_periods(self) -> list[Period]:
+        return self._process_periods
 
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessPipelineId:

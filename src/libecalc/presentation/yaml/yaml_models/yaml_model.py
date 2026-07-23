@@ -17,7 +17,11 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
+    YamlEcalcEvent,
+    YamlProcessEvent,
+    YamlProcessSimulation,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
@@ -96,6 +100,16 @@ class YamlValidator(abc.ABC):
     @property
     @abc.abstractmethod
     def process_simulations(self) -> Iterable[YamlProcessSimulation]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def ecalc_events(self) -> list[YamlEcalcEvent]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def process_events(self) -> list[YamlProcessEvent]:
         pass
 
     @property

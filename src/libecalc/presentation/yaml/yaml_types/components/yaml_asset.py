@@ -8,7 +8,11 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
+    YamlEcalcEvent,
+    YamlProcessEvent,
+    YamlProcessSimulation,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
@@ -78,6 +82,16 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="PROCESS_SIMULATIONS",
         description="Defines one or more process simulations to be run.",
+    )
+    ecalc_events: list[YamlEcalcEvent] = Field(
+        default_factory=list,
+        title="ECALC_EVENTS",
+        description="Defines eCalc events associated with temporal model changes",
+    )
+    process_events: list[YamlProcessEvent] = Field(
+        default_factory=list,
+        title="PROCESS_EVENTS",
+        description="Defines process-specific events that reference global eCalc events.",
     )
     installations: list[YamlInstallation] = Field(
         ...,
@@ -174,6 +188,8 @@ class YamlAsset(YamlBase):
         if self.process_simulations is not None:
             for process_simulation in self.process_simulations:
                 references.append(process_simulation.name)
+
+        # TODO: Add ecalc events references?
 
         if self.fluid_models is not None:
             references.extend(self.fluid_models.keys())

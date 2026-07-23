@@ -32,7 +32,11 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
+    YamlEcalcEvent,
+    YamlProcessEvent,
+    YamlProcessSimulation,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
@@ -46,6 +50,8 @@ _PROCESS_PIPELINES_KEY = "PROCESS_PIPELINES"
 _INLET_STREAMS_KEY = "INLET_STREAMS"
 _FLUID_MODELS_KEY = "FLUID_MODELS"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
+_ECALC_EVENTS_KEY = "ECALC_EVENTS"
+_PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
 _NEW_SECTIONS_WITH_FILE_REFS: tuple[str, ...] = (
     "PROCESS_UNITS",
     "PROCESS_PIPELINES",
@@ -477,6 +483,28 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             except PydanticValidationError:
                 pass
         return process_simulations
+
+    @property
+    def ecalc_events(self) -> list[YamlEcalcEvent]:
+        ecalc_events: list[YamlEcalcEvent] = []
+        adapter = TypeAdapter(YamlEcalcEvent)
+        for ecalc_event in self._get_yaml_list_or_empty(_ECALC_EVENTS_KEY):
+            try:
+                ecalc_events.append(adapter.validate_python(ecalc_event))
+            except PydanticValidationError:
+                pass
+        return ecalc_events
+
+    @property
+    def process_events(self) -> list[YamlProcessEvent]:
+        process_events: list[YamlProcessEvent] = []
+        adapter = TypeAdapter(YamlProcessEvent)
+        for process_event in self._get_yaml_list_or_empty(_PROCESS_EVENTS_KEY):
+            try:
+                process_events.append(adapter.validate_python(process_event))
+            except PydanticValidationError:
+                pass
+        return process_events
 
     @property
     def start(self) -> datetime.datetime | None:
