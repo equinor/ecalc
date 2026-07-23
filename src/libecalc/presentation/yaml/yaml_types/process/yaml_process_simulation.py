@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -13,6 +13,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
     EcalcEventReference,
     ProcessPipelineReference,
     ProcessUnitReference,
+    PumpChartReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
@@ -136,5 +137,57 @@ class YamlProcessSimulation(YamlBase):
         Field(
             title="CONSTRAINTS",
             description="Constraints per target. Key is pipeline name, value is list of constraints.",
+        ),
+    ]
+
+
+class YamlPumpProcessModel(YamlBase):
+    chart: Annotated[
+        PumpChartReference,
+        Field(
+            title="CHART",
+            description="Reference to a pump chart defined in FACILITY_INPUTS.",
+        ),
+    ]
+    minimum_flow_rate: Annotated[
+        float | None,
+        Field(
+            title="MINIMUM_FLOW_RATE",
+            description="Minimum pump flow in m3/h. Defaults to the chart minimum.",
+        ),
+    ] = None
+
+
+class YamlPumpProcessInlet(YamlBase):
+    rate: Annotated[
+        YamlExpressionType,
+        Field(title="RATE", description="Requested liquid rate in m3/day."),
+    ]
+    pressure: Annotated[
+        YamlExpressionType,
+        Field(title="PRESSURE", description="Pump suction pressure in bara."),
+    ]
+    density: Annotated[
+        YamlExpressionType,
+        Field(title="DENSITY", description="Liquid density in kg/m3."),
+    ]
+
+
+class YamlPumpProcessSimulation(YamlBase):
+    type: Literal["PUMP"]
+    name: str
+    pump_model: Annotated[
+        YamlPumpProcessModel,
+        Field(title="PUMP_MODEL"),
+    ]
+    inlet: Annotated[
+        YamlPumpProcessInlet,
+        Field(title="INLET"),
+    ]
+    required_discharge_pressure: Annotated[
+        YamlExpressionType,
+        Field(
+            title="REQUIRED_DISCHARGE_PRESSURE",
+            description="Required pump discharge pressure in bara.",
         ),
     ]

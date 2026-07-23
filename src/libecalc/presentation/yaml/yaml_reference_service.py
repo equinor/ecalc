@@ -26,7 +26,10 @@ from libecalc.presentation.yaml.yaml_types.models import (
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
+    YamlProcessSimulation,
+    YamlPumpProcessSimulation,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
@@ -35,7 +38,13 @@ logger = logging.getLogger(__name__)
 YamlModel = YamlConsumerModel | YamlFacilityModel
 
 ReferenceType = (
-    YamlModel | YamlFuelType | YamlInletStream | YamlProcessPipeline | YamlProcessSimulation | YamlProcessUnit
+    YamlModel
+    | YamlFuelType
+    | YamlInletStream
+    | YamlProcessPipeline
+    | YamlProcessSimulation
+    | YamlPumpProcessSimulation
+    | YamlProcessUnit
 )
 
 # Some models are referenced by other models, for example a compressor model will reference compressor chart models
@@ -121,6 +130,12 @@ class YamlReferenceService(ReferenceService):
             process_simulation_path = process_simulations_path.append(process_simulation_index)
             references[process_simulation.name] = process_simulation
             reference_yaml_context[process_simulation.name] = process_simulation_path
+
+        pump_process_simulations_path = YamlPath(keys=("PUMP_PROCESS_SIMULATIONS",))
+        for pump_process_simulation_index, pump_process_simulation in enumerate(configuration.pump_process_simulations):
+            pump_process_simulation_path = pump_process_simulations_path.append(pump_process_simulation_index)
+            references[pump_process_simulation.name] = pump_process_simulation
+            reference_yaml_context[pump_process_simulation.name] = pump_process_simulation_path
 
         fluid_models_path = YamlPath(keys=("FLUID_MODELS",))
 
