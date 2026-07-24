@@ -8,6 +8,7 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
+from libecalc.ecalc_model.ecalc_event import EcalcEvent, EcalcEventService
 from libecalc.ecalc_model.process_simulation import (
     AntiSurgeConfig,
     CommonStreamDistributionConfig,
@@ -47,8 +48,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
     ProcessUnitReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -125,23 +124,13 @@ class ProcessSimulationMapper:
         reference_service: ReferenceService,
         process_simulation_period: Period,
         resources: Resources,
-        ecalc_events: list[YamlEcalcEvent] | None = None,
-        process_events: list[YamlProcessEvent] | None = None,
+        ecalc_event_service: EcalcEventService,
     ):
         self._expression_evaluator = expression_evaluator.get_subset_for_period(process_simulation_period)
         self._fluid_service = fluid_service
         self._reference_service = reference_service
         self._resources = resources
-        self._ecalc_events_by_name: dict[str, YamlEcalcEvent] = {e.name: e for e in (ecalc_events or [])}
-        self._process_events_by_name: dict[str, YamlProcessEvent] = {e.name: e for e in (process_events or [])}
-
-        # Validate that all PROCESS_EVENT REFs point to known ECALC_EVENTs
-        for pe in process_events or []:
-            if pe.ref not in self._ecalc_events_by_name:
-                raise EcalcValidationException(
-                    f"PROCESS_EVENT '{pe.name}' references ECALC_EVENT '{pe.ref}' which does not exist. "
-                    f"Available: {', '.join(sorted(self._ecalc_events_by_name.keys()))}."
-                )
+        self._ecalc_event_service = ecalc_event_service
 
     def _resolve_train_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
@@ -258,23 +247,23 @@ class ProcessSimulationMapper:
     def _validate_and_map_pipeline_events(
         self,
         yaml_pipeline: YamlProcessPipeline,
-        process_unit_map: dict[ProcessUnitId, ProcessUnit],
         unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
     ) -> list[PipelineEvent]:
         """Validate pipeline event references and map to domain objects."""
         events: list[PipelineEvent] = []
 
         for yaml_event in yaml_pipeline.events:
-            if unit_name_to_id.get(yaml_event.change_target, None) is None:
+            ecalc_event: EcalcEvent | None = self._ecalc_event_service.get_event_by_process_name(yaml_event.ref)
+            if ecalc_event is None:
                 raise EcalcValidationException(
-                    f"Pipeline event CHANGE_TARGET '{yaml_event.change_target}' does not match any named item "
-                    f"in pipeline '{yaml_pipeline.name}'. Available items: {', '.join([str(item.name) for item in yaml_pipeline.items])}."
+                    f"Pipeline event '{yaml_event.ref}' does not match any known process event."
                 )
-            #
+
             if (change_to_yaml_process_unit := self._reference_service.get_process_unit(yaml_event.change_to)) is None:
                 raise EcalcValidationException(
                     f"Pipeline event CHANGE_TO '{yaml_event.change_to}' does not refer to a known process unit."
                 ) from None
+
             match change_to_yaml_process_unit:
                 case YamlCompressor():
                     change_to_unit = self._get_compressor(change_to_yaml_process_unit)
@@ -282,17 +271,6 @@ class ProcessSimulationMapper:
                     raise EcalcValidationException(
                         f"Pipeline event CHANGE_TO '{change_to_yaml_process_unit}' does not match any compressor (chart) unit."
                     )
-
-            # Validate optional REF points to a known process event
-            process_event_ref: str | None = yaml_event.ref
-            if process_event_ref is None or process_event_ref not in self._process_events_by_name:
-                raise EcalcValidationException(
-                    f"Pipeline event REF '{process_event_ref}' does not match any PROCESS_EVENT. "
-                    f"Available: {', '.join(sorted(self._process_events_by_name.keys()))}."
-                )
-            process_event = self._process_events_by_name[process_event_ref]
-            # NOTE: We have verified that all process events have correct refs already
-            ecalc_event = self._ecalc_events_by_name[process_event.ref]
 
             events.append(
                 PipelineEvent(
@@ -444,7 +422,6 @@ class ProcessSimulationMapper:
             pipeline_events = self._validate_and_map_pipeline_events(
                 yaml_pipeline=item,
                 unit_name_to_id=unit_name_to_id,
-                process_unit_map=process_unit_map,
             )
             # TODO: We should move this class to this module/layer
             # in particular because it creates necessary connections, which means that they will get new IDs

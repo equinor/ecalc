@@ -1,8 +1,8 @@
-from enum import StrEnum
 from typing import Annotated, Literal
 
 from pydantic import Field
 
+from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
@@ -19,12 +19,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution impo
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
-
-
-class EcalcEventType(StrEnum):
-    PROCESS = "PROCESS"
-    ENERGY = "ENERGY"
-    ALL = "ALL"
 
 
 class YamlEcalcEvent(YamlBase):
@@ -56,11 +50,6 @@ class YamlEcalcEvent(YamlBase):
             description="Human-readable description of the event and its purpose.",
         ),
     ] = None
-
-
-class ProcessEventType(StrEnum):
-    REBUNDLE = "REBUNDLE"
-    REVAMP = "REVAMP"
 
 
 class YamlProcessEvent(YamlBase):
