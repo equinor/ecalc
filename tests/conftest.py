@@ -18,6 +18,7 @@ from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
+from libecalc.ecalc_model.ecalc_event import EcalcEventService
 from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
@@ -693,4 +694,5 @@ def process_simulation_mapper(
         reference_service=reference_service,
         process_simulation_period=period,
         resources={},
+        ecalc_event_service=EcalcEventService(ecalc_events=[]),
     )
