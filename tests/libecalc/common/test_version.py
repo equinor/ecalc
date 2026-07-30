@@ -21,6 +21,10 @@ data = [
     ("v2025.10.10", Version(2025, 10, 10)),
     ("master", Version(0, 0, 0)),
     ("master-latest", Version(0, 0, 0)),
+    ("1.0.0rc0", Version(1, 0, 0, 0)),
+    ("1.0.0", Version(1, 0, 0, None)),
+    ("1.0.0rc1", Version(1, 0, 0, 1)),
+    ("1.0.0rc10", Version(1, 0, 0, 10)),
 ]
 
 
@@ -42,6 +46,10 @@ version_comparisons = [
     ("1.1.1", "1.1.1"),
     ("100.1.1", "1.1.1"),
     ("1.1.1", "1.1.111"),
+    ("1.1.1", "1.1.1rc0"),  # first is higher
+    ("1.1.1rc0", "1.1.1rc1"),  # second is higher
+    ("2.1.1rc0", "1.1.1"),  # first is higher
+    ("1.1.1rc0", "1.1.1rc0"),  # same
 ]
 
 
@@ -55,17 +63,7 @@ def to_version_obj(versions: list[tuple[str, str]]) -> list[tuple[Version, Versi
 
 version_obj_comparisons = to_version_obj(version_comparisons)
 
-less_than_expected = [
-    True,
-    False,
-    True,
-    False,
-    True,
-    False,
-    False,
-    False,
-    True,
-]
+less_than_expected = [True, False, True, False, True, False, False, False, True, False, True, False, False]
 
 
 @pytest.mark.parametrize("first, second, expected", combine(version_obj_comparisons, less_than_expected))
@@ -73,35 +71,15 @@ def test_comparison_less_than(first, second, expected):
     assert (first < second) == expected
 
 
-greater_than_expected = [
-    False,
-    True,
-    False,
-    True,
-    False,
-    True,
-    False,
-    True,
-    False,
-]
+greater_than_expected = [False, True, False, True, False, True, False, True, False, True, False, True, False]
 
 
 @pytest.mark.parametrize("first, second, expected", combine(version_obj_comparisons, greater_than_expected))
-def test_comparison_grater_than(first, second, expected):
+def test_comparison_greater_than(first, second, expected):
     assert (first > second) == expected
 
 
-equal_expected = [
-    False,
-    False,
-    False,
-    False,
-    False,
-    False,
-    True,
-    False,
-    False,
-]
+equal_expected = [False, False, False, False, False, False, True, False, False, False, False, False, True]
 
 
 @pytest.mark.parametrize("first, second, expected", combine(version_obj_comparisons, equal_expected))
@@ -114,17 +92,7 @@ def test_comparison_not_equal(first, second):
     assert (first != second) == (not (first == second))
 
 
-less_than_or_equal_expected = [
-    True,
-    False,
-    True,
-    False,
-    True,
-    False,
-    True,
-    False,
-    True,
-]
+less_than_or_equal_expected = [True, False, True, False, True, False, True, False, True, False, True, False, True]
 
 
 @pytest.mark.parametrize("first, second, expected", combine(version_obj_comparisons, less_than_or_equal_expected))
@@ -132,17 +100,7 @@ def test_comparison_less_than_or_equal(first, second, expected):
     assert (first <= second) == expected
 
 
-greater_than_or_equal_expected = [
-    False,
-    True,
-    False,
-    True,
-    False,
-    True,
-    True,
-    True,
-    False,
-]
+greater_than_or_equal_expected = [False, True, False, True, False, True, True, True, False, True, False, True, True]
 
 
 @pytest.mark.parametrize("first, second, expected", combine(version_obj_comparisons, greater_than_or_equal_expected))
