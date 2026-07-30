@@ -1,0 +1,82 @@
+name: Auto-Create tags
+# To be run when a release is made, triggered by tag creation by create release GitHub action
+# Might not be needed for vX or vX.Y, as it may be better to just deal with release branches,
+# and use the get-versions script to find latest version on the fly instead
+
+on:
+  workflow_call:
+    inputs:
+      full_version:
+        description: "The full release version to set/update tag for"
+        required: true
+        type: string
+      major_version:
+        description: "The major release version to set/update tag for"
+        required: true
+        type: string
+      major_minor_version:
+          description: "The major.minor release version to set/update tag for"
+          required: true
+          type: string
+      commit_sha:
+        description: "The commit SHA to create the tags from"
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      full_version:
+        description: "The full release version to set/update tag for"
+        required: true
+        type: string
+      major_version:
+        description: "The major release version to set/update tag for"
+        required: true
+        type: string
+      major_minor_version:
+        description: "The major.minor release version to set/update tag for"
+        required: true
+        type: string
+      commit_sha:
+        description: "The commit SHA to create the tags from"
+        required: true
+        type: string
+
+env:
+    MAJOR_VERSION: ${{ inputs.major_version }}
+    MAJOR_MINOR_VERSION: ${{ inputs.major_minor_version }}
+    COMMIT_SHA: ${{ inputs.commit_sha }}
+    FULL_VERSION: ${{ inputs.full_version }}
+
+permissions: { }
+
+jobs:
+  update_tags:
+    continue-on-error: false
+    name: Update major tag
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    # NOTE: Only versions strictly on format vX.Y.Z or vX.Y.ZrcN is accepted, ie vX.Y.Z-w is not accepted
+    steps:
+      - name: Pick up commit to create tags from
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: true
+
+      - name: Update vX tag  # TODO: Only if highest version so far
+        working-directory: ./cicd
+        run: |
+          echo "Major: ${{ env.MAJOR_VERSION }}"
+          bash update_tag.sh "v${{ env.MAJOR_VERSION }}" "${{ env.COMMIT_SHA }}"
+
+      - name: Update vX.Y tag
+        working-directory: ./cicd
+        run: |
+          echo "Major.Minor: ${{ env.MAJOR_MINOR_VERSION }}"
+          bash update_tag.sh "v${{ env.MAJOR_MINOR_VERSION }}" "${{ env.COMMIT_SHA }}"
+
+      - name: Update full vX.Y.Z(rcN) tag
+        working-directory: ./cicd
+        run: |
+          echo "Full: ${{ env.FULL_VERSION }}"
+          bash update_tag.sh "v${{ env.FULL_VERSION }}" "${{ env.COMMIT_SHA }}"

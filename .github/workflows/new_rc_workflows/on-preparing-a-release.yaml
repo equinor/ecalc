@@ -1,0 +1,80 @@
+name: On new release candidate - ie preparing a new release
+# The idea now is that, instead of release please, we trigger a release with a workflow...
+# Release-please GH action is poorly documented and does not support pre-releases, although
+# there is an open PR for more than 1 year to add support for that. The CLI version supports it...
+# I am not a big fan on the black magic in release-please, and want it more transparent and custom,
+# for our needs, instead of delving into the documentation of release-please which i find hard to read,
+# as it is not clear what is CLI and what is gh action, and also why same config have different names,
+# that one will need to look into source code to figure out...
+
+# The idea is to trigger this, specify a custom version ourself, to prepare a release, either user specifies the
+# full version e.g. v14.9.0rc0, or just v14.9 or v15.0, and we will figure out patch and release candidate on existing
+# versions and tags on the given branch
+
+# triggering this on main, should result in a new release candidate for the major or minor version as user specifies,
+# and create a release branch for that, and create an initial vX.Y.0rc0 that is only available locally. (sometime in
+# future, we may want to do as release-please, and deduce vX.Y based on conventional commits instead)
+
+# triggering this on a release branch, should find the latest tag on that branch, and create a new release candidate
+# e.g. if v14.9.0.rc0 is the latest, then v14.9.0.rc1 should be created, as we have not created a final release yet.
+# if v14.9.0 is found, it means that a final release has been created, and we need to patch it, and create a patch
+# release candidate, e.g. v14.9.1rc0, and so on.
+
+# Also, we have 3 options, should we use workflow, release-please or gh release? the problem with gh release directly,
+# is that it creates the tag immediately, but it does not bump the versions in our files, so we will need an extra
+# commit to bump the version. Then the gh release points to the commit BEFORE that commit...
+# a problem with workflow is that it is cumbersome and less accessible to release stuff
+# a problem with release-please is to use it correctly, and it does nto currently support pre-release, unless we use
+# the CLI instead
+
+# In addition to the parse-version script, we might want a get-versions script that gets versions and tags from repo,
+# and gives us information about next version, latest version with sha aso IN PYTHON!
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "The release candidate version to prepare release for."
+        required: true
+        type: string
+
+permissions: { }
+
+env:
+  RELEASE_VERSION: ${{ inputs.release_version }}
+
+jobs:
+  version:
+    uses: ./.github/workflows/parse-version.yaml
+    with:
+      version: ${{ env.RELEASE_VERSION }}
+  create-release-branch: # Must be on main, create a release branch for next release
+    needs: version
+    if: ${{ needs.version.outputs.release_candidate == '0' }}
+    uses: ./github/workflows/create-release-branch.yaml
+    with:
+        release_version: ${{ needs.version.outputs.full }}
+        target_branch: release/v${{ needs.version.outputs.major_minor }}
+    permissions:
+      contents: write
+  update-version:  # rcN or final release
+    needs: version
+    if: ${{ needs.version.outputs.is_prerelease == 'true' }}
+    uses: ./github/workflows/update-version.yaml
+    with:
+      release_version: ${{ needs.version.outputs.full }}
+      target_branch: release/v${{ needs.version.outputs.major_minor }}
+    permissions:
+      contents: write
+  create-tags:  # Final release, but only update major and minor if highest? If immutable, we cannot change... Do we even need a tag for vX and vX.Y?
+    needs: version
+    if: ${{ needs.version.outputs.is_prerelease == 'false' }}
+    uses: ./.github/workflows/create-tags.yaml
+    with:
+      major_version: ${{ needs.version.outputs.major }}
+      major_minor_version: ${{ needs.version.outputs.major_minor }}
+      commit_sha: ${{ github.sha }}  # TODO: Here we have a problem if we use gh release, because th github commit will differ from the commit with version update
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
