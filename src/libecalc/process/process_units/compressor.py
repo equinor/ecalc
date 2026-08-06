@@ -1,6 +1,7 @@
 from typing import Final
 
 from libecalc.common.ddd import value_object
+from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.domain.process.compressor.core.train.utils.common import (
     RECIRCULATION_BOUNDARY_TOLERANCE,
     calculate_outlet_pressure_and_stream,
@@ -11,9 +12,11 @@ from libecalc.process.fluid_stream.constants import ThermodynamicConstants
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import (
+    CompressorOperatingPoint,
     CompressorStonewallError,
     CompressorSurgeError,
     LiquidAtInletError,
+    OutletFluidNotAchievableError,
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
@@ -63,12 +66,25 @@ class Compressor(ProcessUnit):
 
         operational_point: OperationalPoint = self.get_operational_point(inlet_stream=inlet_stream)
 
-        return calculate_outlet_pressure_and_stream(
-            polytropic_efficiency=operational_point.polytropic_efficiency,
-            polytropic_head_joule_per_kg=operational_point.polytropic_head_joule_per_kg,
-            inlet_stream=inlet_stream,
-            fluid_service=self._fluid_service,
-        )
+        try:
+            return calculate_outlet_pressure_and_stream(
+                polytropic_efficiency=operational_point.polytropic_efficiency,
+                polytropic_head_joule_per_kg=operational_point.polytropic_head_joule_per_kg,
+                inlet_stream=inlet_stream,
+                fluid_service=self._fluid_service,
+            )
+        except CompressorThermodynamicCalculationError as exc:
+            raise OutletFluidNotAchievableError(
+                process_unit_id=self._id,
+                unachievable_operating_point=CompressorOperatingPoint(
+                    inlet_pressure_bara=inlet_stream.pressure_bara,
+                    inlet_temperature_kelvin=inlet_stream.temperature_kelvin,
+                    actual_rate_m3_per_hour=operational_point.actual_rate_am3_h,
+                    polytropic_head_joule_per_kg=operational_point.polytropic_head_joule_per_kg,
+                    polytropic_efficiency=operational_point.polytropic_efficiency,
+                    speed=self.speed,
+                ),
+            ) from exc
 
     def get_operational_point(self, inlet_stream: FluidStream) -> OperationalPoint:
         """
