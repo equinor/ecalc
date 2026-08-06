@@ -27,6 +27,10 @@ class ProcessPressureRatioValidationException(EcalcValidationException):
     pass
 
 
+class ProcessNonPositivePressureValidationException(EcalcValidationException):
+    pass
+
+
 class ProcessDischargePressureValidationException(EcalcValidationException):
     pass
 

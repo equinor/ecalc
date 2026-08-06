@@ -10,6 +10,7 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.energy_usage_type import EnergyUsageType
 from libecalc.common.errors.ecalc_validation_error import (
     EcalcValidationException,
+    ProcessNonPositivePressureValidationException,
     ProcessPressureRatioValidationException,
 )
 from libecalc.common.errors.exceptions import InvalidResourceException
@@ -220,7 +221,7 @@ def map_rate_fractions(
     ]
 
 
-def validate_increasing_pressure(
+def validate_pressures(
     suction_pressure: ExpressionTimeSeriesPressure,
     discharge_pressure: ExpressionTimeSeriesPressure,
     intermediate_pressure: ExpressionTimeSeriesPressure | None = None,
@@ -240,8 +241,20 @@ def validate_increasing_pressure(
         if validation_mask[i]:
             sp = suction_pressure_values[i]
             dp = discharge_pressure_values[i]
+            if sp <= 0:
+                raise ProcessNonPositivePressureValidationException(
+                    message=f"Invalid pressure at timestep {i + 1}: suction pressure ({sp}) is non-positive, which is not physically possible."
+                )
+            if dp <= 0:
+                raise ProcessNonPositivePressureValidationException(
+                    message=f"Invalid pressure at timestep {i + 1}: discharge pressure ({dp}) is non-positive, which is not physically possible."
+                )
             if intermediate_pressure_values is not None:
                 ip = intermediate_pressure_values[i]
+                if ip <= 0:
+                    raise ProcessNonPositivePressureValidationException(
+                        message=f"Invalid pressure at timestep {i + 1}: intermediate pressure ({ip}) is non-positive, which is not physically possible."
+                    )
                 if not (sp <= ip <= dp):
                     raise ProcessPressureRatioValidationException(
                         message=f"Invalid pressures at index {i + 1}: suction pressure ({sp}) must be less than intermediate pressure ({ip}), which must be less than discharge pressure ({dp})."
@@ -1123,7 +1136,7 @@ class ConsumerFunctionMapper:
             validation_mask=pressure_validation_mask,
         )
 
-        validate_increasing_pressure(
+        validate_pressures(
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
         )
@@ -1211,7 +1224,7 @@ class ConsumerFunctionMapper:
             else None
         )
 
-        validate_increasing_pressure(
+        validate_pressures(
             suction_pressure=suction_pressure,
             discharge_pressure=discharge_pressure,
             intermediate_pressure=interstage_control_pressure,
@@ -1280,7 +1293,7 @@ class ConsumerFunctionMapper:
                 ),
                 validation_mask=validation_mask,
             )
-            if model.suction_pressure
+            if model.suction_pressure is not None
             else None
         )
 
@@ -1291,7 +1304,7 @@ class ConsumerFunctionMapper:
                 ),
                 validation_mask=validation_mask,
             )
-            if model.discharge_pressure
+            if model.discharge_pressure is not None
             else None
         )
         operational_data = CompressorOperationalTimeSeries.from_time_series(
@@ -1309,7 +1322,7 @@ class ConsumerFunctionMapper:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
 
         if suction_pressure is not None and discharge_pressure is not None:
-            validate_increasing_pressure(
+            validate_pressures(
                 suction_pressure=suction_pressure,
                 discharge_pressure=discharge_pressure,
             )
@@ -1453,7 +1466,7 @@ class ConsumerFunctionMapper:
                 ]
 
             for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
-                validate_increasing_pressure(
+                validate_pressures(
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
@@ -1615,7 +1628,7 @@ class ConsumerFunctionMapper:
                 ] * number_of_pumps
 
             for suction_pressure, discharge_pressure in zip(suction_pressures, discharge_pressures):
-                validate_increasing_pressure(
+                validate_pressures(
                     suction_pressure=suction_pressure,
                     discharge_pressure=discharge_pressure,
                 )
