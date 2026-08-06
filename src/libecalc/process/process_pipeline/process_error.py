@@ -1,5 +1,19 @@
+from dataclasses import dataclass
+
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+
+
+@dataclass(frozen=True)
+class CompressorOperatingPoint:
+    """Context about the compressor state when a failure occurred."""
+
+    inlet_pressure_bara: float
+    inlet_temperature_kelvin: float
+    actual_rate_m3_per_hour: float
+    polytropic_head_joule_per_kg: float
+    polytropic_efficiency: float
+    speed: float
 
 
 class ProcessError(EcalcError):
@@ -92,3 +106,21 @@ class InsufficientInletPressureError(ProcessError):
             f"Inlet pressure {inlet_pressure_bara:.3f} bara is insufficient for required pressure drop "
             f"{required_delta_pressure_bara:.3f} bara."
         )
+
+
+class OutletFluidNotAchievableError(ProcessError):
+    """The compressor's EOS calculation could not produce a valid outlet stream.
+
+    This occurs when the thermodynamic flash at the computed outlet conditions
+    fails to converge, indicating a physically unachievable state.
+    """
+
+    def __init__(
+        self,
+        process_unit_id: ProcessUnitId,
+        unachievable_operating_point: CompressorOperatingPoint,
+        reason: str = "Outlet fluid state is not achievable.",
+    ):
+        self.process_unit_id = process_unit_id
+        self.unachievable_operating_point = unachievable_operating_point
+        super().__init__(reason)
