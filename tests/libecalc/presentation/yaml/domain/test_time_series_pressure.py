@@ -9,7 +9,7 @@ from libecalc.presentation.yaml.domain.expression_time_series_pressure import (
     InvalidPressureException,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.mappers.consumer_function_mapper import validate_increasing_pressure
+from libecalc.presentation.yaml.mappers.consumer_function_mapper import validate_pressures
 
 periods = [
     Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1)),
@@ -44,7 +44,7 @@ def test_expressions_with_pressure_ratio_less_than_one(expression_evaluator_fact
     )
 
     with pytest.raises(ProcessPressureRatioValidationException):
-        validate_increasing_pressure(
+        validate_pressures(
             suction_pressure=ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(expression="SIM1;PS", expression_evaluator=evaluator)
             ),
@@ -54,7 +54,7 @@ def test_expressions_with_pressure_ratio_less_than_one(expression_evaluator_fact
         )
 
     with pytest.raises(ProcessPressureRatioValidationException):
-        validate_increasing_pressure(
+        validate_pressures(
             suction_pressure=ExpressionTimeSeriesPressure(
                 time_series_expression=TimeSeriesExpression(expression="SIM1;PS", expression_evaluator=evaluator)
             ),
