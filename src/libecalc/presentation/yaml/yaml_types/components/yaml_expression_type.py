@@ -9,6 +9,15 @@ from libecalc.expression.expression_evaluator import TokenTag
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 
+class _ExpressionMarker:
+    """Sentinel included in ``YamlExpressionType`` metadata so that generic
+    code can reliably detect expression-typed fields without inspecting
+    validator function identity."""
+
+
+EXPRESSION_MARKER = _ExpressionMarker()
+
+
 def validate_expression(value: ExpressionType, info: ValidationInfo) -> ExpressionType:
     if info.context is None or YamlModelValidationContextNames.expression_tokens not in info.context:
         # Skip if context not provided
@@ -40,5 +49,6 @@ def validate_expression(value: ExpressionType, info: ValidationInfo) -> Expressi
 
 YamlExpressionType = Annotated[
     ExpressionType,
+    EXPRESSION_MARKER,
     AfterValidator(validate_expression),
 ]
