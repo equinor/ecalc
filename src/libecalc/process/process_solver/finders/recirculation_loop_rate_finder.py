@@ -2,7 +2,11 @@ from collections.abc import Callable
 from typing import Literal
 
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import CompressorStonewallError, CompressorSurgeError
+from libecalc.process.process_pipeline.process_error import (
+    CompressorStonewallError,
+    CompressorSurgeError,
+    InsufficientInletPressureError,
+)
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.process.process_solver.finder import Finder, Finding
@@ -10,6 +14,7 @@ from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.search_strategies import Bisect, BisectResult, RootFindingStrategy
 from libecalc.process.process_solver.solver import (
     CompressorStonewallFailure,
+    InsufficientInletPressureFailure,
     TargetDirection,
     TargetPressureUnreachableFailure,
 )
@@ -36,6 +41,12 @@ class RecirculationLoopRateFinder(Finder):
             return Finding(
                 configuration=RecirculationConfiguration(recirculation_rate=self._recirculation_rate_boundary.min),
                 failure=CompressorStonewallFailure.from_error(e),
+            )
+        except InsufficientInletPressureError as e:
+            # Pressure infeasible at minimum recirculation; adding more flow won't fix pressure.
+            return Finding(
+                configuration=RecirculationConfiguration(recirculation_rate=self._recirculation_rate_boundary.min),
+                failure=InsufficientInletPressureFailure.from_error(e),
             )
 
         target_pressure = self._target_pressure
@@ -126,5 +137,5 @@ class RecirculationLoopRateFinder(Finder):
             return BisectResult(higher=mode != "minimize", accepted=True)
         except CompressorSurgeError:
             return BisectResult(higher=True, accepted=False)
-        except CompressorStonewallError:
+        except (CompressorStonewallError, InsufficientInletPressureError):
             return BisectResult(higher=False, accepted=False)

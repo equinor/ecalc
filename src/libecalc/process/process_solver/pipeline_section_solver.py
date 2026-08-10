@@ -18,6 +18,7 @@ from libecalc.process.process_solver.solver import (
     CompressorStonewallFailure,
     CompressorSurgeFailure,
     ConvergenceFailure,
+    InsufficientInletPressureFailure,
     Solution,
     TargetDirection,
     TargetPressureUnreachableFailure,
@@ -112,7 +113,13 @@ class PipelineSectionSolver(PipelineSolver):
         )
 
         if isinstance(
-            speed_finding.failure, (CompressorStonewallFailure, CompressorSurgeFailure, ThermodynamicCalculationFailure)
+            speed_finding.failure,
+            (
+                CompressorStonewallFailure,
+                CompressorSurgeFailure,
+                ThermodynamicCalculationFailure,
+                InsufficientInletPressureFailure,
+            ),
         ):
             return Solution(configuration=[shaft_config], failure=speed_finding.failure)
 
