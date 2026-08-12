@@ -3,7 +3,11 @@ from collections.abc import Callable
 
 from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_error import CompressorStonewallError, CompressorSurgeError
+from libecalc.process.process_pipeline.process_error import (
+    CompressorStonewallError,
+    CompressorSurgeError,
+    InsufficientInletPressureError,
+)
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
 from libecalc.process.process_solver.finder import Finder, Finding
@@ -11,6 +15,7 @@ from libecalc.process.process_solver.search_strategies import Bisect, BisectResu
 from libecalc.process.process_solver.solver import (
     CompressorStonewallFailure,
     CompressorSurgeFailure,
+    InsufficientInletPressureFailure,
     TargetDirection,
     TargetPressureUnreachableFailure,
     ThermodynamicCalculationFailure,
@@ -60,6 +65,12 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
                 boundary=Boundary(min=self._boundary.min, max=valid_max),
                 target_pressure=self._target_pressure,
             ).find(func)
+        except InsufficientInletPressureError as e:
+            logger.debug(f"Insufficient inlet pressure at maximum speed: {max_speed_configuration}")
+            return Finding(
+                configuration=max_speed_configuration,
+                failure=InsufficientInletPressureFailure.from_error(e),
+            )
 
         if maximum_speed_outlet_stream.pressure_bara < self._target_pressure:
             return Finding(
@@ -81,6 +92,13 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
             min_config = SpeedConfiguration(speed=self._boundary.min)
             logger.debug(f"No solution found for minimum speed: {min_config}")
             return Finding(configuration=min_config, failure=CompressorStonewallFailure.from_error(e))
+        except InsufficientInletPressureError as e:
+            min_config = SpeedConfiguration(speed=self._boundary.min)
+            logger.debug(f"Insufficient inlet pressure at minimum speed: {min_config}")
+            return Finding(
+                configuration=min_config,
+                failure=InsufficientInletPressureFailure.from_error(e),
+            )
 
         if minimum_speed_outlet_stream.pressure_bara > self._target_pressure:
             return Finding(
@@ -116,7 +134,12 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
         try:
             func(SpeedConfiguration(speed=speed))
             return True
-        except (CompressorThermodynamicCalculationError, CompressorStonewallError, CompressorSurgeError):
+        except (
+            CompressorThermodynamicCalculationError,
+            CompressorStonewallError,
+            CompressorSurgeError,
+            InsufficientInletPressureError,
+        ):
             return False
 
     def _find_min_within_capacity_speed(
@@ -124,22 +147,27 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
     ) -> tuple[SpeedConfiguration, FluidStream]:
         """Return the lowest speed configuration within flow capacity, and its outlet stream.
 
-        ``CompressorStonewallError`` and ``CompressorThermodynamicCalculationError`` at the boundary
-        minimum are recoverable: higher speed raises the stonewall limit or enters the valid
-        EOS range; search upward.
+        ``CompressorStonewallError``, ``CompressorThermodynamicCalculationError``, and
+        ``InsufficientInletPressureError`` at the boundary minimum are recoverable:
+        higher speed raises the stonewall limit or enters the valid EOS/pressure range;
+        search upward.
         """
         minimum_speed_configuration = SpeedConfiguration(speed=self._boundary.min)
         try:
             minimum_result = func(minimum_speed_configuration)
             return minimum_speed_configuration, minimum_result
-        except (CompressorStonewallError, CompressorThermodynamicCalculationError) as e:
+        except (CompressorStonewallError, CompressorThermodynamicCalculationError, InsufficientInletPressureError) as e:
             logger.debug(f"No solution found for minimum speed: {self._boundary.min}", exc_info=e)
 
             def bool_speed_func(x: float) -> BisectResult:
                 try:
                     func(SpeedConfiguration(speed=x))
                     return BisectResult(higher=False, accepted=True)
-                except (CompressorStonewallError, CompressorThermodynamicCalculationError):
+                except (
+                    CompressorStonewallError,
+                    CompressorThermodynamicCalculationError,
+                    InsufficientInletPressureError,
+                ):
                     return BisectResult(higher=True, accepted=False)
                 except CompressorSurgeError:
                     return BisectResult(higher=False, accepted=False)

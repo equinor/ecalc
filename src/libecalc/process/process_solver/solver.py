@@ -107,6 +107,14 @@ class InsufficientInletPressureFailure(SolverFailure):
     inlet_pressure_bara: float | None = None
     required_delta_pressure_bara: float | None = None
 
+    @classmethod
+    def from_error(cls, e: InsufficientInletPressureError) -> Self:
+        return cls(
+            process_unit_id=e.process_unit_id,
+            inlet_pressure_bara=e.inlet_pressure_bara,
+            required_delta_pressure_bara=e.required_delta_pressure_bara,
+        )
+
 
 @dataclass
 class OfftakeExceedsInletFailure(SolverFailure):
@@ -131,11 +139,7 @@ def process_error_to_failure(e: ProcessError) -> SolverFailure:
             process_unit_id=e.process_unit_id, available_rate=e.available_rate, offtake_rate=e.offtake_rate
         )
     if isinstance(e, InsufficientInletPressureError):
-        return InsufficientInletPressureFailure(
-            process_unit_id=e.process_unit_id,
-            inlet_pressure_bara=e.inlet_pressure_bara,
-            required_delta_pressure_bara=e.required_delta_pressure_bara,
-        )
+        return InsufficientInletPressureFailure.from_error(e)
     if isinstance(e, CompressorThermodynamicCalculationError):
         return ThermodynamicCalculationFailure(reason=str(e))
     if isinstance(e, CompressorStonewallError):
