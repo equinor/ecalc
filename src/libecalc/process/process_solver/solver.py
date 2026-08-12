@@ -14,6 +14,7 @@ from libecalc.process.process_pipeline.process_error import (
     CompressorSurgeError,
     InsufficientInletPressureError,
     LiquidAtInletError,
+    NoGasPhaseError,
     OfftakeExceedsInletError,
     ProcessError,
 )
@@ -102,6 +103,12 @@ class LiquidAtInletFailure(SolverFailure):
 
 
 @dataclass
+class NoGasPhaseFailure(SolverFailure):
+    process_unit_id: ProcessUnitId | None = None
+    vapor_fraction: float | None = None
+
+
+@dataclass
 class InsufficientInletPressureFailure(SolverFailure):
     process_unit_id: ProcessUnitId | None = None
     inlet_pressure_bara: float | None = None
@@ -134,6 +141,8 @@ def process_error_to_failure(e: ProcessError) -> SolverFailure:
     """Map a ProcessError to the appropriate typed SolverFailure."""
     if isinstance(e, LiquidAtInletError):
         return LiquidAtInletFailure(process_unit_id=e.process_unit_id, vapor_fraction=e.vapor_fraction)
+    if isinstance(e, NoGasPhaseError):
+        return NoGasPhaseFailure(process_unit_id=e.process_unit_id, vapor_fraction=e.vapor_fraction)
     if isinstance(e, OfftakeExceedsInletError):
         return OfftakeExceedsInletFailure(
             process_unit_id=e.process_unit_id, available_rate=e.available_rate, offtake_rate=e.offtake_rate

@@ -197,3 +197,24 @@ class FluidService(abc.ABC):
             Volumetric flow rate at standard conditions [Sm3/day]
         """
         ...
+
+    # === Critical Point ===
+
+    @abc.abstractmethod
+    def get_critical_point(
+        self,
+        fluid_model: FluidModel,
+    ) -> tuple[float, float]:
+        """Get the critical temperature and pressure for a fluid composition.
+
+        Uses the equation of state to compute the true mixture critical point.
+        Results should be cached by composition + EoS since the critical point
+        is independent of the stream's actual T and P.
+
+        Args:
+            fluid_model: The fluid model (composition + EoS)
+
+        Returns:
+            Tuple of (critical_temperature_kelvin, critical_pressure_bara)
+        """
+        ...
