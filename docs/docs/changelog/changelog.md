@@ -1,5 +1,26 @@
 # Changelog
 
+## [13.11.0](https://github.com/equinor/ecalc/compare/v13.10.0...v13.11.0) (2026-08-12)
+
+
+### Features
+
+* extract expressions functionality ([45df459](https://github.com/equinor/ecalc/commit/45df4592aa0d17f5e51c114306da2396115a196b))
+
+
+### Bug Fixes
+
+* **libecalc:** catch InsufficientInletPressureError in finders ([#1712](https://github.com/equinor/ecalc/issues/1712)) ([0733f54](https://github.com/equinor/ecalc/commit/0733f5427c2b08efc73dbd4c65ab6d68da204b4b))
+* **libecalc:** improve validation of pressures set to zero ([#1705](https://github.com/equinor/ecalc/issues/1705)) ([5df4878](https://github.com/equinor/ecalc/commit/5df48783ec095a4d679e2265248906fba7b356ff))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump mermaid ([#1709](https://github.com/equinor/ecalc/issues/1709)) ([e9169bf](https://github.com/equinor/ecalc/commit/e9169bfa3de733633fec05ea2d8fa900c2561dc1))
+* **deps:** bump the npm_and_yarn group across 1 directory with 2 updates ([#1711](https://github.com/equinor/ecalc/issues/1711)) ([0fe2d55](https://github.com/equinor/ecalc/commit/0fe2d55145168a69714e1ae771663182a5db0223))
+* **deps:** bump zizmorcore/zizmor-action from 0.6.1 to 0.6.2 ([#1710](https://github.com/equinor/ecalc/issues/1710)) ([a426a2d](https://github.com/equinor/ecalc/commit/a426a2d482d54d4c1e6fa81f29643a1bb27431ae))
+* only run hooks on pre-commit unless specified ([#1707](https://github.com/equinor/ecalc/issues/1707)) ([ed6423d](https://github.com/equinor/ecalc/commit/ed6423df2cb60874b2b13fd32cc0dec47d065c38))
+
 ## [13.10.0](https://github.com/equinor/ecalc/compare/v13.9.0...v13.10.0) (2026-08-06)
 
 
