@@ -33,9 +33,11 @@ jobs:
           fetch-depth: 0
 
       - name: Refuse jar bump without version-note update
+        env:
+          BASE_REF: ${{ github.base_ref }}
         run: |
           set -euo pipefail
-          base="origin/${{ github.base_ref }}"
+          base="origin/$BASE_REF"
           changed=$(git diff --name-only "$base"...HEAD)
           echo "Changed files:"
           echo "$changed"
