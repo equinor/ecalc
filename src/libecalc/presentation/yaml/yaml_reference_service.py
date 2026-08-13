@@ -30,7 +30,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 logger = logging.getLogger(__name__)
@@ -44,7 +44,7 @@ ReferenceType = (
     | YamlProcessPipeline
     | YamlProcessSimulation
     | YamlPumpProcessSimulation
-    | YamlProcessUnit
+    | YamlProcessUnitDefinition
 )
 
 # Some models are referenced by other models, for example a compressor model will reference compressor chart models
@@ -218,8 +218,8 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("stream", reference)
         return model
 
-    def get_process_unit(self, reference: str) -> YamlProcessUnit:
+    def get_process_unit(self, reference: str) -> YamlProcessUnitDefinition:
         model = self._resolve_yaml_reference(reference, "process unit")
-        if not isinstance(model, get_args(get_args(YamlProcessUnit)[0])):
+        if not isinstance(model, get_args(get_args(YamlProcessUnitDefinition)[0])):
             raise InvalidReferenceException("process unit", reference)
         return model

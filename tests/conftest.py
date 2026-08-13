@@ -676,23 +676,27 @@ def patch_uuid():
 
 
 @pytest.fixture
-def process_simulation_mapper(
+def process_simulation_mapper_factory(
     fluid_service,
     expression_evaluator_factory,
 ):
     """
-    Minimal ProcessSimulationMapper for testing.
+    Factory fixture that returns a ProcessSimulationMapper.
+    Call with references dict to register pipelines/units for reference resolution.
+    Call without arguments for backward compatibility (empty references).
     """
     period = Period(start=datetime(2020, 1, 1), end=datetime(2030, 1, 1))
-
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
-    reference_service = DirectReferenceService(references={})
 
-    return ProcessSimulationMapper(
-        expression_evaluator=expression_evaluator,
-        fluid_service=fluid_service,
-        reference_service=reference_service,
-        process_simulation_period=period,
-        resources={},
-        ecalc_event_service=EcalcEventService(ecalc_events=[]),
-    )
+    def _create(references: dict | None = None):
+        reference_service = DirectReferenceService(references=references or {})
+        return ProcessSimulationMapper(
+            expression_evaluator=expression_evaluator,
+            fluid_service=fluid_service,
+            reference_service=reference_service,
+            process_simulation_period=period,
+            resources={},
+            ecalc_event_service=EcalcEventService(ecalc_events=[]),
+        )
+
+    return _create

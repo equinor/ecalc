@@ -14,7 +14,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
@@ -69,7 +69,7 @@ class YamlAsset(YamlBase):
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
     )
-    process_units: dict[str, YamlProcessUnit] = Field(
+    process_units: dict[str, YamlProcessUnitDefinition] = Field(
         default_factory=dict,
         title="PROCESS_UNITS",
         description="Defines process units used in PROCESS_PIPELINES.",

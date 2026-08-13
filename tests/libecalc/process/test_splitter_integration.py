@@ -22,7 +22,7 @@ from libecalc.testing.process_builders import (
 PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2030, 1, 1))
 
 
-def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper, fluid_service):
+def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_factory, fluid_service):
     """Verify that a Splitter defined in YAML survives the full chain:
     YAML → mapper → runtime configuration → pipeline execution.
 
@@ -42,16 +42,16 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper, flui
         .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
-    yaml_simulation = (
+    builder = (
         YamlProcessSimulationBuilder()
         .with_name("splitter_test")
         .with_pipeline(yaml_pipeline)
         .with_stream_distribution(YamlCommonStreamDistributionBuilder().with_test_data().validate())
-        .validate()
     )
+    yaml_simulation = builder.validate()
 
     # -- Map to domain objects --
-    pipelines, simulation = process_simulation_mapper.map_process_simulation(
+    pipelines, simulation = process_simulation_mapper_factory(builder.get_pipeline_references()).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )

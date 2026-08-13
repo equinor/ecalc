@@ -1,6 +1,6 @@
 from libecalc.common.ddd import value_object
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import InstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_units.compressor import Compressor
@@ -27,7 +27,7 @@ class ProcessPartitioner:
     @staticmethod
     def partition(
         process_unit_map: dict[ProcessUnitId, ProcessUnit],
-        unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
+        unit_name_to_id: dict[InstanceReference, ProcessUnitId],
         pipeline_constraints: list[YamlProcessConstraint],
     ) -> list[MappedSection]:
         process_units = list(process_unit_map.values())

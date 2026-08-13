@@ -45,20 +45,20 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
-    ProcessUnitReference,
+    InstanceReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlCompressor,
+    YamlCompressorDefinition,
     YamlCompressorModelChart,
-    YamlLiquidRemover,
-    YamlMixer,
-    YamlPressureDropper,
-    YamlProcessUnit,
-    YamlSplitter,
-    YamlTemperatureSetter,
+    YamlLiquidRemoverDefinition,
+    YamlMixerDefinition,
+    YamlPressureDropperDefinition,
+    YamlProcessUnitDefinition,
+    YamlSplitterDefinition,
+    YamlTemperatureSetterDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
@@ -132,7 +132,7 @@ class ProcessSimulationMapper:
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
 
-    def _resolve_train_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
+    def _resolve_pipeline_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
             return self._reference_service.get_process_pipeline(reference=ref)
         else:
@@ -173,7 +173,7 @@ class ProcessSimulationMapper:
                 yaml_curves, units=yaml_chart.units, control_margin=control_margin_fraction
             )
 
-    def _get_compressor(self, yaml_compressor: YamlCompressor) -> Compressor:
+    def _get_compressor(self, yaml_compressor: YamlCompressorDefinition) -> Compressor:
         chart: ChartData = self._get_compressor_chart(yaml_compressor_model_chart=yaml_compressor.compressor_model)
         return Compressor(
             compressor_chart=chart,
@@ -247,7 +247,7 @@ class ProcessSimulationMapper:
     def _validate_and_map_pipeline_events(
         self,
         yaml_pipeline: YamlProcessPipeline,
-        unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
+        unit_name_to_id: dict[InstanceReference, ProcessUnitId],
     ) -> list[PipelineEvent]:
         """Validate pipeline event references and map to domain objects."""
         events: list[PipelineEvent] = []
@@ -265,7 +265,7 @@ class ProcessSimulationMapper:
                 ) from None
 
             match change_to_yaml_process_unit:
-                case YamlCompressor():
+                case YamlCompressorDefinition():
                     change_to_unit = self._get_compressor(change_to_yaml_process_unit)
                 case _:
                     raise EcalcValidationException(
@@ -307,10 +307,10 @@ class ProcessSimulationMapper:
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
-            item = self._resolve_train_reference(yaml_compressor_train_item.target)
+            item = self._resolve_pipeline_reference(yaml_compressor_train_item)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
             compressor_ids: list[ProcessUnitId] = []
-            unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId] = {}
+            unit_name_to_id: dict[InstanceReference, ProcessUnitId] = {}
             problem_time_series_configurations: dict[
                 ProcessUnitId,
                 TimeSeriesTemperatureSetterConfiguration
@@ -319,33 +319,33 @@ class ProcessSimulationMapper:
                 | TimeSeriesSplitterConfiguration,
             ] = {}
 
-            for yaml_pipeline_item in item.items:
+            for yaml_pipeline_item in item.process_units:
                 yaml_process_unit = yaml_pipeline_item.target
                 process_unit_name = yaml_pipeline_item.name
                 if isinstance(yaml_process_unit, str):
                     yaml_process_unit = self._reference_service.get_process_unit(yaml_process_unit)
 
                 match yaml_process_unit:
-                    case YamlCompressor():
+                    case YamlCompressorDefinition():
                         unit = self._get_compressor(yaml_process_unit)
                         compressor_ids.append(unit.get_id())
 
-                    case YamlPressureDropper():
+                    case YamlPressureDropperDefinition():
                         unit = PressureDropper(fluid_service=self._fluid_service)
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesPressureDropperConfiguration(
                             pressure_drop_in_bara=self._map_pressure(yaml_process_unit.pressure_drop)
                         )
 
-                    case YamlTemperatureSetter():
+                    case YamlTemperatureSetterDefinition():
                         unit = TemperatureSetter(fluid_service=self._fluid_service)
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesTemperatureSetterConfiguration(
                             temperature_in_celsius=self._map_temperature(yaml_process_unit.temperature)
                         )
 
-                    case YamlLiquidRemover():
+                    case YamlLiquidRemoverDefinition():
                         unit = LiquidRemover(fluid_service=self._fluid_service)
 
-                    case YamlMixer():
+                    case YamlMixerDefinition():
                         yaml_stream = self._resolve_stream_reference(yaml_process_unit.sidestream)
                         yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
                         unit = Mixer(fluid_service=self._fluid_service)
@@ -358,7 +358,7 @@ class ProcessSimulationMapper:
                             )
                         )
 
-                    case YamlSplitter():
+                    case YamlSplitterDefinition():
                         unit = Splitter(fluid_service=self._fluid_service)
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesSplitterConfiguration(
                             offtake_rate=self._map_rate(yaml_process_unit.offtake_rate),
@@ -367,7 +367,7 @@ class ProcessSimulationMapper:
                     case _:
                         # Unreachable for valid YAML (pydantic discriminator rejects unknown types).
                         # Guards against bypassed parsing or new union variants missing a case.
-                        allowed_types = [t.__name__ for t in get_args(get_args(YamlProcessUnit)[0])]
+                        allowed_types = [t.__name__ for t in get_args(get_args(YamlProcessUnitDefinition)[0])]
                         raise EcalcValidationException(
                             f"Process unit of type '{type(yaml_process_unit).__name__}' is not allowed "
                             f"in a process pipeline. Allowed types are: {', '.join(allowed_types)}."

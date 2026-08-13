@@ -56,8 +56,9 @@ def _build_simulation_with_pipeline(
     pressure_control: PressureControlType = "DOWNSTREAM_CHOKE",
     outlet_pressure: float = 100.0,
 ):
-    """Build a YamlProcessSimulation with one pipeline and default stream distribution."""
-    return (
+    """Build a YamlProcessSimulation with one pipeline and default stream distribution.
+    Returns (simulation, pipeline_references) tuple."""
+    builder = (
         YamlProcessSimulationBuilder()
         .with_name(name)
         .with_pipeline(
@@ -66,8 +67,8 @@ def _build_simulation_with_pipeline(
             outlet_pressure=outlet_pressure,
         )
         .with_stream_distribution(YamlCommonStreamDistributionBuilder().with_test_data().validate())
-        .validate()
     )
+    return builder.validate(), builder.get_pipeline_references()
 
 
 # ---------------------------------------------------------------------------
@@ -75,9 +76,9 @@ def _build_simulation_with_pipeline(
 # ---------------------------------------------------------------------------
 
 
-def test_mapper_returns_one_pipeline_per_target(process_simulation_mapper):
+def test_mapper_returns_one_pipeline_per_target(process_simulation_mapper_factory):
     """One ProcessPipeline is produced per YAML target."""
-    yaml_simulation = (
+    builder = (
         YamlProcessSimulationBuilder()
         .with_name("multi")
         .with_pipeline(_simple_pipeline("train_a"))
@@ -85,10 +86,10 @@ def test_mapper_returns_one_pipeline_per_target(process_simulation_mapper):
         .with_stream_distribution(
             YamlCommonStreamDistributionBuilder().with_test_data().with_rate_fractions([0.5, 0.5]).validate()
         )
-        .validate()
     )
+    yaml_simulation = builder.validate()
 
-    pipelines, _ = process_simulation_mapper.map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(builder.get_pipeline_references()).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
@@ -102,12 +103,12 @@ def test_mapper_returns_one_pipeline_per_target(process_simulation_mapper):
 # ---------------------------------------------------------------------------
 
 
-def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulation_mapper):
+def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulation_mapper_factory):
     """Each compressor segment is wrapped with DirectMixer + DirectSplitter to enable
     ASV recirculation. This is not visible in YAML but added by the mapper."""
-    yaml_simulation = _build_simulation_with_pipeline(_simple_pipeline())
+    yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline())
 
-    pipelines, _ = process_simulation_mapper.map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
@@ -121,11 +122,11 @@ def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulat
     assert splitter_index > compressor_index
 
 
-def test_mapper_preserves_yaml_unit_order_inside_segment(process_simulation_mapper):
+def test_mapper_preserves_yaml_unit_order_inside_segment(process_simulation_mapper_factory):
     """User-defined units appear in the order specified in YAML."""
-    yaml_simulation = _build_simulation_with_pipeline(_simple_pipeline())
+    yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline())
 
-    pipelines, _ = process_simulation_mapper.map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
@@ -141,11 +142,11 @@ def test_mapper_preserves_yaml_unit_order_inside_segment(process_simulation_mapp
     assert position_of(LiquidRemover) < position_of(Compressor)
 
 
-def test_mapper_adds_choke_for_downstream_choke_pressure_control(process_simulation_mapper):
+def test_mapper_adds_choke_for_downstream_choke_pressure_control(process_simulation_mapper_factory):
     """DOWNSTREAM_CHOKE pressure control adds a Choke at the end of the pipeline."""
-    yaml_simulation = _build_simulation_with_pipeline(_simple_pipeline(), pressure_control="DOWNSTREAM_CHOKE")
+    yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline(), pressure_control="DOWNSTREAM_CHOKE")
 
-    pipelines, _ = process_simulation_mapper.map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
@@ -156,11 +157,11 @@ def test_mapper_adds_choke_for_downstream_choke_pressure_control(process_simulat
     assert isinstance(units[-1], Outlet)
 
 
-def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulation_mapper):
+def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulation_mapper_factory):
     """UPSTREAM_CHOKE pressure control adds a Choke at the very start of the pipeline."""
-    yaml_simulation = _build_simulation_with_pipeline(_simple_pipeline(), pressure_control="UPSTREAM_CHOKE")
+    yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline(), pressure_control="UPSTREAM_CHOKE")
 
-    pipelines, _ = process_simulation_mapper.map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
@@ -171,7 +172,7 @@ def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulatio
     assert isinstance(units[-1], Outlet)
 
 
-def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapper):
+def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapper_factory):
     """Mixer and Splitter must sit between ASV recirculation loops, not inside one."""
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
@@ -184,9 +185,9 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
         .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
-    yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
+    yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
-    pipelines, _ = process_simulation_mapper.map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
@@ -215,72 +216,72 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
 # ---------------------------------------------------------------------------
 
 
-def test_incompatible_strategies_raises_validation_exception(process_simulation_mapper):
+def test_incompatible_strategies_raises_validation_exception(process_simulation_mapper_factory):
     """Test that incompatible ANTI_SURGE and PRESSURE_CONTROL strategies raise exception."""
-    mapper = process_simulation_mapper
-
-    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+    builder = YamlProcessSimulationBuilder().with_test_data()
+    yaml_simulation = builder.validate()
 
     # Use incompatible combinations
-    pipeline = yaml_simulation.targets[0].target
+    pipeline_name = yaml_simulation.targets[0]
 
-    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint = yaml_simulation.constraints[pipeline_name][0]
     constraint.anti_surge = "INDIVIDUAL_ASV"
     constraint.pressure_control = "COMMON_ASV"
 
     # Check that validation fails
+    mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
     with pytest.raises(EcalcValidationException) as exc_info:
         mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
     assert "PRESSURE_CONTROL 'COMMON_ASV' requires ANTI_SURGE 'COMMON_ASV', got 'INDIVIDUAL_ASV'" in str(exc_info.value)
 
 
-def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_mapper):
+def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_mapper_factory):
     """Test that COMMON_ASV anti-surge + INDIVIDUAL_ASV_RATE pressure control raises exception."""
-    mapper = process_simulation_mapper
+    builder = YamlProcessSimulationBuilder().with_test_data()
+    yaml_simulation = builder.validate()
 
-    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+    pipeline_name = yaml_simulation.targets[0]
 
-    pipeline = yaml_simulation.targets[0].target
-
-    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint = yaml_simulation.constraints[pipeline_name][0]
     constraint.anti_surge = "COMMON_ASV"
     constraint.pressure_control = "INDIVIDUAL_ASV_RATE"
 
+    mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
     with pytest.raises(EcalcValidationException):
         mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
 
-def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation_mapper):
+def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation_mapper_factory):
     """Test that COMMON_ASV anti-surge + INDIVIDUAL_ASV_PRESSURE pressure control raises exception."""
-    mapper = process_simulation_mapper
+    builder = YamlProcessSimulationBuilder().with_test_data()
+    yaml_simulation = builder.validate()
 
-    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+    pipeline_name = yaml_simulation.targets[0]
 
-    pipeline = yaml_simulation.targets[0].target
-
-    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint = yaml_simulation.constraints[pipeline_name][0]
     constraint.anti_surge = "COMMON_ASV"
     constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
 
+    mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
     with pytest.raises(EcalcValidationException):
         mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
 
-def test_compatible_strategies_succeeds(process_simulation_mapper):
+def test_compatible_strategies_succeeds(process_simulation_mapper_factory):
     """Test that compatible strategies pass validation."""
-    mapper = process_simulation_mapper
-
-    yaml_simulation = YamlProcessSimulationBuilder().with_test_data().validate()
+    builder = YamlProcessSimulationBuilder().with_test_data()
+    yaml_simulation = builder.validate()
 
     # Use compatible combinations
-    pipeline = yaml_simulation.targets[0].target
+    pipeline_name = yaml_simulation.targets[0]
 
-    constraint = yaml_simulation.constraints[pipeline.name][0]
+    constraint = yaml_simulation.constraints[pipeline_name][0]
     constraint.anti_surge = "INDIVIDUAL_ASV"
     constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
 
     # Run without exception
+    mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
     mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
 
@@ -289,7 +290,7 @@ def test_compatible_strategies_succeeds(process_simulation_mapper):
 # ---------------------------------------------------------------------------
 
 
-def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_mapper):
+def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_mapper_factory):
     """Units after the last compressor are placed outside any ASV recirculation loop."""
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
@@ -301,9 +302,9 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
         .with_item(name="temp_setter_3", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .validate()
     )
-    yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
+    yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
-    pipelines, _ = process_simulation_mapper.map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
@@ -324,7 +325,7 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
 # ---------------------------------------------------------------------------
 
 
-def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper):
+def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper_factory):
     """Duplicate process unit names are not allowed within a process."""
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
@@ -335,10 +336,10 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper):
         .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
-    yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
+    yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
     with pytest.raises(EcalcValidationException) as exc_info:
-        process_simulation_mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+        process_simulation_mapper_factory(refs).map_process_simulation(yaml_simulation, process_periods=[PERIOD])
 
     assert "Duplicate process unit name 'temp_setter_1'" in str(exc_info.value)
 
@@ -348,10 +349,10 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper):
 # ---------------------------------------------------------------------------
 
 
-def test_mapper_builds_single_process_problem_section(process_simulation_mapper):
+def test_mapper_builds_single_process_problem_section(process_simulation_mapper_factory):
     """A single constraint pipeline produces one ProcessProblemSection."""
-    yaml_simulation = _build_simulation_with_pipeline(_simple_pipeline())
-    _, simulation = process_simulation_mapper.map_process_simulation(
+    yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline())
+    _, simulation = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
@@ -371,7 +372,7 @@ def test_mapper_builds_single_process_problem_section(process_simulation_mapper)
     # assert any(isinstance(h, RecirculationLoop) for h in section.configuration_handlers)
 
 
-def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapper):
+def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapper_factory):
     """Each mapped process section becomes a ProcessProblemSection"""
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
@@ -384,7 +385,7 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
         .validate()
     )
 
-    yaml_simulation = _build_simulation_with_pipeline(pipeline=yaml_pipeline, pressure_control="DOWNSTREAM_CHOKE")
+    yaml_simulation, refs = _build_simulation_with_pipeline(pipeline=yaml_pipeline, pressure_control="DOWNSTREAM_CHOKE")
 
     constraint = YamlProcessConstraint(
         process_unit="compressor_1",
@@ -394,7 +395,7 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
     )
     yaml_simulation.constraints[yaml_pipeline.name].insert(0, constraint)
 
-    _, simulation = process_simulation_mapper.map_process_simulation(
+    _, simulation = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )

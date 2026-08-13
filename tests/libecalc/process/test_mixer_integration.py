@@ -20,7 +20,7 @@ from libecalc.testing.process_builders import (
 PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2030, 1, 1))
 
 
-def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper, fluid_service):
+def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory, fluid_service):
     """
     Verify that a Mixer defined in YAML survives the full chain:
     YAML → mapper → runtime configuration → pipeline execution.
@@ -42,16 +42,16 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper, fluid_s
         .validate()
     )
 
-    yaml_simulation = (
+    builder = (
         YamlProcessSimulationBuilder()
         .with_name("mixer_test")
         .with_pipeline(yaml_pipeline)
         .with_stream_distribution(YamlIndividualStreamDistributionBuilder().with_test_data().validate())
-        .validate()
     )
+    yaml_simulation = builder.validate()
 
     # -- Map to process domain objects --
-    pipelines, simulation = process_simulation_mapper.map_process_simulation(
+    pipelines, simulation = process_simulation_mapper_factory(builder.get_pipeline_references()).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
         process_periods=[PERIOD],
     )
