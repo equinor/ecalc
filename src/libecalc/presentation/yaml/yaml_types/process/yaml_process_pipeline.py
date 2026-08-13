@@ -6,6 +6,9 @@ from pydantic import Field
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
     ProcessEventReference,
+    ProcessUnitDefinitionReference,
+    ProcessUnitInstanceName,
+    ProcessUnitInstanceReference,
     ProcessUnitReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -18,6 +21,11 @@ TTarget = TypeVar("TTarget")
 class YamlItem[TTarget](YamlBase):
     target: TTarget | ProcessUnitReference
     name: str | None = None
+
+
+class YamlProcessUnitItem(YamlBase):
+    name: ProcessUnitInstanceName | None = None
+    target: YamlProcessUnit | ProcessUnitDefinitionReference
 
 
 class PipelineEventAction(StrEnum):
@@ -39,21 +47,21 @@ class YamlPipelineEvent(YamlBase):
         ),
     ]
     change_target: Annotated[
-        ProcessUnitReference,
+        ProcessUnitInstanceReference,
         Field(
             title="CHANGE_TARGET",
             description="Name of the process unit in the pipeline to change.",
         ),
     ]
     change_from: Annotated[
-        ProcessUnitReference,
+        ProcessUnitDefinitionReference,
         Field(
             title="CHANGE_FROM",
             description="Reference to the existing process unit template being replaced.",
         ),
     ]
     change_to: Annotated[
-        ProcessUnitReference,
+        ProcessUnitDefinitionReference,
         Field(
             title="CHANGE_TO",
             description="Reference to the new process unit template to use.",
@@ -78,7 +86,7 @@ class YamlPipelineEvent(YamlBase):
 class YamlProcessPipeline(YamlBase):
     type: Literal["SERIAL"]
     name: str
-    items: list[YamlItem[YamlProcessUnit]]
+    items: list[YamlProcessUnitItem]
     events: Annotated[
         list[YamlPipelineEvent],
         Field(

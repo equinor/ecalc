@@ -3,7 +3,7 @@ from libecalc.presentation.yaml.mappers.process.process_partitioner import (
     MappedSection,
     ProcessPartitioner,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitInstanceName
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
@@ -25,7 +25,7 @@ class ProcessSectionBuilder:
     def partition_and_validate(
         self,
         process_unit_map: dict[ProcessUnitId, ProcessUnit],
-        unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
+        unit_name_to_id: dict[ProcessUnitInstanceName, ProcessUnitId],
         pipeline_constraints: list[YamlProcessConstraint],
     ) -> list[MappedSection]:
         sections = self._partitioner.partition(

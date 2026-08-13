@@ -3,14 +3,14 @@ from typing import Literal, Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessPipelineReference
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessPipelineInstanceReference
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import StreamRef
 
 
 class YamlOverflow(YamlBase):
-    from_reference: ProcessPipelineReference
-    to_reference: ProcessPipelineReference
+    from_reference: ProcessPipelineInstanceReference
+    to_reference: ProcessPipelineInstanceReference
 
 
 class YamlCommonStreamSetting(YamlBase):

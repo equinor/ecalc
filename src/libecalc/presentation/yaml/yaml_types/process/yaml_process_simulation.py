@@ -5,14 +5,13 @@ from pydantic import Field
 from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlItem,
-    YamlProcessPipeline,
-)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
     EcalcEventReference,
-    ProcessPipelineReference,
-    ProcessUnitReference,
+    ProcessPipelineDefinitionReference,
+    ProcessPipelineInstanceName,
+    ProcessPipelineInstanceReference,
+    ProcessUnitInstanceReference,
     PumpChartReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
@@ -83,9 +82,14 @@ class YamlProcessEvent(YamlBase):
     ]
 
 
+class YamlProcessPipelineTarget(YamlBase):
+    name: ProcessPipelineInstanceName | None = None
+    target: YamlProcessPipeline | ProcessPipelineDefinitionReference
+
+
 class YamlProcessConstraint(YamlBase):
     process_unit: Annotated[
-        ProcessUnitReference | None,
+        ProcessUnitInstanceReference | None,
         Field(
             title="PROCESS_UNIT",
             description="Reference to a named unit within the pipeline. If omitted, the constraint applies to the last process unit in the pipeline section.",
@@ -117,12 +121,12 @@ class YamlProcessConstraint(YamlBase):
 class YamlProcessSimulation(YamlBase):
     name: str
     targets: Annotated[
-        list[YamlItem[YamlProcessPipeline]],
+        list[YamlProcessPipelineTarget],
         Field(title="TARGETS"),
     ]
     stream_distribution: YamlStreamDistribution
     constraints: Annotated[
-        dict[ProcessPipelineReference, list[YamlProcessConstraint]],
+        dict[ProcessPipelineInstanceReference, list[YamlProcessConstraint]],
         Field(
             title="CONSTRAINTS",
             description="Constraints per target. Key is pipeline name, value is list of constraints.",

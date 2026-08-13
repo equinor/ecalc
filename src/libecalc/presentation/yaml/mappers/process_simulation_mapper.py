@@ -39,13 +39,16 @@ from libecalc.presentation.yaml.mappers.fluid_mapper import (
 )
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
 from libecalc.presentation.yaml.mappers.process.build_sections import ProcessSectionBuilder
+from libecalc.presentation.yaml.resolvers.process_unit_resolver import ProcessUnitResolver
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
-    ProcessUnitReference,
+    ProcessPipelineInstanceName,
+    ProcessPipelineInstanceReference,
+    ProcessUnitInstanceName,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlProcessSimulation,
@@ -131,6 +134,7 @@ class ProcessSimulationMapper:
         self._reference_service = reference_service
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
+        self._process_unit_resolver = ProcessUnitResolver(reference_service)
 
     def _resolve_train_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
@@ -247,7 +251,7 @@ class ProcessSimulationMapper:
     def _validate_and_map_pipeline_events(
         self,
         yaml_pipeline: YamlProcessPipeline,
-        unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
+        unit_name_to_id: dict[ProcessUnitInstanceName, ProcessUnitId],
     ) -> list[PipelineEvent]:
         """Validate pipeline event references and map to domain objects."""
         events: list[PipelineEvent] = []
@@ -275,7 +279,7 @@ class ProcessSimulationMapper:
             events.append(
                 PipelineEvent(
                     action=PipelineEventAction(yaml_event.type.value),
-                    change_target=unit_name_to_id[yaml_event.change_target],
+                    change_target=unit_name_to_id[ProcessUnitInstanceName(yaml_event.change_target)],
                     change_to=change_to_unit,
                     change_type=PipelineEventChangeType(yaml_event.change_type.value),
                     change_time=ecalc_event.start,
@@ -308,9 +312,10 @@ class ProcessSimulationMapper:
             problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
+            pipeline_instance_name = yaml_compressor_train_item.name or ProcessPipelineInstanceName(item.name)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
             compressor_ids: list[ProcessUnitId] = []
-            unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId] = {}
+            unit_name_to_id: dict[ProcessUnitInstanceName, ProcessUnitId] = {}
             problem_time_series_configurations: dict[
                 ProcessUnitId,
                 TimeSeriesTemperatureSetterConfiguration
@@ -320,10 +325,9 @@ class ProcessSimulationMapper:
             ] = {}
 
             for yaml_pipeline_item in item.items:
-                yaml_process_unit = yaml_pipeline_item.target
-                process_unit_name = yaml_pipeline_item.name
-                if isinstance(yaml_process_unit, str):
-                    yaml_process_unit = self._reference_service.get_process_unit(yaml_process_unit)
+                resolved_process_unit = self._process_unit_resolver.resolve(yaml_pipeline_item)
+                process_unit_name = resolved_process_unit.name
+                yaml_process_unit = resolved_process_unit.specification
 
                 match yaml_process_unit:
                     case YamlCompressor():
@@ -394,10 +398,11 @@ class ProcessSimulationMapper:
             # from section, and keep track of them at pipeline level
             process_pipeline_sections: list[ProcessPipelineSection] = []
             process_problem_sections: list[ProcessProblemSection] = []
-            pipeline_constraints = yaml_process_simulation.constraints.get(item.name)
-
+            pipeline_constraints = yaml_process_simulation.constraints.get(
+                ProcessPipelineInstanceReference(pipeline_instance_name)
+            )
             if not pipeline_constraints:
-                raise EcalcValidationException(f"Missing constraint for process system '{item.name}'")
+                raise EcalcValidationException(f"Missing constraint for process system '{pipeline_instance_name}'")
 
             mapped_sections = section_builder.partition_and_validate(
                 process_unit_map=process_unit_map,
@@ -426,7 +431,7 @@ class ProcessSimulationMapper:
             # TODO: We should move this class to this module/layer
             # in particular because it creates necessary connections, which means that they will get new IDs
             process_pipeline = ProcessPipeline(
-                name=item.name,
+                name=pipeline_instance_name,
                 process_pipeline_sections=process_pipeline_sections,
                 events=pipeline_events,
                 process_periods=process_periods,
@@ -476,7 +481,7 @@ class ProcessSimulationMapper:
 
             predefined_configurations[process_pipeline.get_id()] = problem_time_series_configurations
 
-            process_pipeline_reference_to_id_map[item.name] = process_pipeline.get_id()
+            process_pipeline_reference_to_id_map[pipeline_instance_name] = process_pipeline.get_id()
             process_pipelines.append(process_pipeline)
             process_problems.append(
                 ProcessProblem(

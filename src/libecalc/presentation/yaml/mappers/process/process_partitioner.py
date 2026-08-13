@@ -1,6 +1,6 @@
 from libecalc.common.ddd import value_object
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitInstanceName
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_units.compressor import Compressor
@@ -27,7 +27,7 @@ class ProcessPartitioner:
     @staticmethod
     def partition(
         process_unit_map: dict[ProcessUnitId, ProcessUnit],
-        unit_name_to_id: dict[ProcessUnitReference, ProcessUnitId],
+        unit_name_to_id: dict[ProcessUnitInstanceName, ProcessUnitId],
         pipeline_constraints: list[YamlProcessConstraint],
     ) -> list[MappedSection]:
         process_units = list(process_unit_map.values())
@@ -40,7 +40,7 @@ class ProcessPartitioner:
                     raise EcalcValidationException("Only one constraint can target the process pipeline outlet.")
                 terminal_constraint = constraint
                 continue
-            unit_id = unit_name_to_id.get(constraint.process_unit)
+            unit_id = unit_name_to_id.get(ProcessUnitInstanceName(constraint.process_unit))
             if unit_id is None:
                 raise EcalcValidationException(f"Constraint references unknown unit '{constraint.process_unit}'.")
 
