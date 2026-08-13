@@ -13,6 +13,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
     ProcessUnitDefinitionReference,
     ProcessUnitInstanceName,
     ProcessUnitInstanceReference,
+    ProcessPipelineInstanceName,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlProcessConstraint,
@@ -466,7 +467,8 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         anti_surge: AntiSurgeType = AntiSurgeType.INDIVIDUAL_ASV,
         outlet_pressure: YamlExpressionType = 100.0,
     ) -> Self:
-        self.targets.append(YamlProcessPipelineTarget(target=pipeline))
+        pipeline_instance_name = ProcessPipelineInstanceName(pipeline.name)
+        self.targets.append(YamlProcessPipelineTarget(name=pipeline_instance_name, target=pipeline))
         process_unit_name = pipeline.items[-1].name
         self.constraints[pipeline.name] = [
             YamlProcessConstraint(

@@ -83,7 +83,7 @@ class YamlProcessEvent(YamlBase):
 
 
 class YamlProcessPipelineTarget(YamlBase):
-    name: ProcessPipelineInstanceName | None = None
+    name: ProcessPipelineInstanceName
     target: YamlProcessPipeline | ProcessPipelineDefinitionReference
 
 

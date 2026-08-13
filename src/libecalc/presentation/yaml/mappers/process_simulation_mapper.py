@@ -46,7 +46,6 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
-    ProcessPipelineInstanceName,
     ProcessPipelineInstanceReference,
     ProcessUnitInstanceName,
 )
@@ -312,7 +311,7 @@ class ProcessSimulationMapper:
             problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
             item = self._resolve_train_reference(yaml_compressor_train_item.target)
-            pipeline_instance_name = yaml_compressor_train_item.name or ProcessPipelineInstanceName(item.name)
+            pipeline_instance_name = yaml_compressor_train_item.name
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
             compressor_ids: list[ProcessUnitId] = []
             unit_name_to_id: dict[ProcessUnitInstanceName, ProcessUnitId] = {}
