@@ -105,3 +105,31 @@ class TestCompressorRecirculationRange:
         )
         boundary = compressor.get_recirculation_range(inlet_stream=inlet)
         assert boundary.min > 0.0
+
+
+class TestCompressorEOSFailure:
+    def test_raises_outlet_fluid_not_achievable_on_eos_failure(self, stream_factory, compressor, shaft):
+        """When the EOS cannot compute an outlet stream, OutletFluidNotAchievableError is raised
+        with the operating-point context attached."""
+        from unittest.mock import patch
+
+        from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
+        from libecalc.process.process_pipeline.process_error import OutletFluidNotAchievableError
+
+        speed = (shaft.get_speed_boundary().min + shaft.get_speed_boundary().max) / 2
+        shaft.set_speed(speed)
+        inlet = _inlet_at_midpoint(stream_factory, compressor)
+
+        with patch(
+            "libecalc.process.process_units.compressor.calculate_outlet_pressure_and_stream",
+            side_effect=CompressorThermodynamicCalculationError(operation="flash", reason="flash failed"),
+        ):
+            with pytest.raises(OutletFluidNotAchievableError) as exc_info:
+                compressor.propagate_stream(inlet_stream=inlet)
+
+            error = exc_info.value
+            assert error.process_unit_id == compressor.get_id()
+            op = error.unachievable_operating_point
+            assert op.inlet_pressure_bara == inlet.pressure_bara
+            assert op.speed == speed
+            assert op.actual_rate_m3_per_hour > 0
