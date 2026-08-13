@@ -1313,6 +1313,12 @@ class ConsumerFunctionMapper:
             discharge_pressure=discharge_pressure,
         )
 
+        if suction_pressure is not None and discharge_pressure is not None:
+            validate_pressures(
+                suction_pressure=suction_pressure,
+                discharge_pressure=discharge_pressure,
+            )
+
         compressor_model, fluid_model = self._compressor_model_mapper.create_compressor_model(
             model.energy_function, operational_data=operational_data
         )
@@ -1320,12 +1326,6 @@ class ConsumerFunctionMapper:
         consumption_type = compressor_model.get_consumption_type()
         if consumes != consumption_type:
             raise InvalidConsumptionType(actual=consumption_type, expected=consumes)
-
-        if suction_pressure is not None and discharge_pressure is not None:
-            validate_pressures(
-                suction_pressure=suction_pressure,
-                discharge_pressure=discharge_pressure,
-            )
 
         model_id = uuid4()
         # Register the compressor model and its evaluation input in the process service
