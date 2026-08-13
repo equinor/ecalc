@@ -69,14 +69,14 @@ class YamlAsset(YamlBase):
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
     )
-    process_units: dict[str, YamlProcessUnit] = Field(
+    process_unit_definitions: dict[str, YamlProcessUnit] = Field(
         default_factory=dict,
-        title="PROCESS_UNITS",
+        title="PROCESS_UNIT_DEFINITIONS",
         description="Defines process units used in PROCESS_PIPELINES.",
     )
-    process_pipelines: dict[str, YamlProcessPipeline] = Field(
+    process_pipeline_definitions: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
-        title="PROCESS_PIPELINES",
+        title="PROCESS_PIPELINE_DEFINITIONS",
         description="Defines process pipelines to use in process simulations.",
     )
     process_simulations: list[YamlProcessSimulation] = Field(
@@ -185,11 +185,11 @@ class YamlAsset(YamlBase):
             for fuel_type in self.fuel_types:
                 references.append(fuel_type.name)
 
-        if self.process_pipelines is not None:
-            references.extend(self.process_pipelines.keys())
+        if self.process_pipeline_definitions is not None:
+            references.extend(self.process_pipeline_definitions.keys())
 
-        if self.process_units is not None:
-            references.extend(self.process_units.keys())
+        if self.process_unit_definitions is not None:
+            references.extend(self.process_unit_definitions.keys())
 
         if self.process_simulations is not None:
             for process_simulation in self.process_simulations:
