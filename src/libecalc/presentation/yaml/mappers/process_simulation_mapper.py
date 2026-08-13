@@ -135,7 +135,7 @@ class ProcessSimulationMapper:
         self._ecalc_event_service = ecalc_event_service
         self._process_unit_resolver = ProcessUnitResolver(reference_service)
 
-    def _resolve_train_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
+    def _resolve_pipeline_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
             return self._reference_service.get_process_pipeline(reference=ref)
         else:
@@ -307,11 +307,11 @@ class ProcessSimulationMapper:
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
         section_builder = ProcessSectionBuilder()
-        for yaml_compressor_train_item in yaml_process_simulation.targets:
+        for yaml_pipeline_target in yaml_process_simulation.targets:
             problem_configuration_handlers = []
             shaft = VariableSpeedShaft()
-            item = self._resolve_train_reference(yaml_compressor_train_item.target)
-            pipeline_instance_name = yaml_compressor_train_item.name
+            pipeline_definition = self._resolve_pipeline_reference(yaml_pipeline_target.target)
+            pipeline_instance_name = yaml_pipeline_target.name
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
             compressor_ids: list[ProcessUnitId] = []
             unit_name_to_id: dict[ProcessUnitInstanceName, ProcessUnitId] = {}
@@ -323,8 +323,8 @@ class ProcessSimulationMapper:
                 | TimeSeriesSplitterConfiguration,
             ] = {}
 
-            for yaml_pipeline_item in item.items:
-                resolved_process_unit = self._process_unit_resolver.resolve(yaml_pipeline_item)
+            for process_unit_instance in pipeline_definition.items:
+                resolved_process_unit = self._process_unit_resolver.resolve(process_unit_instance)
                 process_unit_name = resolved_process_unit.name
                 yaml_process_unit = resolved_process_unit.specification
 
@@ -424,7 +424,7 @@ class ProcessSimulationMapper:
 
             # TODO: Simply events for now ...
             pipeline_events = self._validate_and_map_pipeline_events(
-                yaml_pipeline=item,
+                yaml_pipeline=pipeline_definition,
                 unit_name_to_id=unit_name_to_id,
             )
             # TODO: We should move this class to this module/layer

@@ -50,10 +50,10 @@ class DirectReferenceService(ReferenceService):
         raise NotImplementedError()
 
     def get_process_pipeline(self, reference: str) -> YamlProcessPipeline:
-        raise NotImplementedError()
+        return self._resolve_reference(reference)
 
     def get_process_unit(self, reference: str) -> YamlProcessUnit:
-        raise NotImplementedError()
+        return self._resolve_reference(reference)
 
     def get_stream(self, reference: str) -> YamlInletStream:
-        raise NotImplementedError()
+        return self._resolve_reference(reference)

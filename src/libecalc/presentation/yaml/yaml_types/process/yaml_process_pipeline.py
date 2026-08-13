@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Annotated, Literal, TypeVar
+from typing import Annotated, Literal
 
 from pydantic import Field
 
@@ -9,21 +9,13 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
     ProcessUnitDefinitionReference,
     ProcessUnitInstanceName,
     ProcessUnitInstanceReference,
-    ProcessUnitReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlProcessUnit,
 )
 
-TTarget = TypeVar("TTarget")
 
-
-class YamlItem[TTarget](YamlBase):
-    target: TTarget | ProcessUnitReference
-    name: str | None = None
-
-
-class YamlProcessUnitItem(YamlBase):
+class YamlProcessUnitInstance(YamlBase):
     name: ProcessUnitInstanceName | None = None
     target: YamlProcessUnit | ProcessUnitDefinitionReference
 
@@ -86,7 +78,7 @@ class YamlPipelineEvent(YamlBase):
 class YamlProcessPipeline(YamlBase):
     type: Literal["SERIAL"]
     name: str
-    items: list[YamlProcessUnitItem]
+    items: list[YamlProcessUnitInstance]
     events: Annotated[
         list[YamlPipelineEvent],
         Field(

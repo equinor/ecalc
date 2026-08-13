@@ -45,7 +45,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlProcessPipeline,
-    YamlProcessUnitItem,
+    YamlProcessUnitInstance,
 )
 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -252,7 +252,7 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
     def with_item(
         self, target: YamlProcessUnit | ProcessUnitDefinitionReference, name: ProcessUnitInstanceName | None = None
     ) -> Self:
-        self.items.append(YamlProcessUnitItem(name=name, target=target))
+        self.items.append(YamlProcessUnitInstance(name=name, target=target))
         return self
 
     def with_items(
