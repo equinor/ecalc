@@ -323,7 +323,7 @@ class ProcessSimulationMapper:
                 | TimeSeriesSplitterConfiguration,
             ] = {}
 
-            for process_unit_instance in pipeline_definition.items:
+            for process_unit_instance in pipeline_definition.process_units:
                 resolved_process_unit = self._process_unit_resolver.resolve(process_unit_instance)
                 process_unit_name = resolved_process_unit.name
                 yaml_process_unit = resolved_process_unit.specification

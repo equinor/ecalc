@@ -5,6 +5,7 @@ import pytest
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
 from libecalc.ecalc_model.process_simulation import Constraint
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitInstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
@@ -42,10 +43,10 @@ def _simple_pipeline(name: str = "train_1"):
     return (
         YamlProcessPipelineBuilder()
         .with_name(name)
-        .with_item(target=YamlPressureDropperBuilder().with_test_data().validate())
-        .with_item(target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(target=YamlLiquidRemoverBuilder().with_test_data().validate())
-        .with_item(target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(target=YamlPressureDropperBuilder().with_test_data().validate())
+        .with_process_unit(target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(target=YamlLiquidRemoverBuilder().with_test_data().validate())
+        .with_process_unit(target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
 
@@ -176,12 +177,12 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer_and_splitter")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
-        .with_item(target=YamlSplitterBuilder().with_test_data().validate())
-        .with_item(target=YamlMixerBuilder().with_test_data().validate())
-        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(target=YamlSplitterBuilder().with_test_data().validate())
+        .with_process_unit(target=YamlMixerBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
     yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
@@ -294,11 +295,11 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_aftercooler")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
-        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
-        .with_item(name="temp_setter_3", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_3", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .validate()
     )
     yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
@@ -329,10 +330,10 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper):
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_duplicate_unit_names")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
     yaml_simulation = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
@@ -376,18 +377,18 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_intermediate_constraint")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
-        .with_item(target=YamlMixerBuilder().with_test_data().validate())
-        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(target=YamlMixerBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
 
     yaml_simulation = _build_simulation_with_pipeline(pipeline=yaml_pipeline, pressure_control="DOWNSTREAM_CHOKE")
 
     constraint = YamlProcessConstraint(
-        process_unit="compressor_1",
+        process_unit=ProcessUnitInstanceReference("compressor_1"),
         outlet_pressure=30,
         pressure_control="INDIVIDUAL_ASV_RATE",
         anti_surge=AntiSurgeType.INDIVIDUAL_ASV,

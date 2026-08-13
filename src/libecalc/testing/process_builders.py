@@ -242,26 +242,34 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
     def __init__(self):
         self.type = "SERIAL"
         self.name = None
-        self.items = []
+        self.process_units = []
         self.anti_surge = "INDIVIDUAL_ASV"
 
     def with_name(self, name: str) -> Self:
         self.name = name
         return self
 
-    def with_item(
-        self, target: YamlProcessUnit | ProcessUnitDefinitionReference, name: ProcessUnitInstanceName | None = None
+    def with_process_unit(
+        self,
+        target: YamlProcessUnit | ProcessUnitDefinitionReference,
+        name: str | None = None,
     ) -> Self:
-        self.items.append(YamlProcessUnitInstance(name=name, target=target))
+        instance_name = ProcessUnitInstanceName(name) if name is not None else None
+        self.process_units.append(
+            YamlProcessUnitInstance(
+                name=instance_name,
+                target=target,
+            )
+        )
         return self
 
-    def with_items(
-        self, items: list[tuple[ProcessUnitInstanceName | None, YamlProcessUnit | ProcessUnitDefinitionReference]]
+    def with_process_units(
+        self, process_units: list[tuple[str | None, YamlProcessUnit | ProcessUnitDefinitionReference]]
     ) -> Self:
         """Pass a list of validated process units (or string references).
         Each is wrapped in a YamlProcessUnitItem automatically."""
-        for name, target in items:
-            self.with_item(name=name, target=target)
+        for name, target in process_units:
+            self.with_process_unit(name=name, target=target)
         return self
 
     def with_anti_surge(self, anti_surge: str) -> Self:
@@ -272,20 +280,20 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self.name = "DefaultPipeline"
 
         return (
-            self.with_item(
-                name=ProcessUnitInstanceName("default_pressure_dropper"),
+            self.with_process_unit(
+                name="default_pressure_dropper",
                 target=YamlPressureDropperBuilder().with_test_data().validate(),
             )
-            .with_item(
-                name=ProcessUnitInstanceName("default_temperature_setter"),
+            .with_process_unit(
+                name="default_temperature_setter",
                 target=YamlTemperatureSetterBuilder().with_test_data().validate(),
             )
-            .with_item(
-                name=ProcessUnitInstanceName("default_liquid_remover"),
+            .with_process_unit(
+                name="default_liquid_remover",
                 target=YamlLiquidRemoverBuilder().with_test_data().validate(),
             )
-            .with_item(
-                name=ProcessUnitInstanceName("default_compressor"),
+            .with_process_unit(
+                name="default_compressor",
                 target=YamlCompressorBuilder().with_test_data().validate(),
             )
         )
@@ -469,7 +477,7 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
     ) -> Self:
         pipeline_instance_name = ProcessPipelineInstanceName(pipeline.name)
         self.targets.append(YamlProcessPipelineTarget(name=pipeline_instance_name, target=pipeline))
-        process_unit_name = pipeline.items[-1].name
+        process_unit_name = pipeline.process_units[-1].name
         self.constraints[pipeline.name] = [
             YamlProcessConstraint(
                 process_unit=(

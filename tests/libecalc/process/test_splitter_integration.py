@@ -35,11 +35,11 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper, flui
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_splitter")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
-        .with_item(target=yaml_splitter)
-        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_process_unit(target=yaml_splitter)
+        .with_process_unit(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_process_unit(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
     yaml_simulation = (

@@ -78,7 +78,7 @@ class YamlPipelineEvent(YamlBase):
 class YamlProcessPipeline(YamlBase):
     type: Literal["SERIAL"]
     name: str
-    items: list[YamlProcessUnitInstance]
+    process_units: list[YamlProcessUnitInstance]
     events: Annotated[
         list[YamlPipelineEvent],
         Field(
