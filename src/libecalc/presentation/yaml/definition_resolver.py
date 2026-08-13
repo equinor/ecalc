@@ -16,7 +16,7 @@ from pydantic import BaseModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 
 
-def resolve_definitions(model: BaseModel, definitions: dict[str, Any]) -> BaseModel:
+def resolve_definitions[T: BaseModel](model: T, definitions: dict[str, Any]) -> T:
     """Resolve all DefinitionReference strings in a pydantic model tree.
 
     Recursively walks the model and for any field typed as `T | DefinitionReference`,
