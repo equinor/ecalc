@@ -11,7 +11,7 @@ from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -23,7 +23,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
@@ -90,7 +89,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def process_units(self) -> dict[str, YamlProcessUnitDefinition]:
+    def definitions(self) -> YamlDefinitions:
         pass
 
     @property

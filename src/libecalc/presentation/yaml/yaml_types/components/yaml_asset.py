@@ -22,6 +22,20 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 
+class YamlDefinitions(YamlBase):
+    """Definitions section of an eCalc™ yaml file, containing reusable definitions."""
+
+    model_config = ConfigDict(
+        title="Definitions",
+    )
+
+    process_units: dict[str, YamlProcessUnitDefinition] = Field(
+        default_factory=dict,
+        title="PROCESS_UNITS",
+        description="Defines process units used in PROCESS_PIPELINES.",
+    )
+
+
 class YamlAsset(YamlBase):
     """An eCalc™ yaml file"""
 
@@ -29,6 +43,11 @@ class YamlAsset(YamlBase):
         title="Asset",
     )
 
+    definitions: YamlDefinitions = Field(
+        default_factory=YamlDefinitions,
+        title="DEFINITIONS",
+        description="Contains reusable definitions such as process units.",
+    )
     time_series: list[YamlTimeSeriesCollection] = Field(
         default_factory=list,
         title="TIME_SERIES",
@@ -68,11 +87,6 @@ class YamlAsset(YamlBase):
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
-    )
-    process_units: dict[str, YamlProcessUnitDefinition] = Field(
-        default_factory=dict,
-        title="PROCESS_UNITS",
-        description="Defines process units used in PROCESS_PIPELINES.",
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
@@ -188,8 +202,8 @@ class YamlAsset(YamlBase):
         if self.process_pipelines is not None:
             references.extend(self.process_pipelines.keys())
 
-        if self.process_units is not None:
-            references.extend(self.process_units.keys())
+        if self.definitions and self.definitions.process_units is not None:
+            references.extend(self.definitions.process_units.keys())
 
         if self.process_simulations is not None:
             for process_simulation in self.process_simulations:
