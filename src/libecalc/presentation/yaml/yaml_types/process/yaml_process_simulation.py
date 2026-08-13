@@ -5,15 +5,9 @@ from pydantic import Field
 from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlItem,
-    YamlProcessPipeline,
-)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
-    EcalcEventReference,
-    ProcessPipelineReference,
-    ProcessUnitReference,
-    PumpChartReference,
+    DefinitionReference,
+    InstanceReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
@@ -37,7 +31,7 @@ class YamlEcalcEvent(YamlBase):
         ),
     ]
     name: Annotated[
-        str,
+        InstanceReference,
         Field(
             title="NAME",
             description="Short identifier for the event.",
@@ -75,7 +69,7 @@ class YamlProcessEvent(YamlBase):
         ),
     ] = None
     ref: Annotated[
-        EcalcEventReference,
+        InstanceReference,
         Field(
             title="REF",
             description="Reference to a global ECALC_EVENT by name.",
@@ -85,7 +79,7 @@ class YamlProcessEvent(YamlBase):
 
 class YamlProcessConstraint(YamlBase):
     process_unit: Annotated[
-        ProcessUnitReference | None,
+        InstanceReference | None,
         Field(
             title="PROCESS_UNIT",
             description="Reference to a named unit within the pipeline. If omitted, the constraint applies to the last process unit in the pipeline section.",
@@ -117,12 +111,12 @@ class YamlProcessConstraint(YamlBase):
 class YamlProcessSimulation(YamlBase):
     name: str
     targets: Annotated[
-        list[YamlItem[YamlProcessPipeline]],
+        list[InstanceReference],
         Field(title="TARGETS"),
     ]
     stream_distribution: YamlStreamDistribution
     constraints: Annotated[
-        dict[ProcessPipelineReference, list[YamlProcessConstraint]],
+        dict[InstanceReference, list[YamlProcessConstraint]],
         Field(
             title="CONSTRAINTS",
             description="Constraints per target. Key is pipeline name, value is list of constraints.",
@@ -132,7 +126,7 @@ class YamlProcessSimulation(YamlBase):
 
 class YamlPumpProcessModel(YamlBase):
     chart: Annotated[
-        PumpChartReference,
+        DefinitionReference,
         Field(
             title="CHART",
             description="Reference to a pump chart defined in FACILITY_INPUTS.",

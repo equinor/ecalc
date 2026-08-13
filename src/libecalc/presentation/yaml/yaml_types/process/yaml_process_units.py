@@ -6,7 +6,7 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import UnitsField, YamlCurve, YamlUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
-from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import StreamRef
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import InstanceReference
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 
@@ -30,7 +30,7 @@ class YamlCompressorModelChart(YamlBase):
     control_margin: YamlControlMargin
 
 
-class YamlCompressor(YamlBase):
+class YamlCompressorDefinition(YamlBase):
     """
     A Compressor process unit
     """
@@ -39,7 +39,7 @@ class YamlCompressor(YamlBase):
     compressor_model: YamlCompressorModelChart
 
 
-class YamlPressureDropper(YamlBase):
+class YamlPressureDropperDefinition(YamlBase):
     """A pressure dropper unit — reduces stream pressure by a fixed amount."""
 
     type: Literal["PRESSURE_DROPPER"]
@@ -52,7 +52,7 @@ class YamlPressureDropper(YamlBase):
     ]
 
 
-class YamlTemperatureSetter(YamlBase):
+class YamlTemperatureSetterDefinition(YamlBase):
     """A temperature setter unit — forces the stream to a specified temperature."""
 
     type: Literal["TEMPERATURE_SETTER"]
@@ -65,7 +65,7 @@ class YamlTemperatureSetter(YamlBase):
     ]
 
 
-class YamlLiquidRemover(YamlBase):
+class YamlLiquidRemoverDefinition(YamlBase):
     """A liquid remover (scrubber) unit — removes any condensed liquid from
     the stream, leaving only the gas phase.
 
@@ -75,13 +75,13 @@ class YamlLiquidRemover(YamlBase):
     type: Literal["LIQUID_REMOVER"]
 
 
-class YamlMixer(YamlBase):
+class YamlMixerDefinition(YamlBase):
     """Mixes an external sidestream into the through-stream at an
     intermediate point in the pipeline."""
 
     type: Literal["MIXER"]
     sidestream: Annotated[
-        StreamRef | YamlInletStream,
+        InstanceReference | YamlInletStream,
         Field(
             description="Sidestream to mix in. Either a reference to a named stream or an inline stream definition.",
             title="INLET_STREAM",
@@ -89,7 +89,7 @@ class YamlMixer(YamlBase):
     ]
 
 
-class YamlSplitter(YamlBase):
+class YamlSplitterDefinition(YamlBase):
     """Removes a fixed rate from the through-stream at an
     intermediate point in the pipeline (e.g. fuel gas offtake)."""
 
@@ -103,7 +103,12 @@ class YamlSplitter(YamlBase):
     ]
 
 
-YamlProcessUnit = Annotated[
-    YamlCompressor | YamlPressureDropper | YamlTemperatureSetter | YamlLiquidRemover | YamlMixer | YamlSplitter,
+YamlProcessUnitDefinition = Annotated[
+    YamlCompressorDefinition
+    | YamlPressureDropperDefinition
+    | YamlTemperatureSetterDefinition
+    | YamlLiquidRemoverDefinition
+    | YamlMixerDefinition
+    | YamlSplitterDefinition,
     Field(discriminator="type"),
 ]

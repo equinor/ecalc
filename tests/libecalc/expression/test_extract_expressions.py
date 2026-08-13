@@ -3,8 +3,8 @@ from pydantic import BaseModel
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlPumpProcessInlet
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlPressureDropper,
-    YamlTemperatureSetter,
+    YamlPressureDropperDefinition,
+    YamlTemperatureSetterDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlCommonStreamSetting
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
@@ -15,19 +15,19 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
 
 class TestExtractExpressionReferences:
     def test_single_expression_field(self):
-        model = YamlPressureDropper(type="PRESSURE_DROPPER", pressure_drop="SIM1;DP")
+        model = YamlPressureDropperDefinition(type="PRESSURE_DROPPER", pressure_drop="SIM1;DP")
         assert extract_expression_references(model) == {"SIM1;DP"}
 
     def test_numeric_expression_has_no_references(self):
-        model = YamlPressureDropper(type="PRESSURE_DROPPER", pressure_drop=5.0)
+        model = YamlPressureDropperDefinition(type="PRESSURE_DROPPER", pressure_drop=5.0)
         assert extract_expression_references(model) == set()
 
     def test_expression_with_arithmetic(self):
-        model = YamlTemperatureSetter(type="TEMPERATURE_SETTER", temperature="SIM1;TEMP {*} 1.1 {+} 5")
+        model = YamlTemperatureSetterDefinition(type="TEMPERATURE_SETTER", temperature="SIM1;TEMP {*} 1.1 {+} 5")
         assert extract_expression_references(model) == {"SIM1;TEMP"}
 
     def test_multiple_references_in_one_expression(self):
-        model = YamlPressureDropper(type="PRESSURE_DROPPER", pressure_drop="SIM1;DP {+} SIM2;DP_EXTRA")
+        model = YamlPressureDropperDefinition(type="PRESSURE_DROPPER", pressure_drop="SIM1;DP {+} SIM2;DP_EXTRA")
         assert extract_expression_references(model) == {"SIM1;DP", "SIM2;DP_EXTRA"}
 
     def test_nested_pydantic_model(self):
@@ -96,7 +96,7 @@ class TestExtractExpressionReferences:
         assert extract_expression_references(model) == set()
 
     def test_var_references(self):
-        model = YamlPressureDropper(type="PRESSURE_DROPPER", pressure_drop="$var.regularity {*} SIM1;DP")
+        model = YamlPressureDropperDefinition(type="PRESSURE_DROPPER", pressure_drop="$var.regularity {*} SIM1;DP")
         refs = extract_expression_references(model)
         assert refs == {"$var.regularity", "SIM1;DP"}
 

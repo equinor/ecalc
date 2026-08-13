@@ -23,7 +23,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnit
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
@@ -90,7 +90,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def process_units(self) -> dict[str, YamlProcessUnit]:
+    def process_units(self) -> dict[str, YamlProcessUnitDefinition]:
         pass
 
     @property

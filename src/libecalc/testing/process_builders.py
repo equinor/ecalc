@@ -1,4 +1,4 @@
-from typing import Self, Literal
+from typing import Self
 
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
@@ -9,7 +9,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlFluidModelType,
     YamlPredefinedFluidModel,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import ProcessUnitReference
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlProcessConstraint,
     YamlProcessSimulation,
@@ -38,21 +38,21 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlItem,
+    YamlProcessUnitInstance,
     YamlProcessPipeline,
 )
 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlLiquidRemover,
-    YamlTemperatureSetter,
-    YamlPressureDropper,
+    YamlLiquidRemoverDefinition,
+    YamlTemperatureSetterDefinition,
+    YamlPressureDropperDefinition,
     YamlCompressorModelChart,
-    YamlCompressor,
+    YamlCompressorDefinition,
     YamlControlMargin,
     YamlCompressorChart,
-    YamlProcessUnit,
-    YamlMixer,
-    YamlSplitter,
+    YamlProcessUnitDefinition,
+    YamlMixerDefinition,
+    YamlSplitterDefinition,
 )
 
 
@@ -140,7 +140,7 @@ class YamlCompressorModelChartBuilder(Builder[YamlCompressorModelChart]):
 # ---------------------------------------------------------------------------
 
 
-class YamlCompressorBuilder(Builder[YamlCompressor]):
+class YamlCompressorBuilder(Builder[YamlCompressorDefinition]):
     def __init__(self):
         self.type = "COMPRESSOR"
         self.compressor_model = None
@@ -154,7 +154,7 @@ class YamlCompressorBuilder(Builder[YamlCompressor]):
         return self
 
 
-class YamlPressureDropperBuilder(Builder[YamlPressureDropper]):
+class YamlPressureDropperBuilder(Builder[YamlPressureDropperDefinition]):
     def __init__(self):
         self.type = "PRESSURE_DROPPER"
         self.pressure_drop = None
@@ -168,7 +168,7 @@ class YamlPressureDropperBuilder(Builder[YamlPressureDropper]):
         return self
 
 
-class YamlTemperatureSetterBuilder(Builder[YamlTemperatureSetter]):
+class YamlTemperatureSetterBuilder(Builder[YamlTemperatureSetterDefinition]):
     def __init__(self):
         self.type = "TEMPERATURE_SETTER"
         self.temperature = None
@@ -182,7 +182,7 @@ class YamlTemperatureSetterBuilder(Builder[YamlTemperatureSetter]):
         return self
 
 
-class YamlLiquidRemoverBuilder(Builder[YamlLiquidRemover]):
+class YamlLiquidRemoverBuilder(Builder[YamlLiquidRemoverDefinition]):
     def __init__(self):
         self.type = "LIQUID_REMOVER"
 
@@ -193,7 +193,7 @@ class YamlLiquidRemoverBuilder(Builder[YamlLiquidRemover]):
         return self
 
 
-class YamlMixerBuilder(Builder[YamlMixer]):
+class YamlMixerBuilder(Builder[YamlMixerDefinition]):
     def __init__(self):
         self.type = "MIXER"
         self.sidestream = None
@@ -213,7 +213,7 @@ class YamlMixerBuilder(Builder[YamlMixer]):
         return self
 
 
-class YamlSplitterBuilder(Builder[YamlSplitter]):
+class YamlSplitterBuilder(Builder[YamlSplitterDefinition]):
     def __init__(self):
         self.type = "SPLITTER"
         self.offtake_rate = None
@@ -236,18 +236,18 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
     def __init__(self):
         self.type = "SERIAL"
         self.name = None
-        self.items = []
+        self.process_units = []
         self.anti_surge = "INDIVIDUAL_ASV"
 
     def with_name(self, name: str) -> Self:
         self.name = name
         return self
 
-    def with_item(self, target: YamlProcessUnit | ProcessUnitReference, name: str | None = None) -> Self:
-        self.items.append(YamlItem(name=name, target=target))
+    def with_item(self, target: YamlProcessUnitDefinition | DefinitionReference, name: str | None = None) -> Self:
+        self.process_units.append(YamlProcessUnitInstance(name=name, target=target))
         return self
 
-    def with_items(self, items: list[tuple[str | None, YamlProcessUnit | ProcessUnitReference]]) -> Self:
+    def with_items(self, items: list[tuple[str | None, YamlProcessUnitDefinition | DefinitionReference]]) -> Self:
         """Pass a list of validated process units (or string references).
         Each is wrapped in a YamlItem automatically."""
         for name, target in items:
@@ -427,9 +427,10 @@ class YamlCommonStreamDistributionBuilder(Builder[YamlCommonStreamDistribution])
 class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
     def __init__(self):
         self.name: str | None = None
-        self.targets: list[YamlItem[YamlProcessPipeline]] = []
+        self.targets: list[InstanceReference] = []
         self.stream_distribution = None
-        self.constraints: dict[str, list[YamlProcessConstraint]] = {}
+        self.constraints: dict[InstanceReference, list[YamlProcessConstraint]] = {}
+        self._pipelines: dict[str, YamlProcessPipeline] = {}
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -449,10 +450,11 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         anti_surge: AntiSurgeType = AntiSurgeType.INDIVIDUAL_ASV,
         outlet_pressure: YamlExpressionType = 100.0,
     ) -> Self:
-        self.targets.append(YamlItem(target=pipeline))
+        self.targets.append(pipeline.name)
+        self._pipelines[pipeline.name] = pipeline
         self.constraints[pipeline.name] = [
             YamlProcessConstraint(
-                process_unit=pipeline.items[-1].name,
+                process_unit=pipeline.process_units[-1].name,
                 outlet_pressure=outlet_pressure,
                 pressure_control=pressure_control,
                 anti_surge=anti_surge,
@@ -466,3 +468,7 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         self.with_pipeline(pipeline)
         self.stream_distribution = YamlIndividualStreamDistributionBuilder().with_test_data().validate()
         return self
+
+    def get_pipeline_references(self) -> dict[str, YamlProcessPipeline]:
+        """Return a dict of pipeline name -> pipeline object for use with DirectReferenceService."""
+        return dict(self._pipelines)

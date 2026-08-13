@@ -1,23 +1,23 @@
 from enum import StrEnum
-from typing import Annotated, Literal, TypeVar
+from typing import Annotated, TypeVar
 
 from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
-    ProcessEventReference,
-    ProcessUnitReference,
+    DefinitionReference,
+    InstanceReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlProcessUnit,
+    YamlProcessUnitDefinition,
 )
 
 TTarget = TypeVar("TTarget")
 
 
-class YamlItem[TTarget](YamlBase):
-    target: TTarget | ProcessUnitReference
-    name: str | None = None
+class YamlProcessUnitInstance[TTarget](YamlBase):
+    target: TTarget | DefinitionReference
+    name: InstanceReference | None = None
 
 
 class PipelineEventAction(StrEnum):
@@ -39,21 +39,21 @@ class YamlPipelineEvent(YamlBase):
         ),
     ]
     change_target: Annotated[
-        ProcessUnitReference,
+        InstanceReference,
         Field(
             title="CHANGE_TARGET",
             description="Name of the process unit in the pipeline to change.",
         ),
     ]
     change_from: Annotated[
-        ProcessUnitReference,
+        DefinitionReference,
         Field(
             title="CHANGE_FROM",
             description="Reference to the existing process unit template being replaced.",
         ),
     ]
     change_to: Annotated[
-        ProcessUnitReference,
+        DefinitionReference,
         Field(
             title="CHANGE_TO",
             description="Reference to the new process unit template to use.",
@@ -67,7 +67,7 @@ class YamlPipelineEvent(YamlBase):
         ),
     ]
     ref: Annotated[
-        ProcessEventReference,
+        InstanceReference,
         Field(
             title="REF",
             description="Reference to a PROCESS_EVENT by name.",
@@ -76,9 +76,8 @@ class YamlPipelineEvent(YamlBase):
 
 
 class YamlProcessPipeline(YamlBase):
-    type: Literal["SERIAL"]
-    name: str
-    items: list[YamlItem[YamlProcessUnit]]
+    name: InstanceReference
+    process_units: list[YamlProcessUnitInstance[YamlProcessUnitDefinition]]
     events: Annotated[
         list[YamlPipelineEvent],
         Field(
