@@ -26,7 +26,7 @@ from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, FileContext, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -46,6 +46,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, Ya
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
 
 # Top-level YAML keywords used only by experimental/new sections
+_DEFINITIONS_KEY = "DEFINITIONS"
 _PROCESS_UNITS_KEY = "PROCESS_UNITS"
 _PROCESS_PIPELINES_KEY = "PROCESS_PIPELINES"
 _INLET_STREAMS_KEY = "INLET_STREAMS"
@@ -54,10 +55,6 @@ _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _ECALC_EVENTS_KEY = "ECALC_EVENTS"
 _PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
 _PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
-_NEW_SECTIONS_WITH_FILE_REFS: tuple[str, ...] = (
-    "PROCESS_UNITS",
-    "PROCESS_PIPELINES",
-)
 dt_adapter = TypeAdapter(datetime.datetime)
 
 
@@ -323,8 +320,14 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             data.get(EcalcYamlKeywords.file) for data in resource_data if data.get(EcalcYamlKeywords.file) is not None
         ]
 
-        # Pick up FILE references nested in the new YAML sections (PROCESS_UNITS, PROCESS_PIPELINES, ...).
-        for section in _NEW_SECTIONS_WITH_FILE_REFS:
+        # Pick up FILE references nested in the new YAML sections (DEFINITIONS.PROCESS_UNITS, PROCESS_PIPELINES, ...).
+        definitions = (
+            self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
+        )
+        if isinstance(definitions, dict):
+            for section in ("PROCESS_UNITS",):
+                resource_names.extend(_find_file_references(definitions.get(section)))
+        for section in ("PROCESS_PIPELINES",):
             resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
 
         # Dedup while preserving order — the same CSV may be referenced by multiple charts.
@@ -451,16 +454,19 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return fluid_models
 
     @property
-    def process_units(self) -> dict[str, YamlProcessUnitDefinition]:
+    def definitions(self) -> YamlDefinitions:
         process_units: dict[str, YamlProcessUnitDefinition] = {}
-        raw = self._get_yaml_dict_or_empty(_PROCESS_UNITS_KEY)
+        definitions = (
+            self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
+        )
+        raw = definitions.get(_PROCESS_UNITS_KEY, {}) if isinstance(definitions, dict) else {}
 
         for name, unit_data in raw.items():
             try:
                 process_units[name] = TypeAdapter(YamlProcessUnitDefinition).validate_python(unit_data)
             except PydanticValidationError:
                 pass
-        return process_units
+        return YamlDefinitions(process_units=process_units)
 
     @property
     def process_pipelines(self) -> dict[str, YamlProcessPipeline]:

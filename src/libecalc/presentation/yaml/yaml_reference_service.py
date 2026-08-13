@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 YamlModel = YamlConsumerModel | YamlFacilityModel
 
-ReferenceType = (
+type ReferenceType = (
     YamlModel
     | YamlFuelType
     | YamlInletStream
@@ -77,7 +77,7 @@ def _model_parsing_order(model: YamlModel) -> int:
         raise EcalcError(title="Invalid model", message=msg) from e
 
 
-Reference = str
+type Reference = str
 
 
 class YamlReferenceService(ReferenceService):
@@ -111,10 +111,8 @@ class YamlReferenceService(ReferenceService):
             references[stream.name] = stream
             reference_yaml_context[stream.name] = stream_path
 
-        process_units_path = YamlPath(keys=("PROCESS_UNITS",))
-        for process_unit_key, process_unit in configuration.process_units.items():
-            # TODO: We have both a name attribute (on compressor only) and they key in the dict
-            # It is unnecessary to have both atm, so just using key for now
+        process_units_path = YamlPath(keys=("DEFINITIONS", "PROCESS_UNITS"))
+        for process_unit_key, process_unit in configuration.definitions.process_units.items():
             process_unit_path = process_units_path.append(process_unit_key)
             references[process_unit_key] = process_unit
             reference_yaml_context[process_unit_key] = process_unit_path
