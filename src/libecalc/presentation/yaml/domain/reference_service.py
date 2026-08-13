@@ -1,6 +1,8 @@
 import abc
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Protocol
+
+from pydantic import BaseModel
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
@@ -88,3 +90,9 @@ class ReferenceService(Protocol):
 
     @abc.abstractmethod
     def get_stream(self, reference: str) -> YamlInletStream: ...
+
+    @abc.abstractmethod
+    def get_references(self, obj: BaseModel) -> Sequence[str]: ...
+
+    @abc.abstractmethod
+    def get_reference(self, reference: str) -> BaseModel: ...
