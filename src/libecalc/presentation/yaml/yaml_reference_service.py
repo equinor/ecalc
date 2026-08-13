@@ -1,5 +1,8 @@
 import logging
+from collections.abc import Sequence
 from typing import Any, get_args
+
+from pydantic import BaseModel
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.presentation.yaml.domain.reference_service import (
@@ -8,6 +11,7 @@ from libecalc.presentation.yaml.domain.reference_service import (
     YamlCompressorModel,
 )
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.reference_resolver import collect_instance_references
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
@@ -235,3 +239,11 @@ class YamlReferenceService(ReferenceService):
         if not isinstance(model, get_args(get_args(YamlProcessUnitDefinition)[0])):
             raise InvalidReferenceException("process unit", reference)
         return model
+
+    def get_references(self, obj: BaseModel) -> Sequence[str]:
+        """Extract all InstanceReference values from a model object, recursively."""
+        return collect_instance_references(obj)
+
+    def get_reference(self, reference: str) -> BaseModel:
+        """Resolve a reference string to its corresponding model object."""
+        return self._resolve_yaml_reference(reference, "reference")

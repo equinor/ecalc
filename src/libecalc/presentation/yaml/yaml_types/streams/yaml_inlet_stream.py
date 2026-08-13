@@ -7,7 +7,9 @@ from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
+
+FluidModelReference = str
 
 
 class YamlStreamRateUnit(enum.StrEnum):
@@ -60,7 +62,7 @@ class YamlInletStream(YamlBase):
     Represents an inlet stream definition that can be referenced by process system and stream distribution.
     """
 
-    name: InstanceReference = Field(
+    name: str = Field(
         ...,
         title="NAME",
         description="Unique name of the inlet stream.",

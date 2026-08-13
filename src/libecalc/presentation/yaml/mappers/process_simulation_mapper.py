@@ -1,4 +1,4 @@
-from typing import assert_never, get_args
+from typing import Any, assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException, ProgrammingError
@@ -30,7 +30,6 @@ from libecalc.ecalc_model.time_series_fluid_model import TimeSeriesFluidModel
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
-from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import handle_condition_list
@@ -118,20 +117,22 @@ class ProcessSimulationMapper:
         self,
         expression_evaluator: ExpressionEvaluator,
         fluid_service: FluidService,
-        reference_service: ReferenceService,
+        references: dict[InstanceReference, Any],
         process_simulation_period: Period,
         resources: Resources,
         ecalc_event_service: EcalcEventService,
     ):
         self._expression_evaluator = expression_evaluator.get_subset_for_period(process_simulation_period)
         self._fluid_service = fluid_service
-        self._reference_service = reference_service
+        self._references = references
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
 
     def _resolve_pipeline_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
-            return self._reference_service.get_process_pipeline(reference=ref)
+            o = self._references.get(ref)
+            assert isinstance(o, YamlProcessPipeline)
+            return o
         else:
             return ref
 
@@ -179,7 +180,9 @@ class ProcessSimulationMapper:
 
     def _resolve_stream_reference(self, ref: str | YamlInletStream) -> YamlInletStream:
         if isinstance(ref, str):
-            return self._reference_service.get_stream(reference=ref)
+            o = self._references.get(ref)
+            assert isinstance(o, YamlInletStream)
+            return o
         else:
             return ref
 
@@ -188,7 +191,9 @@ class ProcessSimulationMapper:
         reference: DefinitionReference | YamlFluidDefinition,
     ) -> YamlFluidDefinition:
         if isinstance(reference, str):
-            return self._reference_service.get_fluid_definition(reference)
+            o = self._references.get(reference)
+            assert isinstance(o, YamlFluidDefinition)
+            return o
         return reference
 
     def _map_conditions(
@@ -258,17 +263,12 @@ class ProcessSimulationMapper:
                     f"Pipeline event '{yaml_event.ref}' does not match any known process event."
                 )
 
-            if (change_to_yaml_process_unit := self._reference_service.get_process_unit(yaml_event.change_to)) is None:
-                raise EcalcValidationException(
-                    f"Pipeline event CHANGE_TO '{yaml_event.change_to}' does not refer to a known process unit."
-                ) from None
-
-            match change_to_yaml_process_unit:
+            match yaml_event.change_to:
                 case YamlCompressorDefinition():
-                    change_to_unit = self._get_compressor(change_to_yaml_process_unit)
+                    change_to_unit = self._get_compressor(yaml_event.change_to)
                 case _:
                     raise EcalcValidationException(
-                        f"Pipeline event CHANGE_TO '{change_to_yaml_process_unit}' does not match any compressor (chart) unit."
+                        f"Pipeline event CHANGE_TO '{type(yaml_event.change_to)}' does not match any compressor (chart) unit."
                     )
 
             events.append(
@@ -321,8 +321,6 @@ class ProcessSimulationMapper:
             for yaml_pipeline_item in item.process_units:
                 yaml_process_unit = yaml_pipeline_item.target
                 process_unit_name = yaml_pipeline_item.name
-                if isinstance(yaml_process_unit, str):
-                    yaml_process_unit = self._reference_service.get_process_unit(yaml_process_unit)
 
                 match yaml_process_unit:
                     case YamlCompressorDefinition():
