@@ -1,13 +1,10 @@
 from typing import Self
 
 from libecalc.common.utils.rates import RateType
-from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
-from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlEosModel,
     YamlPredefinedFluidType,
     YamlFluidModelType,
-    YamlPredefinedFluidModel,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import (
     YamlFluidDefinition,
@@ -278,7 +275,7 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
 
 
 # ---------------------------------------------------------------------------
-# Fluid model builders
+# Fluid definition builders
 # ---------------------------------------------------------------------------
 
 

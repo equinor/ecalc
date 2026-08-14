@@ -9,8 +9,6 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
 
-FluidModelReference = str
-
 
 class YamlStreamRateUnit(enum.StrEnum):
     SM3_PER_DAY = "SM3_PER_DAY"
