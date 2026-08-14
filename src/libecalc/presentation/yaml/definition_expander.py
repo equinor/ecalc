@@ -1,5 +1,5 @@
 """
-Generic definition resolver for YAML models.
+Generic definition expander for YAML models.
 
 Walks a pydantic BaseModel recursively and replaces DefinitionReference strings
 with the actual definition objects from a provided definitions registry.
@@ -16,15 +16,15 @@ from pydantic import BaseModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 
 
-def resolve_definitions[T: BaseModel](model: T, definitions: dict[str, Any]) -> T:
-    """Resolve all DefinitionReference strings in a pydantic model tree.
+def expand_definitions[T: BaseModel](model: T, definitions: dict[str, Any]) -> T:
+    """Expand all DefinitionReference strings in a pydantic model tree.
 
     Recursively walks the model and for any field typed as `T | DefinitionReference`,
     if the value is a string, looks it up in the definitions dict and replaces it
     with the corresponding definition object.
 
     Args:
-        model: The root pydantic model to resolve references in.
+        model: The root pydantic model to expand references in.
         definitions: A flat mapping of {reference_name: definition_object}.
 
     Returns:
@@ -40,7 +40,7 @@ def resolve_definitions[T: BaseModel](model: T, definitions: dict[str, Any]) -> 
             continue
 
         annotation = field_info.annotation
-        resolved = _resolve_value(value, annotation, definitions)
+        resolved = _expand_value(value, annotation, definitions)
         if resolved is not value:
             updates[field_name] = resolved
 
@@ -72,8 +72,8 @@ def _get_item_type(annotation: Any) -> Any:
     return args[0]
 
 
-def _resolve_value(value: Any, annotation: Any, definitions: dict[str, Any]) -> Any:
-    """Resolve a single value based on its type annotation."""
+def _expand_value(value: Any, annotation: Any, definitions: dict[str, Any]) -> Any:
+    """Expand a single value based on its type annotation."""
 
     # Check if this field is a union containing DefinitionReference
     if _is_definition_reference_union(annotation) and isinstance(value, str):
@@ -81,17 +81,17 @@ def _resolve_value(value: Any, annotation: Any, definitions: dict[str, Any]) -> 
 
     # Recurse into BaseModel instances
     if isinstance(value, BaseModel):
-        return resolve_definitions(value, definitions)
+        return expand_definitions(value, definitions)
 
     # Recurse into mappings (dict, OrderedDict, etc.)
     if isinstance(value, Mapping):
         item_type = _get_item_type(annotation)
-        return type(value)({k: _resolve_value(v, item_type, definitions) for k, v in value.items()})  # type: ignore[call-arg]
+        return type(value)({k: _expand_value(v, item_type, definitions) for k, v in value.items()})  # type: ignore[call-arg]
 
     # Recurse into sequences and sets (list, tuple, set, frozenset, etc.) but not strings
     if isinstance(value, (Sequence, Set)) and not isinstance(value, (str, bytes)):
         item_type = _get_item_type(annotation)
-        return type(value)(_resolve_value(item, item_type, definitions) for item in value)  # type: ignore[call-arg]
+        return type(value)(_expand_value(item, item_type, definitions) for item in value)  # type: ignore[call-arg]
 
     return value
 

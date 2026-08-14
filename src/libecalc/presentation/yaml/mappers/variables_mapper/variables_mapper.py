@@ -58,7 +58,7 @@ class VariableProcessor:
             return variable_result
 
 
-def _evaluate_variables(
+def evaluate_variables(
     variables: dict[str, YamlVariable], processed_variables: dict[str, list[float]], periods: Periods
 ) -> VariablesMap:
     variables_to_process = [
@@ -113,7 +113,7 @@ def map_yaml_to_variables(
     processed_variables = {
         time_series.reference_id: time_series.fit_to_time_vector(start_dates).series for time_series in time_series_list
     }
-    return _evaluate_variables(
+    return evaluate_variables(
         configuration.variables,
         processed_variables=processed_variables,
         periods=periods,

@@ -1,7 +1,7 @@
 import pytest
 from pydantic import Field
 
-from libecalc.presentation.yaml.definition_resolver import resolve_definitions
+from libecalc.presentation.yaml.definition_expander import expand_definitions
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlProcessPipeline,
@@ -27,7 +27,7 @@ class TestResolveDefinitions:
             )
         }
 
-        resolved = resolve_definitions(pipeline, defs)
+        resolved = expand_definitions(pipeline, defs)
 
         assert isinstance(resolved.process_units[0].target, YamlPressureDropperDefinition)
         assert resolved.process_units[0].target.pressure_drop == "5"
@@ -42,7 +42,7 @@ class TestResolveDefinitions:
             }
         )
 
-        resolved = resolve_definitions(pipeline, {})
+        resolved = expand_definitions(pipeline, {})
 
         assert isinstance(resolved.process_units[0].target, YamlLiquidRemoverDefinition)
 
@@ -55,7 +55,7 @@ class TestResolveDefinitions:
         )
 
         with pytest.raises(KeyError, match="nonexistent"):
-            resolve_definitions(pipeline, {})
+            expand_definitions(pipeline, {})
 
     def test_resolves_multiple_references(self):
         pipeline = YamlProcessPipeline.model_validate(
@@ -72,7 +72,7 @@ class TestResolveDefinitions:
             "remover": YamlLiquidRemoverDefinition.model_validate({"TYPE": "LIQUID_REMOVER"}),
         }
 
-        resolved = resolve_definitions(pipeline, defs)
+        resolved = expand_definitions(pipeline, defs)
 
         assert isinstance(resolved.process_units[0].target, YamlPressureDropperDefinition)
         assert isinstance(resolved.process_units[1].target, YamlLiquidRemoverDefinition)
@@ -91,7 +91,7 @@ class TestResolveDefinitions:
             "dropper": YamlPressureDropperDefinition.model_validate({"TYPE": "PRESSURE_DROPPER", "PRESSURE_DROP": "1"}),
         }
 
-        resolved = resolve_definitions(pipeline, defs)
+        resolved = expand_definitions(pipeline, defs)
 
         assert isinstance(resolved.process_units[0].target, YamlPressureDropperDefinition)
         assert isinstance(resolved.process_units[1].target, YamlLiquidRemoverDefinition)
@@ -106,7 +106,7 @@ class TestResolveDefinitions:
             }
         )
 
-        resolved = resolve_definitions(pipeline, {})
+        resolved = expand_definitions(pipeline, {})
 
         assert resolved == pipeline
 
@@ -121,7 +121,7 @@ class TestResolveDefinitions:
             "dropper": YamlPressureDropperDefinition.model_validate({"TYPE": "PRESSURE_DROPPER", "PRESSURE_DROP": "5"}),
         }
 
-        resolved = resolve_definitions(pipeline, defs)
+        resolved = expand_definitions(pipeline, defs)
 
         assert resolved.process_units[0].name == "stage1"
 
@@ -134,7 +134,7 @@ class TestResolveDefinitions:
             }
         )
 
-        resolved = resolve_definitions(pipeline, {"my_pipeline_name": "should_not_replace"})
+        resolved = expand_definitions(pipeline, {"my_pipeline_name": "should_not_replace"})
 
         assert resolved.name == "my_pipeline_name"
 
@@ -152,6 +152,6 @@ class TestResolveDefinitions:
             "dropper": YamlPressureDropperDefinition.model_validate({"TYPE": "PRESSURE_DROPPER", "PRESSURE_DROP": "2"}),
         }
 
-        resolved = resolve_definitions(outer, defs)
+        resolved = expand_definitions(outer, defs)
 
         assert isinstance(resolved.items["a"].target, YamlPressureDropperDefinition)

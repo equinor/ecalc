@@ -53,7 +53,6 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
     # -- Map to process domain objects --
     pipelines, simulation = process_simulation_mapper_factory(builder.get_pipeline_references()).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     units = pipelines[0].get_process_units()

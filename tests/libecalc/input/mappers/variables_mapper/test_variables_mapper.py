@@ -8,7 +8,7 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.mappers.variables_mapper.variables_mapper import (
     InvalidVariablesException,
     VariableProcessor,
-    _evaluate_variables,
+    evaluate_variables,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariable
 
@@ -16,7 +16,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariab
 class TestEvaluateVariables:
     def test_unsolvable(self):
         with pytest.raises(InvalidVariablesException) as exc_info:
-            _evaluate_variables(
+            evaluate_variables(
                 variables={
                     "test_id": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST")),
                     "test_id1": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST")),
@@ -43,7 +43,7 @@ class TestEvaluateVariables:
             include_after=False,
         )
         variables = {"VAR1": YamlSingleVariable(value=Expression.setup_from_expression("SIM1;TEST {*} 2"))}
-        evaluated_variables = _evaluate_variables(
+        evaluated_variables = evaluate_variables(
             variables=variables, processed_variables={"SIM1;TEST": [2, 4]}, periods=periods
         )
         assert evaluated_variables.variables["$var.VAR1"] == [4, 8]
@@ -66,7 +66,7 @@ class TestEvaluateVariables:
             "VAR4": YamlSingleVariable(value=Expression.setup_from_expression("$var.VAR3 {*} 2")),
             "VAR3": YamlSingleVariable(value=Expression.setup_from_expression("$var.VAR2 {*} 2")),
         }
-        evaluated_variables = _evaluate_variables(
+        evaluated_variables = evaluate_variables(
             variables=variables, processed_variables={"SIM1;TEST": test_values}, periods=periods
         )
         for n in range(1, 5):
@@ -88,7 +88,7 @@ class TestEvaluateVariables:
             }
         }
 
-        evaluated_variables = _evaluate_variables(
+        evaluated_variables = evaluate_variables(
             variables=variables, processed_variables={"SIM1;TEST": test_values}, periods=periods
         )
 
