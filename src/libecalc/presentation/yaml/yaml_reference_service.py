@@ -166,12 +166,6 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("fluid model", reference)
         return model
 
-    def get_fluid_definition(self, reference: str) -> YamlFluidDefinition:
-        fluid = self._resolve_yaml_reference(reference, "fluid definition")
-        if not isinstance(fluid, get_args(get_args(YamlFluidDefinition)[0])):
-            raise InvalidReferenceException("fluid definition", reference)
-        return fluid
-
     def get_turbine(self, reference: str) -> YamlTurbine:
         model = self._resolve_yaml_reference(reference, "turbine model")
         if not isinstance(model, YamlTurbine):
@@ -220,24 +214,6 @@ class YamlReferenceService(ReferenceService):
         model = self._resolve_yaml_reference(reference, "tabulated")
         if not isinstance(model, YamlTabularModel):
             raise InvalidReferenceException("tabulated", reference)
-        return model
-
-    def get_process_pipeline(self, reference: str) -> YamlProcessPipeline:
-        model = self._resolve_yaml_reference(reference, "process system")
-        if not isinstance(model, YamlProcessPipeline):
-            raise InvalidReferenceException("process system", reference)
-        return model
-
-    def get_stream(self, reference: str) -> YamlInletStream:
-        model = self._resolve_yaml_reference(reference, "stream")
-        if not isinstance(model, YamlInletStream):
-            raise InvalidReferenceException("stream", reference)
-        return model
-
-    def get_process_unit(self, reference: str) -> YamlProcessUnitDefinition:
-        model = self._resolve_yaml_reference(reference, "process unit")
-        if not isinstance(model, get_args(get_args(YamlProcessUnitDefinition)[0])):
-            raise InvalidReferenceException("process unit", reference)
         return model
 
     def get_references(self, obj: BaseModel) -> Sequence[str]:

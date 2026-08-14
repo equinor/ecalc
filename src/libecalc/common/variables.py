@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 from datetime import datetime
-from typing import Protocol, assert_never
+from typing import assert_never
 
 import numpy as np
 from numpy.typing import NDArray
@@ -13,7 +13,27 @@ from libecalc.common.time_utils import Period, Periods
 from libecalc.expression.expression import Expression
 
 
-class VariablesMap:
+class ExpressionEvaluator(abc.ABC):
+    @abc.abstractmethod
+    def get_time_vector(self) -> list[datetime]: ...
+
+    @abc.abstractmethod
+    def get_period(self) -> Period: ...
+
+    @abc.abstractmethod
+    def get_periods(self) -> Periods: ...
+
+    @abc.abstractmethod
+    def get_subset(self, start_index: int, end_index: int) -> ExpressionEvaluator: ...
+
+    @abc.abstractmethod
+    def get_subset_for_period(self, period: Period) -> ExpressionEvaluator: ...
+
+    @abc.abstractmethod
+    def evaluate(self, expression: Expression | TemporalModel | dict[Period, Expression]) -> NDArray[np.float64]: ...
+
+
+class VariablesMap(ExpressionEvaluator):
     """A map of all (timeseries) variables that can be used in eCalc YAML
     A variable name has the format "{name_of_case};{title_of_header} from the original
     file/resource with time series, ie;
@@ -145,23 +165,3 @@ class VariablesMap:
                 evaluated_expression = variables_map_for_this_period.evaluate(expression)
                 result[start_index:end_index] = evaluated_expression
         return np.asarray(result)
-
-
-class ExpressionEvaluator(Protocol):
-    @abc.abstractmethod
-    def get_time_vector(self) -> list[datetime]: ...
-
-    @abc.abstractmethod
-    def get_period(self) -> Period: ...
-
-    @abc.abstractmethod
-    def get_periods(self) -> Periods: ...
-
-    @abc.abstractmethod
-    def get_subset(self, start_index: int, end_index: int) -> ExpressionEvaluator: ...
-
-    @abc.abstractmethod
-    def get_subset_for_period(self, period: Period) -> ExpressionEvaluator: ...
-
-    @abc.abstractmethod
-    def evaluate(self, expression: Expression | TemporalModel | dict[Period, Expression]) -> NDArray[np.float64]: ...
