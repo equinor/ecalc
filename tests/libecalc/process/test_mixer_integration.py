@@ -74,7 +74,7 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
                 ts = config.sidestream
                 unit.set_stream(
                     fluid_service.create_stream_from_standard_rate(
-                        fluid_model=ts.fluid_model,
+                        fluid_model=ts.fluid_model.get_value(PERIOD),
                         pressure_bara=ts.pressure_bara.get_masked_values()[0],
                         temperature_kelvin=ts.temperature_kelvin.get_masked_values()[0],
                         standard_rate_m3_per_day=ts.standard_rate_m3_per_day.get_stream_day_values()[0],
@@ -83,7 +83,7 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
 
     # -- Run pipeline --
     inlet_stream = fluid_service.create_stream_from_standard_rate(
-        fluid_model=simulation.get_inlet_streams()[0].fluid_model,
+        fluid_model=simulation.get_inlet_streams()[0].fluid_model.get_value(PERIOD),
         pressure_bara=20.0,
         temperature_kelvin=303.15,
         standard_rate_m3_per_day=2_000_000,
@@ -93,7 +93,7 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
 
     sidestream_rate_sm3_per_day = yaml_mixer.sidestream.rate.value
     expected_sidestream_mass_rate = fluid_service.standard_rate_to_mass_rate(
-        fluid_model=simulation.get_inlet_streams()[0].fluid_model,
+        fluid_model=simulation.get_inlet_streams()[0].fluid_model.get_value(PERIOD),
         standard_rate_m3_per_day=sidestream_rate_sm3_per_day,
     )
 

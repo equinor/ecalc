@@ -33,7 +33,7 @@ class TestExtractExpressionReferences:
     def test_nested_pydantic_model(self):
         stream = YamlInletStream(
             name="test_stream",
-            fluid_model="my_fluid",
+            fluid="my_fluid",
             temperature="SIM1;TEMP_IN",
             pressure="SIM1;PRESSURE_IN",
             rate=YamlInletStreamRate(

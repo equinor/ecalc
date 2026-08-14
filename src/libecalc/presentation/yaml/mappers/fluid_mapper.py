@@ -1,6 +1,22 @@
+from typing import assert_never
+
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
+from libecalc.common.variables import ExpressionEvaluator
+from libecalc.ecalc_model.time_series_fluid_model import TimeSeriesFluidComposition, TimeSeriesFluidModel
+from libecalc.expression.expression import ExpressionType
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
-from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
+from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
+    YamlCompositionFluidModel,
+    YamlEosModel,
+    YamlPredefinedFluidModel,
+)
+from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import (
+    YamlCompositionFluidDefinition,
+    YamlFluidComposition,
+    YamlFluidDefinition,
+    YamlPredefinedFluidDefinition,
+)
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 
 """
@@ -119,5 +135,71 @@ def composition_fluid_model_mapper(
             i_pentane=user_defined_composition.i_pentane,
             n_pentane=user_defined_composition.n_pentane,
             n_hexane=user_defined_composition.n_hexane,
+        ),
+    )
+
+
+def fluid_definition_mapper(
+    definition: YamlFluidDefinition,
+    expression_evaluator: ExpressionEvaluator,
+) -> TimeSeriesFluidModel:
+    match definition:
+        case YamlPredefinedFluidDefinition():
+            return predefined_fluid_definition_mapper(definition, expression_evaluator)
+        case YamlCompositionFluidDefinition():
+            return composition_fluid_definition_mapper(definition, expression_evaluator)
+        case _:
+            assert_never(definition)
+
+
+def predefined_fluid_definition_mapper(
+    model_config: YamlPredefinedFluidDefinition,
+    expression_evaluator: ExpressionEvaluator,
+) -> TimeSeriesFluidModel:
+    predefined_composition = _predefined_fluid_composition_mapper[model_config.gas_type]
+
+    return _create_time_series_fluid_model(
+        eos_model_type=model_config.eos_model,
+        composition=predefined_composition,
+        expression_evaluator=expression_evaluator,
+    )
+
+
+def composition_fluid_definition_mapper(
+    model_config: YamlCompositionFluidDefinition,
+    expression_evaluator: ExpressionEvaluator,
+) -> TimeSeriesFluidModel:
+    return _create_time_series_fluid_model(
+        eos_model_type=model_config.eos_model,
+        composition=model_config.composition,
+        expression_evaluator=expression_evaluator,
+    )
+
+
+def _create_time_series_fluid_model(
+    eos_model_type: YamlEosModel,
+    composition: FluidComposition | YamlFluidComposition,
+    expression_evaluator: ExpressionEvaluator,
+) -> TimeSeriesFluidModel:
+    def time_series_expression(expression: ExpressionType) -> TimeSeriesExpression:
+        return TimeSeriesExpression(
+            expression=expression,
+            expression_evaluator=expression_evaluator,
+        )
+
+    return TimeSeriesFluidModel(
+        eos_model=_eos_model_mapper[eos_model_type],
+        composition=TimeSeriesFluidComposition(
+            water=time_series_expression(composition.water),
+            nitrogen=time_series_expression(composition.nitrogen),
+            CO2=time_series_expression(composition.CO2),
+            methane=time_series_expression(composition.methane),
+            ethane=time_series_expression(composition.ethane),
+            propane=time_series_expression(composition.propane),
+            i_butane=time_series_expression(composition.i_butane),
+            n_butane=time_series_expression(composition.n_butane),
+            i_pentane=time_series_expression(composition.i_pentane),
+            n_pentane=time_series_expression(composition.n_pentane),
+            n_hexane=time_series_expression(composition.n_hexane),
         ),
     )

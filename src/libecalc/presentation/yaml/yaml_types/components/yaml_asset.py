@@ -7,6 +7,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import Y
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
+from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlEcalcEvent,
@@ -35,6 +36,12 @@ class YamlDefinitions(YamlBase):
         description="Defines process units used in PROCESS_PIPELINES.",
     )
 
+    fluids: dict[str, YamlFluidDefinition] = Field(
+        default_factory=dict,
+        title="FLUIDS",
+        description="Defines fluids that can be referenced in inlet streams.",
+    )
+
 
 class YamlAsset(YamlBase):
     """An eCalc™ yaml file"""
@@ -46,7 +53,7 @@ class YamlAsset(YamlBase):
     definitions: YamlDefinitions = Field(
         default_factory=YamlDefinitions,
         title="DEFINITIONS",
-        description="Contains reusable definitions such as process units.",
+        description="Contains reusable definitions such as process units and fluids.",
     )
     time_series: list[YamlTimeSeriesCollection] = Field(
         default_factory=list,
@@ -204,6 +211,7 @@ class YamlAsset(YamlBase):
 
         if self.definitions and self.definitions.process_units is not None:
             references.extend(self.definitions.process_units.keys())
+            references.extend(self.definitions.fluids.keys())
 
         if self.process_simulations is not None:
             for process_simulation in self.process_simulations:

@@ -10,6 +10,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlTabularModel,
 )
 from libecalc.presentation.yaml.yaml_types.models import YamlCompressorChart, YamlFluidModel, YamlTurbine
+from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
@@ -53,6 +54,9 @@ class DirectReferenceService(ReferenceService):
         return self._resolve_reference(reference)
 
     def get_process_unit(self, reference: str) -> YamlProcessUnitDefinition:
+        return self._resolve_reference(reference)
+
+    def get_fluid_definition(self, reference: str) -> YamlFluidDefinition:
         return self._resolve_reference(reference)
 
     def get_stream(self, reference: str) -> YamlInletStream:
