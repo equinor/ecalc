@@ -6,6 +6,7 @@ from uuid import UUID
 
 from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
@@ -106,7 +107,20 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
         self._name = name
         self._process_pipeline_sections = process_pipeline_sections
         self._process_periods = process_periods
-        self._events: Sequence[PipelineEvent] = events or []
+
+        start_times = [period.start for period in self._process_periods]
+
+        filtered_events = []
+        if events is not None:
+            for event in events:
+                # Filter events outside process_periods
+                if process_periods[0].start <= event.change_time < process_periods[-1].end:
+                    if event.change_time not in start_times:
+                        # Error if event is within defined periods but the exact date does not match process periods
+                        raise EcalcError(title="Invalid event", message="Event change time must match a time step.")
+                    filtered_events.append(event)
+
+        self._events: Sequence[PipelineEvent] = filtered_events
         self._process_unit_connections = ProcessPipeline._create_process_unit_connections(  # NOTE: this can currently only be used in mapper, to create connections first time!
             process_pipeline_sections=process_pipeline_sections
         )

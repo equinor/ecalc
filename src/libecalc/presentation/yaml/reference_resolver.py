@@ -13,7 +13,7 @@ def collect_instance_references(obj: BaseModel) -> list[str]:
     return references
 
 
-def _annotation_contains_instance_reference(annotation) -> bool:
+def _annotation_contains_instance_reference(annotation: Any) -> bool:
     """Check if a type annotation involves InstanceReference."""
     if annotation is InstanceReference:
         return True

@@ -117,18 +117,6 @@ class YamlReferenceService(ReferenceService):
             references[stream.name] = stream
             reference_yaml_context[stream.name] = stream_path
 
-        process_units_path = YamlPath(keys=("DEFINITIONS", "PROCESS_UNITS"))
-        for process_unit_key, process_unit in configuration.definitions.process_units.items():
-            process_unit_path = process_units_path.append(process_unit_key)
-            references[process_unit_key] = process_unit
-            reference_yaml_context[process_unit_key] = process_unit_path
-
-        fluids_path = YamlPath(keys=("DEFINITIONS", "FLUIDS"))
-        for fluid_key, fluid in configuration.definitions.fluids.items():
-            fluid_path = fluids_path.append(fluid_key)
-            references[fluid_key] = fluid
-            reference_yaml_context[fluid_key] = fluid_path
-
         process_pipelines_path = YamlPath(keys=("PROCESS_PIPELINES",))
         for process_pipeline_key, process_pipeline in configuration.process_pipelines.items():
             process_pipeline_path = process_pipelines_path.append(process_pipeline_key)
@@ -165,12 +153,6 @@ class YamlReferenceService(ReferenceService):
         if not isinstance(model, get_args(get_args(YamlFluidModel)[0])):
             raise InvalidReferenceException("fluid model", reference)
         return model
-
-    def get_fluid_definition(self, reference: str) -> YamlFluidDefinition:
-        fluid = self._resolve_yaml_reference(reference, "fluid definition")
-        if not isinstance(fluid, get_args(get_args(YamlFluidDefinition)[0])):
-            raise InvalidReferenceException("fluid definition", reference)
-        return fluid
 
     def get_turbine(self, reference: str) -> YamlTurbine:
         model = self._resolve_yaml_reference(reference, "turbine model")
@@ -220,24 +202,6 @@ class YamlReferenceService(ReferenceService):
         model = self._resolve_yaml_reference(reference, "tabulated")
         if not isinstance(model, YamlTabularModel):
             raise InvalidReferenceException("tabulated", reference)
-        return model
-
-    def get_process_pipeline(self, reference: str) -> YamlProcessPipeline:
-        model = self._resolve_yaml_reference(reference, "process system")
-        if not isinstance(model, YamlProcessPipeline):
-            raise InvalidReferenceException("process system", reference)
-        return model
-
-    def get_stream(self, reference: str) -> YamlInletStream:
-        model = self._resolve_yaml_reference(reference, "stream")
-        if not isinstance(model, YamlInletStream):
-            raise InvalidReferenceException("stream", reference)
-        return model
-
-    def get_process_unit(self, reference: str) -> YamlProcessUnitDefinition:
-        model = self._resolve_yaml_reference(reference, "process unit")
-        if not isinstance(model, get_args(get_args(YamlProcessUnitDefinition)[0])):
-            raise InvalidReferenceException("process unit", reference)
         return model
 
     def get_references(self, obj: BaseModel) -> Sequence[str]:

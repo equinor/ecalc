@@ -1,8 +1,5 @@
-from datetime import datetime
-
 import pytest
 
-from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesSplitterConfiguration,
@@ -19,10 +16,8 @@ from libecalc.testing.process_builders import (
     YamlTemperatureSetterBuilder,
 )
 
-PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2030, 1, 1))
 
-
-def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_factory, fluid_service):
+def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_factory, fluid_service, period):
     """Verify that a Splitter defined in YAML survives the full chain:
     YAML → mapper → runtime configuration → pipeline execution.
 
@@ -53,7 +48,6 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_facto
     # -- Map to domain objects --
     pipelines, simulation = process_simulation_mapper_factory(builder.get_pipeline_references()).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     units = pipelines[0].get_process_units()
@@ -74,7 +68,7 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_facto
 
     # -- Run pipeline --
     inlet_stream = fluid_service.create_stream_from_standard_rate(
-        fluid_model=simulation.get_inlet_streams()[0].fluid_model.get_value(PERIOD),
+        fluid_model=simulation.get_inlet_streams()[0].fluid_model.get_value(period),
         pressure_bara=20.0,
         temperature_kelvin=303.15,
         standard_rate_m3_per_day=2_000_000,
@@ -85,7 +79,7 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_facto
     # -- Assert: mass is conserved — outlet = inlet - offtake --
     offtake_rate_sm3_per_day = yaml_splitter.offtake_rate.value
     expected_offtake_mass_rate = fluid_service.standard_rate_to_mass_rate(
-        fluid_model=simulation.get_inlet_streams()[0].fluid_model.get_value(PERIOD),
+        fluid_model=simulation.get_inlet_streams()[0].fluid_model.get_value(period),
         standard_rate_m3_per_day=offtake_rate_sm3_per_day,
     )
 

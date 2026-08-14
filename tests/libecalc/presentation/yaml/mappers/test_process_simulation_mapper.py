@@ -91,7 +91,6 @@ def test_mapper_returns_one_pipeline_per_target(process_simulation_mapper_factor
 
     pipelines, _ = process_simulation_mapper_factory(builder.get_pipeline_references()).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     assert len(pipelines) == 2
@@ -110,7 +109,6 @@ def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulat
 
     pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     units = pipelines[0].get_process_units()
@@ -128,7 +126,6 @@ def test_mapper_preserves_yaml_unit_order_inside_segment(process_simulation_mapp
 
     pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     units = pipelines[0].get_process_units()
@@ -148,7 +145,6 @@ def test_mapper_adds_choke_for_downstream_choke_pressure_control(process_simulat
 
     pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     units = pipelines[0].get_process_units()
@@ -163,7 +159,6 @@ def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulatio
 
     pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     units = pipelines[0].get_process_units()
@@ -189,7 +184,6 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
 
     pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     units = pipelines[0].get_process_units()
@@ -231,7 +225,7 @@ def test_incompatible_strategies_raises_validation_exception(process_simulation_
     # Check that validation fails
     mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
     with pytest.raises(EcalcValidationException) as exc_info:
-        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+        mapper.map_process_simulation(yaml_simulation)
 
     assert "PRESSURE_CONTROL 'COMMON_ASV' requires ANTI_SURGE 'COMMON_ASV', got 'INDIVIDUAL_ASV'" in str(exc_info.value)
 
@@ -249,7 +243,7 @@ def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_map
 
     mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
     with pytest.raises(EcalcValidationException):
-        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+        mapper.map_process_simulation(yaml_simulation)
 
 
 def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation_mapper_factory):
@@ -265,7 +259,7 @@ def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation
 
     mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
     with pytest.raises(EcalcValidationException):
-        mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+        mapper.map_process_simulation(yaml_simulation)
 
 
 def test_compatible_strategies_succeeds(process_simulation_mapper_factory):
@@ -282,7 +276,7 @@ def test_compatible_strategies_succeeds(process_simulation_mapper_factory):
 
     # Run without exception
     mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
-    mapper.map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+    mapper.map_process_simulation(yaml_simulation)
 
 
 # ---------------------------------------------------------------------------
@@ -306,7 +300,6 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
 
     pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     units = pipelines[0].get_process_units()
@@ -339,7 +332,7 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper_fact
     yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
     with pytest.raises(EcalcValidationException) as exc_info:
-        process_simulation_mapper_factory(refs).map_process_simulation(yaml_simulation, process_periods=[PERIOD])
+        process_simulation_mapper_factory(refs).map_process_simulation(yaml_simulation)
 
     assert "Duplicate process unit name 'temp_setter_1'" in str(exc_info.value)
 
@@ -354,7 +347,6 @@ def test_mapper_builds_single_process_problem_section(process_simulation_mapper_
     yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline())
     _, simulation = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
     assert len(simulation.process_problems) == 1
     problem = simulation.process_problems[0]
@@ -397,7 +389,6 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
 
     _, simulation = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
-        process_periods=[PERIOD],
     )
 
     problem = simulation.process_problems[0]

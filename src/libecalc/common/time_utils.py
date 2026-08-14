@@ -11,6 +11,7 @@ import pandas as pd
 from numpy.typing import ArrayLike, NDArray
 
 from libecalc.common.errors.exceptions import (
+    EcalcError,
     InvalidDateException,
     ProgrammingError,
 )
@@ -143,7 +144,10 @@ class Periods:
         :return:
         """
         if len(times) == 0:
-            return Periods([])
+            raise EcalcError(title="Invalid time series", message="No timesteps to create periods from.")
+
+        if len(times) == 1 and not include_before and not include_after:
+            raise EcalcError(title="Invalid time series", message="Not enough timesteps to create periods from.")
 
         periods = []
 
@@ -154,7 +158,8 @@ class Periods:
                 )
             )
 
-        periods.extend([Period(start=times[index], end=times[index + 1]) for index in range(len(times) - 1)])
+        if len(times) > 1:
+            periods.extend([Period(start=times[index], end=times[index + 1]) for index in range(len(times) - 1)])
 
         if include_after:
             periods.append(Period(start=times[-1]))
