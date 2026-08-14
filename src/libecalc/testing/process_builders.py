@@ -9,6 +9,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import (
     YamlFluidDefinition,
     YamlPredefinedFluidDefinition,
+    YamlCompositionFluidDefinition,
+    YamlFluidComposition,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
@@ -296,6 +298,35 @@ class YamlPredefinedFluidDefinitionBuilder(Builder[YamlPredefinedFluidDefinition
     def with_test_data(self) -> Self:
         self.eos_model = YamlEosModel.SRK
         self.gas_type = YamlPredefinedFluidType.MEDIUM
+        return self
+
+
+class YamlCompositionFluidDefinitionBuilder(Builder[YamlCompositionFluidDefinition]):
+    def __init__(self):
+        self.type = YamlFluidModelType.COMPOSITION
+        self.eos_model = None
+        self.composition = None
+
+    def with_eos_model(
+        self,
+        eos_model: YamlEosModel,
+    ) -> Self:
+        self.eos_model = eos_model
+        return self
+
+    def with_composition(
+        self,
+        composition: YamlFluidComposition,
+    ) -> Self:
+        self.composition = composition
+        return self
+
+    def with_test_data(self) -> Self:
+        self.eos_model = YamlEosModel.SRK
+        self.composition = YamlFluidComposition(
+            methane=90.0,
+            ethane=10.0,
+        )
         return self
 
 

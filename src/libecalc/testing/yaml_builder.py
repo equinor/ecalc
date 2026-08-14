@@ -19,7 +19,7 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
@@ -49,6 +49,7 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference_validation imp
     GeneratorSetModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
+from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlDefaultTimeSeriesCollection,
     YamlTimeSeriesCollection,
@@ -736,6 +737,8 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.fuel_types = []
         self.variables = None
         self.installations = []
+        self.definitions: YamlDefinitions | None = None
+        self.inlet_streams: dict[str, YamlInletStream] | None = None
         self.start = None
         self.end = None
 
@@ -751,6 +754,8 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.fuel_types = [fuel_types_builder.validate()]
 
         self.variables = None
+        self.definitions = None
+        self.inlet_streams = None
 
         # Create and populate a list of YamlInstallation test instances
         installations_builder = YamlInstallationBuilder().with_test_data()
@@ -791,6 +796,17 @@ class YamlAssetBuilder(Builder[YamlAsset]):
             new_installations.append(installation)
 
         self.installations = new_installations
+        return self
+
+    def with_definitions(self, definitions: YamlDefinitions) -> Self:
+        self.definitions = definitions
+        return self
+
+    def with_inlet_streams(
+        self,
+        inlet_streams: dict[str, YamlInletStream],
+    ) -> Self:
+        self.inlet_streams = inlet_streams
         return self
 
     def with_start(self, start: str):
