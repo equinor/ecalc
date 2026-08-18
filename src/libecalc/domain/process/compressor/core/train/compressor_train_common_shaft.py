@@ -1025,6 +1025,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 inc += 0.1
                 if inc >= 1:
                     logger.error("Single speed train with Common ASV pressure control has no solution!")
+                    return _calculate_train_result_given_mass_rate(mass_rate_kg_per_hour=minimum_mass_rate_kg_per_hour)
                 train_result_for_mass_rate = _calculate_train_result_given_mass_rate(
                     mass_rate_kg_per_hour=minimum_mass_rate + inc * (maximum_mass_rate - minimum_mass_rate)
                 )
