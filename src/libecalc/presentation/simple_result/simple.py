@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 
 from libecalc.common.component_info.component_level import ComponentLevel
 from libecalc.common.component_type import ComponentType
+from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.common.time_utils import Period, Periods
@@ -386,12 +387,18 @@ class SimpleResultData(SimpleBase):
         first_date = max(changed_model.periods.first_date, reference_model.periods.first_date)
         last_date = min(changed_model.periods.last_date, reference_model.periods.last_date)
 
+        if first_date >= last_date:
+            raise EcalcError(title="Compare error", message="The models periods does not overlap.")
+
         # union of the dates in the 2 models
         all_dates_in_models = sorted(
             {date for date in reference_model.periods.all_dates if first_date <= date <= last_date}.union(
                 {date for date in changed_model.periods.all_dates if first_date <= date <= last_date}
             )
         )
+
+        if len(all_dates_in_models) == 0:
+            raise EcalcError(title="Compare error", message="The models periods does not overlap.")
 
         # define new periods using all dates in both models, skip extra periods before and after
         periods = Periods.create_periods(
