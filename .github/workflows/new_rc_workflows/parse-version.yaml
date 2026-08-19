@@ -1,0 +1,68 @@
+name: Parse version
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: 'Full version string (e.g., v1.2.3, 1.2.3rc1)'
+        required: true
+        type: string
+    outputs:
+      full:
+        description: 'Full version without v prefix (e.g., 1.2.3 or 1.2.3rc1)'
+        value: ${{ jobs.parse.outputs.full }}
+      major:
+        description: 'Major version number'
+        value: ${{ jobs.parse.outputs.major }}
+      minor:
+        description: 'Minor version number'
+        value: ${{ jobs.parse.outputs.minor }}
+      patch:
+        description: 'Patch version number'
+        value: ${{ jobs.parse.outputs.patch }}
+      major_minor:
+        description: 'Major.Minor (e.g., 1.2)'
+        value: ${{ jobs.parse.outputs.major_minor }}
+      release_candidate:
+        description: 'RC number if prerelease, empty string otherwise'
+        value: ${{ jobs.parse.outputs.release_candidate }}
+      is_prerelease:
+        description: 'true if version contains rc, false otherwise'
+        value: ${{ jobs.parse.outputs.is_prerelease }}
+
+permissions: {}
+
+jobs:
+  parse:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          sparse-checkout: |
+            cicd
+            src/common/version.py
+          sparse-checkout-cone-mode: false
+
+      - name: Parse version
+        id: parse
+        working-directory: ./cicd
+        env:
+          PYTHONPATH: ${{ github.workspace }}/src
+        run: |
+          VERSION="${{ inputs.version }}"
+          echo "full=$(python get_libecalc_version.py version_string=${VERSION} --get-full-version)" >> $GITHUB_OUTPUT
+          echo "major=$(python get_libecalc_version.py version_string=${VERSION} --get-major)" >> $GITHUB_OUTPUT
+          echo "minor=$(python get_libecalc_version.py version_string=${VERSION} --get-minor)" >> $GITHUB_OUTPUT
+          echo "patch=$(python get_libecalc_version.py version_string=${VERSION} --get-patch)" >> $GITHUB_OUTPUT
+          echo "major_minor=$(python get_libecalc_version.py version_string=${VERSION} --get-major-minor)" >> $GITHUB_OUTPUT
+          echo "release_candidate=$(python get_libecalc_version.py version_string=${VERSION} --get-release-candidate)" >> $GITHUB_OUTPUT
+          echo "is_prerelease=$(python get_libecalc_version.py version_string=${VERSION} --is-prerelease)" >> $GITHUB_OUTPUT
+    outputs:
+      full: ${{ steps.parse.outputs.full }}
+      major: ${{ steps.parse.outputs.major }}
+      minor: ${{ steps.parse.outputs.minor }}
+      patch: ${{ steps.parse.outputs.patch }}
+      major_minor: ${{ steps.parse.outputs.major_minor }}
+      release_candidate: ${{ steps.parse.outputs.release_candidate }}
+      is_prerelease: ${{ steps.parse.outputs.is_prerelease }}

@@ -1,0 +1,65 @@
+name: Update version
+
+# Updates correct version files according to given version and branch to read from and push to
+
+on:
+  workflow_call:
+    inputs:
+      release_version:
+        description: "The release version to create a release branch for"  # Full version with rcN
+        required: true
+        type: string
+      target_branch:
+        description: "The target branch to update version on"  # e.g., main or release/vX.Y
+        required: true
+        type: string
+    outputs:
+      commit_sha:
+        description: "The SHA of the version bump commit"
+        value: ${{ jobs.update-version.outputs.commit_sha }}
+  workflow_dispatch:
+    inputs:
+      release_version:
+        description: "The release version to create a release branch for"  # Full version with rcN
+        required: true
+        type: string
+      target_branch:
+        description: "The target branch to update version on"  # e.g., main or release/vX.Y
+        required: true
+        type: string
+
+permissions: { }
+
+env:
+    RELEASE_VERSION: ${{ inputs.release_version }}
+    TARGET_BRANCH: ${{ inputs.target_branch }}
+
+jobs:
+  update-version:
+    name: Update version
+    continue-on-error: false
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Bump version and update version files
+        run: |
+          # Update pyproject.toml
+          sed -i "s/^version = \".*\"/version = \"${RELEASE_VERSION}\"/" ./pyproject.toml
+          
+          # Update src/version.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"${RELEASE_VERSION}\"/" ./src/version.py
+          
+          # Update uv.lock
+          uv lock
+      - name: Commit version bump
+        id: commit
+        run: |
+          git config user.name "eCalc Auto Updater Bot"
+          git config user.email "<none>"
+          git add ./pyproject.toml ./src/version.py ./uv.lock
+          git commit -m "release: release candidate v${RELEASE_VERSION}"
+          git push -u origin "${TARGET_BRANCH}"
+          echo "sha=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT
+    outputs:
+      commit_sha: ${{ steps.commit.outputs.sha }}

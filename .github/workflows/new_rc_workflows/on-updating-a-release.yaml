@@ -1,0 +1,53 @@
+name: On finalizing a release, ie. promote a release candidate to a final release
+# or option to finalize or bump or patch?
+# given a branch, we should be able to determine the latest version and create a proper release directly, given that
+# the user chooses correct branch. Might be better that user specifies instead...? We might want to make this
+# a gh pr instead, that once a release candidate is being created, we create a pr to finalize it, that is the one we
+# merge when we want to finalize the release, and it is being continiosly updated for every commit to the release candidate.
+# to avoid mistakes ...
+# to avoid mistakes ...
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "The release type"
+        required: true
+        type: choice
+        options:
+          - "final"
+          - "patch"
+          - "new release candidate"
+
+# The branch we do this on reveals the release
+# We just get the version info on the branch, and then we can decide what to do with it
+
+permissions: { }
+
+jobs:
+  version:
+    uses: ./.github/workflows/get-version.yaml
+    with:
+      version: ${{ github.ref_name }}
+  update-version:  # rcN or final release
+    needs: version
+    if: ${{ needs.version.outputs.is_prerelease == 'true' }}
+    uses: ./github/workflows/update-version.yaml
+    with:
+      release_version: ${{ needs.version.outputs.full }}
+      target_branch: release/v${{ needs.version.outputs.major_minor }}
+    permissions:
+      contents: write
+  # TODO: output the sha for the commit that updated the version, so we can use that for creating tags
+  create-tags:  # Final release, but only update major and minor if highest
+    needs: version
+    if: ${{ needs.version.outputs.is_prerelease == 'false' }}
+    uses: ./.github/workflows/create-tags.yaml
+    with:
+      major_version: ${{ needs.version.outputs.major }}
+      major_minor_version: ${{ needs.version.outputs.major_minor }}
+      commit_sha: ${{ github.sha }}  # TODO: Here we have a problem if we use gh release, because th github commit will differ from the commit with version update
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
