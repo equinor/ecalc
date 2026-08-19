@@ -397,9 +397,6 @@ class SimpleResultData(SimpleBase):
             )
         )
 
-        if len(all_dates_in_models) == 0:
-            raise EcalcError(title="Compare error", message="The models periods does not overlap.")
-
         # define new periods using all dates in both models, skip extra periods before and after
         periods = Periods.create_periods(
             times=all_dates_in_models,
