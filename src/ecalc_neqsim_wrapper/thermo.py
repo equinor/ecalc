@@ -368,6 +368,20 @@ class NeqsimFluid:
     def copy(self) -> NeqsimFluid:
         return NeqsimFluid(thermodynamic_system=self._thermodynamic_system.clone(), use_gerg=self._use_gerg)
 
+    def critical_point(self) -> tuple[float, float]:
+        """Compute the EoS critical point for this fluid's composition.
+
+        Uses a disposable clone — the original thermo system is not mutated.
+
+        Returns:
+            Tuple of (critical_temperature_kelvin, critical_pressure_bara)
+        """
+        ts = self._thermodynamic_system.clone()
+        neqsim_module = NeqsimService.instance().get_neqsim_module()
+        ops = neqsim_module.thermodynamicoperations.ThermodynamicOperations(ts)  # pyright: ignore[reportAttributeAccessIssue]
+        ops.criticalPointFlash()
+        return float(ts.getTemperature()), float(ts.getPressure())
+
     @Capturer.capture_return_values(  # type: ignore[misc]
         do_save_captured_content=False, output_directory=Path(os.getcwd()) / "captured_data" / "neqsim-ph"
     )

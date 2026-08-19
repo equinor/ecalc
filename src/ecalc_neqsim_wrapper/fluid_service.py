@@ -511,6 +511,39 @@ class NeqSimFluidService(FluidService):
         standard_density = self._get_standard_density(fluid_model)
         return mass_rate_kg_per_h * 24.0 / standard_density
 
+    _critical_point_cache: ClassVar[dict[tuple, tuple[float, float]]] = {}
+
+    def get_critical_point(
+        self,
+        fluid_model: FluidModel,
+    ) -> tuple[float, float]:
+        """Get the EoS-computed critical point for a fluid composition.
+
+        Uses NeqSim's criticalPointFlash() which solves for the true mixture
+        critical point using the equation of state. Results are cached by
+        (composition, eos_model) since the critical point is independent of
+        the stream's actual T and P.
+
+        Returns:
+            Tuple of (critical_temperature_kelvin, critical_pressure_bara)
+        """
+        composition = fluid_model.composition.normalized()
+        key = (_make_composition_key(composition), fluid_model.eos_model)
+
+        cached = self._critical_point_cache.get(key)
+        if cached is not None:
+            return cached
+
+        # Create a disposable fluid — critical_point() clones internally
+        disposable = NeqsimFluid.create_thermo_system(
+            composition=composition,
+            eos_model=fluid_model.eos_model,
+        )
+        result = disposable.critical_point()
+        self._critical_point_cache[key] = result
+        _logger.debug("Critical point for %s: Tc=%.2f K, Pc=%.2f bar", fluid_model.eos_model.name, *result)
+        return result
+
 
 def get_fluid_service_stats() -> dict[str, dict]:
     """Get cache statistics for the fluid service caches."""

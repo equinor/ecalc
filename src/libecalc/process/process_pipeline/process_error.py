@@ -63,6 +63,19 @@ class LiquidAtInletError(ProcessError):
         super().__init__(f"Inlet stream contains liquid (vapor fraction: {vapor_fraction:.3f})")
 
 
+class NoGasPhaseError(ProcessError):
+    """The stream has no gas phase — liquid removal produces nothing to compress."""
+
+    def __init__(
+        self,
+        process_unit_id: ProcessUnitId,
+        vapor_fraction: float,
+    ):
+        self.process_unit_id = process_unit_id
+        self.vapor_fraction = vapor_fraction
+        super().__init__(f"No gas phase present (vapor fraction: {vapor_fraction:.6f})")
+
+
 class OfftakeExceedsInletError(ProcessError):
     def __init__(
         self,
