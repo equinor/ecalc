@@ -40,9 +40,6 @@ class TimeSeriesFluidComposition:
             n_hexane=self.n_hexane.get_masked_values()[index],
         )
 
-    def get_periods(self) -> list[Period]:
-        return self.methane.get_periods()
-
 
 @value_object
 class TimeSeriesFluidModel:
@@ -55,6 +52,3 @@ class TimeSeriesFluidModel:
             eos_model=self.eos_model,
             composition=self.composition.get_value(period),
         )
-
-    def get_periods(self) -> list[Period]:
-        return self.composition.get_periods()
