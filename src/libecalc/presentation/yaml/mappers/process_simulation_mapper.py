@@ -26,6 +26,7 @@ from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesSplitterConfiguration,
     TimeSeriesTemperatureSetterConfiguration,
 )
+from libecalc.ecalc_model.time_series_fluid_model import TimeSeriesFluidModel
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
@@ -33,18 +34,15 @@ from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import handle_condition_list
-from libecalc.presentation.yaml.mappers.fluid_mapper import (
-    composition_fluid_model_mapper,
-    predefined_fluid_model_mapper,
-)
+from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_definition_mapper
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
 from libecalc.presentation.yaml.mappers.process.build_sections import ProcessSectionBuilder
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
-from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
+from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
+    DefinitionReference,
     InstanceReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
@@ -62,7 +60,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
-from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_pipeline import (
@@ -186,11 +183,13 @@ class ProcessSimulationMapper:
         else:
             return ref
 
-    def _resolve_fluid_model_reference(self, ref: str | YamlFluidModel) -> YamlFluidModel:
-        if isinstance(ref, str):
-            return self._reference_service.get_fluid(reference=ref)
-        else:
-            return ref
+    def _resolve_fluid_definition(
+        self,
+        reference: DefinitionReference | YamlFluidDefinition,
+    ) -> YamlFluidDefinition:
+        if isinstance(reference, str):
+            return self._reference_service.get_fluid_definition(reference)
+        return reference
 
     def _map_conditions(
         self, conditions: YamlExpressionType | list[YamlExpressionType] | None
@@ -235,14 +234,14 @@ class ProcessSimulationMapper:
             expression=temperature,
         )
 
-    def _map_fluid_model(self, yaml_fluid_model: YamlFluidModel) -> FluidModel:
-        match yaml_fluid_model:
-            case YamlPredefinedFluidModel():
-                return predefined_fluid_model_mapper(yaml_fluid_model)
-            case YamlCompositionFluidModel():
-                return composition_fluid_model_mapper(yaml_fluid_model)
-            case _:
-                assert_never(yaml_fluid_model)
+    def _map_fluid_definition(
+        self,
+        fluid_definition: YamlFluidDefinition,
+    ) -> TimeSeriesFluidModel:
+        return fluid_definition_mapper(
+            fluid_definition,
+            expression_evaluator=self._expression_evaluator,
+        )
 
     def _validate_and_map_pipeline_events(
         self,
@@ -347,14 +346,14 @@ class ProcessSimulationMapper:
 
                     case YamlMixerDefinition():
                         yaml_stream = self._resolve_stream_reference(yaml_process_unit.sidestream)
-                        yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
+                        yaml_fluid_definition = self._resolve_fluid_definition(yaml_stream.fluid)
                         unit = Mixer(fluid_service=self._fluid_service)
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesMixerConfiguration(
                             sidestream=TimeSeriesStream(
                                 pressure_bara=self._map_pressure(yaml_stream.pressure),
                                 standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
                                 temperature_kelvin=self._map_temperature(yaml_stream.temperature),
-                                fluid_model=self._map_fluid_model(yaml_fluid_model),
+                                fluid_model=self._map_fluid_definition(yaml_fluid_definition),
                             )
                         )
 
@@ -539,12 +538,12 @@ class ProcessSimulationMapper:
                     )
 
                 yaml_stream = self._resolve_stream_reference(yaml_stream_distribution.inlet_stream)
-                yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
+                yaml_fluid_definition = self._resolve_fluid_definition(yaml_stream.fluid)
                 inlet_stream = TimeSeriesStream(
                     pressure_bara=self._map_pressure(yaml_stream.pressure),
                     standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
                     temperature_kelvin=self._map_temperature(yaml_stream.temperature),
-                    fluid_model=self._map_fluid_model(yaml_fluid_model),
+                    fluid_model=self._map_fluid_definition(yaml_fluid_definition),
                 )
                 stream_distribution = CommonStreamDistributionConfig(
                     inlet_stream=inlet_stream,
@@ -554,13 +553,13 @@ class ProcessSimulationMapper:
                 inlet_streams = []
                 for inlet_stream in yaml_stream_distribution.inlet_streams:
                     yaml_stream = self._resolve_stream_reference(inlet_stream)
-                    yaml_fluid_model = self._resolve_fluid_model_reference(yaml_stream.fluid_model)
+                    yaml_fluid_definition = self._resolve_fluid_definition(yaml_stream.fluid)
                     inlet_streams.append(
                         TimeSeriesStream(
                             pressure_bara=self._map_pressure(yaml_stream.pressure),
                             standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
                             temperature_kelvin=self._map_temperature(yaml_stream.temperature),
-                            fluid_model=self._map_fluid_model(yaml_fluid_model),
+                            fluid_model=self._map_fluid_definition(yaml_fluid_definition),
                         )
                     )
                 stream_distribution = IndividualStreamDistributionConfig(

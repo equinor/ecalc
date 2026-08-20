@@ -1,6 +1,8 @@
 from pydantic import BaseModel
 
 from libecalc.expression.extract_expressions import extract_expression_references
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidComposition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlPumpProcessInlet
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlPressureDropperDefinition,
@@ -11,6 +13,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
     YamlInletStream,
     YamlInletStreamRate,
 )
+from libecalc.testing.process_builders import YamlCompositionFluidDefinitionBuilder
 
 
 class TestExtractExpressionReferences:
@@ -33,7 +36,7 @@ class TestExtractExpressionReferences:
     def test_nested_pydantic_model(self):
         stream = YamlInletStream(
             name="test_stream",
-            fluid_model="my_fluid",
+            fluid="my_fluid",
             temperature="SIM1;TEMP_IN",
             pressure="SIM1;PRESSURE_IN",
             rate=YamlInletStreamRate(
@@ -110,3 +113,24 @@ class TestExtractExpressionReferences:
         model = ModelWithDict(expressions={"a": "SIM1;RATE", "b": "SIM2;PRESSURE"})
         refs = extract_expression_references(model)
         assert refs == {"SIM1;RATE", "SIM2;PRESSURE"}
+
+    def test_extracts_references_from_fluid_definitions(self):
+        """Fluid composition expressions are included when extracting dependencies from definitions."""
+        fluid_definition = (
+            YamlCompositionFluidDefinitionBuilder()
+            .with_composition(
+                YamlFluidComposition(
+                    methane="FEED;METHANE",
+                    ethane="FEED;ETHANE {*} 0.5",
+                )
+            )
+            .validate()
+        )
+        definitions = YamlDefinitions(
+            fluids={"feed_gas": fluid_definition},
+        )
+
+        assert extract_expression_references(definitions) == {
+            "FEED;METHANE",
+            "FEED;ETHANE",
+        }

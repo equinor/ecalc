@@ -74,7 +74,7 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_facto
 
     # -- Run pipeline --
     inlet_stream = fluid_service.create_stream_from_standard_rate(
-        fluid_model=simulation.get_inlet_streams()[0].fluid_model,
+        fluid_model=simulation.get_inlet_streams()[0].fluid_model.get_value(PERIOD),
         pressure_bara=20.0,
         temperature_kelvin=303.15,
         standard_rate_m3_per_day=2_000_000,
@@ -85,7 +85,7 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_facto
     # -- Assert: mass is conserved — outlet = inlet - offtake --
     offtake_rate_sm3_per_day = yaml_splitter.offtake_rate.value
     expected_offtake_mass_rate = fluid_service.standard_rate_to_mass_rate(
-        fluid_model=simulation.get_inlet_streams()[0].fluid_model,
+        fluid_model=simulation.get_inlet_streams()[0].fluid_model.get_value(PERIOD),
         standard_rate_m3_per_day=offtake_rate_sm3_per_day,
     )
 

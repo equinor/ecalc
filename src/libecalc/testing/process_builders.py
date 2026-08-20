@@ -1,13 +1,16 @@
 from typing import Self
 
 from libecalc.common.utils.rates import RateType
-from libecalc.presentation.yaml.yaml_types.models import YamlFluidModel
-from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlEosModel,
     YamlPredefinedFluidType,
     YamlFluidModelType,
-    YamlPredefinedFluidModel,
+)
+from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import (
+    YamlFluidDefinition,
+    YamlPredefinedFluidDefinition,
+    YamlCompositionFluidDefinition,
+    YamlFluidComposition,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
@@ -274,21 +277,15 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
 
 
 # ---------------------------------------------------------------------------
-# Fluid model builders
+# Fluid definition builders
 # ---------------------------------------------------------------------------
 
 
-class YamlPredefinedFluidModelBuilder(Builder[YamlPredefinedFluidModel]):
+class YamlPredefinedFluidDefinitionBuilder(Builder[YamlPredefinedFluidDefinition]):
     def __init__(self):
-        self.name = None
-        self.type = YamlModelType.FLUID
-        self.fluid_model_type = YamlFluidModelType.PREDEFINED
+        self.type = YamlFluidModelType.PREDEFINED
         self.eos_model = None
         self.gas_type = None
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
 
     def with_eos_model(self, eos_model: YamlEosModel) -> Self:
         self.eos_model = eos_model
@@ -299,9 +296,37 @@ class YamlPredefinedFluidModelBuilder(Builder[YamlPredefinedFluidModel]):
         return self
 
     def with_test_data(self) -> Self:
-        self.name = "DefaultFluidModel"
         self.eos_model = YamlEosModel.SRK
         self.gas_type = YamlPredefinedFluidType.MEDIUM
+        return self
+
+
+class YamlCompositionFluidDefinitionBuilder(Builder[YamlCompositionFluidDefinition]):
+    def __init__(self):
+        self.type = YamlFluidModelType.COMPOSITION
+        self.eos_model = None
+        self.composition = None
+
+    def with_eos_model(
+        self,
+        eos_model: YamlEosModel,
+    ) -> Self:
+        self.eos_model = eos_model
+        return self
+
+    def with_composition(
+        self,
+        composition: YamlFluidComposition,
+    ) -> Self:
+        self.composition = composition
+        return self
+
+    def with_test_data(self) -> Self:
+        self.eos_model = YamlEosModel.SRK
+        self.composition = YamlFluidComposition(
+            methane=90.0,
+            ethane=10.0,
+        )
         return self
 
 
@@ -338,7 +363,7 @@ class YamlInletStreamRateBuilder(Builder[YamlInletStreamRate]):
 class YamlInletStreamBuilder(Builder[YamlInletStream]):
     def __init__(self):
         self.name = None
-        self.fluid_model = None
+        self.fluid = None
         self.pressure = None
         self.temperature = None
         self.rate = None
@@ -347,8 +372,8 @@ class YamlInletStreamBuilder(Builder[YamlInletStream]):
         self.name = name
         return self
 
-    def with_fluid_model(self, fluid_model: str | YamlFluidModel) -> Self:
-        self.fluid_model = fluid_model
+    def with_fluid(self, fluid_definition: DefinitionReference | YamlFluidDefinition) -> Self:
+        self.fluid = fluid_definition
         return self
 
     def with_pressure(self, pressure: YamlExpressionType) -> Self:
@@ -365,7 +390,7 @@ class YamlInletStreamBuilder(Builder[YamlInletStream]):
 
     def with_test_data(self) -> Self:
         self.name = "DefaultInletStream"
-        self.fluid_model = YamlPredefinedFluidModelBuilder().with_test_data().validate()
+        self.fluid = YamlPredefinedFluidDefinitionBuilder().with_test_data().validate()
         self.pressure = 20.0
         self.temperature = 30.0
         self.rate = YamlInletStreamRateBuilder().with_test_data().validate()
