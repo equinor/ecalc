@@ -194,40 +194,31 @@ class YamlAsset(YamlBase):
     def validate_unique_references(self):
         references = []
 
-        if self.facility_inputs is not None:
-            for facility_input in self.facility_inputs:
-                references.append(facility_input.name)
+        for facility_input in self.facility_inputs:
+            references.append(facility_input.name)
 
-        if self.models is not None:
-            for model in self.models:
-                references.append(model.name)
+        for model in self.models:
+            references.append(model.name)
 
-        if self.fuel_types is not None:
-            for fuel_type in self.fuel_types:
-                references.append(fuel_type.name)
+        for fuel_type in self.fuel_types:
+            references.append(fuel_type.name)
 
-        if self.process_pipelines is not None:
-            references.extend(self.process_pipelines.keys())
+        references.extend(self.process_pipelines.keys())
 
-        if self.definitions and self.definitions.process_units is not None:
-            references.extend(self.definitions.process_units.keys())
-            references.extend(self.definitions.fluids.keys())
+        references.extend(self.definitions.process_units.keys())
+        references.extend(self.definitions.fluids.keys())
 
-        if self.process_simulations is not None:
-            for process_simulation in self.process_simulations:
-                references.append(process_simulation.name)
+        for process_simulation in self.process_simulations:
+            references.append(process_simulation.name)
 
-        if self.pump_process_simulations is not None:
-            for pump_process_simulation in self.pump_process_simulations:
-                references.append(pump_process_simulation.name)
+        for pump_process_simulation in self.pump_process_simulations:
+            references.append(pump_process_simulation.name)
 
         # TODO: Add ecalc events references?
 
-        if self.fluid_models is not None:
-            references.extend(self.fluid_models.keys())
+        references.extend(self.fluid_models.keys())
 
-        if self.inlet_streams is not None:
-            references.extend(self.inlet_streams.keys())
+        references.extend(self.inlet_streams.keys())
 
         duplicated_references = get_duplicates(references)
 
