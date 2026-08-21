@@ -30,6 +30,8 @@ class Converter[TRequires: Demand, TProvides: Demand](Provider[TProvides]):
     """Converts one energy type to another.
 
     TRequires is what this converter needs as input, TProvides is what it delivers.
+    Subclasses implement _input_demand() to define the conversion formula.
+    supply() is a template method that ensures input_consumed is always correct.
 
     Examples:
         Converter[ElectricalPower, MechanicalPower] — electric motor
@@ -38,7 +40,7 @@ class Converter[TRequires: Demand, TProvides: Demand](Provider[TProvides]):
     """
 
     @abc.abstractmethod
-    def input_demand(self, demand: TProvides) -> TRequires:
+    def _input_demand(self, demand: TProvides) -> TRequires:
         """What is needed as input to deliver the demanded output."""
         ...
 
