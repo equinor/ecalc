@@ -31,7 +31,7 @@ class YamlEcalcEvent(YamlBase):
         ),
     ]
     name: Annotated[
-        InstanceReference,
+        str,
         Field(
             title="NAME",
             description="Short identifier for the event.",

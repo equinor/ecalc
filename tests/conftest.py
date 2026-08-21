@@ -39,7 +39,6 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlCo
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
-from libecalc.testing.direct_reference_service import DirectReferenceService
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,
@@ -689,12 +688,10 @@ def process_simulation_mapper_factory(
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
     def _create(references: dict | None = None):
-        reference_service = DirectReferenceService(references=references or {})
         return ProcessSimulationMapper(
             expression_evaluator=expression_evaluator,
             fluid_service=fluid_service,
-            reference_service=reference_service,
-            process_simulation_period=period,
+            references=references or {},
             resources={},
             ecalc_event_service=EcalcEventService(ecalc_events=[]),
         )

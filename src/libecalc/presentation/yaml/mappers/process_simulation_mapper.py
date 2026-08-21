@@ -1,8 +1,7 @@
-from typing import assert_never, get_args
+from typing import Any, assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException, ProgrammingError
-from libecalc.common.time_utils import Period
 from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.process.value_objects.chart.chart import ChartData
@@ -30,7 +29,6 @@ from libecalc.ecalc_model.time_series_fluid_model import TimeSeriesFluidModel
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
-from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import handle_condition_list
@@ -39,10 +37,13 @@ from libecalc.presentation.yaml.mappers.model import InvalidChartResourceExcepti
 from libecalc.presentation.yaml.mappers.process.build_sections import ProcessSectionBuilder
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
-from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
+from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import (
+    YamlCompositionFluidDefinition,
+    YamlFluidDefinition,
+    YamlPredefinedFluidDefinition,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
-    DefinitionReference,
     InstanceReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
@@ -57,6 +58,10 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlProcessUnitDefinition,
     YamlSplitterDefinition,
     YamlTemperatureSetterDefinition,
+)
+from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
+    YamlCommonStreamDistribution,
+    YamlIndividualStreamDistribution,
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
@@ -118,20 +123,21 @@ class ProcessSimulationMapper:
         self,
         expression_evaluator: ExpressionEvaluator,
         fluid_service: FluidService,
-        reference_service: ReferenceService,
-        process_simulation_period: Period,
+        references: dict[InstanceReference, Any],
         resources: Resources,
         ecalc_event_service: EcalcEventService,
     ):
-        self._expression_evaluator = expression_evaluator.get_subset_for_period(process_simulation_period)
+        self._expression_evaluator = expression_evaluator
         self._fluid_service = fluid_service
-        self._reference_service = reference_service
+        self._references = references
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
 
     def _resolve_pipeline_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
-            return self._reference_service.get_process_pipeline(reference=ref)
+            o = self._references.get(ref)
+            assert isinstance(o, YamlProcessPipeline)
+            return o
         else:
             return ref
 
@@ -179,17 +185,11 @@ class ProcessSimulationMapper:
 
     def _resolve_stream_reference(self, ref: str | YamlInletStream) -> YamlInletStream:
         if isinstance(ref, str):
-            return self._reference_service.get_stream(reference=ref)
+            o = self._references.get(ref)
+            assert isinstance(o, YamlInletStream)
+            return o
         else:
             return ref
-
-    def _resolve_fluid_definition(
-        self,
-        reference: DefinitionReference | YamlFluidDefinition,
-    ) -> YamlFluidDefinition:
-        if isinstance(reference, str):
-            return self._reference_service.get_fluid_definition(reference)
-        return reference
 
     def _map_conditions(
         self, conditions: YamlExpressionType | list[YamlExpressionType] | None
@@ -198,7 +198,7 @@ class ProcessSimulationMapper:
             return None
         if isinstance(conditions, list):
             return handle_condition_list(conditions)
-        assert isinstance(conditions, ExpressionType)
+        assert isinstance(conditions, int | str | float)
         return conditions
 
     def _get_regularity(self) -> Regularity:
@@ -243,6 +243,16 @@ class ProcessSimulationMapper:
             expression_evaluator=self._expression_evaluator,
         )
 
+    def _map_stream(self, yaml_stream: YamlInletStream) -> TimeSeriesStream:
+        yaml_fluid_definition = yaml_stream.fluid
+        assert isinstance(yaml_fluid_definition, YamlPredefinedFluidDefinition | YamlCompositionFluidDefinition)
+        return TimeSeriesStream(
+            pressure_bara=self._map_pressure(yaml_stream.pressure),
+            standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
+            temperature_kelvin=self._map_temperature(yaml_stream.temperature),
+            fluid_model=self._map_fluid_definition(yaml_fluid_definition),
+        )
+
     def _validate_and_map_pipeline_events(
         self,
         yaml_pipeline: YamlProcessPipeline,
@@ -258,17 +268,12 @@ class ProcessSimulationMapper:
                     f"Pipeline event '{yaml_event.ref}' does not match any known process event."
                 )
 
-            if (change_to_yaml_process_unit := self._reference_service.get_process_unit(yaml_event.change_to)) is None:
-                raise EcalcValidationException(
-                    f"Pipeline event CHANGE_TO '{yaml_event.change_to}' does not refer to a known process unit."
-                ) from None
-
-            match change_to_yaml_process_unit:
+            match yaml_event.change_to:
                 case YamlCompressorDefinition():
-                    change_to_unit = self._get_compressor(change_to_yaml_process_unit)
+                    change_to_unit = self._get_compressor(yaml_event.change_to)
                 case _:
                     raise EcalcValidationException(
-                        f"Pipeline event CHANGE_TO '{change_to_yaml_process_unit}' does not match any compressor (chart) unit."
+                        f"Pipeline event CHANGE_TO '{type(yaml_event.change_to)}' does not match any compressor (chart) unit."
                     )
 
             events.append(
@@ -284,7 +289,8 @@ class ProcessSimulationMapper:
         return events
 
     def map_process_simulation(
-        self, yaml_process_simulation: YamlProcessSimulation, process_periods: list[Period]
+        self,
+        yaml_process_simulation: YamlProcessSimulation,
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         process_pipelines: list[ProcessPipeline] = []
         process_problems: list[ProcessProblem] = []
@@ -321,8 +327,6 @@ class ProcessSimulationMapper:
             for yaml_pipeline_item in item.process_units:
                 yaml_process_unit = yaml_pipeline_item.target
                 process_unit_name = yaml_pipeline_item.name
-                if isinstance(yaml_process_unit, str):
-                    yaml_process_unit = self._reference_service.get_process_unit(yaml_process_unit)
 
                 match yaml_process_unit:
                     case YamlCompressorDefinition():
@@ -346,15 +350,9 @@ class ProcessSimulationMapper:
 
                     case YamlMixerDefinition():
                         yaml_stream = self._resolve_stream_reference(yaml_process_unit.sidestream)
-                        yaml_fluid_definition = self._resolve_fluid_definition(yaml_stream.fluid)
                         unit = Mixer(fluid_service=self._fluid_service)
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesMixerConfiguration(
-                            sidestream=TimeSeriesStream(
-                                pressure_bara=self._map_pressure(yaml_stream.pressure),
-                                standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
-                                temperature_kelvin=self._map_temperature(yaml_stream.temperature),
-                                fluid_model=self._map_fluid_definition(yaml_fluid_definition),
-                            )
+                            sidestream=self._map_stream(yaml_stream)
                         )
 
                     case YamlSplitterDefinition():
@@ -428,7 +426,7 @@ class ProcessSimulationMapper:
                 name=item.name,
                 process_pipeline_sections=process_pipeline_sections,
                 events=pipeline_events,
-                process_periods=process_periods,
+                process_periods=self._expression_evaluator.get_periods().periods,
             )
 
             # Set up problem and problem sections
@@ -494,8 +492,8 @@ class ProcessSimulationMapper:
 
         yaml_stream_distribution = yaml_process_simulation.stream_distribution
 
-        match yaml_stream_distribution.method:
-            case "COMMON_STREAM":
+        match yaml_stream_distribution:
+            case YamlCommonStreamDistribution():
                 settings = []
                 for setting in yaml_stream_distribution.settings:
                     rate_fractions: list[TimeSeriesExpression] = []
@@ -538,35 +536,22 @@ class ProcessSimulationMapper:
                     )
 
                 yaml_stream = self._resolve_stream_reference(yaml_stream_distribution.inlet_stream)
-                yaml_fluid_definition = self._resolve_fluid_definition(yaml_stream.fluid)
-                inlet_stream = TimeSeriesStream(
-                    pressure_bara=self._map_pressure(yaml_stream.pressure),
-                    standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
-                    temperature_kelvin=self._map_temperature(yaml_stream.temperature),
-                    fluid_model=self._map_fluid_definition(yaml_fluid_definition),
-                )
+                inlet_stream = self._map_stream(yaml_stream)
                 stream_distribution = CommonStreamDistributionConfig(
                     inlet_stream=inlet_stream,
                     settings=settings,
                 )
-            case "INDIVIDUAL_STREAMS":
+            case YamlIndividualStreamDistribution():
                 inlet_streams = []
                 for inlet_stream in yaml_stream_distribution.inlet_streams:
                     yaml_stream = self._resolve_stream_reference(inlet_stream)
-                    yaml_fluid_definition = self._resolve_fluid_definition(yaml_stream.fluid)
-                    inlet_streams.append(
-                        TimeSeriesStream(
-                            pressure_bara=self._map_pressure(yaml_stream.pressure),
-                            standard_rate_m3_per_day=self._map_rate(yaml_stream.rate),
-                            temperature_kelvin=self._map_temperature(yaml_stream.temperature),
-                            fluid_model=self._map_fluid_definition(yaml_fluid_definition),
-                        )
-                    )
+
+                    inlet_streams.append(self._map_stream(yaml_stream))
                 stream_distribution = IndividualStreamDistributionConfig(
                     inlet_streams=inlet_streams,
                 )
             case _:
-                assert_never(yaml_stream_distribution.method)
+                assert_never(yaml_stream_distribution)
 
         return (
             process_pipelines,
@@ -574,7 +559,7 @@ class ProcessSimulationMapper:
                 name=yaml_process_simulation.name,
                 process_problems=process_problems,
                 stream_distribution=stream_distribution,
-                process_periods=process_periods,
+                process_periods=self._expression_evaluator.get_periods().periods,
                 process_configurations=predefined_configurations,
             ),
         )

@@ -1,4 +1,7 @@
+from collections.abc import Sequence
 from typing import Any
+
+from pydantic import BaseModel
 
 from libecalc.dto import FuelType
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService, YamlCompressorModel
@@ -60,4 +63,10 @@ class DirectReferenceService(ReferenceService):
         return self._resolve_reference(reference)
 
     def get_stream(self, reference: str) -> YamlInletStream:
+        return self._resolve_reference(reference)
+
+    def get_references(self, obj: BaseModel) -> Sequence[str]:
+        return list(self._references.keys())
+
+    def get_reference(self, reference: str) -> BaseModel:
         return self._resolve_reference(reference)

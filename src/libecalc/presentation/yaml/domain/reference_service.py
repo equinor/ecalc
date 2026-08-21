@@ -1,6 +1,8 @@
 import abc
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Protocol
+
+from pydantic import BaseModel
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
@@ -24,10 +26,6 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
     YamlVariableSpeedCompressorTrain,
     YamlVariableSpeedCompressorTrainMultipleStreamsAndPressures,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
-from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 
 class InvalidReferenceException(EcalcValidationException):
@@ -57,9 +55,6 @@ class ReferenceService(Protocol):
     def get_fluid(self, reference: str) -> YamlFluidModel: ...
 
     @abc.abstractmethod
-    def get_fluid_definition(self, reference: str) -> YamlFluidDefinition: ...
-
-    @abc.abstractmethod
     def get_turbine(self, reference: str) -> YamlTurbine: ...
 
     @abc.abstractmethod
@@ -81,10 +76,7 @@ class ReferenceService(Protocol):
     def get_tabulated_model(self, reference: str) -> YamlTabularModel: ...
 
     @abc.abstractmethod
-    def get_process_pipeline(self, reference: str) -> YamlProcessPipeline: ...
+    def get_references(self, obj: BaseModel) -> Sequence[str]: ...
 
     @abc.abstractmethod
-    def get_process_unit(self, reference: str) -> YamlProcessUnitDefinition: ...
-
-    @abc.abstractmethod
-    def get_stream(self, reference: str) -> YamlInletStream: ...
+    def get_reference(self, reference: str) -> BaseModel: ...

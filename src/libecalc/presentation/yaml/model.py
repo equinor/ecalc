@@ -40,11 +40,14 @@ from libecalc.ecalc_model.ecalc_event import (
     EcalcEventService,
 )
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
+from libecalc.expression.extract_expressions import extract_expression_references
+from libecalc.presentation.yaml.definition_resolver import resolve_definitions
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.container_info import ContainerInfo
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
 from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
+from libecalc.presentation.yaml.domain.strict_expression_evaluator import StrictExpressionEvaluator
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
@@ -152,30 +155,72 @@ class YamlModel:
 
         self._id = uuid.uuid4()  # ID used for "asset" energy container, which is the same as model?
 
+    def _get_definitions(self) -> dict[str, Any]:
+        definitions = self._configuration.definitions
+        def_dict = {}
+        for field_name in definitions.model_fields:
+            def_dict.update(getattr(definitions, field_name))
+
+        return def_dict
+
     def get_process_simulations(
         self, ecalc_event_service: EcalcEventService
     ) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
         self.validate_for_run()
-        process_simulations = []
         facility_resources, _ = self._resource_service.get_facility_resources()
+        time_series_resources, _ = self._resource_service.get_time_series_resources()
 
-        mapper = ProcessSimulationMapper(
-            expression_evaluator=self.get_expression_evaluator(),
-            process_simulation_period=self.period,
-            fluid_service=NeqSimFluidService.instance(),
-            resources=facility_resources,
-            reference_service=self._get_reference_service(),
-            ecalc_event_service=ecalc_event_service,
-        )
-        process_pipelines = []
-        for yaml_process_simulation in self._configuration.process_simulations:
-            process_pipeline, process_simulation = mapper.map_process_simulation(
-                yaml_process_simulation=yaml_process_simulation, process_periods=self.get_periods()
+        reference_service = self._get_reference_service()
+
+        yaml_process_simulations = self._configuration.process_simulations
+        mapped_process_simulations = []
+        mapped_process_pipelines = []
+        for yaml_process_simulation in yaml_process_simulations:
+            yaml_process_simulation = resolve_definitions(
+                yaml_process_simulation,
+                definitions=self._get_definitions(),
             )
-            process_pipelines.extend(process_pipeline)
-            process_simulations.append(process_simulation)
+            process_simulation_references = reference_service.get_references(yaml_process_simulation)
 
-        return process_pipelines, process_simulations
+            reference_objects = {}
+            expression_references = extract_expression_references(yaml_process_simulation)
+            for process_simulation_reference in process_simulation_references:
+                reference_object = reference_service.get_reference(process_simulation_reference)
+                reference_object = resolve_definitions(
+                    reference_object,
+                    definitions=self._get_definitions(),
+                )
+                reference_object_expression_references = extract_expression_references(reference_object)
+
+                reference_objects[process_simulation_reference] = reference_object
+                expression_references.update(reference_object_expression_references)
+
+            end = self._configuration.end
+            assert end is not None
+            expression_evaluator = StrictExpressionEvaluator.from_expression_references(
+                expression_references=expression_references,
+                variables=self._configuration.variables,
+                time_series_configs=self._configuration.time_series,
+                time_series_resources=time_series_resources,
+                start=self._configuration.start,
+                end=end,
+            )
+
+            mapper = ProcessSimulationMapper(
+                expression_evaluator=expression_evaluator,
+                fluid_service=NeqSimFluidService.instance(),
+                resources=facility_resources,
+                references=reference_objects,
+                ecalc_event_service=ecalc_event_service,
+            )
+
+            process_pipelines, process_simulation = mapper.map_process_simulation(
+                yaml_process_simulation=yaml_process_simulation,
+            )
+            mapped_process_pipelines.extend(process_pipelines)
+            mapped_process_simulations.append(process_simulation)
+
+        return mapped_process_pipelines, mapped_process_simulations
 
     def get_events(self) -> list[EcalcEvent]:
         return EcalcEventMapper().map_events(
@@ -407,11 +452,12 @@ class YamlModel:
             raise ModelValidationException(errors=[*resource_model_validation_errors, *configuration_validation_errors])
 
         try:
-            self._variables = map_yaml_to_variables(
+            variables_map = map_yaml_to_variables(
                 configuration=self._configuration,
                 time_series_provider=time_series_collections,
                 periods=self._get_periods(time_series_collections.get_time_vector()),
             )
+            self._variables = variables_map
 
             reference_service = self._get_reference_service()
 
@@ -422,7 +468,7 @@ class YamlModel:
                 resources=facility_resources,
                 references=reference_service,
                 target_period=self.period,
-                expression_evaluator=self._variables,
+                expression_evaluator=variables_map,
                 mapping_context=self._mapping_context,
                 configuration=self._configuration,
             )

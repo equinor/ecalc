@@ -1,5 +1,8 @@
 import logging
+from collections.abc import Sequence
 from typing import Any, get_args
+
+from pydantic import BaseModel
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.presentation.yaml.domain.reference_service import (
@@ -8,6 +11,7 @@ from libecalc.presentation.yaml.domain.reference_service import (
     YamlCompressorModel,
 )
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
+from libecalc.presentation.yaml.reference_resolver import collect_instance_references
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlFacilityModel,
@@ -162,12 +166,6 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("fluid model", reference)
         return model
 
-    def get_fluid_definition(self, reference: str) -> YamlFluidDefinition:
-        fluid = self._resolve_yaml_reference(reference, "fluid definition")
-        if not isinstance(fluid, get_args(get_args(YamlFluidDefinition)[0])):
-            raise InvalidReferenceException("fluid definition", reference)
-        return fluid
-
     def get_turbine(self, reference: str) -> YamlTurbine:
         model = self._resolve_yaml_reference(reference, "turbine model")
         if not isinstance(model, YamlTurbine):
@@ -218,20 +216,10 @@ class YamlReferenceService(ReferenceService):
             raise InvalidReferenceException("tabulated", reference)
         return model
 
-    def get_process_pipeline(self, reference: str) -> YamlProcessPipeline:
-        model = self._resolve_yaml_reference(reference, "process system")
-        if not isinstance(model, YamlProcessPipeline):
-            raise InvalidReferenceException("process system", reference)
-        return model
+    def get_references(self, obj: BaseModel) -> Sequence[str]:
+        """Extract all InstanceReference values from a model object, recursively."""
+        return collect_instance_references(obj)
 
-    def get_stream(self, reference: str) -> YamlInletStream:
-        model = self._resolve_yaml_reference(reference, "stream")
-        if not isinstance(model, YamlInletStream):
-            raise InvalidReferenceException("stream", reference)
-        return model
-
-    def get_process_unit(self, reference: str) -> YamlProcessUnitDefinition:
-        model = self._resolve_yaml_reference(reference, "process unit")
-        if not isinstance(model, get_args(get_args(YamlProcessUnitDefinition)[0])):
-            raise InvalidReferenceException("process unit", reference)
-        return model
+    def get_reference(self, reference: str) -> BaseModel:
+        """Resolve a reference string to its corresponding model object."""
+        return self._resolve_yaml_reference(reference, "reference")

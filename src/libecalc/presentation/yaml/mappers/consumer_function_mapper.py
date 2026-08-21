@@ -167,7 +167,7 @@ class InvalidConsumptionType(Exception):
         super().__init__(message)
 
 
-def handle_condition_list(conditions: list[ExpressionType]):
+def handle_condition_list(conditions: list[ExpressionType]) -> str:
     conditions_with_parentheses = [f"({condition})" for condition in conditions]
     return " {*} ".join(conditions_with_parentheses)
 

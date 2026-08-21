@@ -9,6 +9,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
     InstanceReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
+    YamlCompressorDefinition,
     YamlProcessUnitDefinition,
 )
 
@@ -17,7 +18,7 @@ TTarget = TypeVar("TTarget")
 
 class YamlProcessUnitInstance[TTarget](YamlBase):
     target: TTarget | DefinitionReference
-    name: InstanceReference | None = None
+    name: str | None = None
 
 
 class PipelineEventAction(StrEnum):
@@ -46,14 +47,14 @@ class YamlPipelineEvent(YamlBase):
         ),
     ]
     change_from: Annotated[
-        DefinitionReference,
+        YamlCompressorDefinition | DefinitionReference,
         Field(
             title="CHANGE_FROM",
             description="Reference to the existing process unit template being replaced.",
         ),
     ]
     change_to: Annotated[
-        DefinitionReference,
+        YamlCompressorDefinition | DefinitionReference,
         Field(
             title="CHANGE_TO",
             description="Reference to the new process unit template to use.",
@@ -76,7 +77,7 @@ class YamlPipelineEvent(YamlBase):
 
 
 class YamlProcessPipeline(YamlBase):
-    name: InstanceReference
+    name: str
     process_units: list[YamlProcessUnitInstance[YamlProcessUnitDefinition]]
     events: Annotated[
         list[YamlPipelineEvent],
