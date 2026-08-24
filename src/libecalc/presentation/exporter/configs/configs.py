@@ -605,6 +605,7 @@ class LTPConfig(ResultConfig):
                     title="Total Electricity Consumed From Power-From-Shore",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=PowerConsumptionQuery(
+                        installation_category="FIXED",
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
                 ),
@@ -613,6 +614,7 @@ class LTPConfig(ResultConfig):
                     title="Power Supply Onshore",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=ElectricityGeneratedQuery(
+                        installation_category="FIXED",
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
                 ),
@@ -621,6 +623,7 @@ class LTPConfig(ResultConfig):
                     title="Max Usage from Shore",
                     unit=Unit.MEGA_WATT,
                     query=MaxUsageFromShoreQuery(
+                        installation_category="FIXED",
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
                 ),
