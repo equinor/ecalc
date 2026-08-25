@@ -28,7 +28,7 @@ def _collect_instance_references(obj: Any, references: list[str]) -> None:
     if not isinstance(obj, BaseModel):
         return
 
-    for field_name, field_info in obj.model_fields.items():
+    for field_name, field_info in type(obj).model_fields.items():
         annotation = field_info.annotation
         if annotation is None:
             continue
@@ -43,7 +43,7 @@ def _collect_instance_references(obj: Any, references: list[str]) -> None:
 
     # Also recurse into nested BaseModel fields that don't directly have InstanceReference
     # but may contain sub-models that do
-    for field_name, field_info in obj.model_fields.items():
+    for field_name, field_info in type(obj).model_fields.items():
         annotation = field_info.annotation
         if annotation is None:
             continue

@@ -9,11 +9,47 @@ from __future__ import annotations
 
 import types
 from collections.abc import Mapping, Sequence, Set
-from typing import Any, Union, get_args, get_origin
+from typing import Annotated, Any, Union, get_args, get_origin
 
 from pydantic import BaseModel
 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
+
+
+class DefinitionReferenceError(Exception):
+    """Base error for definition reference resolution failures."""
+
+    def __init__(self, reference: str, message: str):
+        self.reference = reference
+        super().__init__(message)
+
+
+class DefinitionNotFoundError(DefinitionReferenceError):
+    """Raised when a DefinitionReference string does not match any known definition."""
+
+    def __init__(self, reference: str, available: list[str]):
+        self.available = available
+        super().__init__(
+            reference=reference,
+            message=f"Definition reference '{reference}' not found. Available definitions: {available}",
+        )
+
+
+class DefinitionTypeError(DefinitionReferenceError):
+    """Raised when a resolved definition does not match the expected type."""
+
+    def __init__(self, reference: str, actual_type: type, expected_types: list[type]):
+        self.actual_type = actual_type
+        self.expected_types = expected_types
+        expected_names = [t.__name__ for t in expected_types]
+        actual_name = actual_type.__name__
+        super().__init__(
+            reference=reference,
+            message=(
+                f"Definition reference '{reference}' resolved to type '{actual_name}', "
+                f"but expected one of: {', '.join(expected_names)}"
+            ),
+        )
 
 
 def expand_definitions[T: BaseModel](model: T, definitions: dict[str, Any]) -> T:
@@ -77,7 +113,9 @@ def _expand_value(value: Any, annotation: Any, definitions: dict[str, Any]) -> A
 
     # Check if this field is a union containing DefinitionReference
     if _is_definition_reference_union(annotation) and isinstance(value, str):
-        return _lookup_definition(value, definitions)
+        resolved = _lookup_definition(value, definitions)
+        _validate_resolved_type(value, resolved, annotation)
+        return resolved
 
     # Recurse into BaseModel instances
     if isinstance(value, BaseModel):
@@ -108,7 +146,56 @@ def _is_definition_reference_union(annotation: Any) -> bool:
 def _lookup_definition(reference: str, definitions: dict[str, Any]) -> Any:
     """Look up a reference string in the definitions registry."""
     if reference not in definitions:
-        raise KeyError(
-            f"Definition reference '{reference}' not found. Available definitions: {list(definitions.keys())}"
-        )
+        raise DefinitionNotFoundError(reference=reference, available=list(definitions.keys()))
     return definitions[reference]
+
+
+def _validate_resolved_type(reference: str, resolved: Any, annotation: Any) -> None:
+    """Validate that a resolved definition matches the expected types in the union annotation.
+
+    For a field typed as ``SomeModel | DefinitionReference``, the resolved object must be
+    an instance of ``SomeModel`` (or any of the other non-DefinitionReference types in the union).
+
+    Raises:
+        DefinitionTypeError: If the resolved object does not match any expected type.
+    """
+    expected_types = get_expected_types(annotation)
+
+    if not expected_types:
+        return  # No concrete types to validate against
+
+    if not isinstance(resolved, tuple(expected_types)):
+        raise DefinitionTypeError(
+            reference=reference,
+            actual_type=type(resolved),
+            expected_types=expected_types,
+        )
+
+
+def get_expected_types(annotation: Any) -> list[type]:
+    """Extract the concrete types from a union annotation, excluding DefinitionReference.
+
+    Handles plain unions (``A | B | DefinitionReference``) as well as
+    ``Annotated[Union[...], ...]`` wrappers used by pydantic discriminated unions.
+
+    Returns:
+        A list of concrete types that a resolved definition must be an instance of.
+    """
+    args = get_args(annotation)
+    expected: list[type] = []
+    for a in args:
+        if a is DefinitionReference:
+            continue
+        # Unwrap Annotated[Union[...], ...] (e.g. discriminated unions)
+        if get_origin(a) is Annotated:
+            inner_args = get_args(a)
+            inner = inner_args[0] if inner_args else a
+            inner_origin = get_origin(inner)
+            if inner_origin is Union or isinstance(inner, types.UnionType):
+                for t in get_args(inner):
+                    if isinstance(t, type):
+                        expected.append(t)
+                continue
+        if isinstance(a, type):
+            expected.append(a)
+    return expected

@@ -41,7 +41,7 @@ from libecalc.ecalc_model.ecalc_event import (
 )
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.expression.extract_expressions import extract_expression_references
-from libecalc.presentation.yaml.definition_expander import expand_definitions
+from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.container_info import ContainerInfo
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
@@ -158,7 +158,7 @@ class YamlModel:
     def _get_definitions(self) -> dict[str, Any]:
         definitions = self._configuration.definitions
         def_dict = {}
-        for field_name in definitions.model_fields:
+        for field_name in type(definitions).model_fields:
             def_dict.update(getattr(definitions, field_name))
 
         return def_dict
@@ -176,20 +176,47 @@ class YamlModel:
         mapped_process_simulations = []
         mapped_process_pipelines = []
         for yaml_process_simulation in yaml_process_simulations:
-            yaml_process_simulation = expand_definitions(
-                yaml_process_simulation,
-                definitions=self._get_definitions(),
-            )
+            try:
+                yaml_process_simulation = expand_definitions(
+                    yaml_process_simulation,
+                    definitions=self._get_definitions(),
+                )
+            except DefinitionReferenceError as e:
+                yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
+                raise ModelValidationException(
+                    errors=[
+                        ModelValidationError(
+                            location=Location(keys=yaml_keys),
+                            message=str(e),
+                            file_context=self._configuration.get_file_context(yaml_keys),
+                        )
+                    ]
+                ) from e
             process_simulation_references = reference_service.get_references(yaml_process_simulation)
 
             reference_objects = {}
             expression_references = extract_expression_references(yaml_process_simulation)
             for process_simulation_reference in process_simulation_references:
                 reference_object = reference_service.get_reference(process_simulation_reference)
-                reference_object = expand_definitions(
-                    reference_object,
-                    definitions=self._get_definitions(),
-                )
+                try:
+                    reference_object = expand_definitions(
+                        reference_object,
+                        definitions=self._get_definitions(),
+                    )
+                except DefinitionReferenceError as e:
+                    reference_yaml_path = reference_service.get_yaml_path(process_simulation_reference)
+                    process_simulation_keys = reference_yaml_path.keys
+                    raise ModelValidationException(
+                        errors=[
+                            ModelValidationError(
+                                location=Location(
+                                    keys=process_simulation_keys,
+                                ),
+                                message=str(e),
+                                file_context=self._configuration.get_file_context(process_simulation_keys),
+                            )
+                        ]
+                    ) from e
                 reference_object_expression_references = extract_expression_references(reference_object)
 
                 reference_objects[process_simulation_reference] = reference_object
