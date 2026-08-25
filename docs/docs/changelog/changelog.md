@@ -1,5 +1,30 @@
 # Changelog
 
+## [13.12.1](https://github.com/equinor/ecalc/compare/v13.12.0...v13.12.1) (2026-08-25)
+
+
+### Bug Fixes
+
+* pfs cols should not be included for mobile units ([#1731](https://github.com/equinor/ecalc/issues/1731)) ([2ad0084](https://github.com/equinor/ecalc/commit/2ad00843071c950fca8bfcedbf5625d95e684d0e))
+* skip power from shore for stp as well ([#1732](https://github.com/equinor/ecalc/issues/1732)) ([c48b914](https://github.com/equinor/ecalc/commit/c48b914aed8c0007872ccfa06c2e1b4f79a36d95))
+
+
+### Documentation
+
+* add changelog for v13.12 ([#1729](https://github.com/equinor/ecalc/issues/1729)) ([4d7a343](https://github.com/equinor/ecalc/commit/4d7a34330d63ff031acc1371c947378d89d365c4))
+
+
+### Miscellaneous Chores
+
+* per process simulation expression evaluator ([1ac2e57](https://github.com/equinor/ecalc/commit/1ac2e5716cb0d896311c53ddb52cb0ec77caaa7a))
+* resolve stuff ([fa6a31e](https://github.com/equinor/ecalc/commit/fa6a31efb8e32d863e7479d64a3655c76accedf8))
+
+
+### Tests
+
+* add test fpr VariablesGraph ([060fb01](https://github.com/equinor/ecalc/commit/060fb01b1a7a4b58738460fbb51e06fc06b55954))
+* add tests for StrictExpressionEvaluator ([352facb](https://github.com/equinor/ecalc/commit/352facb25ee1d0fd8c9ed63a32f10ebb0e7164d3))
+
 ## [13.12.0](https://github.com/equinor/ecalc/compare/v13.11.0...v13.12.0) (2026-08-21)
 
 
