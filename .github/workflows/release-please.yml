@@ -5,11 +5,27 @@ on:
   push:
     branches:
       - main
+      - release/v*
 
 
 permissions: { }
 
 jobs:
+  get_versioning_strategy:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Determine versioning strategy
+        id: versioning-strategy
+        run: |
+          echo "Determining versioning strategy..."
+          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            echo "versioning_strategy=always-bump-major" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF_NAME}" == release/v* ]]; then
+            echo "versioning_strategy=always-bump-patch" >> $GITHUB_OUTPUT
+          fi
   release-please:
     permissions:
       contents: write
@@ -22,6 +38,7 @@ jobs:
         with:
           config-file: 'release-please-config.json'
           manifest-file: '.release-please-manifest.json'
+          versioning-strategy: ${{ needs.get_versioning_strategy.outputs.versioning_strategy }}
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
@@ -51,3 +68,25 @@ jobs:
         with:
           name: release-please-outputs
           path: release-please-data/
+      - name: Get libecalc versions from tag name
+        env:
+          RELEASE_VERSION: ${{ needs.release-please.outputs.tag_name }}
+        if: ${{ needs.release-please.outputs.release_created == 'true' }}
+        run: |
+          echo "tag name: ${ NEEDS_RELEASE_PLEASE_OUTPUTS_TAG_NAME }"
+          VERSION="${ needs.release-please.outputs.tag_name#v }}"
+          PATCH_VERSION="${{ needs.release-please.outputs.tag_name##*. }}"
+          MAJOR_MINOR_VERSION="${{ needs.release-please.outputs.tag_name%.* }}" # drops substring from last occurrence of substring (.) until end of string
+          echo "patch version: $PATCH_VERSION"
+          echo "patch_version=$PATCH_VERSION" >> $GITHUB_OUTPUT
+      - name: Create release branch (vX.Y) for patching, if from main
+        if: ${{ needs.release-please.outputs.release_created == 'true' && github.ref_name == 'main' }}
+        run: |
+          VERSION="${RELEASE_VERSION#v}"
+          MAJOR_MINOR_VERSION="${VERSION%.*}" # drops substring from last occurrence of substring (.) until end of string
+          PATCH_VERSION="${VERSION##*.}"
+          echo "patch version: $PATCH_VERSION"
+          if [ "$PATCH_VERSION" = "0" ]; then
+            git checkout -b "release/v${MAJOR_MINOR_VERSION}" "${{ github.sha }}"
+            git push -u origin release/v${MAJOR_MINOR_VERSION}
+          fi
