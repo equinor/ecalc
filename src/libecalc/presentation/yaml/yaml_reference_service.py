@@ -6,8 +6,9 @@ from pydantic import BaseModel
 
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.presentation.yaml.domain.reference_service import (
-    InvalidReferenceException,
+    ReferenceNotFoundError,
     ReferenceService,
+    ReferenceTypeError,
     YamlCompressorModel,
 )
 from libecalc.presentation.yaml.mappers.yaml_path import YamlPath
@@ -151,25 +152,25 @@ class YamlReferenceService(ReferenceService):
     def get_fluid(self, reference: str) -> YamlFluidModel:
         model = self._resolve_yaml_reference(reference, "fluid model")
         if not isinstance(model, get_args(get_args(YamlFluidModel)[0])):
-            raise InvalidReferenceException("fluid model", reference)
+            raise ReferenceTypeError("fluid model", reference)
         return model
 
     def get_turbine(self, reference: str) -> YamlTurbine:
         model = self._resolve_yaml_reference(reference, "turbine model")
         if not isinstance(model, YamlTurbine):
-            raise InvalidReferenceException("turbine model", reference)
+            raise ReferenceTypeError("turbine model", reference)
         return model
 
     def get_compressor_chart(self, reference: str) -> YamlCompressorChart:
         model = self._resolve_yaml_reference(reference, "compressor chart")
         if not isinstance(model, get_args(get_args(YamlCompressorChart)[0])):
-            raise InvalidReferenceException("compressor chart", reference)
+            raise ReferenceTypeError("compressor chart", reference)
         return model
 
     def get_fuel_reference(self, reference: str) -> YamlFuelType:
         fuel = self._resolve_yaml_reference(reference, "fuel")
         if not isinstance(fuel, YamlFuelType):
-            raise InvalidReferenceException("fuel", reference, self._references.keys())
+            raise ReferenceTypeError("fuel", reference, self._references.keys())
         return fuel
 
     def _resolve_yaml_reference(self, reference: str, reference_type_name: str) -> Any:
@@ -178,30 +179,30 @@ class YamlReferenceService(ReferenceService):
         except (KeyError, TypeError) as e:
             # KeyError: key does not exist
             # TypeError: models is None
-            raise InvalidReferenceException(reference_type_name, reference, self._references.keys()) from e
+            raise ReferenceNotFoundError(reference_type_name, reference, self._references.keys()) from e
 
     def get_generator_set_model(self, reference: str) -> YamlGeneratorSetModel:
         model = self._resolve_yaml_reference(reference, "generator set model")
         if not isinstance(model, YamlGeneratorSetModel):
-            raise InvalidReferenceException("generator set model", reference)
+            raise ReferenceTypeError("generator set model", reference)
         return model
 
     def get_compressor_model(self, reference: str) -> YamlCompressorModel:
         model = self._resolve_yaml_reference(reference, "compressor model")
         if not isinstance(model, YamlCompressorModel):
-            raise InvalidReferenceException("compressor model", reference)
+            raise ReferenceTypeError("compressor model", reference)
         return model
 
     def get_pump_model(self, reference: str) -> YamlPumpChartSingleSpeed | YamlPumpChartVariableSpeed:
         model = self._resolve_yaml_reference(reference, "pump model")
         if not isinstance(model, YamlPumpChartSingleSpeed | YamlPumpChartVariableSpeed):
-            raise InvalidReferenceException("pump model", reference)
+            raise ReferenceTypeError("pump model", reference)
         return model
 
     def get_tabulated_model(self, reference: str) -> YamlTabularModel:
         model = self._resolve_yaml_reference(reference, "tabulated")
         if not isinstance(model, YamlTabularModel):
-            raise InvalidReferenceException("tabulated", reference)
+            raise ReferenceTypeError("tabulated", reference)
         return model
 
     def get_references(self, obj: BaseModel) -> Sequence[str]:
@@ -210,4 +211,4 @@ class YamlReferenceService(ReferenceService):
 
     def get_reference(self, reference: str) -> BaseModel:
         """Resolve a reference string to its corresponding model object."""
-        return self._resolve_yaml_reference(reference, "reference")
+        return self._resolve_yaml_reference(reference, "process")

@@ -3108,16 +3108,6 @@
                 }
             }
         ],
-        "./src/libecalc/presentation/yaml/domain/reference_service.py": [
-            {
-                "code": "reportArgumentType",
-                "range": {
-                    "startColumn": 98,
-                    "endColumn": 102,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/libecalc/presentation/yaml/domain/time_series_exceptions.py": [
             {
                 "code": "reportArgumentType",

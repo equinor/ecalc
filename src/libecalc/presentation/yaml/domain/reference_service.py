@@ -29,12 +29,37 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 
 
 class InvalidReferenceException(EcalcValidationException):
-    def __init__(self, reference_type: str, reference: str, available_references: Iterable[str] = None):
-        if available_references is not None:
-            available_message = f"Available references: {', '.join(available_references)}"
+    def __init__(self, reference_type: str, reference: str, available_references: Iterable[str] | None = None):
+        self.reference_type = reference_type
+        self.reference = reference
+        self.available_references = list(available_references) if available_references is not None else None
+        if self.available_references is not None:
+            available_message = f"Available references: {', '.join(self.available_references)}"
         else:
             available_message = ""
         super().__init__(message=f"Invalid {reference_type} reference '{reference}'. {available_message}")
+
+
+class ReferenceNotFoundError(InvalidReferenceException):
+    """Raised when a reference string does not match any known named object."""
+
+    def __init__(self, reference_type: str, reference: str, available_references: Iterable[str]):
+        super().__init__(
+            reference_type=reference_type,
+            reference=reference,
+            available_references=available_references,
+        )
+
+
+class ReferenceTypeError(InvalidReferenceException):
+    """Raised when a reference resolves to an object of an unexpected type."""
+
+    def __init__(self, reference_type: str, reference: str, available_references: Iterable[str] | None = None):
+        super().__init__(
+            reference_type=reference_type,
+            reference=reference,
+            available_references=available_references,
+        )
 
 
 YamlCompressorModel = (

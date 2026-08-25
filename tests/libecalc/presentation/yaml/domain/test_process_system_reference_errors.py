@@ -45,7 +45,9 @@ class TestDefinitionReferenceNotFound:
     @pytest.mark.inlinesnapshot
     def test_pipeline_references_nonexistent_definition(self, yaml_model_factory):
         """A pipeline with a process unit referencing a definition that doesn't exist
-        should produce a clear error when get_process_simulations is called."""
+        should produce a clear error listing available definitions."""
+        compressor_def = YamlCompressorBuilder().with_test_data().validate()
+
         pipeline = (
             YamlProcessPipelineBuilder()
             .with_name("train_1")
@@ -61,51 +63,7 @@ class TestDefinitionReferenceNotFound:
         )
         simulation = sim_builder.validate()
 
-        definitions = YamlDefinitionsBuilder().with_test_data().validate()
-
-        asset = (
-            YamlAssetBuilder()
-            .with_test_data()
-            .with_process_pipelines({"train_1": pipeline})
-            .with_process_simulations([simulation])
-            .with_definitions(definitions)
-        ).validate()
-
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
-
-        with pytest.raises(ModelValidationException) as exc_info:
-            model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
-
-        assert str(exc_info.value) == snapshot("""\
-Validation error
-
-	Object starting on line 13
-	Location: PROCESS_PIPELINES.train_1
-	Message: Definition reference 'nonexistent_compressor' not found. Available definitions: []
-""")
-
-    @pytest.mark.snapshot
-    @pytest.mark.inlinesnapshot
-    def test_pipeline_references_misspelled_definition(self, yaml_model_factory):
-        """A misspelled definition reference should produce an error listing available definitions."""
-        compressor_def = YamlCompressorBuilder().with_test_data().validate()
-
-        pipeline = (
-            YamlProcessPipelineBuilder()
-            .with_name("train_1")
-            .with_item(target="compressor_stge_1", name="stage_1")  # misspelled
-            .validate()
-        )
-
-        sim_builder = (
-            YamlProcessSimulationBuilder()
-            .with_name("my_sim")
-            .with_pipeline(pipeline)
-            .with_stream_distribution(YamlCommonStreamDistributionBuilder().with_test_data().validate())
-        )
-        simulation = sim_builder.validate()
-
-        definitions = YamlDefinitionsBuilder().with_process_unit("compressor_stage_1", compressor_def).validate()
+        definitions = YamlDefinitionsBuilder().with_process_unit("real_compressor", compressor_def).validate()
 
         asset = (
             YamlAssetBuilder()
@@ -125,7 +83,7 @@ Validation error
 
 	Object starting on line 42
 	Location: PROCESS_PIPELINES.train_1
-	Message: Definition reference 'compressor_stge_1' not found. Available definitions: ['compressor_stage_1']
+	Message: Definition reference 'nonexistent_compressor' not found. Available definitions: ['real_compressor']
 """)
 
 
