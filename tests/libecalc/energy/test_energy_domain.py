@@ -50,9 +50,9 @@ from libecalc.energy.energy_unit import EnergyUnitId
 
 
 class FuelGasSource(Source[FuelGasRate]):
-    def __init__(self, name: str, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
-        self._id: Final[EnergyUnitId] = id or FuelGasSource._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or FuelGasSource._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -65,10 +65,10 @@ class FuelGasSource(Source[FuelGasRate]):
 
 
 class PowerFromShore(Source[ElectricalPower]):
-    def __init__(self, name: str, max_power_mw: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, max_power_mw: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
         self.max_power_mw = max_power_mw
-        self._id: Final[EnergyUnitId] = id or PowerFromShore._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or PowerFromShore._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -81,10 +81,10 @@ class PowerFromShore(Source[ElectricalPower]):
 
 
 class WindTurbine(Source[ElectricalPower]):
-    def __init__(self, name: str, power_mw: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, power_mw: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
         self.power_mw = power_mw
-        self._id: Final[EnergyUnitId] = id or WindTurbine._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or WindTurbine._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -97,11 +97,13 @@ class WindTurbine(Source[ElectricalPower]):
 
 
 class GeneratorSet(Converter[FuelGasRate, ElectricalPower]):
-    def __init__(self, name: str, max_power_mw: float, fuel_per_mw: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(
+        self, name: str, max_power_mw: float, fuel_per_mw: float, energy_unit_id: EnergyUnitId | None = None
+    ) -> None:
         self.name = name
         self.max_power_mw = max_power_mw
         self.fuel_per_mw = fuel_per_mw
-        self._id: Final[EnergyUnitId] = id or GeneratorSet._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or GeneratorSet._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -117,11 +119,13 @@ class GeneratorSet(Converter[FuelGasRate, ElectricalPower]):
 
 
 class GasTurbine(Converter[FuelGasRate, MechanicalPower]):
-    def __init__(self, name: str, max_power_mw: float, fuel_per_mw: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(
+        self, name: str, max_power_mw: float, fuel_per_mw: float, energy_unit_id: EnergyUnitId | None = None
+    ) -> None:
         self.name = name
         self.max_power_mw = max_power_mw
         self.fuel_per_mw = fuel_per_mw
-        self._id: Final[EnergyUnitId] = id or GasTurbine._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or GasTurbine._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -138,12 +142,12 @@ class GasTurbine(Converter[FuelGasRate, MechanicalPower]):
 
 class ElectricalMotor(Converter[ElectricalPower, MechanicalPower]):
     def __init__(
-        self, name: str, max_power_mw: float, efficiency: float = 0.95, id: EnergyUnitId | None = None
+        self, name: str, max_power_mw: float, efficiency: float = 0.95, energy_unit_id: EnergyUnitId | None = None
     ) -> None:
         self.name = name
         self.max_power_mw = max_power_mw
         self.efficiency = efficiency
-        self._id: Final[EnergyUnitId] = id or ElectricalMotor._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or ElectricalMotor._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -159,10 +163,10 @@ class ElectricalMotor(Converter[ElectricalPower, MechanicalPower]):
 
 
 class BaseLoad(Consumer[ElectricalPower]):
-    def __init__(self, name: str, load_mw: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, load_mw: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
         self.load_mw = load_mw
-        self._id: Final[EnergyUnitId] = id or BaseLoad._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or BaseLoad._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -175,10 +179,10 @@ class BaseLoad(Consumer[ElectricalPower]):
 
 
 class Compressor(Consumer[MechanicalPower]):
-    def __init__(self, name: str, power_mw: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, power_mw: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
         self.power_mw = power_mw
-        self._id: Final[EnergyUnitId] = id or Compressor._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or Compressor._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -191,10 +195,10 @@ class Compressor(Consumer[MechanicalPower]):
 
 
 class Pump(Consumer[MechanicalPower]):
-    def __init__(self, name: str, power_mw: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, power_mw: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
         self.power_mw = power_mw
-        self._id: Final[EnergyUnitId] = id or Pump._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or Pump._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -207,10 +211,10 @@ class Pump(Consumer[MechanicalPower]):
 
 
 class SampledCompressor(Consumer[FuelGasRate]):
-    def __init__(self, name: str, fuel_rate: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, fuel_rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
         self.fuel_rate = fuel_rate
-        self._id: Final[EnergyUnitId] = id or SampledCompressor._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or SampledCompressor._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -223,10 +227,10 @@ class SampledCompressor(Consumer[FuelGasRate]):
 
 
 class Flare(Consumer[FuelGasRate]):
-    def __init__(self, name: str, fuel_rate: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, fuel_rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
         self.fuel_rate = fuel_rate
-        self._id: Final[EnergyUnitId] = id or Flare._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or Flare._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -239,10 +243,10 @@ class Flare(Consumer[FuelGasRate]):
 
 
 class DieselConsumer(Consumer[DieselRate]):
-    def __init__(self, name: str, fuel_rate: float, id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, fuel_rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self.name = name
         self.fuel_rate = fuel_rate
-        self._id: Final[EnergyUnitId] = id or DieselConsumer._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or DieselConsumer._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
@@ -261,12 +265,12 @@ class ElectricalBus(Provider[ElectricalPower]):
         sources: list[Source[ElectricalPower]] | None = None,
         consumers: list[Consumer[ElectricalPower]] | None = None,
         *,
-        id: EnergyUnitId | None = None,
+        energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         self.name = name
         self.sources = sources or []
         self.consumers = consumers or []
-        self._id: Final[EnergyUnitId] = id or ElectricalBus._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or ElectricalBus._create_id()
 
     def get_id(self) -> EnergyUnitId:
         return self._id
