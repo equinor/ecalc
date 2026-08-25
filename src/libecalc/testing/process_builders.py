@@ -493,6 +493,18 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
         ]
         return self
 
+    def with_target(self, target: InstanceReference) -> Self:
+        self.targets.append(target)
+        return self
+
+    def with_constraint(
+        self,
+        pipeline_name: InstanceReference,
+        constraints: list[YamlProcessConstraint],
+    ) -> Self:
+        self.constraints[pipeline_name] = constraints
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "DefaultProcessSimulation"
         pipeline = YamlProcessPipelineBuilder().with_test_data().with_name("DefaultPipeline").validate()

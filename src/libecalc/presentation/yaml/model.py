@@ -46,7 +46,7 @@ from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.container_info import ContainerInfo
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
 from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
-from libecalc.presentation.yaml.domain.reference_service import ReferenceService
+from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.domain.strict_expression_evaluator import StrictExpressionEvaluator
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
@@ -197,7 +197,19 @@ class YamlModel:
             reference_objects = {}
             expression_references = extract_expression_references(yaml_process_simulation)
             for process_simulation_reference in process_simulation_references:
-                reference_object = reference_service.get_reference(process_simulation_reference)
+                try:
+                    reference_object = reference_service.get_reference(process_simulation_reference)
+                except InvalidReferenceException as e:
+                    yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
+                    raise ModelValidationException(
+                        errors=[
+                            ModelValidationError(
+                                location=Location(keys=yaml_keys),
+                                message=str(e),
+                                file_context=self._configuration.get_file_context(yaml_keys),
+                            )
+                        ]
+                    ) from e
                 try:
                     reference_object = expand_definitions(
                         reference_object,
@@ -205,15 +217,15 @@ class YamlModel:
                     )
                 except DefinitionReferenceError as e:
                     reference_yaml_path = reference_service.get_yaml_path(process_simulation_reference)
-                    process_simulation_keys = reference_yaml_path.keys
+                    reference_keys = reference_yaml_path.keys
                     raise ModelValidationException(
                         errors=[
                             ModelValidationError(
                                 location=Location(
-                                    keys=process_simulation_keys,
+                                    keys=reference_keys,
                                 ),
                                 message=str(e),
-                                file_context=self._configuration.get_file_context(process_simulation_keys),
+                                file_context=self._configuration.get_file_context(reference_keys),
                             )
                         ]
                     ) from e
@@ -246,9 +258,21 @@ class YamlModel:
                 ecalc_event_service=ecalc_event_service,
             )
 
-            process_pipelines, process_simulation = mapper.map_process_simulation(
-                yaml_process_simulation=yaml_process_simulation,
-            )
+            try:
+                process_pipelines, process_simulation = mapper.map_process_simulation(
+                    yaml_process_simulation=yaml_process_simulation,
+                )
+            except EcalcValidationException as e:
+                yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
+                raise ModelValidationException(
+                    errors=[
+                        ModelValidationError(
+                            location=Location(keys=yaml_keys),
+                            message=str(e),
+                            file_context=self._configuration.get_file_context(yaml_keys),
+                        )
+                    ]
+                ) from e
             mapped_process_pipelines.extend(process_pipelines)
             mapped_process_simulations.append(process_simulation)
 
