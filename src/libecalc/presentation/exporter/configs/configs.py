@@ -704,6 +704,7 @@ class STPConfig(ResultConfig):
                     title="Power Supply Onshore",
                     unit=Unit.GIGA_WATT_HOURS,
                     query=ElectricityGeneratedQuery(
+                        installation_category="FIXED",
                         producer_categories=["POWER-FROM-SHORE"],
                     ),
                 ),
