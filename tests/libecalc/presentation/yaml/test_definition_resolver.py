@@ -1,7 +1,7 @@
 import pytest
 from pydantic import Field
 
-from libecalc.presentation.yaml.definition_expander import expand_definitions
+from libecalc.presentation.yaml.definition_expander import DefinitionNotFoundError, expand_definitions
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlProcessPipeline,
@@ -46,7 +46,7 @@ class TestResolveDefinitions:
 
         assert isinstance(resolved.process_units[0].target, YamlLiquidRemoverDefinition)
 
-    def test_missing_reference_raises_key_error(self):
+    def test_missing_reference_raises(self):
         pipeline = YamlProcessPipeline.model_validate(
             {
                 "NAME": "p",
@@ -54,7 +54,7 @@ class TestResolveDefinitions:
             }
         )
 
-        with pytest.raises(KeyError, match="nonexistent"):
+        with pytest.raises(DefinitionNotFoundError, match="nonexistent"):
             expand_definitions(pipeline, {})
 
     def test_resolves_multiple_references(self):

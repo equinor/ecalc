@@ -620,6 +620,14 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 if key in current_data:
                     current_data = current_data[key]
                     did_alter_data = True
+            elif isinstance(key, str) and isinstance(current_data, list | YamlList):
+                # str key in combination with a list means the key represents the name of the item
+                try:
+                    item = next(item for item in current_data if item.get("NAME") == key)
+                    current_data = item
+                    did_alter_data = True
+                except StopIteration:
+                    pass
             elif isinstance(key, int) and isinstance(current_data, list | YamlList):
                 try:
                     current_data = current_data[key]

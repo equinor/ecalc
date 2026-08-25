@@ -57,6 +57,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlMixerDefinition,
     YamlSplitterDefinition,
 )
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 
 
 # ---------------------------------------------------------------------------
@@ -240,6 +241,7 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self.type = "SERIAL"
         self.name = None
         self.process_units = []
+        self.events = []
         self.anti_surge = "INDIVIDUAL_ASV"
 
     def with_name(self, name: str) -> Self:
@@ -255,6 +257,10 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         Each is wrapped in a YamlItem automatically."""
         for name, target in items:
             self.with_item(name=name, target=target)
+        return self
+
+    def with_events(self, events: list) -> Self:
+        self.events = events
         return self
 
     def with_anti_surge(self, anti_surge: str) -> Self:
@@ -497,3 +503,33 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
     def get_pipeline_references(self) -> dict[str, YamlProcessPipeline]:
         """Return a dict of pipeline name -> pipeline object for use with DirectReferenceService."""
         return dict(self._pipelines)
+
+
+# ---------------------------------------------------------------------------
+# Definitions builder
+# ---------------------------------------------------------------------------
+
+
+class YamlDefinitionsBuilder(Builder[YamlDefinitions]):
+    def __init__(self):
+        self.process_units: dict[str, YamlProcessUnitDefinition] = {}
+        self.fluids: dict[str, YamlFluidDefinition] = {}
+
+    def with_process_unit(self, name: str, definition: YamlProcessUnitDefinition) -> Self:
+        self.process_units[name] = definition
+        return self
+
+    def with_process_units(self, process_units: dict[str, YamlProcessUnitDefinition]) -> Self:
+        self.process_units = process_units
+        return self
+
+    def with_fluid(self, name: str, definition: YamlFluidDefinition) -> Self:
+        self.fluids[name] = definition
+        return self
+
+    def with_fluids(self, fluids: dict[str, YamlFluidDefinition]) -> Self:
+        self.fluids = fluids
+        return self
+
+    def with_test_data(self) -> Self:
+        return self

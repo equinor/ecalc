@@ -49,6 +49,8 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference_validation imp
     GeneratorSetModelReference,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlDefaultTimeSeriesCollection,
@@ -739,6 +741,8 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.installations = []
         self.definitions: YamlDefinitions | None = None
         self.inlet_streams: dict[str, YamlInletStream] | None = None
+        self.process_pipelines = None
+        self.process_simulations = None
         self.start = None
         self.end = None
 
@@ -807,6 +811,14 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         inlet_streams: dict[str, YamlInletStream],
     ) -> Self:
         self.inlet_streams = inlet_streams
+        return self
+
+    def with_process_pipelines(self, process_pipelines: dict[str, YamlProcessPipeline]) -> Self:
+        self.process_pipelines = process_pipelines
+        return self
+
+    def with_process_simulations(self, process_simulations: list[YamlProcessSimulation]) -> Self:
+        self.process_simulations = process_simulations
         return self
 
     def with_start(self, start: str):
