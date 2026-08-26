@@ -217,9 +217,7 @@ class TimeSeriesResource(Resource):
 
         if message:
             message += " Note: All line numbers exclude headers and comments, and may therefore be a bit off."
-            err = ValueError(message)
-            logger.exception(f"Date parsing went wrong: {message}")
-            raise err
+            raise ValueError(message)
         raise ValueError(
             "The provided dates doesn't match any of the accepted date formats, "
             "or contains inconsistently formatted dates. "
