@@ -23,6 +23,9 @@ on:
 
 permissions: { }
 
+env:
+  OVERRIDING_VERSIONING_STRATEGY: ${{ inputs.versioning_strategy }}
+
 jobs:
   get_versioning_strategy:
     permissions:
@@ -36,8 +39,8 @@ jobs:
         id: versioning-strategy
         run: |
           echo "Determining versioning strategy..."
-          if [[ "${{ inputs.versioning_strategy }}" != "" && "${{ inputs.versioning_strategy }}" != "auto" ]]; then
-            echo "versioning_strategy=${{ inputs.versioning_strategy }}" >> $GITHUB_OUTPUT
+          if [[ "${OVERRIDING_VERSIONING_STRATEGY}" != "" && "${OVERRIDING_VERSIONING_STRATEGY}" != "auto" ]]; then
+            echo "versioning_strategy=${OVERRIDING_VERSIONING_STRATEGY}" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
             echo "versioning_strategy=always-bump-major" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF_NAME}" == release/v* ]]; then
@@ -92,14 +95,37 @@ jobs:
           echo "Branch: ${{ github.ref_name }}"
           echo "Versioning strategy: ${VERSIONING_STRATEGY}"
           echo ""
-          release-please release-pr \
+          OUTPUT=$(release-please release-pr \
             --token="${GITHUB_TOKEN}" \
             --repo-url="${{ github.repository }}" \
             --target-branch="${{ github.ref_name }}" \
             --config-file="release-please-config.json" \
             --manifest-file=".release-please-manifest.json" \
             --versioning-strategy="${VERSIONING_STRATEGY}" \
-            --dry-run
+            --dry-run 2>&1) || true
+          echo "$OUTPUT"
+          echo ""
+
+          VERSION=$(echo "$OUTPUT" | grep -oP 'v\d+\.\d+\.\d+' | head -1)
+          if [ -n "$VERSION" ]; then
+            echo "========================================"
+            echo "  Simulated outcome"
+            echo "========================================"
+            echo ""
+            echo "Release version: $VERSION"
+            STRIPPED="${VERSION#v}"
+            MAJOR_MINOR="${STRIPPED%.*}"
+            PATCH="${STRIPPED##*.}"
+            echo "Major.Minor: $MAJOR_MINOR"
+            echo "Patch: $PATCH"
+            if [ "$PATCH" = "0" ] && [ "${{ github.ref_name }}" = "main" ]; then
+              echo "Would create release branch: release/v${MAJOR_MINOR}"
+            else
+              echo "No new release branch would be created."
+            fi
+          else
+            echo "No release would be created."
+          fi
 
   create-output-artifact:
     needs: release-please
