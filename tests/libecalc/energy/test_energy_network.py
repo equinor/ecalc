@@ -1,6 +1,7 @@
 import pytest
 
 from libecalc.energy.energy_units import BaseLoad, ElectricalBus, FuelGasSource, GeneratorSet, OffshoreWind, OnshoreGrid
+from libecalc.energy.errors import InvalidEnergyNetworkError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
 
 
@@ -141,7 +142,7 @@ def test_rejects_cycles():
     second = ElectricalBus(name="second")
 
     with pytest.raises(
-        ValueError,
+        InvalidEnergyNetworkError,
         match="cannot be cyclic",
     ):
         EnergyNetwork(

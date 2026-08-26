@@ -6,6 +6,7 @@ from libecalc.energy.consumer import Consumer
 from libecalc.energy.demand import Demand
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import Junction
+from libecalc.energy.errors import InvalidEnergyNetworkError
 from libecalc.energy.provider import Converter, Provider
 
 type EnergyNetworkNode = Consumer[Demand] | Provider[Demand] | Junction[Demand]
@@ -137,4 +138,4 @@ class EnergyNetwork:
         try:
             return tuple(TopologicalSorter(self._predecessors).static_order())
         except CycleError as error:
-            raise ValueError("Energy network cannot be cyclic") from error
+            raise InvalidEnergyNetworkError("Energy network cannot be cyclic") from error
