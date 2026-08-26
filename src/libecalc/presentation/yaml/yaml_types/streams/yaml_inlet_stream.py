@@ -31,15 +31,13 @@ class YamlInletStreamRate(YamlBase):
         None,
         title="CONDITION",
         description="A logical condition that determines whether the venting emitter emission rate is applicable. "
-        "This condition must evaluate to true for the rate to be used.\n\n"
-        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        "This condition must evaluate to true for the rate to be used.",
     )
     conditions: list[YamlExpressionType] | None = Field(
         None,
         title="CONDITIONS",
         description="A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. "
-        "All conditions in the list must evaluate to true for the rate to be used.\n\n"
-        "For more details, see: $ECALC_DOCS_KEYWORDS_URL/CONDITION",
+        "All conditions in the list must evaluate to true for the rate to be used.",
     )
 
     @model_validator(mode="after")

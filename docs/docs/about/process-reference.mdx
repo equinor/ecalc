@@ -1,0 +1,869 @@
+---
+title: Process Reference (Experimental)
+sidebar_position: 6
+toc_max_heading_level: 4
+description: Complete reference for the YAML Asset process configuration (DEFINITIONS, INLET_STREAMS, PROCESS_PIPELINES, PROCESS_SIMULATIONS).
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Process Reference
+
+This page documents the YAML configuration keys for the eCalc Asset model, covering the following top-level sections:
+
+- [DEFINITIONS](#definitions)
+- [INLET_STREAMS](#inlet_streams)
+- [PROCESS_PIPELINES](#process_pipelines)
+- [PROCESS_SIMULATIONS](#process_simulations)
+
+## DEFINITIONS
+
+Contains reusable definitions such as process units and fluids.
+
+### PROCESS_UNITS
+
+Defines process units used in PROCESS_PIPELINES.
+
+#### COMPRESSOR
+
+A Compressor process unit
+
+```yaml
+TYPE: COMPRESSOR
+COMPRESSOR_MODEL: ...
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPRESSOR` | Required |
+| [`COMPRESSOR_MODEL`](#definitions-process-units-compressor-compressor-model) |  | Required |
+
+##### COMPRESSOR_MODEL {/* #definitions-process-units-compressor-compressor-model */}
+
+```yaml
+TYPE: COMPRESSOR_CHART
+CHART: ...
+CONTROL_MARGIN:
+  UNIT: FRACTION
+  VALUE: 0.0
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPRESSOR_CHART` | Required |
+| [`CHART`](#definitions-process-units-compressor-compressor-model-chart) |  | Required |
+| [`CONTROL_MARGIN`](#definitions-process-units-compressor-compressor-model-control-margin) |  | Required |
+
+##### CHART {/* #definitions-process-units-compressor-compressor-model-chart */}
+
+```yaml
+CURVES: ...
+UNITS:
+  RATE: AM3_PER_HOUR
+  HEAD: M
+  EFFICIENCY: FRACTION
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`CURVES`](#definitions-process-units-compressor-compressor-model-chart-curves) | Compressor chart curves, one per speed. | Required |
+| [`UNITS`](#definitions-process-units-compressor-compressor-model-chart-units) | Defines the units | Optional |
+
+##### CURVES {/* #definitions-process-units-compressor-compressor-model-chart-curves */}
+
+<Tabs>
+<TabItem value="YAMLCURVE" label="YAMLCURVE">
+
+```yaml
+SPEED: 10000.0
+RATE:
+- 500.0
+- 3000.0
+- 5000.0
+- 8000.0
+HEAD:
+- 30000.0
+- 25000.0
+- 20000.0
+- 15000.0
+EFFICIENCY:
+- 0.68
+- 0.72
+- 0.74
+- 0.7
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `SPEED` |  | Default: `1` |
+| `RATE` |  | Required |
+| `HEAD` |  | Required |
+| `EFFICIENCY` |  | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
+
+##### UNITS {/* #definitions-process-units-compressor-compressor-model-chart-units */}
+
+Defines the units
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `RATE` | Unit for rate in chart. Currently only AM3_PER_HOUR is supported | Default: `AM3_PER_HOUR` |
+| `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
+| `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
+
+##### CONTROL_MARGIN {/* #definitions-process-units-compressor-compressor-model-control-margin */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `UNIT` |  | Required |
+| `VALUE` |  | Required |
+
+#### PRESSURE_DROPPER
+
+A pressure dropper unit — reduces stream pressure by a fixed amount.
+
+```yaml
+TYPE: PRESSURE_DROPPER
+PRESSURE_DROP: 1.0
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `PRESSURE_DROPPER` | Required |
+| `PRESSURE_DROP` | Pressure drop across the unit [bar]. | Required |
+
+#### TEMPERATURE_SETTER
+
+A temperature setter unit — forces the stream to a specified temperature.
+
+```yaml
+TYPE: TEMPERATURE_SETTER
+TEMPERATURE: 30.0
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `TEMPERATURE_SETTER` | Required |
+| `TEMPERATURE` | Target temperature [Celsius]. | Required |
+
+#### LIQUID_REMOVER
+
+A liquid remover (scrubber) unit — removes any condensed liquid from
+the stream, leaving only the gas phase.
+
+No-op if the stream is already pure vapor.
+
+```yaml
+TYPE: LIQUID_REMOVER
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `LIQUID_REMOVER` | Required |
+
+#### MIXER
+
+Mixes an external sidestream into the through-stream at an
+intermediate point in the pipeline.
+
+```yaml
+TYPE: MIXER
+SIDESTREAM:
+  NAME: SidestreamDefault
+  FLUID:
+    TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: MEDIUM
+  TEMPERATURE: 30.0
+  PRESSURE: 20.0
+  RATE:
+    VALUE: 200000
+    UNIT: SM3_PER_DAY
+    TYPE: STREAM_DAY
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `MIXER` | Required |
+| [`INLET_STREAM`](#definitions-process-units-mixer-inlet-stream) | Sidestream to mix in. Either a reference to a named stream or an inline stream definition. | Required |
+
+##### INLET_STREAM {/* #definitions-process-units-mixer-inlet-stream */}
+
+Sidestream to mix in. Either a reference to a named stream or an inline stream definition.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the inlet stream. | Required |
+| [`FLUID`](#definitions-process-units-mixer-inlet-stream-fluid) | Reference to a fluid definition. | Required |
+| `TEMPERATURE` | Temperature in K. | Required |
+| `PRESSURE` | Pressure in Bara | Required |
+| [`RATE`](#definitions-process-units-mixer-inlet-stream-rate) | Rate with unit + value. | Required |
+
+##### FLUID {/* #definitions-process-units-mixer-inlet-stream-fluid */}
+
+<Tabs>
+<TabItem value="PREDEFINED" label="PREDEFINED">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `PREDEFINED` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| `GAS_TYPE` |  | Default: `MEDIUM` |
+
+</TabItem>
+
+<TabItem value="COMPOSITION" label="COMPOSITION">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPOSITION` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| [`COMPOSITION`](#definitions-process-units-mixer-inlet-stream-fluid-composition-composition) |  | Required |
+
+##### COMPOSITION {/* #definitions-process-units-mixer-inlet-stream-fluid-composition-composition */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `WATER` |  | Default: `0.0` |
+| `NITROGEN` |  | Default: `0.0` |
+| `CO2` |  | Default: `0.0` |
+| `METHANE` |  | Required |
+| `ETHANE` |  | Default: `0.0` |
+| `PROPANE` |  | Default: `0.0` |
+| `I_BUTANE` |  | Default: `0.0` |
+| `N_BUTANE` |  | Default: `0.0` |
+| `I_PENTANE` |  | Default: `0.0` |
+| `N_PENTANE` |  | Default: `0.0` |
+| `N_HEXANE` |  | Default: `0.0` |
+
+</TabItem>
+
+</Tabs>
+
+##### RATE {/* #definitions-process-units-mixer-inlet-stream-rate */}
+
+Rate with unit + value.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
+
+#### SPLITTER
+
+Removes a fixed rate from the through-stream at an
+intermediate point in the pipeline (e.g. fuel gas offtake).
+
+```yaml
+TYPE: SPLITTER
+OFFTAKE_RATE:
+  VALUE: 50000
+  UNIT: SM3_PER_DAY
+  TYPE: STREAM_DAY
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `SPLITTER` | Required |
+| [`OFFTAKE_RATE`](#definitions-process-units-splitter-offtake-rate) | Standard rate to split off. | Required |
+
+##### OFFTAKE_RATE {/* #definitions-process-units-splitter-offtake-rate */}
+
+Standard rate to split off.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
+
+### FLUIDS
+
+Defines fluids that can be referenced in inlet streams.
+
+#### PREDEFINED
+
+```yaml
+TYPE: PREDEFINED
+EOS_MODEL: SRK
+GAS_TYPE: MEDIUM
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `PREDEFINED` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| `GAS_TYPE` |  | Default: `MEDIUM` |
+
+#### COMPOSITION
+
+```yaml
+TYPE: COMPOSITION
+EOS_MODEL: SRK
+COMPOSITION:
+  methane: 90.0
+  ethane: 10.0
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPOSITION` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| [`COMPOSITION`](#definitions-fluids-composition-composition) |  | Required |
+
+##### COMPOSITION {/* #definitions-fluids-composition-composition */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `WATER` |  | Default: `0.0` |
+| `NITROGEN` |  | Default: `0.0` |
+| `CO2` |  | Default: `0.0` |
+| `METHANE` |  | Required |
+| `ETHANE` |  | Default: `0.0` |
+| `PROPANE` |  | Default: `0.0` |
+| `I_BUTANE` |  | Default: `0.0` |
+| `N_BUTANE` |  | Default: `0.0` |
+| `I_PENTANE` |  | Default: `0.0` |
+| `N_PENTANE` |  | Default: `0.0` |
+| `N_HEXANE` |  | Default: `0.0` |
+
+## INLET_STREAMS
+
+Defines inlet streams that can be referenced by process system and stream distribution.
+
+```yaml
+NAME: DefaultInletStream
+FLUID:
+  TYPE: PREDEFINED
+  EOS_MODEL: SRK
+  GAS_TYPE: MEDIUM
+TEMPERATURE: 30.0
+PRESSURE: 20.0
+RATE: ...
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the inlet stream. | Required |
+| [`FLUID`](#inlet-streams-fluid) | Reference to a fluid definition. | Required |
+| `TEMPERATURE` | Temperature in K. | Required |
+| `PRESSURE` | Pressure in Bara | Required |
+| [`RATE`](#inlet-streams-rate) | Rate with unit + value. | Required |
+
+##### FLUID {/* #inlet-streams-fluid */}
+
+<Tabs>
+<TabItem value="PREDEFINED" label="PREDEFINED">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `PREDEFINED` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| `GAS_TYPE` |  | Default: `MEDIUM` |
+
+</TabItem>
+
+<TabItem value="COMPOSITION" label="COMPOSITION">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPOSITION` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| [`COMPOSITION`](#inlet-streams-fluid-composition-composition) |  | Required |
+
+##### COMPOSITION {/* #inlet-streams-fluid-composition-composition */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `WATER` |  | Default: `0.0` |
+| `NITROGEN` |  | Default: `0.0` |
+| `CO2` |  | Default: `0.0` |
+| `METHANE` |  | Required |
+| `ETHANE` |  | Default: `0.0` |
+| `PROPANE` |  | Default: `0.0` |
+| `I_BUTANE` |  | Default: `0.0` |
+| `N_BUTANE` |  | Default: `0.0` |
+| `I_PENTANE` |  | Default: `0.0` |
+| `N_PENTANE` |  | Default: `0.0` |
+| `N_HEXANE` |  | Default: `0.0` |
+
+</TabItem>
+
+</Tabs>
+
+##### RATE {/* #inlet-streams-rate */}
+
+Rate with unit + value.
+
+```yaml
+VALUE: 1000000.0
+UNIT: SM3_PER_DAY
+TYPE: STREAM_DAY
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
+
+## PROCESS_PIPELINES
+
+Defines process pipelines to use in process simulations.
+
+```yaml
+NAME: DefaultPipeline
+PROCESS_UNITS:
+- TARGET:
+    TYPE: PRESSURE_DROPPER
+    PRESSURE_DROP: 1.0
+  NAME: default_pressure_dropper
+- TARGET:
+    TYPE: TEMPERATURE_SETTER
+    TEMPERATURE: 30.0
+  NAME: default_temperature_setter
+- TARGET:
+    TYPE: LIQUID_REMOVER
+  NAME: default_liquid_remover
+- TARGET:
+    TYPE: COMPRESSOR
+    COMPRESSOR_MODEL:
+      TYPE: COMPRESSOR_CHART
+      CHART:
+        CURVES:
+        - SPEED: 10000.0
+          RATE:
+          - 500.0
+          - 3000.0
+          - 5000.0
+          - 8000.0
+          HEAD:
+          - 30000.0
+          - 25000.0
+          - 20000.0
+          - 15000.0
+          EFFICIENCY:
+          - 0.68
+          - 0.72
+          - 0.74
+          - 0.7
+        UNITS:
+          RATE: AM3_PER_HOUR
+          HEAD: M
+          EFFICIENCY: FRACTION
+      CONTROL_MARGIN:
+        UNIT: FRACTION
+        VALUE: 0.0
+  NAME: default_compressor
+EVENTS: []
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` |  | Required |
+| [`PROCESS_UNITS`](#process-pipelines-process-units) |  | Required |
+| [`EVENTS`](#process-pipelines-events) | Events that modify the pipeline over time, such as rebundling a compressor. | Default: `[]` |
+
+##### PROCESS_UNITS {/* #process-pipelines-process-units */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TARGET` |  | Required |
+| `NAME` |  | Optional |
+
+##### EVENTS {/* #process-pipelines-events */}
+
+Events that modify the pipeline over time, such as rebundling a compressor.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | Action to perform: CHANGE, ADD, or REMOVE a process unit. | Required |
+| `CHANGE_TARGET` | Name of the process unit in the pipeline to change. | Required |
+| [`CHANGE_FROM`](#process-pipelines-events-change-from) | Reference to the existing process unit template being replaced. | Required |
+| [`CHANGE_TO`](#process-pipelines-events-change-to) | Reference to the new process unit template to use. | Required |
+| `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
+| `REF` | Reference to a PROCESS_EVENT by name. | Required |
+
+##### CHANGE_FROM {/* #process-pipelines-events-change-from */}
+
+Reference to the existing process unit template being replaced.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPRESSOR` | Required |
+| [`COMPRESSOR_MODEL`](#process-pipelines-events-change-from-compressor-model) |  | Required |
+
+##### COMPRESSOR_MODEL {/* #process-pipelines-events-change-from-compressor-model */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPRESSOR_CHART` | Required |
+| [`CHART`](#process-pipelines-events-change-from-compressor-model-chart) |  | Required |
+| [`CONTROL_MARGIN`](#process-pipelines-events-change-from-compressor-model-control-margin) |  | Required |
+
+##### CHART {/* #process-pipelines-events-change-from-compressor-model-chart */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`CURVES`](#process-pipelines-events-change-from-compressor-model-chart-curves) | Compressor chart curves, one per speed. | Required |
+| [`UNITS`](#process-pipelines-events-change-from-compressor-model-chart-units) | Defines the units | Optional |
+
+##### CURVES {/* #process-pipelines-events-change-from-compressor-model-chart-curves */}
+
+<Tabs>
+<TabItem value="YAMLCURVE" label="YAMLCURVE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `SPEED` |  | Default: `1` |
+| `RATE` |  | Required |
+| `HEAD` |  | Required |
+| `EFFICIENCY` |  | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
+
+##### UNITS {/* #process-pipelines-events-change-from-compressor-model-chart-units */}
+
+Defines the units
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `RATE` | Unit for rate in chart. Currently only AM3_PER_HOUR is supported | Default: `AM3_PER_HOUR` |
+| `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
+| `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
+
+##### CONTROL_MARGIN {/* #process-pipelines-events-change-from-compressor-model-control-margin */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `UNIT` |  | Required |
+| `VALUE` |  | Required |
+
+##### CHANGE_TO {/* #process-pipelines-events-change-to */}
+
+Reference to the new process unit template to use.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPRESSOR` | Required |
+| [`COMPRESSOR_MODEL`](#process-pipelines-events-change-to-compressor-model) |  | Required |
+
+##### COMPRESSOR_MODEL {/* #process-pipelines-events-change-to-compressor-model */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPRESSOR_CHART` | Required |
+| [`CHART`](#process-pipelines-events-change-to-compressor-model-chart) |  | Required |
+| [`CONTROL_MARGIN`](#process-pipelines-events-change-to-compressor-model-control-margin) |  | Required |
+
+##### CHART {/* #process-pipelines-events-change-to-compressor-model-chart */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`CURVES`](#process-pipelines-events-change-to-compressor-model-chart-curves) | Compressor chart curves, one per speed. | Required |
+| [`UNITS`](#process-pipelines-events-change-to-compressor-model-chart-units) | Defines the units | Optional |
+
+##### CURVES {/* #process-pipelines-events-change-to-compressor-model-chart-curves */}
+
+<Tabs>
+<TabItem value="YAMLCURVE" label="YAMLCURVE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `SPEED` |  | Default: `1` |
+| `RATE` |  | Required |
+| `HEAD` |  | Required |
+| `EFFICIENCY` |  | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
+
+##### UNITS {/* #process-pipelines-events-change-to-compressor-model-chart-units */}
+
+Defines the units
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `RATE` | Unit for rate in chart. Currently only AM3_PER_HOUR is supported | Default: `AM3_PER_HOUR` |
+| `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
+| `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
+
+##### CONTROL_MARGIN {/* #process-pipelines-events-change-to-compressor-model-control-margin */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `UNIT` |  | Required |
+| `VALUE` |  | Required |
+
+## PROCESS_SIMULATIONS
+
+Defines one or more process simulations to be run.
+
+```yaml
+NAME: DefaultProcessSimulation
+TARGETS:
+- DefaultPipeline
+STREAM_DISTRIBUTION: ...
+CONSTRAINTS:
+  DefaultPipeline:
+  - PROCESS_UNIT: default_compressor
+    OUTLET_PRESSURE: 100.0
+    PRESSURE_CONTROL: DOWNSTREAM_CHOKE
+    ANTI_SURGE: INDIVIDUAL_ASV
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` |  | Required |
+| `TARGETS` |  | Required |
+| [`STREAM_DISTRIBUTION`](#process-simulations-stream-distribution) |  | Required |
+| [`CONSTRAINTS`](#process-simulations-constraints) | Constraints per target. Key is pipeline name, value is list of constraints. | Required |
+
+##### STREAM_DISTRIBUTION {/* #process-simulations-stream-distribution */}
+
+<Tabs>
+<TabItem value="COMMON_STREAM" label="COMMON_STREAM">
+
+```yaml
+METHOD: COMMON_STREAM
+INLET_STREAM:
+  NAME: DefaultInletStream
+  FLUID:
+    TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: MEDIUM
+  TEMPERATURE: 30.0
+  PRESSURE: 20.0
+  RATE:
+    VALUE: 1000000.0
+    UNIT: SM3_PER_DAY
+    TYPE: STREAM_DAY
+SETTINGS:
+- RATE_FRACTIONS:
+  - 1.0
+  OVERFLOW: null
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `METHOD` | `COMMON_STREAM` | Required |
+| [`INLET_STREAM`](#process-simulations-stream-distribution-common-stream-inlet-stream) |  | Required |
+| [`SETTINGS`](#process-simulations-stream-distribution-common-stream-settings) |  | Required |
+
+##### INLET_STREAM {/* #process-simulations-stream-distribution-common-stream-inlet-stream */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the inlet stream. | Required |
+| [`FLUID`](#process-simulations-stream-distribution-common-stream-inlet-stream-fluid) | Reference to a fluid definition. | Required |
+| `TEMPERATURE` | Temperature in K. | Required |
+| `PRESSURE` | Pressure in Bara | Required |
+| [`RATE`](#process-simulations-stream-distribution-common-stream-inlet-stream-rate) | Rate with unit + value. | Required |
+
+##### FLUID {/* #process-simulations-stream-distribution-common-stream-inlet-stream-fluid */}
+
+<Tabs>
+<TabItem value="PREDEFINED" label="PREDEFINED">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `PREDEFINED` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| `GAS_TYPE` |  | Default: `MEDIUM` |
+
+</TabItem>
+
+<TabItem value="COMPOSITION" label="COMPOSITION">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPOSITION` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| [`COMPOSITION`](#process-simulations-stream-distribution-common-stream-inlet-stream-fluid-composition-composition) |  | Required |
+
+##### COMPOSITION {/* #process-simulations-stream-distribution-common-stream-inlet-stream-fluid-composition-composition */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `WATER` |  | Default: `0.0` |
+| `NITROGEN` |  | Default: `0.0` |
+| `CO2` |  | Default: `0.0` |
+| `METHANE` |  | Required |
+| `ETHANE` |  | Default: `0.0` |
+| `PROPANE` |  | Default: `0.0` |
+| `I_BUTANE` |  | Default: `0.0` |
+| `N_BUTANE` |  | Default: `0.0` |
+| `I_PENTANE` |  | Default: `0.0` |
+| `N_PENTANE` |  | Default: `0.0` |
+| `N_HEXANE` |  | Default: `0.0` |
+
+</TabItem>
+
+</Tabs>
+
+##### RATE {/* #process-simulations-stream-distribution-common-stream-inlet-stream-rate */}
+
+Rate with unit + value.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
+
+##### SETTINGS {/* #process-simulations-stream-distribution-common-stream-settings */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `RATE_FRACTIONS` |  | Required |
+| [`OVERFLOW`](#process-simulations-stream-distribution-common-stream-settings-overflow) |  | Optional |
+
+##### OVERFLOW {/* #process-simulations-stream-distribution-common-stream-settings-overflow */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FROM_REFERENCE` |  | Required |
+| `TO_REFERENCE` |  | Required |
+
+</TabItem>
+
+<TabItem value="INDIVIDUAL_STREAMS" label="INDIVIDUAL_STREAMS">
+
+```yaml
+METHOD: INDIVIDUAL_STREAMS
+INLET_STREAMS:
+- NAME: DefaultInletStream
+  FLUID:
+    TYPE: PREDEFINED
+    EOS_MODEL: SRK
+    GAS_TYPE: MEDIUM
+  TEMPERATURE: 30.0
+  PRESSURE: 20.0
+  RATE:
+    VALUE: 1000000.0
+    UNIT: SM3_PER_DAY
+    TYPE: STREAM_DAY
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `METHOD` | `INDIVIDUAL_STREAMS` | Required |
+| [`INLET_STREAMS`](#process-simulations-stream-distribution-individual-streams-inlet-streams) |  | Required |
+
+##### INLET_STREAMS {/* #process-simulations-stream-distribution-individual-streams-inlet-streams */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the inlet stream. | Required |
+| [`FLUID`](#process-simulations-stream-distribution-individual-streams-inlet-streams-fluid) | Reference to a fluid definition. | Required |
+| `TEMPERATURE` | Temperature in K. | Required |
+| `PRESSURE` | Pressure in Bara | Required |
+| [`RATE`](#process-simulations-stream-distribution-individual-streams-inlet-streams-rate) | Rate with unit + value. | Required |
+
+##### FLUID {/* #process-simulations-stream-distribution-individual-streams-inlet-streams-fluid */}
+
+<Tabs>
+<TabItem value="PREDEFINED" label="PREDEFINED">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `PREDEFINED` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| `GAS_TYPE` |  | Default: `MEDIUM` |
+
+</TabItem>
+
+<TabItem value="COMPOSITION" label="COMPOSITION">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `COMPOSITION` | Required |
+| `EOS_MODEL` |  | Default: `SRK` |
+| [`COMPOSITION`](#process-simulations-stream-distribution-individual-streams-inlet-streams-fluid-composition-composition) |  | Required |
+
+##### COMPOSITION {/* #process-simulations-stream-distribution-individual-streams-inlet-streams-fluid-composition-composition */}
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `WATER` |  | Default: `0.0` |
+| `NITROGEN` |  | Default: `0.0` |
+| `CO2` |  | Default: `0.0` |
+| `METHANE` |  | Required |
+| `ETHANE` |  | Default: `0.0` |
+| `PROPANE` |  | Default: `0.0` |
+| `I_BUTANE` |  | Default: `0.0` |
+| `N_BUTANE` |  | Default: `0.0` |
+| `I_PENTANE` |  | Default: `0.0` |
+| `N_PENTANE` |  | Default: `0.0` |
+| `N_HEXANE` |  | Default: `0.0` |
+
+</TabItem>
+
+</Tabs>
+
+##### RATE {/* #process-simulations-stream-distribution-individual-streams-inlet-streams-rate */}
+
+Rate with unit + value.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
+
+</TabItem>
+
+</Tabs>
+
+##### CONSTRAINTS {/* #process-simulations-constraints */}
+
+Constraints per target. Key is pipeline name, value is list of constraints.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `PROCESS_UNIT` | Reference to a named unit within the pipeline. If omitted, the constraint applies to the last process unit in the pipeline section. | Optional |
+| `OUTLET_PRESSURE` | Target outlet pressure [bara]. | Required |
+| `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
+| `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
