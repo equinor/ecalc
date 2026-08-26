@@ -36,7 +36,7 @@ class EnergyNetwork:
         for node in nodes:
             node_id = node.get_id()
             if node_id in self._nodes:
-                raise ValueError(f"Duplicate energy node ID: {node_id}")
+                raise InvalidEnergyNetworkError(f"Duplicate energy node ID: {node_id}")
             self._nodes[node_id] = node
 
         self._predecessors: dict[
@@ -89,10 +89,10 @@ class EnergyNetwork:
         connection: EnergyConnection,
     ) -> None:
         if connection.source_id not in self._nodes:
-            raise ValueError(f"Unknown source: {connection.source_id}")
+            raise InvalidEnergyNetworkError(f"Unknown source: {connection.source_id}")
 
         if connection.target_id not in self._nodes:
-            raise ValueError(f"Unknown target: {connection.target_id}")
+            raise InvalidEnergyNetworkError(f"Unknown target: {connection.target_id}")
 
         source = self._nodes[connection.source_id]
         target = self._nodes[connection.target_id]
@@ -101,7 +101,7 @@ class EnergyNetwork:
         required_demand_type = self._get_required_demand_type(target)
 
         if provided_demand_type is not required_demand_type:
-            raise ValueError(
+            raise InvalidEnergyNetworkError(
                 f"Incompatible demand types: {provided_demand_type.__name__} -> {required_demand_type.__name__}"
             )
 
@@ -115,7 +115,7 @@ class EnergyNetwork:
         if isinstance(node, Junction):
             return node.demand_type
 
-        raise ValueError("Source node provides no energy")
+        raise InvalidEnergyNetworkError("Source node provides no energy")
 
     @staticmethod
     def _get_required_demand_type(
@@ -130,7 +130,7 @@ class EnergyNetwork:
         if isinstance(node, Junction):
             return node.demand_type
 
-        raise ValueError("Target node requires no energy")
+        raise InvalidEnergyNetworkError("Target node requires no energy")
 
     def _create_topological_order(
         self,
