@@ -4,18 +4,22 @@ on:
   workflow_dispatch:
     inputs:
       versioning_strategy:
-        description: 'Versioning strategy override'
+        description: 'Versioning strategy. If set to "auto", the strategy will be determined based on the branch name. If set to "always-bump-major", "always-bump-minor", or "always-bump-patch", that strategy will be used regardless of the branch name.'
         type: choice
         options:
           - auto
+          - always-bump-major
           - always-bump-minor
           - always-bump-patch
-        default: always-bump-minor
+        default: auto
+      dry_run:
+        description: 'Dry run (show what release would be created without making changes)'
+        type: boolean
+        default: true
   push:
     branches:
       - main
       - release/v*
-
 
 permissions: { }
 
@@ -38,9 +42,13 @@ jobs:
             echo "versioning_strategy=always-bump-major" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF_NAME}" == release/v* ]]; then
             echo "versioning_strategy=always-bump-patch" >> $GITHUB_OUTPUT
+          else  # exit
+            echo "Error: Unable to determine versioning strategy for branch ${GITHUB_REF_NAME}" >&2
+            exit 1
           fi
   release-please:
     needs: get_versioning_strategy
+    if: ${{ inputs.dry_run != true }}
     permissions:
       contents: write
       pull-requests: write
@@ -57,8 +65,45 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
 
+  release-please-dry-run:
+    needs: get_versioning_strategy
+    if: ${{ inputs.dry_run == true }}
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install release-please
+        run: npm install -g release-please
+      - name: Dry run - show planned release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSIONING_STRATEGY: ${{ needs.get_versioning_strategy.outputs.versioning_strategy }}
+        run: |
+          echo "========================================"
+          echo "  DRY RUN - no changes will be made"
+          echo "========================================"
+          echo ""
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Versioning strategy: ${VERSIONING_STRATEGY}"
+          echo ""
+          release-please release-pr \
+            --token="${GITHUB_TOKEN}" \
+            --repo-url="${{ github.repository }}" \
+            --target-branch="${{ github.ref_name }}" \
+            --config-file="release-please-config.json" \
+            --manifest-file=".release-please-manifest.json" \
+            --versioning-strategy="${VERSIONING_STRATEGY}" \
+            --dry-run
+
   create-output-artifact:
     needs: release-please
+    if: ${{ inputs.dry_run != true }}
     permissions:
       contents: write
     runs-on: ubuntu-24.04
