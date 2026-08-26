@@ -21,7 +21,7 @@ class Provider(EnergyUnit, abc.ABC):
 
     @property
     @abc.abstractmethod
-    def provided_type(self) -> type[TProvides]: ...
+    def provided_demand_type(self) -> type[TProvides]: ...
 
 
 class Source(Provider):
@@ -56,4 +56,4 @@ class Converter(Provider):
 
     @property
     @abc.abstractmethod
-    def required_type(self) -> type[TRequires]: ...
+    def required_demand_type(self) -> type[TRequires]: ...

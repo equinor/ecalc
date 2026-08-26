@@ -1,96 +1,13 @@
-from typing import Final
-
 import pytest
 
-from libecalc.energy import Consumer, Converter, ElectricalPower, EnergyUnitId, FuelGasRate, Source
+from libecalc.energy.energy_units import BaseLoad, ElectricalBus, FuelGasSource, GeneratorSet, OffshoreWind, OnshoreGrid
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
 
 
-class FuelSource(Source[FuelGasRate]):
-    def __init__(self, energy_unit_id: EnergyUnitId | None = None):
-        self._id: Final[EnergyUnitId] = energy_unit_id or self._create_id()
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    @property
-    def provided_type(self) -> type[FuelGasRate]:
-        return FuelGasRate
-
-    def capacity(self) -> FuelGasRate | None:
-        return None
-
-
-class GeneratorSet(Converter[FuelGasRate, ElectricalPower]):
-    def __init__(self, max_power_mw: float, fuel_per_mw: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        self.max_power_mw = max_power_mw
-        self.fuel_per_mw = fuel_per_mw
-        self._id: Final[EnergyUnitId] = energy_unit_id or self._create_id()
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    @property
-    def required_type(self) -> type[FuelGasRate]:
-        return FuelGasRate
-
-    @property
-    def provided_type(self) -> type[ElectricalPower]:
-        return ElectricalPower
-
-    def capacity(self) -> ElectricalPower | None:
-        return ElectricalPower(self.max_power_mw)
-
-    def get_input_demand(self, output_demand: ElectricalPower) -> FuelGasRate:
-        return FuelGasRate(output_demand.value * self.fuel_per_mw)
-
-
-class ElectricalLoad(Consumer[ElectricalPower]):
-    def __init__(self, load_mw: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        self.load_mw = load_mw
-        self._id: Final[EnergyUnitId] = energy_unit_id or self._create_id()
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    @property
-    def required_type(self) -> type[ElectricalPower]:
-        return ElectricalPower
-
-    def get_demand(self) -> ElectricalPower:
-        return ElectricalPower(self.load_mw)
-
-
-class ElectricalPowerLoss(Converter[ElectricalPower, ElectricalPower]):
-    def __init__(self, loss_factor: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        self._id: Final[EnergyUnitId] = energy_unit_id or self._create_id()
-        self.loss_factor = loss_factor
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    @property
-    def required_type(self) -> type[ElectricalPower]:
-        return ElectricalPower
-
-    @property
-    def provided_type(self) -> type[ElectricalPower]:
-        return ElectricalPower
-
-    def capacity(self) -> ElectricalPower | None:
-        return None
-
-    def get_input_demand(
-        self,
-        output_demand: ElectricalPower,
-    ) -> ElectricalPower:
-        return ElectricalPower(output_demand.value / (1 - self.loss_factor))
-
-
 def test_accepts_valid_typed_network():
-    source = FuelSource()
-    generator = GeneratorSet(max_power_mw=10, fuel_per_mw=5000)
-    load = ElectricalLoad(load_mw=5)
+    source = FuelGasSource(name="source")
+    generator = GeneratorSet(name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000.0)
+    load = BaseLoad(name="load", load=5)
 
     network = EnergyNetwork(
         nodes=[source, generator, load],
@@ -114,13 +31,13 @@ def test_accepts_valid_typed_network():
     assert network.get_node(generator.get_id()) is generator
 
 
-def test_rejects_incompatible_energy_types():
-    source = FuelSource()
-    load = ElectricalLoad(load_mw=5)
+def test_rejects_incompatible_demand_types():
+    source = FuelGasSource(name="source")
+    load = BaseLoad(name="load", load=5)
 
     with pytest.raises(
         ValueError,
-        match="Incompatible energy types",
+        match="Incompatible demand types",
     ):
         EnergyNetwork(
             nodes=[source, load],
@@ -134,8 +51,8 @@ def test_rejects_incompatible_energy_types():
 
 
 def test_rejects_unknown_source():
-    load = ElectricalLoad(load_mw=5)
-    missing_id = FuelSource._create_id()
+    load = BaseLoad(name="load", load=5)
+    missing_id = FuelGasSource._create_id()
 
     with pytest.raises(ValueError, match="Unknown source"):
         EnergyNetwork(
@@ -150,8 +67,8 @@ def test_rejects_unknown_source():
 
 
 def test_rejects_unknown_target():
-    source = FuelSource()
-    missing_id = ElectricalLoad._create_id()
+    source = FuelGasSource(name="source")
+    missing_id = BaseLoad._create_id()
 
     with pytest.raises(ValueError, match="Unknown target"):
         EnergyNetwork(
@@ -166,8 +83,8 @@ def test_rejects_unknown_target():
 
 
 def test_rejects_consumer_as_source():
-    source = ElectricalLoad(load_mw=5)
-    target = ElectricalLoad(load_mw=5)
+    source = BaseLoad(name="source", load=5)
+    target = BaseLoad(name="target", load=5)
 
     with pytest.raises(
         ValueError,
@@ -185,8 +102,8 @@ def test_rejects_consumer_as_source():
 
 
 def test_rejects_provider_as_target():
-    source = FuelSource()
-    target = FuelSource()
+    source = FuelGasSource(name="source")
+    target = FuelGasSource(name="target")
 
     with pytest.raises(
         ValueError,
@@ -204,7 +121,7 @@ def test_rejects_provider_as_target():
 
 
 def test_rejects_duplicate_node_ids():
-    duplicate_id = FuelSource._create_id()
+    duplicate_id = FuelGasSource._create_id()
 
     with pytest.raises(
         ValueError,
@@ -212,16 +129,16 @@ def test_rejects_duplicate_node_ids():
     ):
         EnergyNetwork(
             nodes=[
-                FuelSource(energy_unit_id=duplicate_id),
-                ElectricalLoad(load_mw=5, energy_unit_id=duplicate_id),
+                FuelGasSource(name="source", energy_unit_id=duplicate_id),
+                BaseLoad(name="load", load=5, energy_unit_id=duplicate_id),
             ],
             connections=[],
         )
 
 
 def test_rejects_cycles():
-    first = ElectricalPowerLoss(loss_factor=0.05)
-    second = ElectricalPowerLoss(loss_factor=0.05)
+    first = ElectricalBus(name="first")
+    second = ElectricalBus(name="second")
 
     with pytest.raises(
         ValueError,
@@ -244,12 +161,10 @@ def test_rejects_cycles():
 
 def test_supports_fan_out():
     """A provider can supply multiple downstream consumers."""
-    source = FuelSource()
-    generator = GeneratorSet(max_power_mw=10, fuel_per_mw=5000)
-    first_load = ElectricalLoad(
-        load_mw=3,
-    )
-    second_load = ElectricalLoad(load_mw=4)
+    source = FuelGasSource(name="source")
+    generator = GeneratorSet(name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000)
+    first_load = BaseLoad(name="first_load", load=3)
+    second_load = BaseLoad(name="second_load", load=4)
 
     network = EnergyNetwork(
         nodes=[
@@ -280,3 +195,37 @@ def test_supports_fan_out():
             second_load.get_id(),
         }
     )
+
+
+def test_supports_fan_in_through_junction():
+    grid = OnshoreGrid(name="grid", max_power=20)
+    wind = OffshoreWind(name="wind", power=5)
+
+    bus = ElectricalBus(name="bus")
+    load = BaseLoad(name="load", load=10)
+
+    network = EnergyNetwork(
+        nodes=[grid, wind, bus, load],
+        connections=[
+            EnergyConnection(
+                source_id=grid.get_id(),
+                target_id=bus.get_id(),
+            ),
+            EnergyConnection(
+                source_id=wind.get_id(),
+                target_id=bus.get_id(),
+            ),
+            EnergyConnection(
+                source_id=bus.get_id(),
+                target_id=load.get_id(),
+            ),
+        ],
+    )
+
+    assert network.predecessors(bus.get_id()) == frozenset(
+        {
+            grid.get_id(),
+            wind.get_id(),
+        }
+    )
+    assert network.successors(bus.get_id()) == frozenset({load.get_id()})

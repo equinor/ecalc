@@ -33,6 +33,10 @@ class BaseLoad(Consumer):
     def get_input_energy(self) -> ElectricalPower:
         return ElectricalPower(self._load)
 
+    @property
+    def required_demand_type(self) -> type[ElectricalPower]:
+        return ElectricalPower
+
 
 class Compressor(Consumer):
     """Compressor requiring mechanical power (driven by turbine or motor)."""
@@ -57,6 +61,10 @@ class Compressor(Consumer):
 
     def get_input_energy(self) -> MechanicalPower:
         return MechanicalPower(self._power)
+
+    @property
+    def required_demand_type(self) -> type[MechanicalPower]:
+        return MechanicalPower
 
 
 class Pump(Consumer):
@@ -83,6 +91,10 @@ class Pump(Consumer):
     def get_input_energy(self) -> MechanicalPower:
         return MechanicalPower(self._power)
 
+    @property
+    def required_demand_type(self) -> type[MechanicalPower]:
+        return MechanicalPower
+
 
 class SampledFuelConsumer(Consumer):
     """Consumer with fuel rate from lookup (e.g. compressor+turbine as black box)."""
@@ -107,6 +119,10 @@ class SampledFuelConsumer(Consumer):
 
     def get_input_energy(self) -> FuelGasRate:
         return FuelGasRate(self._fuel_rate)
+
+    @property
+    def required_demand_type(self) -> type[FuelGasRate]:
+        return FuelGasRate
 
 
 class SampledPowerConsumer(Consumer):
@@ -133,6 +149,10 @@ class SampledPowerConsumer(Consumer):
     def get_input_energy(self) -> ElectricalPower:
         return ElectricalPower(self._power)
 
+    @property
+    def required_demand_type(self) -> type[ElectricalPower]:
+        return ElectricalPower
+
 
 class Flare(Consumer):
     """Flare consuming fuel gas."""
@@ -158,6 +178,10 @@ class Flare(Consumer):
     def get_input_energy(self) -> FuelGasRate:
         return FuelGasRate(self._fuel_rate)
 
+    @property
+    def required_demand_type(self) -> type[FuelGasRate]:
+        return FuelGasRate
+
 
 class DieselConsumer(Consumer):
     """Direct diesel consumer (e.g. mobile rig, emergency generator)."""
@@ -182,3 +206,7 @@ class DieselConsumer(Consumer):
 
     def get_input_energy(self) -> DieselRate:
         return DieselRate(self._rate)
+
+    @property
+    def required_demand_type(self) -> type[DieselRate]:
+        return DieselRate

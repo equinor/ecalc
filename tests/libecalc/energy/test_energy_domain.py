@@ -68,7 +68,7 @@ class FuelGasSource(Source):
         return None
 
     @property
-    def provided_type(self) -> type[FuelGasRate]:
+    def provided_demand_type(self) -> type[FuelGasRate]:
         return FuelGasRate
 
 
@@ -92,7 +92,7 @@ class PowerFromShore(Source):
         return ElectricalPower(self.max_power_mw)
 
     @property
-    def provided_type(self) -> type[ElectricalPower]:
+    def provided_demand_type(self) -> type[ElectricalPower]:
         return ElectricalPower
 
 
@@ -116,7 +116,7 @@ class WindTurbine(Source):
         return ElectricalPower(self.power_mw)
 
     @property
-    def provided_type(self) -> type[ElectricalPower]:
+    def provided_demand_type(self) -> type[ElectricalPower]:
         return ElectricalPower
 
 
@@ -148,11 +148,11 @@ class GeneratorSet(Converter):
         return FuelGasRate(output_energy.value * self.fuel_per_mw)
 
     @property
-    def required_type(self) -> type[FuelGasRate]:
+    def required_demand_type(self) -> type[FuelGasRate]:
         return FuelGasRate
 
     @property
-    def provided_type(self) -> type[ElectricalPower]:
+    def provided_demand_type(self) -> type[ElectricalPower]:
         return ElectricalPower
 
 
@@ -184,11 +184,11 @@ class GasTurbine(Converter):
         return FuelGasRate(output_energy.value * self.fuel_per_mw)
 
     @property
-    def required_type(self) -> type[FuelGasRate]:
+    def required_demand_type(self) -> type[FuelGasRate]:
         return FuelGasRate
 
     @property
-    def provided_type(self) -> type[MechanicalPower]:
+    def provided_demand_type(self) -> type[MechanicalPower]:
         return MechanicalPower
 
 
@@ -222,11 +222,11 @@ class ElectricalMotor(Converter):
         return ElectricalPower(output_energy.value / self.efficiency)
 
     @property
-    def required_type(self) -> type[ElectricalPower]:
+    def required_demand_type(self) -> type[ElectricalPower]:
         return ElectricalPower
 
     @property
-    def provided_type(self) -> type[MechanicalPower]:
+    def provided_demand_type(self) -> type[MechanicalPower]:
         return MechanicalPower
 
 
@@ -250,7 +250,7 @@ class BaseLoad(Consumer):
         return ElectricalPower(self.load_mw)
 
     @property
-    def required_type(self) -> type[ElectricalPower]:
+    def required_demand_type(self) -> type[ElectricalPower]:
         return ElectricalPower
 
 
@@ -274,7 +274,7 @@ class Compressor(Consumer):
         return MechanicalPower(self.power_mw)
 
     @property
-    def required_type(self) -> type[MechanicalPower]:
+    def required_demand_type(self) -> type[MechanicalPower]:
         return MechanicalPower
 
 
@@ -298,7 +298,7 @@ class Pump(Consumer):
         return MechanicalPower(self.power_mw)
 
     @property
-    def required_type(self) -> type[MechanicalPower]:
+    def required_demand_type(self) -> type[MechanicalPower]:
         return MechanicalPower
 
 
@@ -322,7 +322,7 @@ class SampledCompressor(Consumer):
         return FuelGasRate(self.fuel_rate)
 
     @property
-    def required_type(self) -> type[FuelGasRate]:
+    def required_demand_type(self) -> type[FuelGasRate]:
         return FuelGasRate
 
 
@@ -346,7 +346,7 @@ class Flare(Consumer):
         return FuelGasRate(self.fuel_rate)
 
     @property
-    def required_type(self) -> type[FuelGasRate]:
+    def required_demand_type(self) -> type[FuelGasRate]:
         return FuelGasRate
 
 
@@ -370,7 +370,7 @@ class DieselConsumer(Consumer):
         return DieselRate(self.fuel_rate)
 
     @property
-    def required_type(self) -> type[DieselRate]:
+    def required_demand_type(self) -> type[DieselRate]:
         return DieselRate
 
 
@@ -417,7 +417,7 @@ class ElectricalBus(Provider):
         return result
 
     @property
-    def provided_type(self) -> type[ElectricalPower]:
+    def provided_demand_type(self) -> type[ElectricalPower]:
         return ElectricalPower
 
 

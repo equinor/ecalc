@@ -1,22 +1,27 @@
 from collections.abc import Iterable
-from dataclasses import dataclass
 from graphlib import CycleError, TopologicalSorter
 
+from libecalc.common.ddd import value_object
 from libecalc.energy.consumer import Consumer
 from libecalc.energy.demand import Demand
 from libecalc.energy.energy_unit import EnergyUnitId
+from libecalc.energy.energy_units import Junction
 from libecalc.energy.provider import Converter, Provider
 
-type EnergyNetworkNode = Consumer[Demand] | Provider[Demand]
+type EnergyNetworkNode = Consumer[Demand] | Provider[Demand] | Junction[Demand]
 
 
-@dataclass(frozen=True)
+@value_object
 class EnergyConnection:
+    """A directed connection between two energy units."""
+
     source_id: EnergyUnitId
     target_id: EnergyUnitId
 
 
 class EnergyNetwork:
+    """A validated, directed acyclic graph of typed energy units."""
+
     def __init__(
         self,
         nodes: Iterable[EnergyNetworkNode],
@@ -91,18 +96,40 @@ class EnergyNetwork:
         source = self._nodes[connection.source_id]
         target = self._nodes[connection.target_id]
 
-        if not isinstance(source, Provider):
-            raise ValueError("Source node provides no energy")
+        provided_demand_type = self._get_provided_demand_type(source)
+        required_demand_type = self._get_required_demand_type(target)
 
-        if isinstance(target, Consumer):
-            required_type = target.required_type
-        elif isinstance(target, Converter):
-            required_type = target.required_type
-        else:
-            raise ValueError("Target node requires no energy")
+        if provided_demand_type is not required_demand_type:
+            raise ValueError(
+                f"Incompatible demand types: {provided_demand_type.__name__} -> {required_demand_type.__name__}"
+            )
 
-        if source.provided_type is not required_type:
-            raise ValueError(f"Incompatible energy types: {source.provided_type.__name__} -> {required_type.__name__}")
+    @staticmethod
+    def _get_provided_demand_type(
+        node: EnergyNetworkNode,
+    ) -> type[Demand]:
+        if isinstance(node, Provider):
+            return node.provided_demand_type
+
+        if isinstance(node, Junction):
+            return node.demand_type
+
+        raise ValueError("Source node provides no energy")
+
+    @staticmethod
+    def _get_required_demand_type(
+        node: EnergyNetworkNode,
+    ) -> type[Demand]:
+        if isinstance(node, Consumer):
+            return node.required_demand_type
+
+        if isinstance(node, Converter):
+            return node.required_demand_type
+
+        if isinstance(node, Junction):
+            return node.demand_type
+
+        raise ValueError("Target node requires no energy")
 
     def _create_topological_order(
         self,
