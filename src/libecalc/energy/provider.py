@@ -1,17 +1,14 @@
 from __future__ import annotations
 
 import abc
-from uuid import UUID
 
 from libecalc.energy.demand import Demand
+from libecalc.energy.energy_unit import EnergyUnit
 
 
-class Provider[TProvides: Demand](abc.ABC):
+class Provider[TProvides: Demand](EnergyUnit, abc.ABC):
     """Anything that supplies energy — from outside the system,
     by converting one energy type to another, or by distributing across providers."""
-
-    @abc.abstractmethod
-    def get_id(self) -> UUID: ...
 
     @abc.abstractmethod
     def capacity(self) -> TProvides | None:

@@ -30,8 +30,7 @@ INST_A topology (energy flow):
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from uuid import UUID, uuid4
+from typing import Final
 
 import pytest
 
@@ -45,61 +44,70 @@ from libecalc.energy import (
     Source,
 )
 from libecalc.energy.demand import Demand, DieselRate
+from libecalc.energy.energy_unit import EnergyUnitId
 
 # --- Test implementations (illustrative, not shipped as library code) ---
 
 
-@dataclass
 class FuelGasSource(Source[FuelGasRate]):
-    name: str
+    def __init__(self, name: str, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self._id: Final[EnergyUnitId] = id or FuelGasSource._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def capacity(self) -> FuelGasRate | None:
         return None
 
 
-@dataclass
 class PowerFromShore(Source[ElectricalPower]):
-    name: str
-    max_power_mw: float
+    def __init__(self, name: str, max_power_mw: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.max_power_mw = max_power_mw
+        self._id: Final[EnergyUnitId] = id or PowerFromShore._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self.max_power_mw)
 
 
-@dataclass
 class WindTurbine(Source[ElectricalPower]):
-    name: str
-    power_mw: float
+    def __init__(self, name: str, power_mw: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.power_mw = power_mw
+        self._id: Final[EnergyUnitId] = id or WindTurbine._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self.power_mw)
 
 
-@dataclass
 class GeneratorSet(Converter[FuelGasRate, ElectricalPower]):
-    name: str
-    max_power_mw: float
-    fuel_per_mw: float
+    def __init__(self, name: str, max_power_mw: float, fuel_per_mw: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.max_power_mw = max_power_mw
+        self.fuel_per_mw = fuel_per_mw
+        self._id: Final[EnergyUnitId] = id or GeneratorSet._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self.max_power_mw)
@@ -108,16 +116,18 @@ class GeneratorSet(Converter[FuelGasRate, ElectricalPower]):
         return FuelGasRate(output_demand.value * self.fuel_per_mw)
 
 
-@dataclass
 class GasTurbine(Converter[FuelGasRate, MechanicalPower]):
-    name: str
-    max_power_mw: float
-    fuel_per_mw: float
+    def __init__(self, name: str, max_power_mw: float, fuel_per_mw: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.max_power_mw = max_power_mw
+        self.fuel_per_mw = fuel_per_mw
+        self._id: Final[EnergyUnitId] = id or GasTurbine._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def capacity(self) -> MechanicalPower | None:
         return MechanicalPower(self.max_power_mw)
@@ -126,16 +136,20 @@ class GasTurbine(Converter[FuelGasRate, MechanicalPower]):
         return FuelGasRate(output_demand.value * self.fuel_per_mw)
 
 
-@dataclass
 class ElectricalMotor(Converter[ElectricalPower, MechanicalPower]):
-    name: str
-    max_power_mw: float
-    efficiency: float = 0.95
+    def __init__(
+        self, name: str, max_power_mw: float, efficiency: float = 0.95, id: EnergyUnitId | None = None
+    ) -> None:
+        self.name = name
+        self.max_power_mw = max_power_mw
+        self.efficiency = efficiency
+        self._id: Final[EnergyUnitId] = id or ElectricalMotor._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def capacity(self) -> MechanicalPower | None:
         return MechanicalPower(self.max_power_mw * self.efficiency)
@@ -144,100 +158,121 @@ class ElectricalMotor(Converter[ElectricalPower, MechanicalPower]):
         return ElectricalPower(output_demand.value / self.efficiency)
 
 
-@dataclass
 class BaseLoad(Consumer[ElectricalPower]):
-    name: str
-    load_mw: float
+    def __init__(self, name: str, load_mw: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.load_mw = load_mw
+        self._id: Final[EnergyUnitId] = id or BaseLoad._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def get_demand(self) -> ElectricalPower:
         return ElectricalPower(self.load_mw)
 
 
-@dataclass
 class Compressor(Consumer[MechanicalPower]):
-    name: str
-    power_mw: float
+    def __init__(self, name: str, power_mw: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.power_mw = power_mw
+        self._id: Final[EnergyUnitId] = id or Compressor._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def get_demand(self) -> MechanicalPower:
         return MechanicalPower(self.power_mw)
 
 
-@dataclass
 class Pump(Consumer[MechanicalPower]):
-    name: str
-    power_mw: float
+    def __init__(self, name: str, power_mw: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.power_mw = power_mw
+        self._id: Final[EnergyUnitId] = id or Pump._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def get_demand(self) -> MechanicalPower:
         return MechanicalPower(self.power_mw)
 
 
-@dataclass
 class SampledCompressor(Consumer[FuelGasRate]):
-    name: str
-    fuel_rate: float
+    def __init__(self, name: str, fuel_rate: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.fuel_rate = fuel_rate
+        self._id: Final[EnergyUnitId] = id or SampledCompressor._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def get_demand(self) -> FuelGasRate:
         return FuelGasRate(self.fuel_rate)
 
 
-@dataclass
 class Flare(Consumer[FuelGasRate]):
-    name: str
-    fuel_rate: float
+    def __init__(self, name: str, fuel_rate: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.fuel_rate = fuel_rate
+        self._id: Final[EnergyUnitId] = id or Flare._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def get_demand(self) -> FuelGasRate:
         return FuelGasRate(self.fuel_rate)
 
 
-@dataclass
 class DieselConsumer(Consumer[DieselRate]):
-    name: str
-    fuel_rate: float
+    def __init__(self, name: str, fuel_rate: float, id: EnergyUnitId | None = None) -> None:
+        self.name = name
+        self.fuel_rate = fuel_rate
+        self._id: Final[EnergyUnitId] = id or DieselConsumer._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def get_demand(self) -> DieselRate:
         return DieselRate(self.fuel_rate)
 
 
-@dataclass
 class ElectricalBus(Provider[ElectricalPower]):
-    name: str
-    sources: list[Source[ElectricalPower]] = field(default_factory=list)
-    consumers: list[Consumer[ElectricalPower]] = field(default_factory=list)
+    def __init__(
+        self,
+        name: str,
+        sources: list[Source[ElectricalPower]] | None = None,
+        consumers: list[Consumer[ElectricalPower]] | None = None,
+        *,
+        id: EnergyUnitId | None = None,
+    ) -> None:
+        self.name = name
+        self.sources = sources or []
+        self.consumers = consumers or []
+        self._id: Final[EnergyUnitId] = id or ElectricalBus._create_id()
 
-    id: UUID = field(default_factory=uuid4)
+    def get_id(self) -> EnergyUnitId:
+        return self._id
 
-    def get_id(self) -> UUID:
-        return self.id
+    def get_name(self) -> str:
+        return self.name
 
     def capacity(self) -> ElectricalPower | None:
         result = ElectricalPower(0)
