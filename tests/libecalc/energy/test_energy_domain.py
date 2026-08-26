@@ -67,6 +67,10 @@ class FuelGasSource(Source):
     def capacity(self) -> FuelGasRate | None:
         return None
 
+    @property
+    def provided_type(self) -> type[FuelGasRate]:
+        return FuelGasRate
+
 
 class PowerFromShore(Source):
     def __init__(self, name: str, max_power_mw: float, id: EnergyUnitId | None = None) -> None:
@@ -87,6 +91,10 @@ class PowerFromShore(Source):
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self.max_power_mw)
 
+    @property
+    def provided_type(self) -> type[ElectricalPower]:
+        return ElectricalPower
+
 
 class WindTurbine(Source):
     def __init__(self, name: str, power_mw: float, id: EnergyUnitId | None = None) -> None:
@@ -106,6 +114,10 @@ class WindTurbine(Source):
 
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self.power_mw)
+
+    @property
+    def provided_type(self) -> type[ElectricalPower]:
+        return ElectricalPower
 
 
 class GeneratorSet(Converter):
@@ -135,6 +147,14 @@ class GeneratorSet(Converter):
     def get_input_energy(self, output_energy: ElectricalPower) -> FuelGasRate:
         return FuelGasRate(output_energy.value * self.fuel_per_mw)
 
+    @property
+    def required_type(self) -> type[FuelGasRate]:
+        return FuelGasRate
+
+    @property
+    def provided_type(self) -> type[ElectricalPower]:
+        return ElectricalPower
+
 
 class GasTurbine(Converter):
     def __init__(self, name: str, max_power_mw: float, fuel_per_mw: float, id: EnergyUnitId | None = None) -> None:
@@ -162,6 +182,14 @@ class GasTurbine(Converter):
 
     def get_input_energy(self, output_energy: MechanicalPower) -> FuelGasRate:
         return FuelGasRate(output_energy.value * self.fuel_per_mw)
+
+    @property
+    def required_type(self) -> type[FuelGasRate]:
+        return FuelGasRate
+
+    @property
+    def provided_type(self) -> type[MechanicalPower]:
+        return MechanicalPower
 
 
 class ElectricalMotor(Converter):
@@ -193,6 +221,14 @@ class ElectricalMotor(Converter):
     def get_input_energy(self, output_energy: MechanicalPower) -> ElectricalPower:
         return ElectricalPower(output_energy.value / self.efficiency)
 
+    @property
+    def required_type(self) -> type[ElectricalPower]:
+        return ElectricalPower
+
+    @property
+    def provided_type(self) -> type[MechanicalPower]:
+        return MechanicalPower
+
 
 class BaseLoad(Consumer):
     def __init__(self, name: str, load_mw: float, id: EnergyUnitId | None = None) -> None:
@@ -212,6 +248,10 @@ class BaseLoad(Consumer):
 
     def get_input_energy(self) -> ElectricalPower:
         return ElectricalPower(self.load_mw)
+
+    @property
+    def required_type(self) -> type[ElectricalPower]:
+        return ElectricalPower
 
 
 class Compressor(Consumer):
@@ -233,6 +273,10 @@ class Compressor(Consumer):
     def get_input_energy(self) -> MechanicalPower:
         return MechanicalPower(self.power_mw)
 
+    @property
+    def required_type(self) -> type[MechanicalPower]:
+        return MechanicalPower
+
 
 class Pump(Consumer):
     def __init__(self, name: str, power_mw: float, id: EnergyUnitId | None = None) -> None:
@@ -252,6 +296,10 @@ class Pump(Consumer):
 
     def get_input_energy(self) -> MechanicalPower:
         return MechanicalPower(self.power_mw)
+
+    @property
+    def required_type(self) -> type[MechanicalPower]:
+        return MechanicalPower
 
 
 class SampledCompressor(Consumer):
@@ -273,6 +321,10 @@ class SampledCompressor(Consumer):
     def get_input_energy(self) -> FuelGasRate:
         return FuelGasRate(self.fuel_rate)
 
+    @property
+    def required_type(self) -> type[FuelGasRate]:
+        return FuelGasRate
+
 
 class Flare(Consumer):
     def __init__(self, name: str, fuel_rate: float, id: EnergyUnitId | None = None) -> None:
@@ -293,6 +345,10 @@ class Flare(Consumer):
     def get_input_energy(self) -> FuelGasRate:
         return FuelGasRate(self.fuel_rate)
 
+    @property
+    def required_type(self) -> type[FuelGasRate]:
+        return FuelGasRate
+
 
 class DieselConsumer(Consumer):
     def __init__(self, name: str, fuel_rate: float, id: EnergyUnitId | None = None) -> None:
@@ -312,6 +368,10 @@ class DieselConsumer(Consumer):
 
     def get_input_energy(self) -> DieselRate:
         return DieselRate(self.fuel_rate)
+
+    @property
+    def required_type(self) -> type[DieselRate]:
+        return DieselRate
 
 
 class ElectricalBus(Provider):
@@ -355,6 +415,10 @@ class ElectricalBus(Provider):
         for consumer in self.consumers:
             result = result + consumer.get_input_energy()
         return result
+
+    @property
+    def provided_type(self) -> type[ElectricalPower]:
+        return ElectricalPower
 
 
 # --- Tests ---
@@ -434,8 +498,9 @@ class TestEnergyTopology:
         demand = ElectricalPower(18.0)  # exceeds 17 MW capacity
 
         # Infeasibility is detectable
-        assert genset.capacity() is not None
-        assert demand.value > genset.capacity().value
+        capacity = genset.capacity()
+        assert capacity is not None
+        assert demand.value > capacity.value
 
         # But get_input_energy still computes — no capping
         fuel = genset.get_input_energy(demand)
