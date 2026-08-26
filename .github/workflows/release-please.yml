@@ -2,6 +2,15 @@ name: release-please
 
 on:
   workflow_dispatch:
+    inputs:
+      versioning_strategy:
+        description: 'Versioning strategy override'
+        type: choice
+        options:
+          - auto
+          - always-bump-minor
+          - always-bump-patch
+        default: always-bump-minor
   push:
     branches:
       - main
@@ -23,7 +32,9 @@ jobs:
         id: versioning-strategy
         run: |
           echo "Determining versioning strategy..."
-          if [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+          if [[ "${{ inputs.versioning_strategy }}" != "" && "${{ inputs.versioning_strategy }}" != "auto" ]]; then
+            echo "versioning_strategy=${{ inputs.versioning_strategy }}" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
             echo "versioning_strategy=always-bump-major" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF_NAME}" == release/v* ]]; then
             echo "versioning_strategy=always-bump-patch" >> $GITHUB_OUTPUT
