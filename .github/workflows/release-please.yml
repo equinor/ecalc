@@ -2,15 +2,58 @@ name: release-please
 
 on:
   workflow_dispatch:
+    inputs:
+      versioning_strategy:
+        description: 'Versioning strategy. If set to "auto", the strategy will be determined based on the branch name. If set to "always-bump-major", "always-bump-minor", or "always-bump-patch", that strategy will be used regardless of the branch name.'
+        type: choice
+        options:
+          - auto
+          - always-bump-major
+          - always-bump-minor
+          - always-bump-patch
+        default: auto
+      dry_run:
+        description: 'Dry run (show what release would be created without making changes)'
+        type: boolean
+        default: true
   push:
     branches:
       - main
-
+      - release/v*
 
 permissions: { }
 
+env:
+  OVERRIDING_VERSIONING_STRATEGY: ${{ inputs.versioning_strategy }}
+
 jobs:
+  get_versioning_strategy:
+    permissions:
+      contents: read
+    runs-on: ubuntu-24.04
+    outputs:
+      versioning_strategy: ${{ steps.versioning-strategy.outputs.versioning_strategy }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Determine versioning strategy
+        id: versioning-strategy
+        run: |
+          echo "Determining versioning strategy..."
+          if [[ "${OVERRIDING_VERSIONING_STRATEGY}" != "" && "${OVERRIDING_VERSIONING_STRATEGY}" != "auto" ]]; then
+            echo "versioning_strategy=${OVERRIDING_VERSIONING_STRATEGY}" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
+            echo "versioning_strategy=always-bump-major" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF_NAME}" == release/v* ]]; then
+            echo "versioning_strategy=always-bump-patch" >> $GITHUB_OUTPUT
+          else  # exit
+            echo "Error: Unable to determine versioning strategy for branch ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
   release-please:
+    needs: get_versioning_strategy
+    if: ${{ inputs.dry_run != true }}
     permissions:
       contents: write
       pull-requests: write
@@ -22,22 +65,88 @@ jobs:
         with:
           config-file: 'release-please-config.json'
           manifest-file: '.release-please-manifest.json'
+          versioning-strategy: ${{ needs.get_versioning_strategy.outputs.versioning_strategy }}
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
 
-  create-output-artifact:
-    needs: release-please
+  release-please-dry-run:
+    needs: get_versioning_strategy
+    if: ${{ inputs.dry_run == true }}
     permissions:
       contents: read
     runs-on: ubuntu-24.04
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '22'
+          package-manager-cache: 'false'
+      - name: Install release-please
+        run: npx release-please@17.11.2
+      - name: Dry run - show planned release
+        env:
+          VERSIONING_STRATEGY: ${{ needs.get_versioning_strategy.outputs.versioning_strategy }}
+          REPO_URL: ${{ github.repository }}
+          TARGET_BRANCH: ${{ github.ref_name }}
+        run: |
+          echo "========================================"
+          echo "  DRY RUN - no changes will be made"
+          echo "========================================"
+          echo ""
+          echo "Branch: ${TARGET_BRANCH}"
+          echo "Versioning strategy: ${VERSIONING_STRATEGY}"
+          echo ""
+          OUTPUT=$(release-please release-pr \
+            --repo-url="${REPO_URL}" \
+            --target-branch="${TARGET_BRANCH}" \
+            --config-file="release-please-config.json" \
+            --manifest-file=".release-please-manifest.json" \
+            --versioning-strategy="${VERSIONING_STRATEGY}" \
+            --dry-run 2>&1) || true
+          echo "$OUTPUT"
+          echo ""
+
+          VERSION=$(echo "$OUTPUT" | grep -oP 'v\d+\.\d+\.\d+' | head -1)
+          if [ -n "$VERSION" ]; then
+            echo "========================================"
+            echo "  Simulated outcome"
+            echo "========================================"
+            echo ""
+            echo "Release version: $VERSION"
+            STRIPPED="${VERSION#v}"
+            MAJOR_MINOR="${STRIPPED%.*}"
+            PATCH="${STRIPPED##*.}"
+            echo "Major.Minor: $MAJOR_MINOR"
+            echo "Patch: $PATCH"
+            if [ "$PATCH" = "0" ] && [ "${TARGET_BRANCH}" = "main" ]; then
+              echo "Would create release branch: release/v${MAJOR_MINOR}"
+            else
+              echo "No new release branch would be created."
+            fi
+          else
+            echo "No release would be created."
+          fi
+
+  create-output-artifact:
+    needs: release-please
+    if: ${{ inputs.dry_run != true }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true  # due to the branch creation below
       - name: Create output directory
         run: mkdir -p release-please-data
       - name: echo release_created output
-        run: echo ${NEEDS_RELEASE_PLEASE_OUTPUTS_RELEASE_CREATED}
+        run: echo "${RELEASE_CREATED}"
         env:
-          NEEDS_RELEASE_PLEASE_OUTPUTS_RELEASE_CREATED: ${{ needs.release-please.outputs.release_created }}
+          RELEASE_CREATED: ${{ needs.release-please.outputs.release_created }}
       - name: set release created
         if: ${{ needs.release-please.outputs.release_created == 'true' }}
         run: |
@@ -51,3 +160,23 @@ jobs:
         with:
           name: release-please-outputs
           path: release-please-data/
+      - name: Create release branch (vX.Y) for patching, if from main
+        if: ${{ needs.release-please.outputs.release_created == 'true' && github.ref_name == 'main' }}
+        env:
+          RELEASE_VERSION: ${{ needs.release-please.outputs.tag_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          echo "tag name: ${RELEASE_VERSION}"
+          VERSION="${RELEASE_VERSION#v}"
+          PATCH_VERSION="${VERSION##*.}"
+          MAJOR_MINOR_VERSION="${VERSION%.*}"
+          echo "patch version: $PATCH_VERSION"
+          if [ "$PATCH_VERSION" = "0" ]; then
+            git config user.name "eCalc GitHub Actions Bot"
+            git config user.email "<>"
+            git checkout -b "release/v${MAJOR_MINOR_VERSION}" "${{ github.sha }}"
+            git push -u origin "release/v${MAJOR_MINOR_VERSION}"
+          else
+            echo "No release branch created, patch version is not 0."
+          fi
