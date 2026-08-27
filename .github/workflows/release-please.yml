@@ -25,6 +25,7 @@ permissions: { }
 
 env:
   OVERRIDING_VERSIONING_STRATEGY: ${{ inputs.versioning_strategy }}
+  DRY_RUN: ${{ inputs.dry_run || true }}  # TODO: Temp for testing
 
 jobs:
   get_versioning_strategy:
@@ -35,6 +36,8 @@ jobs:
       versioning_strategy: ${{ steps.versioning-strategy.outputs.versioning_strategy }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Determine versioning strategy
         id: versioning-strategy
         run: |
@@ -51,7 +54,7 @@ jobs:
           fi
   release-please:
     needs: get_versioning_strategy
-    if: ${{ inputs.dry_run != true }}
+    if: ${{ DRY_RUN != true }}
     permissions:
       contents: write
       pull-requests: write
@@ -70,7 +73,7 @@ jobs:
 
   release-please-dry-run:
     needs: get_versioning_strategy
-    if: ${{ inputs.dry_run == true }}
+    if: ${{ DRY_RUN == true }}
     permissions:
       contents: read
     runs-on: ubuntu-24.04
@@ -78,6 +81,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
@@ -85,7 +89,6 @@ jobs:
         run: npm install -g release-please
       - name: Dry run - show planned release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSIONING_STRATEGY: ${{ needs.get_versioning_strategy.outputs.versioning_strategy }}
         run: |
           echo "========================================"
@@ -129,12 +132,14 @@ jobs:
 
   create-output-artifact:
     needs: release-please
-    if: ${{ inputs.dry_run != true }}
+    if: ${{ DRY_RUN != true }}
     permissions:
       contents: write
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
       - name: Create output directory
         run: mkdir -p release-please-data
       - name: echo release_created output
@@ -154,9 +159,8 @@ jobs:
         with:
           name: release-please-outputs
           path: release-please-data/
-      - name: Get libecalc versions from tag name
-        id: get-versions
-        if: ${{ needs.release-please.outputs.release_created == 'true' }}
+      - name: Create release branch (vX.Y) for patching, if from main
+        if: ${{ needs.release-please.outputs.release_created == 'true' && github.ref_name == 'main' }}
         env:
           RELEASE_VERSION: ${{ needs.release-please.outputs.tag_name }}
         run: |
@@ -165,17 +169,9 @@ jobs:
           PATCH_VERSION="${VERSION##*.}"
           MAJOR_MINOR_VERSION="${VERSION%.*}"
           echo "patch version: $PATCH_VERSION"
-          echo "patch_version=$PATCH_VERSION" >> $GITHUB_OUTPUT
-      - name: Create release branch (vX.Y) for patching, if from main
-        if: ${{ needs.release-please.outputs.release_created == 'true' && github.ref_name == 'main' }}
-        env:
-          RELEASE_VERSION: ${{ needs.release-please.outputs.tag_name }}
-        run: |
-          VERSION="${RELEASE_VERSION#v}"
-          MAJOR_MINOR_VERSION="${VERSION%.*}"
-          PATCH_VERSION="${VERSION##*.}"
-          echo "patch version: $PATCH_VERSION"
           if [ "$PATCH_VERSION" = "0" ]; then
             git checkout -b "release/v${MAJOR_MINOR_VERSION}" "${{ github.sha }}"
             git push -u origin "release/v${MAJOR_MINOR_VERSION}"
+          else
+            echo "No release branch created, patch version is not 0."
           fi
