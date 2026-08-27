@@ -25,7 +25,6 @@ permissions: { }
 
 env:
   OVERRIDING_VERSIONING_STRATEGY: ${{ inputs.versioning_strategy }}
-  DRY_RUN: ${{ inputs.dry_run || true }}  # TODO: Temp for testing
 
 jobs:
   get_versioning_strategy:
@@ -54,7 +53,7 @@ jobs:
           fi
   release-please:
     needs: get_versioning_strategy
-    if: ${{ DRY_RUN != true }}
+    if: ${{ inputs.dry_run != true }}
     permissions:
       contents: write
       pull-requests: write
@@ -73,7 +72,7 @@ jobs:
 
   release-please-dry-run:
     needs: get_versioning_strategy
-    if: ${{ DRY_RUN == true }}
+    if: ${{ inputs.dry_run == true }}
     permissions:
       contents: read
     runs-on: ubuntu-24.04
@@ -90,18 +89,19 @@ jobs:
       - name: Dry run - show planned release
         env:
           VERSIONING_STRATEGY: ${{ needs.get_versioning_strategy.outputs.versioning_strategy }}
+          REPO_URL: ${{ github.repository }}
+          TARGET_BRANCH: ${{ github.ref_name }}
         run: |
           echo "========================================"
           echo "  DRY RUN - no changes will be made"
           echo "========================================"
           echo ""
-          echo "Branch: ${{ github.ref_name }}"
+          echo "Branch: ${TARGET_BRANCH}"
           echo "Versioning strategy: ${VERSIONING_STRATEGY}"
           echo ""
           OUTPUT=$(release-please release-pr \
-            --token="${GITHUB_TOKEN}" \
-            --repo-url="${{ github.repository }}" \
-            --target-branch="${{ github.ref_name }}" \
+            --repo-url="${REPO_URL}" \
+            --target-branch="${TARGET_BRANCH}" \
             --config-file="release-please-config.json" \
             --manifest-file=".release-please-manifest.json" \
             --versioning-strategy="${VERSIONING_STRATEGY}" \
@@ -121,7 +121,7 @@ jobs:
             PATCH="${STRIPPED##*.}"
             echo "Major.Minor: $MAJOR_MINOR"
             echo "Patch: $PATCH"
-            if [ "$PATCH" = "0" ] && [ "${{ github.ref_name }}" = "main" ]; then
+            if [ "$PATCH" = "0" ] && [ "${TARGET_BRANCH}" = "main" ]; then
               echo "Would create release branch: release/v${MAJOR_MINOR}"
             else
               echo "No new release branch would be created."
@@ -132,14 +132,12 @@ jobs:
 
   create-output-artifact:
     needs: release-please
-    if: ${{ DRY_RUN != true }}
+    if: ${{ inputs.dry_run != true }}
     permissions:
       contents: write
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
       - name: Create output directory
         run: mkdir -p release-please-data
       - name: echo release_created output
