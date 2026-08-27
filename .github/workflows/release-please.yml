@@ -85,8 +85,6 @@ jobs:
         with:
           node-version: '22'
           package-manager-cache: 'false'
-      - name: Install release-please
-        run: npx release-please@17.11.2
       - name: Dry run - show planned release
         env:
           VERSIONING_STRATEGY: ${{ needs.get_versioning_strategy.outputs.versioning_strategy }}
@@ -100,7 +98,7 @@ jobs:
           echo "Branch: ${TARGET_BRANCH}"
           echo "Versioning strategy: ${VERSIONING_STRATEGY}"
           echo ""
-          OUTPUT=$(release-please release-pr \
+          OUTPUT=$(npx release-please@17.11.2 release-pr \
             --repo-url="${REPO_URL}" \
             --target-branch="${TARGET_BRANCH}" \
             --config-file="release-please-config.json" \
