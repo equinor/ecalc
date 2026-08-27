@@ -8,10 +8,10 @@ class EnergyDomainError(EcalcError):
         super().__init__(title="Energy domain error", message=message)
 
 
-class NegativeDemandError(EnergyDomainError):
+class NegativeEnergyError(EnergyDomainError):
     """Raised when a demand value is negative."""
 
-    def __init__(self, value: float, demand_type: str):
+    def __init__(self, value: float, energy_type: str):
         self.value = value
-        self.demand_type = demand_type
-        super().__init__(f"{demand_type} value must be non-negative, got {value}")
+        self.energy_type = energy_type
+        super().__init__(f"{energy_type} value must be non-negative, got {value}")
