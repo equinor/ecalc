@@ -37,7 +37,7 @@ def test_rejects_incompatible_demand_types():
     load = BaseLoad(name="load", load=5)
 
     with pytest.raises(
-        ValueError,
+        InvalidEnergyNetworkError,
         match="Incompatible demand types",
     ):
         EnergyNetwork(
@@ -55,7 +55,7 @@ def test_rejects_unknown_source():
     load = BaseLoad(name="load", load=5)
     missing_id = FuelGasSource._create_id()
 
-    with pytest.raises(ValueError, match="Unknown source"):
+    with pytest.raises(InvalidEnergyNetworkError, match="Unknown source"):
         EnergyNetwork(
             nodes=[load],
             connections=[
@@ -71,7 +71,7 @@ def test_rejects_unknown_target():
     source = FuelGasSource(name="source")
     missing_id = BaseLoad._create_id()
 
-    with pytest.raises(ValueError, match="Unknown target"):
+    with pytest.raises(InvalidEnergyNetworkError, match="Unknown target"):
         EnergyNetwork(
             nodes=[source],
             connections=[
@@ -88,7 +88,7 @@ def test_rejects_consumer_as_source():
     target = BaseLoad(name="target", load=5)
 
     with pytest.raises(
-        ValueError,
+        InvalidEnergyNetworkError,
         match="Source node provides no energy",
     ):
         EnergyNetwork(
@@ -107,7 +107,7 @@ def test_rejects_provider_as_target():
     target = FuelGasSource(name="target")
 
     with pytest.raises(
-        ValueError,
+        InvalidEnergyNetworkError,
         match="Target node requires no energy",
     ):
         EnergyNetwork(
@@ -125,7 +125,7 @@ def test_rejects_duplicate_node_ids():
     duplicate_id = FuelGasSource._create_id()
 
     with pytest.raises(
-        ValueError,
+        InvalidEnergyNetworkError,
         match="Duplicate energy node ID",
     ):
         EnergyNetwork(
