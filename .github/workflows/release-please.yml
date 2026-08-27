@@ -81,11 +81,12 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          node-version: '20'
+          node-version: '22'
+          cache: ''
       - name: Install release-please
-        run: npm install -g release-please
+        run: npx release-please@17.11.2
       - name: Dry run - show planned release
         env:
           VERSIONING_STRATEGY: ${{ needs.get_versioning_strategy.outputs.versioning_strategy }}
@@ -138,6 +139,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: true  # due to the branch creation below
       - name: Create output directory
         run: mkdir -p release-please-data
       - name: echo release_created output
@@ -161,6 +164,8 @@ jobs:
         if: ${{ needs.release-please.outputs.release_created == 'true' && github.ref_name == 'main' }}
         env:
           RELEASE_VERSION: ${{ needs.release-please.outputs.tag_name }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPOSITORY: ${{ github.repository }}
         run: |
           echo "tag name: ${RELEASE_VERSION}"
           VERSION="${RELEASE_VERSION#v}"
@@ -168,6 +173,8 @@ jobs:
           MAJOR_MINOR_VERSION="${VERSION%.*}"
           echo "patch version: $PATCH_VERSION"
           if [ "$PATCH_VERSION" = "0" ]; then
+            git config user.name "eCalc GitHub Actions Bot"
+            git config user.email "<>"
             git checkout -b "release/v${MAJOR_MINOR_VERSION}" "${{ github.sha }}"
             git push -u origin "release/v${MAJOR_MINOR_VERSION}"
           else
