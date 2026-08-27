@@ -206,51 +206,10 @@ Sidestream to mix in. Either a reference to a named stream or an inline stream d
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name of the inlet stream. | Required |
-| [`FLUID`](#definitions-process-units-mixer-inlet-stream-fluid) | Reference to a fluid definition. | Required |
+| `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
 | `TEMPERATURE` | Temperature in K. | Required |
 | `PRESSURE` | Pressure in Bara | Required |
 | [`RATE`](#definitions-process-units-mixer-inlet-stream-rate) | Rate with unit + value. | Required |
-
-##### FLUID {/* #definitions-process-units-mixer-inlet-stream-fluid */}
-
-<Tabs>
-<TabItem value="PREDEFINED" label="PREDEFINED">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `PREDEFINED` | Required |
-| `EOS_MODEL` |  | Default: `SRK` |
-| `GAS_TYPE` |  | Default: `MEDIUM` |
-
-</TabItem>
-
-<TabItem value="COMPOSITION" label="COMPOSITION">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPOSITION` | Required |
-| `EOS_MODEL` |  | Default: `SRK` |
-| [`COMPOSITION`](#definitions-process-units-mixer-inlet-stream-fluid-composition-composition) |  | Required |
-
-##### COMPOSITION {/* #definitions-process-units-mixer-inlet-stream-fluid-composition-composition */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `WATER` |  | Default: `0.0` |
-| `NITROGEN` |  | Default: `0.0` |
-| `CO2` |  | Default: `0.0` |
-| `METHANE` |  | Required |
-| `ETHANE` |  | Default: `0.0` |
-| `PROPANE` |  | Default: `0.0` |
-| `I_BUTANE` |  | Default: `0.0` |
-| `N_BUTANE` |  | Default: `0.0` |
-| `I_PENTANE` |  | Default: `0.0` |
-| `N_PENTANE` |  | Default: `0.0` |
-| `N_HEXANE` |  | Default: `0.0` |
-
-</TabItem>
-
-</Tabs>
 
 ##### RATE {/* #definitions-process-units-mixer-inlet-stream-rate */}
 
@@ -362,51 +321,10 @@ RATE: ...
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name of the inlet stream. | Required |
-| [`FLUID`](#inlet-streams-fluid) | Reference to a fluid definition. | Required |
+| `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
 | `TEMPERATURE` | Temperature in K. | Required |
 | `PRESSURE` | Pressure in Bara | Required |
 | [`RATE`](#inlet-streams-rate) | Rate with unit + value. | Required |
-
-##### FLUID {/* #inlet-streams-fluid */}
-
-<Tabs>
-<TabItem value="PREDEFINED" label="PREDEFINED">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `PREDEFINED` | Required |
-| `EOS_MODEL` |  | Default: `SRK` |
-| `GAS_TYPE` |  | Default: `MEDIUM` |
-
-</TabItem>
-
-<TabItem value="COMPOSITION" label="COMPOSITION">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPOSITION` | Required |
-| `EOS_MODEL` |  | Default: `SRK` |
-| [`COMPOSITION`](#inlet-streams-fluid-composition-composition) |  | Required |
-
-##### COMPOSITION {/* #inlet-streams-fluid-composition-composition */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `WATER` |  | Default: `0.0` |
-| `NITROGEN` |  | Default: `0.0` |
-| `CO2` |  | Default: `0.0` |
-| `METHANE` |  | Required |
-| `ETHANE` |  | Default: `0.0` |
-| `PROPANE` |  | Default: `0.0` |
-| `I_BUTANE` |  | Default: `0.0` |
-| `N_BUTANE` |  | Default: `0.0` |
-| `I_PENTANE` |  | Default: `0.0` |
-| `N_PENTANE` |  | Default: `0.0` |
-| `N_HEXANE` |  | Default: `0.0` |
-
-</TabItem>
-
-</Tabs>
 
 ##### RATE {/* #inlet-streams-rate */}
 
@@ -487,7 +405,7 @@ EVENTS: []
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `TARGET` |  | Required |
+| `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `NAME` |  | Optional |
 
 ##### EVENTS {/* #process-pipelines-events */}
@@ -498,140 +416,10 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | --- | --- | --- |
 | `TYPE` | Action to perform: CHANGE, ADD, or REMOVE a process unit. | Required |
 | `CHANGE_TARGET` | Name of the process unit in the pipeline to change. | Required |
-| [`CHANGE_FROM`](#process-pipelines-events-change-from) | Reference to the existing process unit template being replaced. | Required |
-| [`CHANGE_TO`](#process-pipelines-events-change-to) | Reference to the new process unit template to use. | Required |
+| `CHANGE_FROM` | Reference to the existing process unit template being replaced. Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
+| `CHANGE_TO` | Reference to the new process unit template to use. Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
 | `REF` | Reference to a PROCESS_EVENT by name. | Required |
-
-##### CHANGE_FROM {/* #process-pipelines-events-change-from */}
-
-Reference to the existing process unit template being replaced.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPRESSOR` | Required |
-| [`COMPRESSOR_MODEL`](#process-pipelines-events-change-from-compressor-model) |  | Required |
-
-##### COMPRESSOR_MODEL {/* #process-pipelines-events-change-from-compressor-model */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPRESSOR_CHART` | Required |
-| [`CHART`](#process-pipelines-events-change-from-compressor-model-chart) |  | Required |
-| [`CONTROL_MARGIN`](#process-pipelines-events-change-from-compressor-model-control-margin) |  | Required |
-
-##### CHART {/* #process-pipelines-events-change-from-compressor-model-chart */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| [`CURVES`](#process-pipelines-events-change-from-compressor-model-chart-curves) | Compressor chart curves, one per speed. | Required |
-| [`UNITS`](#process-pipelines-events-change-from-compressor-model-chart-units) | Defines the units | Optional |
-
-##### CURVES {/* #process-pipelines-events-change-from-compressor-model-chart-curves */}
-
-<Tabs>
-<TabItem value="YAMLCURVE" label="YAMLCURVE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `SPEED` |  | Default: `1` |
-| `RATE` |  | Required |
-| `HEAD` |  | Required |
-| `EFFICIENCY` |  | Required |
-
-</TabItem>
-
-<TabItem value="YAMLFILE" label="YAMLFILE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
-
-</TabItem>
-
-</Tabs>
-
-##### UNITS {/* #process-pipelines-events-change-from-compressor-model-chart-units */}
-
-Defines the units
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `RATE` | Unit for rate in chart. Currently only AM3_PER_HOUR is supported | Default: `AM3_PER_HOUR` |
-| `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
-| `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
-
-##### CONTROL_MARGIN {/* #process-pipelines-events-change-from-compressor-model-control-margin */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `UNIT` |  | Required |
-| `VALUE` |  | Required |
-
-##### CHANGE_TO {/* #process-pipelines-events-change-to */}
-
-Reference to the new process unit template to use.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPRESSOR` | Required |
-| [`COMPRESSOR_MODEL`](#process-pipelines-events-change-to-compressor-model) |  | Required |
-
-##### COMPRESSOR_MODEL {/* #process-pipelines-events-change-to-compressor-model */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPRESSOR_CHART` | Required |
-| [`CHART`](#process-pipelines-events-change-to-compressor-model-chart) |  | Required |
-| [`CONTROL_MARGIN`](#process-pipelines-events-change-to-compressor-model-control-margin) |  | Required |
-
-##### CHART {/* #process-pipelines-events-change-to-compressor-model-chart */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| [`CURVES`](#process-pipelines-events-change-to-compressor-model-chart-curves) | Compressor chart curves, one per speed. | Required |
-| [`UNITS`](#process-pipelines-events-change-to-compressor-model-chart-units) | Defines the units | Optional |
-
-##### CURVES {/* #process-pipelines-events-change-to-compressor-model-chart-curves */}
-
-<Tabs>
-<TabItem value="YAMLCURVE" label="YAMLCURVE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `SPEED` |  | Default: `1` |
-| `RATE` |  | Required |
-| `HEAD` |  | Required |
-| `EFFICIENCY` |  | Required |
-
-</TabItem>
-
-<TabItem value="YAMLFILE" label="YAMLFILE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
-
-</TabItem>
-
-</Tabs>
-
-##### UNITS {/* #process-pipelines-events-change-to-compressor-model-chart-units */}
-
-Defines the units
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `RATE` | Unit for rate in chart. Currently only AM3_PER_HOUR is supported | Default: `AM3_PER_HOUR` |
-| `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
-| `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
-
-##### CONTROL_MARGIN {/* #process-pipelines-events-change-to-compressor-model-control-margin */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `UNIT` |  | Required |
-| `VALUE` |  | Required |
 
 ## PROCESS_SIMULATIONS
 
@@ -693,51 +481,10 @@ SETTINGS:
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name of the inlet stream. | Required |
-| [`FLUID`](#process-simulations-stream-distribution-common-stream-inlet-stream-fluid) | Reference to a fluid definition. | Required |
+| `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
 | `TEMPERATURE` | Temperature in K. | Required |
 | `PRESSURE` | Pressure in Bara | Required |
 | [`RATE`](#process-simulations-stream-distribution-common-stream-inlet-stream-rate) | Rate with unit + value. | Required |
-
-##### FLUID {/* #process-simulations-stream-distribution-common-stream-inlet-stream-fluid */}
-
-<Tabs>
-<TabItem value="PREDEFINED" label="PREDEFINED">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `PREDEFINED` | Required |
-| `EOS_MODEL` |  | Default: `SRK` |
-| `GAS_TYPE` |  | Default: `MEDIUM` |
-
-</TabItem>
-
-<TabItem value="COMPOSITION" label="COMPOSITION">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPOSITION` | Required |
-| `EOS_MODEL` |  | Default: `SRK` |
-| [`COMPOSITION`](#process-simulations-stream-distribution-common-stream-inlet-stream-fluid-composition-composition) |  | Required |
-
-##### COMPOSITION {/* #process-simulations-stream-distribution-common-stream-inlet-stream-fluid-composition-composition */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `WATER` |  | Default: `0.0` |
-| `NITROGEN` |  | Default: `0.0` |
-| `CO2` |  | Default: `0.0` |
-| `METHANE` |  | Required |
-| `ETHANE` |  | Default: `0.0` |
-| `PROPANE` |  | Default: `0.0` |
-| `I_BUTANE` |  | Default: `0.0` |
-| `N_BUTANE` |  | Default: `0.0` |
-| `I_PENTANE` |  | Default: `0.0` |
-| `N_PENTANE` |  | Default: `0.0` |
-| `N_HEXANE` |  | Default: `0.0` |
-
-</TabItem>
-
-</Tabs>
 
 ##### RATE {/* #process-simulations-stream-distribution-common-stream-inlet-stream-rate */}
 
@@ -795,51 +542,10 @@ INLET_STREAMS:
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name of the inlet stream. | Required |
-| [`FLUID`](#process-simulations-stream-distribution-individual-streams-inlet-streams-fluid) | Reference to a fluid definition. | Required |
+| `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
 | `TEMPERATURE` | Temperature in K. | Required |
 | `PRESSURE` | Pressure in Bara | Required |
 | [`RATE`](#process-simulations-stream-distribution-individual-streams-inlet-streams-rate) | Rate with unit + value. | Required |
-
-##### FLUID {/* #process-simulations-stream-distribution-individual-streams-inlet-streams-fluid */}
-
-<Tabs>
-<TabItem value="PREDEFINED" label="PREDEFINED">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `PREDEFINED` | Required |
-| `EOS_MODEL` |  | Default: `SRK` |
-| `GAS_TYPE` |  | Default: `MEDIUM` |
-
-</TabItem>
-
-<TabItem value="COMPOSITION" label="COMPOSITION">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPOSITION` | Required |
-| `EOS_MODEL` |  | Default: `SRK` |
-| [`COMPOSITION`](#process-simulations-stream-distribution-individual-streams-inlet-streams-fluid-composition-composition) |  | Required |
-
-##### COMPOSITION {/* #process-simulations-stream-distribution-individual-streams-inlet-streams-fluid-composition-composition */}
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `WATER` |  | Default: `0.0` |
-| `NITROGEN` |  | Default: `0.0` |
-| `CO2` |  | Default: `0.0` |
-| `METHANE` |  | Required |
-| `ETHANE` |  | Default: `0.0` |
-| `PROPANE` |  | Default: `0.0` |
-| `I_BUTANE` |  | Default: `0.0` |
-| `N_BUTANE` |  | Default: `0.0` |
-| `I_PENTANE` |  | Default: `0.0` |
-| `N_PENTANE` |  | Default: `0.0` |
-| `N_HEXANE` |  | Default: `0.0` |
-
-</TabItem>
-
-</Tabs>
 
 ##### RATE {/* #process-simulations-stream-distribution-individual-streams-inlet-streams-rate */}
 

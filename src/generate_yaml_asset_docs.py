@@ -23,7 +23,8 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompositionFluidDefinitionBuilder,
@@ -258,6 +259,7 @@ class DocNode:
         children: list[DocNode] | None = None,
         parent: DocNode | None = None,
         is_discriminated_variant: bool = False,
+        is_definition_reference: bool = False,
     ):
         self.name = name
         self.field_info = field_info
@@ -265,6 +267,7 @@ class DocNode:
         self.children = children or []
         self.parent = parent
         self.is_discriminated_variant = is_discriminated_variant
+        self.is_definition_reference = is_definition_reference
 
     @property
     def title(self) -> str:
@@ -408,7 +411,9 @@ def build_tree(
             continue
 
         annotation = model.__annotations__.get(field_name, None)
-        # For fields using Annotated, extract FieldInfo from annotation metadata if needed
+        # Fall back to field_info.annotation for generic/parameterized models
+        if annotation is None and field_info.annotation is not None:
+            annotation = field_info.annotation
         node = DocNode(
             name=field_name,
             field_info=field_info,
@@ -416,24 +421,29 @@ def build_tree(
         )
 
         # Determine children by recursing into nested models
-        inner_models = _get_inner_models(annotation)
+        # Skip recursion for fields that accept a DefinitionReference — these are
+        # documented under DEFINITIONS and should just link there.
+        if _has_definition_reference(annotation):
+            node.is_definition_reference = True
+        else:
+            inner_models = _get_inner_models(annotation)
 
-        if _is_discriminated_union(annotation):
-            # Create child nodes for each variant
-            for variant_model in inner_models:
-                variant_name = _get_discriminator_value(variant_model) or variant_model.__name__
-                variant_node = DocNode(
-                    name=variant_name,
-                    field_info=None,
-                    type_annotation=variant_model,
-                    parent=node,
-                    is_discriminated_variant=True,
-                )
-                variant_node.children = build_tree(variant_model, _depth=_depth + 1, _seen=_seen)
-                node.children.append(variant_node)
-        elif len(inner_models) == 1:
-            # Single nested model — recurse directly
-            node.children = build_tree(inner_models[0], _depth=_depth + 1, _seen=_seen)
+            if _is_discriminated_union(annotation):
+                # Create child nodes for each variant
+                for variant_model in inner_models:
+                    variant_name = _get_discriminator_value(variant_model) or variant_model.__name__
+                    variant_node = DocNode(
+                        name=variant_name,
+                        field_info=None,
+                        type_annotation=variant_model,
+                        parent=node,
+                        is_discriminated_variant=True,
+                    )
+                    variant_node.children = build_tree(variant_model, _depth=_depth + 1, _seen=_seen)
+                    node.children.append(variant_node)
+            elif len(inner_models) == 1:
+                # Single nested model — recurse directly
+                node.children = build_tree(inner_models[0], _depth=_depth + 1, _seen=_seen)
 
         nodes.append(node)
 
@@ -526,6 +536,66 @@ def _get_literal_values(annotation: Any) -> list[str] | None:
     return None
 
 
+def _has_definition_reference(annotation: Any) -> bool:
+    """Check if a type annotation includes DefinitionReference in a union."""
+    annotation = _unwrap_annotation(annotation)
+    origin = get_origin(annotation)
+    if origin is Union or origin is types.UnionType:
+        return any(arg is DefinitionReference for arg in get_args(annotation))
+    return annotation is DefinitionReference
+
+
+def _build_definitions_type_map() -> dict[type, str]:
+    """
+    Build a mapping from BaseModel types to their DEFINITIONS subsection title.
+
+    Introspects YamlDefinitions to find which model types belong to which
+    subsection (e.g. YamlCompressorDefinition -> "PROCESS_UNITS").
+    """
+    type_to_section: dict[type, str] = {}
+
+    for field_name, field_info in YamlDefinitions.model_fields.items():
+        annotation = YamlDefinitions.__annotations__.get(field_name)
+        if annotation is None:
+            continue
+        title = field_info.title or field_name.upper()
+        # Extract model types from the dict value annotation
+        for model_type in _get_inner_models(annotation):
+            type_to_section[model_type] = title
+
+    return type_to_section
+
+
+# Pre-built at module level for use by the renderer
+_DEFINITIONS_TYPE_MAP: dict[type, str] = _build_definitions_type_map()
+
+
+def _resolve_definition_section(annotation: Any) -> str | None:
+    """
+    Given a field annotation that includes DefinitionReference, find which
+    DEFINITIONS subsection it refers to by matching the companion model types.
+
+    Returns the subsection title (e.g. "PROCESS_UNITS", "FLUIDS") or None.
+    """
+    annotation = _unwrap_annotation(annotation)
+    origin = get_origin(annotation)
+
+    if origin is Union or origin is types.UnionType:
+        args = get_args(annotation)
+    else:
+        return None
+
+    for arg in args:
+        if arg is DefinitionReference:
+            continue
+        # Check inner models of each non-DefinitionReference arg
+        for model_type in _get_inner_models(arg):
+            if model_type in _DEFINITIONS_TYPE_MAP:
+                return _DEFINITIONS_TYPE_MAP[model_type]
+
+    return None
+
+
 def _make_field_anchor(path: str) -> str:
     """Generate a URL-friendly anchor from a path."""
     return path.lower().replace(".", "-").replace("_", "-")
@@ -545,6 +615,18 @@ def _render_fields_table(nodes: list[DocNode], parent_path: str = "") -> list[li
                 desc = " \\| ".join(f"`{v}`" for v in literal_values)
         if not desc and node.description:
             desc = _clean_description(node.description)
+
+        # For fields that accept a DefinitionReference, add a note about inline vs reference
+        # and link to the specific DEFINITIONS subsection
+        if node.type_annotation and _has_definition_reference(node.type_annotation):
+            section = _resolve_definition_section(node.type_annotation)
+            if section:
+                # Docusaurus auto-generates heading IDs by lowercasing the heading text
+                section_anchor = section.lower()
+                ref_note = f"Inline definition or reference. See [DEFINITIONS.{section}](#{section_anchor})."
+            else:
+                ref_note = "Inline definition or reference to [DEFINITIONS](#definitions)."
+            desc = f"{desc} {ref_note}" if desc else ref_note
 
         if node.is_required:
             status = "Required"
