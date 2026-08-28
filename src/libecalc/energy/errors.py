@@ -15,3 +15,7 @@ class NegativeEnergyError(EnergyDomainError):
         self.value = value
         self.energy_type = energy_type
         super().__init__(f"{energy_type} value must be non-negative, got {value}")
+
+
+class InvalidEnergyNetworkError(EnergyDomainError):
+    """Raised when an energy network violates a topology invariant."""

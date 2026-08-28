@@ -9,9 +9,9 @@ from libecalc.common.units import Unit
 
 @dataclass(frozen=True)
 class Energy(abc.ABC):
-    """Base for all energy demand types.
+    """Base for all energy types.
 
-    Additional carriers (e.g. ThermalPower/Steam) can be added as subclasses
+    Additional energy types (e.g. ThermalPower/Steam) can be added as subclasses
     when thermal energy modeling is needed.
     """
 
