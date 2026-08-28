@@ -37,29 +37,22 @@ class EnergySolver:
 
         for unit_id in reversed(network.topological_order()):
             unit = network.get_node(unit_id)
+            input_energy: Energy | None = None
             output_energy: Energy | None = None
 
             if isinstance(unit, Consumer):
                 input_energy = unit.get_input_energy()
 
-            elif isinstance(unit, Junction):
+            elif isinstance(unit, (Provider, Junction)):
                 output_energy = self._get_output_energy(
-                    unit=unit, unit_id=unit_id, output_energy_by_unit=output_energy_by_unit
+                    unit=unit,
+                    unit_id=unit_id,
+                    output_energy_by_unit=output_energy_by_unit,
                 )
-                input_energy = output_energy
-
-            elif isinstance(unit, Converter):
-                output_energy = self._get_output_energy(
-                    unit=unit, unit_id=unit_id, output_energy_by_unit=output_energy_by_unit
-                )
-                input_energy = unit.get_input_energy(output_energy)
-
-            elif isinstance(unit, Provider):
-                output_energy = self._get_output_energy(
-                    unit=unit, unit_id=unit_id, output_energy_by_unit=output_energy_by_unit
-                )
-                input_energy = None
-
+                if isinstance(unit, Junction):
+                    input_energy = output_energy
+                elif isinstance(unit, Converter):
+                    input_energy = unit.get_input_energy(output_energy)
             else:
                 raise EnergySolverError(f"Unsupported energy unit type: {type(unit).__name__}")
 
