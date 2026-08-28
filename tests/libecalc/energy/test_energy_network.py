@@ -168,7 +168,7 @@ def test_rejects_cycles():
         )
 
 
-def test_supports_multiple_successors():
+def test_connects_provider_to_multiple_consumers():
     """A provider can supply multiple downstream consumers."""
     source = FuelGasSource(name="source")
     generator = GeneratorSet(name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000)
@@ -206,7 +206,7 @@ def test_supports_multiple_successors():
     )
 
 
-def test_supports_multiple_predecessors_through_junction():
+def test_connects_multiple_providers_to_consumer_through_junction():
     grid = OnshoreGrid(name="grid", max_power=20)
     wind = OffshoreWind(name="wind", power=5)
 
@@ -240,7 +240,7 @@ def test_supports_multiple_predecessors_through_junction():
     assert network.successors(bus.get_id()) == frozenset({load.get_id()})
 
 
-def test_supports_transporter_between_source_and_consumer():
+def test_connects_source_to_consumer_through_transporter():
     grid = OnshoreGrid(
         name="grid",
         max_power=20,
