@@ -1,6 +1,14 @@
 import pytest
 
-from libecalc.energy.energy_units import BaseLoad, ElectricalBus, FuelGasSource, GeneratorSet, OffshoreWind, OnshoreGrid
+from libecalc.energy.energy_units import (
+    BaseLoad,
+    ElectricalBus,
+    ElectricalCable,
+    FuelGasSource,
+    GeneratorSet,
+    OffshoreWind,
+    OnshoreGrid,
+)
 from libecalc.energy.errors import InvalidEnergyNetworkError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
 
@@ -32,13 +40,13 @@ def test_accepts_valid_typed_network():
     assert network.get_node(generator.get_id()) is generator
 
 
-def test_rejects_incompatible_demand_types():
+def test_rejects_incompatible_energy_types():
     source = FuelGasSource(name="source")
     load = BaseLoad(name="load", load=5)
 
     with pytest.raises(
         InvalidEnergyNetworkError,
-        match="Incompatible demand types",
+        match="Incompatible energy types",
     ):
         EnergyNetwork(
             nodes=[source, load],
@@ -230,3 +238,33 @@ def test_supports_fan_in_through_junction():
         }
     )
     assert network.successors(bus.get_id()) == frozenset({load.get_id()})
+
+
+def test_supports_transporter():
+    grid = OnshoreGrid(
+        name="grid",
+        max_power=20,
+    )
+    cable = ElectricalCable(
+        name="cable",
+        max_power=15,
+        loss_fraction=0.04,
+    )
+    load = BaseLoad(name="load", load=10)
+
+    network = EnergyNetwork(
+        nodes=[grid, cable, load],
+        connections=[
+            EnergyConnection(
+                source_id=grid.get_id(),
+                target_id=cable.get_id(),
+            ),
+            EnergyConnection(
+                source_id=cable.get_id(),
+                target_id=load.get_id(),
+            ),
+        ],
+    )
+
+    assert network.predecessors(cable.get_id()) == frozenset({grid.get_id()})
+    assert network.successors(cable.get_id()) == frozenset({load.get_id()})

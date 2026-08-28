@@ -3,13 +3,13 @@ from graphlib import CycleError, TopologicalSorter
 
 from libecalc.common.ddd import value_object
 from libecalc.energy.consumer import Consumer
-from libecalc.energy.demand import Demand
+from libecalc.energy.energy import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import Junction
 from libecalc.energy.errors import InvalidEnergyNetworkError
 from libecalc.energy.provider import Converter, Provider
 
-type EnergyNetworkNode = Consumer[Demand] | Provider[Demand] | Junction[Demand]
+type EnergyNetworkNode = Consumer[Energy] | Provider[Energy] | Junction[Energy]
 
 
 @value_object
@@ -97,38 +97,38 @@ class EnergyNetwork:
         source = self._nodes[connection.source_id]
         target = self._nodes[connection.target_id]
 
-        provided_demand_type = self._get_provided_demand_type(source)
-        required_demand_type = self._get_required_demand_type(target)
+        output_type = self._get_output_type(source)
+        input_type = self._get_input_type(target)
 
-        if provided_demand_type is not required_demand_type:
+        if output_type is not input_type:
             raise InvalidEnergyNetworkError(
-                f"Incompatible demand types: {provided_demand_type.__name__} -> {required_demand_type.__name__}"
+                f"Incompatible energy types: {output_type.__name__} -> {input_type.__name__}"
             )
 
     @staticmethod
-    def _get_provided_demand_type(
+    def _get_output_type(
         node: EnergyNetworkNode,
-    ) -> type[Demand]:
+    ) -> type[Energy]:
         if isinstance(node, Provider):
-            return node.provided_demand_type
+            return node.get_output_type()
 
         if isinstance(node, Junction):
-            return node.demand_type
+            return node.get_energy_type()
 
         raise InvalidEnergyNetworkError("Source node provides no energy")
 
     @staticmethod
-    def _get_required_demand_type(
+    def _get_input_type(
         node: EnergyNetworkNode,
-    ) -> type[Demand]:
+    ) -> type[Energy]:
         if isinstance(node, Consumer):
-            return node.required_demand_type
+            return node.get_input_type()
 
         if isinstance(node, Converter):
-            return node.required_demand_type
+            return node.get_input_type()
 
         if isinstance(node, Junction):
-            return node.demand_type
+            return node.get_energy_type()
 
         raise InvalidEnergyNetworkError("Target node requires no energy")
 
