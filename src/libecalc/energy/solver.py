@@ -43,15 +43,21 @@ class EnergySolver:
                 input_energy = unit.get_input_energy()
 
             elif isinstance(unit, Junction):
-                output_energy = self._get_output_energy(unit, unit_id, output_energy_by_unit)
+                output_energy = self._get_output_energy(
+                    unit=unit, unit_id=unit_id, output_energy_by_unit=output_energy_by_unit
+                )
                 input_energy = output_energy
 
             elif isinstance(unit, Converter):
-                output_energy = self._get_output_energy(unit, unit_id, output_energy_by_unit)
+                output_energy = self._get_output_energy(
+                    unit=unit, unit_id=unit_id, output_energy_by_unit=output_energy_by_unit
+                )
                 input_energy = unit.get_input_energy(output_energy)
 
             elif isinstance(unit, Provider):
-                output_energy = self._get_output_energy(unit, unit_id, output_energy_by_unit)
+                output_energy = self._get_output_energy(
+                    unit=unit, unit_id=unit_id, output_energy_by_unit=output_energy_by_unit
+                )
                 input_energy = None
 
             else:
@@ -60,7 +66,7 @@ class EnergySolver:
             capacity_exceeded = (
                 isinstance(unit, Provider)
                 and output_energy is not None
-                and self._is_capacity_exceeded(unit, output_energy)
+                and self._is_capacity_exceeded(provider=unit, output_energy=output_energy)
             )
 
             unit_results_by_id[unit_id] = EnergyUnitResult(
@@ -73,8 +79,8 @@ class EnergySolver:
             # A unit's input energy contributes to its predecessor's output energy.
             if input_energy is not None and input_energy.value > 0:
                 predecessor_id = self._get_single_predecessor_id(
-                    network,
-                    unit_id,
+                    network=network,
+                    unit_id=unit_id,
                 )
                 predecessor_output_energy = output_energy_by_unit.get(predecessor_id)
 
