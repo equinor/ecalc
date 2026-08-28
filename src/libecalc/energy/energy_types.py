@@ -8,7 +8,7 @@ from libecalc.common.units import Unit
 
 
 @dataclass(frozen=True)
-class Demand(abc.ABC):
+class Energy(abc.ABC):
     """Base for all energy demand types.
 
     Additional carriers (e.g. ThermalPower/Steam) can be added as subclasses
@@ -19,9 +19,9 @@ class Demand(abc.ABC):
 
     def __post_init__(self) -> None:
         if self.value < 0:
-            from libecalc.energy.errors import NegativeDemandError
+            from libecalc.energy.errors import NegativeEnergyError
 
-            raise NegativeDemandError(self.value, type(self).__name__)
+            raise NegativeEnergyError(self.value, type(self).__name__)
 
     @property
     @abc.abstractmethod
@@ -41,28 +41,28 @@ class Demand(abc.ABC):
 
 
 @dataclass(frozen=True)
-class MechanicalPower(Demand):
+class MechanicalPower(Energy):
     @property
     def unit(self) -> Unit:
         return Unit.MEGA_WATT
 
 
 @dataclass(frozen=True)
-class ElectricalPower(Demand):
+class ElectricalPower(Energy):
     @property
     def unit(self) -> Unit:
         return Unit.MEGA_WATT
 
 
 @dataclass(frozen=True)
-class FuelGasRate(Demand):
+class FuelGasRate(Energy):
     @property
     def unit(self) -> Unit:
         return Unit.STANDARD_CUBIC_METER_PER_DAY
 
 
 @dataclass(frozen=True)
-class DieselRate(Demand):
+class DieselRate(Energy):
     @property
     def unit(self) -> Unit:
         return Unit.LITRES_PER_DAY
