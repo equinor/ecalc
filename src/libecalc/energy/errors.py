@@ -19,3 +19,7 @@ class NegativeEnergyError(EnergyDomainError):
 
 class InvalidEnergyNetworkError(EnergyDomainError):
     """Raised when an energy network violates a topology invariant."""
+
+
+class EnergySolverError(EnergyDomainError):
+    """Raised when an energy network cannot be evaluated."""
