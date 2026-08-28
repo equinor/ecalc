@@ -26,7 +26,7 @@ class TestABCContracts:
     """Tests that the ABCs enforce their contracts — the reason they exist."""
 
     def test_converters_are_substitutable(self):
-        """Any Converter[FuelGasRate, T] can be used polymorphically.
+        """Converters can be used polymorphically through the common Energy interface.
 
         This is the value proposition: code operating on the abstract interface
         works across all concrete implementations without knowing the type.
