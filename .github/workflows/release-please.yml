@@ -44,7 +44,7 @@ jobs:
           if [[ "${OVERRIDING_VERSIONING_STRATEGY}" != "" && "${OVERRIDING_VERSIONING_STRATEGY}" != "auto" ]]; then
             echo "versioning_strategy=${OVERRIDING_VERSIONING_STRATEGY}" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF_NAME}" == "main" ]]; then
-            echo "versioning_strategy=always-bump-major" >> $GITHUB_OUTPUT
+            echo "versioning_strategy=always-bump-minor" >> $GITHUB_OUTPUT
           elif [[ "${GITHUB_REF_NAME}" == release/v* ]]; then
             echo "versioning_strategy=always-bump-patch" >> $GITHUB_OUTPUT
           else  # exit
