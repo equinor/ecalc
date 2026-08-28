@@ -13,7 +13,7 @@ from libecalc.energy.errors import InvalidEnergyNetworkError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
 
 
-def test_accepts_valid_typed_network():
+def test_accepts_valid_energy_network():
     source = FuelGasSource(name="source")
     generator = GeneratorSet(name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000.0)
     load = BaseLoad(name="load", load=5)
@@ -110,7 +110,7 @@ def test_rejects_consumer_as_source():
         )
 
 
-def test_rejects_provider_as_target():
+def test_rejects_source_as_target():
     source = FuelGasSource(name="source")
     target = FuelGasSource(name="target")
 
@@ -168,7 +168,7 @@ def test_rejects_cycles():
         )
 
 
-def test_supports_fan_out():
+def test_supports_multiple_successors():
     """A provider can supply multiple downstream consumers."""
     source = FuelGasSource(name="source")
     generator = GeneratorSet(name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000)
@@ -206,7 +206,7 @@ def test_supports_fan_out():
     )
 
 
-def test_supports_fan_in_through_junction():
+def test_supports_multiple_predecessors_through_junction():
     grid = OnshoreGrid(name="grid", max_power=20)
     wind = OffshoreWind(name="wind", power=5)
 
@@ -240,7 +240,7 @@ def test_supports_fan_in_through_junction():
     assert network.successors(bus.get_id()) == frozenset({load.get_id()})
 
 
-def test_supports_transporter():
+def test_supports_transporter_between_source_and_consumer():
     grid = OnshoreGrid(
         name="grid",
         max_power=20,
