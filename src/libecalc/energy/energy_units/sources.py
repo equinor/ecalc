@@ -30,10 +30,6 @@ class FuelGasSource(Source):
     def capacity(self) -> FuelGasRate | None:
         return FuelGasRate(self._max_rate) if self._max_rate is not None else None
 
-    @property
-    def provided_demand_type(self) -> type[FuelGasRate]:
-        return FuelGasRate
-
 
 class OnshoreGrid(Source):
     """Onshore electrical grid connection, capped at contracted capacity."""
@@ -58,10 +54,6 @@ class OnshoreGrid(Source):
 
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self._max_power)
-
-    @property
-    def provided_demand_type(self) -> type[ElectricalPower]:
-        return ElectricalPower
 
 
 class OffshoreWind(Source):
@@ -88,10 +80,6 @@ class OffshoreWind(Source):
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self._power)
 
-    @property
-    def provided_demand_type(self) -> type[ElectricalPower]:
-        return ElectricalPower
-
 
 class DieselSupply(Source):
     """Diesel fuel supply, brought to platform/rig by supply vessels."""
@@ -116,7 +104,3 @@ class DieselSupply(Source):
 
     def capacity(self) -> DieselRate | None:
         return DieselRate(self._max_rate) if self._max_rate is not None else None
-
-    @property
-    def provided_demand_type(self) -> type[DieselRate]:
-        return DieselRate

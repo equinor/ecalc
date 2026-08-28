@@ -3,13 +3,13 @@ from graphlib import CycleError, TopologicalSorter
 
 from libecalc.common.ddd import value_object
 from libecalc.energy.consumer import Consumer
-from libecalc.energy.energy import Energy
+from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import Junction
 from libecalc.energy.errors import InvalidEnergyNetworkError
 from libecalc.energy.provider import Converter, Provider
 
-type EnergyNetworkNode = Consumer[Energy] | Provider[Energy] | Junction[Energy]
+type EnergyNetworkNode = Consumer | Provider | Junction
 
 
 @value_object
@@ -109,28 +109,19 @@ class EnergyNetwork:
     def _get_output_type(
         node: EnergyNetworkNode,
     ) -> type[Energy]:
-        if isinstance(node, Provider):
-            return node.get_output_type()
+        if not isinstance(node, (Provider, Junction)):
+            raise InvalidEnergyNetworkError("Source node provides no energy")
 
-        if isinstance(node, Junction):
-            return node.get_energy_type()
-
-        raise InvalidEnergyNetworkError("Source node provides no energy")
+        return node.get_output_energy_type()
 
     @staticmethod
     def _get_input_type(
         node: EnergyNetworkNode,
     ) -> type[Energy]:
-        if isinstance(node, Consumer):
-            return node.get_input_type()
+        if not isinstance(node, (Consumer, Converter, Junction)):
+            raise InvalidEnergyNetworkError("Target node requires no energy")
 
-        if isinstance(node, Converter):
-            return node.get_input_type()
-
-        if isinstance(node, Junction):
-            return node.get_energy_type()
-
-        raise InvalidEnergyNetworkError("Target node requires no energy")
+        return node.get_input_energy_type()
 
     def _create_topological_order(
         self,

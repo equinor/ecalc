@@ -19,10 +19,6 @@ class Provider(EnergyUnit, abc.ABC):
         """Maximum this provider can deliver. None = unlimited."""
         ...
 
-    @property
-    @abc.abstractmethod
-    def provided_demand_type(self) -> type[TProvides]: ...
-
 
 class Source(Provider):
     """Energy enters the system from an external source.
@@ -53,7 +49,3 @@ class Converter(Provider):
     def get_input_energy(self, output_energy: Energy) -> Energy:
         """Given output needed, what input is required?"""
         ...
-
-    @property
-    @abc.abstractmethod
-    def required_demand_type(self) -> type[TRequires]: ...

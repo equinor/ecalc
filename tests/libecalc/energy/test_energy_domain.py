@@ -1,32 +1,3 @@
-"""Test energy domain ABCs using a simplified version of the ltp_export example.
-
-INST_A topology (energy flow):
-
-    fuel_gas_sac (Source, output: FuelGasRate) — unlimited
-        ├── genset (Converter, input: FuelGasRate, output: ElectricalPower) — 17 MW capacity, 5000 Sm3/d per MW
-        │       ├── base_load (Consumer, input: ElectricalPower)                    6 MW
-        │       ├── steamgen (Consumer, input: ElectricalPower)                     5 MW
-        │       ├── heating_sat_a (Consumer, input: ElectricalPower)                3 MW
-        │       └── waterinj_motor (Converter, input: ElectricalPower, output: MechanicalPower) — 5 MW, 95% eff
-        │               └── waterinj (Consumer, input: MechanicalPower)             4 MW
-        │
-        ├── export_turbine (Converter, input: FuelGasRate, output: MechanicalPower) — 30 MW, 6000 Sm3/d per MW
-        │       └── export_compressor (Consumer, input: MechanicalPower)           20 MW
-        │
-        └── gascompression_compressor_sampled (Consumer, input: FuelGasRate) — sampled, 50000 Sm3/d
-
-    flare_gas (Source, output: FuelGasRate) — unlimited
-        └── flare (Consumer, input: FuelGasRate)                                 1200 Sm3/d
-
-    diesel (Source, output: DieselRate) — unlimited
-        └── diesel_consumers (Consumer, input: DieselRate)                        500 l/d
-
-    onshore_power (Source, output: ElectricalPower) — 20 MW capacity ──┐
-    wind_turbine (Source, output: ElectricalPower) — 4.4 MW capacity ──┤ power_from_shore bus
-                                                                       └── heating (Consumer, input: ElectricalPower)  10 MW
-
-    Cold venting, fugitives, loading, storage → emission domain (not energy).
-"""
 """Tests energy domain contracts and demand propagation through converters."""
 
 from __future__ import annotations
@@ -39,7 +10,7 @@ from libecalc.energy import (
     FuelGasRate,
     MechanicalPower,
 )
-from libecalc.energy.energy import Energy
+from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_units import (
     BaseLoad,
     Compressor,
@@ -55,18 +26,20 @@ class TestABCContracts:
     """Tests that the ABCs enforce their contracts — the reason they exist."""
 
     def test_converters_are_substitutable(self):
-        """Any fuel-consuming Converter can be used polymorphically."""
+        """Any Converter[FuelGasRate, T] can be used polymorphically.
 
-        def fuel_required(converter: Converter, demand: Energy) -> FuelGasRate:
-            result = converter.get_input_energy(demand)
-            assert isinstance(result, FuelGasRate)
-            return result
+        This is the value proposition: code operating on the abstract interface
+        works across all concrete implementations without knowing the type.
+        """
+
+        def required_input_energy(converter: Converter, output_energy: Energy) -> Energy:
+            return converter.get_input_energy(output_energy)
 
         genset = GeneratorSet("genset", max_power=17.0, power_to_fuel=lambda output_power: output_power * 5000.0)
         turbine = GasTurbine("turbine", max_power=30.0, power_to_fuel=lambda output_power: output_power * 6000.0)
 
-        assert fuel_required(genset, ElectricalPower(10.0)).value == 50_000.0
-        assert fuel_required(turbine, MechanicalPower(10.0)).value == 60_000.0
+        assert required_input_energy(genset, ElectricalPower(10.0)).value == 50_000.0
+        assert required_input_energy(turbine, MechanicalPower(10.0)).value == 60_000.0
 
     def test_type_safety_prevents_mixing_energy_types(self):
         """Runtime guard on Energy.__add__ for dynamic contexts where the type checker can't help.
@@ -99,16 +72,16 @@ class TestEnergyDomainBehavior:
 
         # Electrical consumers on genset (including pump through motor)
         electrical_demand = (
-            BaseLoad("base_load", load=6.0).get_demand()
-            + BaseLoad("steamgen", load=5.0).get_demand()
-            + BaseLoad("heating_sat_a", load=3.0).get_demand()
-            + motor.get_input_energy(Pump("waterinj", power=4.0).get_demand())
+            BaseLoad("base_load", load=6.0).get_input_energy()
+            + BaseLoad("steamgen", load=5.0).get_input_energy()
+            + BaseLoad("heating_sat_a", load=3.0).get_input_energy()
+            + motor.get_input_energy(Pump("waterinj", power=4.0).get_input_energy())
         )
 
         # All chains resolve to FuelGasRate
         genset_fuel = genset.get_input_energy(electrical_demand)
-        export_fuel = turbine.get_input_energy(Compressor("export", power=20.0).get_demand())
-        sampled_fuel = SampledFuelConsumer("gascompression", fuel_rate=50_000.0).get_demand()
+        export_fuel = turbine.get_input_energy(Compressor("export", power=20.0).get_input_energy())
+        sampled_fuel = SampledFuelConsumer("gascompression", fuel_rate=50_000.0).get_input_energy()
 
         # Motor overhead propagates: 4 MW pump → 4/0.95 MW electrical → fuel
         total_fuel = genset_fuel + export_fuel + sampled_fuel

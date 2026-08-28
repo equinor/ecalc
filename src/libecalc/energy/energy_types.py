@@ -9,11 +9,7 @@ from libecalc.common.units import Unit
 
 @dataclass(frozen=True)
 class Energy(abc.ABC):
-<<<<<<<< HEAD:src/libecalc/energy/energy_types.py
-    """Base for all energy demand types.
-========
     """Base for all energy types.
->>>>>>>> c3ff5d41d (chore: change demand to energy and update tests):src/libecalc/energy/energy.py
 
     Additional energy types (e.g. ThermalPower/Steam) can be added as subclasses
     when thermal energy modeling is needed.
