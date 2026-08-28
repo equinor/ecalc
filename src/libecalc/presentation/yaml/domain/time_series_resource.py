@@ -216,11 +216,8 @@ class TimeSeriesResource(Resource):
                 )
 
         if message:
-            err = ValueError(
-                message + " Note: All line numbers exclude headers and comments, and may therefore be a bit off."
-            )
-            logger.info("Date parsing went wrong!", exc_info=err)
-            raise err
+            message += " Note: All line numbers exclude headers and comments, and may therefore be a bit off."
+            raise ValueError(message)
         raise ValueError(
             "The provided dates doesn't match any of the accepted date formats, "
             "or contains inconsistently formatted dates. "
