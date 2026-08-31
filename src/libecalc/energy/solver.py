@@ -86,14 +86,13 @@ class EnergySolver:
                     unit_id=unit_id,
                 )
 
-            capacity_exceeded = (
-                isinstance(unit, Provider)
-                and output_energy is not None
-                and self._is_capacity_exceeded(
+            capacity_exceeded = False
+
+            if isinstance(unit, Provider) and output_energy is not None:
+                capacity_exceeded = self._is_capacity_exceeded(
                     provider=unit,
                     output_energy=output_energy,
                 )
-            )
 
             unit_results_by_id[unit_id] = EnergyUnitResult(
                 energy_unit_id=unit_id,
