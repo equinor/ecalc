@@ -47,6 +47,7 @@ class EnergySolver:
             EnergyUnitResult,
         ] = {}
 
+        # Reverse topological order ensures all successor results are available.
         for unit_id in reversed(unit_ids):
             unit = network.get_node(unit_id)
             input_energy: Energy | None = None
