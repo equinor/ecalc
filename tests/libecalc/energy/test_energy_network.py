@@ -168,7 +168,7 @@ class TestEnergyNetworkTopology:
                 ),
             ],
         )
-        assert network.topological_order() == (
+        assert network.get_topological_order() == (
             source.get_id(),
             generator.get_id(),
             load.get_id(),
@@ -206,7 +206,7 @@ class TestEnergyNetworkTopology:
             ],
         )
 
-        assert network.successors(generator.get_id()) == frozenset(
+        assert network.get_successors(generator.get_id()) == frozenset(
             {
                 first_load.get_id(),
                 second_load.get_id(),
@@ -238,13 +238,13 @@ class TestEnergyNetworkTopology:
             ],
         )
 
-        assert network.predecessors(bus.get_id()) == frozenset(
+        assert network.get_predecessors(bus.get_id()) == frozenset(
             {
                 grid.get_id(),
                 wind.get_id(),
             }
         )
-        assert network.successors(bus.get_id()) == frozenset({load.get_id()})
+        assert network.get_successors(bus.get_id()) == frozenset({load.get_id()})
 
     def test_connects_source_to_consumer_through_transporter(self):
         grid = OnshoreGrid(
@@ -272,8 +272,8 @@ class TestEnergyNetworkTopology:
             ],
         )
 
-        assert network.predecessors(cable.get_id()) == frozenset({grid.get_id()})
-        assert network.successors(cable.get_id()) == frozenset({load.get_id()})
+        assert network.get_predecessors(cable.get_id()) == frozenset({grid.get_id()})
+        assert network.get_successors(cable.get_id()) == frozenset({load.get_id()})
 
 
 class TestEnergyNetworkEnergyCalculation:

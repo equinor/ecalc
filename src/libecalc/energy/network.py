@@ -63,19 +63,19 @@ class EnergyNetwork:
         return tuple(self._nodes[node_id] for node_id in self._topological_order)
 
     # Topology
-    def predecessors(
+    def get_predecessors(
         self,
         node_id: EnergyUnitId,
     ) -> frozenset[EnergyUnitId]:
         return frozenset(self._predecessors[node_id])
 
-    def successors(
+    def get_successors(
         self,
         node_id: EnergyUnitId,
     ) -> frozenset[EnergyUnitId]:
         return frozenset(self._successors[node_id])
 
-    def topological_order(
+    def get_topological_order(
         self,
     ) -> tuple[EnergyUnitId, ...]:
         return self._topological_order
@@ -127,14 +127,14 @@ class EnergyNetwork:
         output_energy = node.get_output_energy_type()(value=0)
 
         # A provider or junction outputs the combined input energy of its successors.
-        for successor_id in self.successors(node_id):
+        for successor_id in self.get_successors(node_id):
             successor_input_energy = self.get_input_energy(successor_id)
 
             if successor_input_energy is None:
                 raise InvalidEnergyNetworkError(f"Energy unit {successor_id} has no input energy")
 
             # Positive demand with multiple predecessors requires allocation.
-            if successor_input_energy.value > 0 and len(self.predecessors(successor_id)) > 1:
+            if successor_input_energy.value > 0 and len(self.get_predecessors(successor_id)) > 1:
                 raise EnergyAllocationRequiredError(
                     f"Cannot calculate output energy for unit {node_id}: "
                     f"successor {successor_id} has {len(self._predecessors)} predecessors, "
@@ -174,7 +174,7 @@ class EnergyNetwork:
         return output_energy.value > capacity.value
 
     def is_feasible(self) -> bool:
-        return not any(self.is_capacity_exceeded(unit_id) for unit_id in self.topological_order())
+        return not any(self.is_capacity_exceeded(unit_id) for unit_id in self.get_topological_order())
 
     # Private topology construction and validation
     def _add_connections(
