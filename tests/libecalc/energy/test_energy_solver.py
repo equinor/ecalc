@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.energy import ElectricalPower, EnergyUnit, EnergyUnitId, FuelGasRate, MechanicalPower
+from libecalc.energy import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_units import (
     BaseLoad,
     ElectricalBus,
@@ -13,20 +13,7 @@ from libecalc.energy.energy_units import (
 )
 from libecalc.energy.errors import EnergySolverError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
-from libecalc.energy.solver import EnergyNetworkResult, EnergySolver, EnergyUnitResult
-
-
-def connect(source: EnergyUnit, target: EnergyUnit) -> EnergyConnection:
-    return EnergyConnection(
-        source_id=source.get_id(),
-        target_id=target.get_id(),
-    )
-
-
-def results_by_id(
-    result: EnergyNetworkResult,
-) -> dict[EnergyUnitId, EnergyUnitResult]:
-    return {unit_result.energy_unit_id: unit_result for unit_result in result.unit_results}
+from libecalc.energy.solver import EnergySolver, EnergyUnitResult
 
 
 def test_calculates_input_and_output_energy_through_network():
@@ -44,22 +31,21 @@ def test_calculates_input_and_output_energy_through_network():
     network = EnergyNetwork(
         nodes=[source, generator, bus, motor, pump, base_load],
         connections=[
-            connect(source, generator),
-            connect(generator, bus),
-            connect(bus, motor),
-            connect(motor, pump),
-            connect(bus, base_load),
+            EnergyConnection(source.get_id(), generator.get_id()),
+            EnergyConnection(generator.get_id(), bus.get_id()),
+            EnergyConnection(bus.get_id(), motor.get_id()),
+            EnergyConnection(motor.get_id(), pump.get_id()),
+            EnergyConnection(bus.get_id(), base_load.get_id()),
         ],
     )
 
     result = EnergySolver().solve(network)
-    unit_results = results_by_id(result)
 
     # All providers can supply their calculated output energy.
     assert result.is_feasible()
 
     # The pump has 4 MW of mechanical input and no output energy.
-    assert unit_results[pump.get_id()] == EnergyUnitResult(
+    assert result.get_unit_result(pump.get_id()) == EnergyUnitResult(
         energy_unit_id=pump.get_id(),
         input_energy=MechanicalPower(4),
         output_energy=None,
@@ -67,7 +53,7 @@ def test_calculates_input_and_output_energy_through_network():
     )
 
     # The base load has 5 MW of electrical input and no output energy.
-    assert unit_results[base_load.get_id()] == EnergyUnitResult(
+    assert result.get_unit_result(base_load.get_id()) == EnergyUnitResult(
         energy_unit_id=base_load.get_id(),
         input_energy=ElectricalPower(5),
         output_energy=None,
@@ -75,7 +61,7 @@ def test_calculates_input_and_output_energy_through_network():
     )
 
     # The motor outputs 4 MW mechanical from 5 MW electrical input.
-    assert unit_results[motor.get_id()] == EnergyUnitResult(
+    assert result.get_unit_result(motor.get_id()) == EnergyUnitResult(
         energy_unit_id=motor.get_id(),
         input_energy=ElectricalPower(5),
         output_energy=MechanicalPower(4),
@@ -83,7 +69,7 @@ def test_calculates_input_and_output_energy_through_network():
     )
 
     # The bus passes through 10 MW for the motor and base load.
-    assert unit_results[bus.get_id()] == EnergyUnitResult(
+    assert result.get_unit_result(bus.get_id()) == EnergyUnitResult(
         energy_unit_id=bus.get_id(),
         input_energy=ElectricalPower(10),
         output_energy=ElectricalPower(10),
@@ -91,7 +77,7 @@ def test_calculates_input_and_output_energy_through_network():
     )
 
     # The generator outputs 10 MW from 10,000 Sm3/day of fuel-gas input.
-    assert unit_results[generator.get_id()] == EnergyUnitResult(
+    assert result.get_unit_result(generator.get_id()) == EnergyUnitResult(
         energy_unit_id=generator.get_id(),
         input_energy=FuelGasRate(10_000),
         output_energy=ElectricalPower(10),
@@ -99,7 +85,7 @@ def test_calculates_input_and_output_energy_through_network():
     )
 
     # The source supplies the generator's total fuel-gas input.
-    assert unit_results[source.get_id()] == EnergyUnitResult(
+    assert result.get_unit_result(source.get_id()) == EnergyUnitResult(
         energy_unit_id=source.get_id(),
         input_energy=None,
         output_energy=FuelGasRate(10_000),
@@ -117,11 +103,14 @@ def test_reports_capacity_exceeded_without_capping_output_energy():
     load = BaseLoad("load", load=6)
     network = EnergyNetwork(
         nodes=[source, generator, load],
-        connections=[connect(source, generator), connect(generator, load)],
+        connections=[
+            EnergyConnection(source.get_id(), generator.get_id()),
+            EnergyConnection(generator.get_id(), load.get_id()),
+        ],
     )
 
     result = EnergySolver().solve(network)
-    generator_result = results_by_id(result)[generator.get_id()]
+    generator_result = result.get_unit_result(generator.get_id())
 
     assert not result.is_feasible()
     assert generator_result.input_energy == FuelGasRate(6_000)
@@ -145,9 +134,9 @@ def test_raises_when_multiple_predecessors_require_allocation():
     network = EnergyNetwork(
         nodes=[grid, wind, bus, load],
         connections=[
-            connect(grid, bus),
-            connect(wind, bus),
-            connect(bus, load),
+            EnergyConnection(grid.get_id(), bus.get_id()),
+            EnergyConnection(wind.get_id(), bus.get_id()),
+            EnergyConnection(bus.get_id(), load.get_id()),
         ],
     )
 
