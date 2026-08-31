@@ -21,5 +21,5 @@ class InvalidEnergyNetworkError(EnergyDomainError):
     """Raised when an energy network violates a topology invariant."""
 
 
-class EnergySolverError(EnergyDomainError):
-    """Raised when an energy network cannot be evaluated."""
+class EnergyAllocationRequiredError(EnergyDomainError):
+    """Raised when an energy unit has multiple predecessors."""
