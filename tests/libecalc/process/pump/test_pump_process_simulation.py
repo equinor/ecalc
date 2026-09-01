@@ -117,6 +117,20 @@ def test_recirculation_raises_operating_flow_between_mixer_and_splitter(simulati
     assert mixer_to_pump.mass_rate_kg_per_h > inlet_to_mixer.mass_rate_kg_per_h
 
 
+def test_shortfall_outlet_stream_is_at_the_deliverable_pressure(simulation):
+    # Duty above the pump's capacity -> outlet edge must carry the operational (lower) pressure,
+    # not the required one; a choke cannot add pressure back.
+    (result,) = simulation.evaluate([_operating_input(600.0, discharge=250.0)])
+
+    connections = simulation.get_process_unit_connections()
+    choke_to_outlet = result.connection_streams[connections[-1].get_id()]
+    pump_result = result.pump_result
+
+    assert pump_result.pressure_shortfall_bara > 0
+    assert choke_to_outlet.pressure_bara == pytest.approx(pump_result.operational_discharge_pressure_bara)
+    assert choke_to_outlet.pressure_bara < pump_result.required_discharge_pressure_bara
+
+
 def test_zero_rate_produces_zero_result_at_inlet_pressure(simulation):
     # Pump off (rate 0): still a full result - zero power, outlet = inlet pressure, zero-flow streams.
     (result,) = simulation.evaluate([_operating_input(0.0, discharge=200.0)])

@@ -5,10 +5,24 @@ follows directly from the pressure rise and the density (``head = (p_d - p_s) / 
 pump chart supplies the efficiency and the feasible operating window. Everything is closed-form:
 the operating point is read off the chart envelope, so there is no solver and no iteration.
 
-When the pump cannot sit exactly on the target - a single-speed pump is pinned to its curve, and a
-variable-speed pump cannot deliver less head than its minimum-speed curve - it delivers a higher
-(operating) head than required. The result exposes both the required and the operating discharge
-pressure; the excess would be dropped by a downstream choke.
+When the pump cannot sit exactly on the target, the head is bounded to the chart envelope in both
+directions:
+
+- Below the envelope - a single-speed pump is pinned to its curve, and a variable-speed pump
+  cannot deliver less head than its minimum-speed curve - it delivers a higher (operating) head
+  than required. The excess would be dropped by a downstream choke (``choke_pressure_drop_bara``).
+- Above the envelope - neither pump type can deliver more head than its maximum-speed curve - the
+  operating head is capped there, so the delivered discharge pressure falls short of what was
+  required (``pressure_shortfall_bara``). ``failure_status`` is derived from the required head, so
+  it reports the infeasibility independently of the cap.
+
+The result exposes both the required and the operating discharge pressure so a caller can tell
+these regimes apart. The rate itself is never capped - only the head is. A rate above the chart's
+own maximum rate is flagged separately, via ``PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE``. At such
+a rate, the head cap itself is also less reliable: ``Chart.maximum_head_as_function_of_rate``
+does not extrapolate the curve's declining trend past its highest measured rate - it holds the head
+flat at the value from that highest-rate point instead. For example, if the curve's highest-rate
+point is 927 m3/h, evaluating the pump at 1200 m3/h uses that same 927 m3/h head value as the cap.
 """
 
 from __future__ import annotations
@@ -50,9 +64,10 @@ class PumpEvaluationResult:
             ``None`` when not running.
         required_head_joule_per_kg: Head implied by the suction and required discharge pressures,
             ``(p_d - p_s) / rho`` [J/kg].
-        operational_head_joule_per_kg: Actual head the pump operates at [J/kg], after min-head
-            choking. It exceeds the required head when the pump cannot deliver less head than its
-            (minimum-speed) curve at the operating rate; otherwise it equals the required head.
+        operational_head_joule_per_kg: Actual head the pump operates at [J/kg], bounded to the
+            chart envelope. Exceeds the required head when the pump cannot deliver less head than
+            its minimum-speed curve at the operating rate; falls below it when the required head
+            exceeds the maximum-speed curve; otherwise equals the required head.
         operational_volumetric_rate_m3_per_hour: Volumetric rate the pump operates at
             [m3/h], i.e. the requested rate raised to the minimum flow when recirculating.
         recirculation_rate_m3_per_hour: Internal recirculation [m3/h] to maintain the minimum flow
@@ -60,7 +75,9 @@ class PumpEvaluationResult:
         required_discharge_pressure_bara: Discharge pressure the pump was asked to deliver [bara].
         operational_discharge_pressure_bara: Discharge pressure the pump actually delivers [bara],
             from the operational head. Exceeds the required discharge pressure when the pump
-            over-delivers head; the difference is what a downstream choke would drop.
+            over-delivers head (see ``choke_pressure_drop_bara``); falls short of it when the
+            required head is above the chart's capacity at the operating rate (see
+            ``pressure_shortfall_bara``).
         speed_rpm: Operating speed [rpm] of the pump (the speed curve through the operating point);
             the single curve's speed for a single-speed pump, ``None`` when not running.
         failure_status: Feasibility outcome; ``NO_FAILURE`` when within the chart envelope.
@@ -93,6 +110,15 @@ class PumpEvaluationResult:
         The excess the pump over-delivers = operational minus required discharge pressure (>= 0).
         """
         return max(0.0, self.operational_discharge_pressure_bara - self.required_discharge_pressure_bara)
+
+    @property
+    def pressure_shortfall_bara(self) -> float:
+        """Pressure the pump falls short of the required discharge pressure [bara].
+
+        Non-zero only when the duty is above the pump's capacity at the operating rate: the head is
+        bounded by the chart's maximum-speed curve, so the delivered pressure is lower than required.
+        """
+        return max(0.0, self.required_discharge_pressure_bara - self.operational_discharge_pressure_bara)
 
 
 class Pump(Entity[ProcessUnitId]):
@@ -192,7 +218,12 @@ class Pump(Entity[ProcessUnitId]):
         )
 
         minimum_head_at_rate = float(self._pump_chart.minimum_head_as_function_of_rate(operating_rate_m3_per_hour))
-        operational_head = max(required_head, minimum_head_at_rate)
+        maximum_head_at_rate = float(self._pump_chart.maximum_head_as_function_of_rate(operating_rate_m3_per_hour))
+
+        # The pump cannot deliver less head than its (minimum-speed) curve, nor more than its
+        # (maximum-speed) curve. Below the curve the surplus is dropped by a downstream choke; above it
+        # the pump simply falls short of the duty - see ``pressure_shortfall_bara``.
+        operational_head = min(max(required_head, minimum_head_at_rate), maximum_head_at_rate)
 
         efficiency = self._efficiency(
             rate_m3_per_hour=operating_rate_m3_per_hour,
@@ -208,7 +239,6 @@ class Pump(Entity[ProcessUnitId]):
         operational_discharge_pressure_bara = inlet_stream.pressure_bara + Unit.PASCAL.to(Unit.BARA)(
             operational_head * density
         )
-        maximum_head_at_rate = float(self._pump_chart.maximum_head_as_function_of_rate(operating_rate_m3_per_hour))
 
         return PumpEvaluationResult(
             inlet_stream=inlet_stream,
@@ -223,7 +253,7 @@ class Pump(Entity[ProcessUnitId]):
             operational_discharge_pressure_bara=operational_discharge_pressure_bara,
             speed_rpm=speed_rpm,
             failure_status=self._determine_failure_status(
-                head_joule_per_kg=operational_head,
+                head_joule_per_kg=required_head,
                 maximum_head_at_rate=maximum_head_at_rate,
                 rate_m3_per_hour=operating_rate_m3_per_hour,
             ),
