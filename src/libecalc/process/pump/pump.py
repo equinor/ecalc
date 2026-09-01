@@ -28,7 +28,6 @@ from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.pump.exceptions import NonPositivePressureException
 from libecalc.process.pump.liquid_stream import LiquidStream
-from libecalc.process.pump.liquid_stream_propagator import LiquidStreamPropagator
 
 
 class PumpFailureStatus(StrEnum):
@@ -96,7 +95,7 @@ class PumpEvaluationResult:
         return max(0.0, self.operational_discharge_pressure_bara - self.required_discharge_pressure_bara)
 
 
-class Pump(Entity[ProcessUnitId], LiquidStreamPropagator):
+class Pump(Entity[ProcessUnitId]):
     """A single-speed / variable-speed pump.
 
     Args:
@@ -127,7 +126,6 @@ class Pump(Entity[ProcessUnitId], LiquidStreamPropagator):
                 f"point would fall outside the pump chart."
             )
         self._minimum_flow_rate_m3_per_hour = minimum_flow_rate_m3_per_hour
-        self._discharge_pressure_bara: float | None = None
 
     def get_id(self) -> ProcessUnitId:
         return self._id
@@ -145,23 +143,6 @@ class Pump(Entity[ProcessUnitId], LiquidStreamPropagator):
         """The pump's minimum flow [m3/h] - the fixed vertical line in the
         rate-head plane, for plotting the min-flow line on the chart."""
         return self._minimum_flow_rate_m3_per_hour
-
-    def set_discharge_pressure(self, discharge_pressure_bara: float) -> None:
-        """Set the required (target) discharge pressure used by ``propagate_stream``."""
-        self._validate_discharge_pressure(discharge_pressure_bara)
-        self._discharge_pressure_bara = discharge_pressure_bara
-
-    def propagate_stream(self, inlet_stream: LiquidStream) -> LiquidStream:
-        """Propagate the inlet stream to the pump's delivered outlet stream.
-
-        The delivered stream is at the requested rate - recirculation is internal - at the
-        operational discharge pressure. For the full evaluation (power, heads, speed, feasibility),
-        call ``evaluate``; it is closed-form and deterministic, so it reproduces this outlet exactly.
-        """
-        if self._discharge_pressure_bara is None:
-            raise ValueError("Discharge pressure not set. Call set_discharge_pressure first.")
-        result = self.evaluate(inlet_stream, self._discharge_pressure_bara)
-        return inlet_stream.with_pressure(result.operational_discharge_pressure_bara)
 
     def evaluate(self, inlet_stream: LiquidStream, discharge_pressure_bara: float) -> PumpEvaluationResult:
         """Evaluate the pump for a given inlet liquid stream and required discharge pressure.

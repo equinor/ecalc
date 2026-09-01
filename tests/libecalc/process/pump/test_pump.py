@@ -168,13 +168,6 @@ def test_evaluate_rejects_non_positive_discharge_pressure(single_speed_chart):
         pump.evaluate(_inlet(600, suction_pressure=5.0), discharge_pressure_bara=0.0)
 
 
-def test_set_discharge_pressure_rejects_non_positive_pressure(single_speed_chart):
-    pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-
-    with pytest.raises(NonPositivePressureException):
-        pump.set_discharge_pressure(-1.0)
-
-
 def test_rejects_zero_efficiency_pump_chart(chart_data_factory):
     chart = chart_data_factory.from_curves(
         curves=[
@@ -189,16 +182,6 @@ def test_rejects_zero_efficiency_pump_chart(chart_data_factory):
 
     with pytest.raises(EcalcValidationException, match="Pump efficiency must be greater than zero"):
         Pump(chart, minimum_flow_rate_m3_per_hour=100.0)
-
-
-def test_propagate_stream_delivers_operating_pressure_at_requested_rate(single_speed_chart):
-    inlet = _inlet(600, suction_pressure=5.0)
-    pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    pump.set_discharge_pressure(50.0)
-    outlet = pump.propagate_stream(inlet)
-    result = pump.evaluate(inlet, discharge_pressure_bara=50.0)
-    assert outlet.pressure_bara == pytest.approx(result.operational_discharge_pressure_bara)
-    assert outlet.mass_rate_kg_per_h == inlet.mass_rate_kg_per_h  # recirculation is internal
 
 
 def test_result_carries_process_unit_id(single_speed_chart):
