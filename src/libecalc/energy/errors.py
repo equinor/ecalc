@@ -19,3 +19,7 @@ class NegativeEnergyError(EnergyDomainError):
 
 class InvalidEnergyNetworkError(EnergyDomainError):
     """Raised when an energy network violates a topology invariant."""
+
+
+class EnergyAllocationRequiredError(EnergyDomainError):
+    """Raised when an energy unit has multiple predecessors."""

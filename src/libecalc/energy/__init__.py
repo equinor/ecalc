@@ -1,6 +1,6 @@
 """New energy domain — will replace libecalc.domain.energy.
 
-ABCs model a single operational point. Time iteration is handled by the solver."""
+ABCs model a single operational point."""
 
 from libecalc.energy.consumer import Consumer
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
