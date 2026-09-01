@@ -1,0 +1,121 @@
+# Energy network for INST_A — ltp_export example
+#
+# Energy flow:
+#
+#   fuel_gas ──► genset_a ──► base_load (5 MW)
+#       │            ├──────► steamgen (3 MW)
+#       │            ├──────► heating_sat_a (2 MW)
+#       │            └──────► waterinj_motor ──► waterinj_train (process sim)
+#       │
+#       ├──► export_turbine ──► export_train (process sim)
+#       │
+#       └──► fuel_manifold ──► gas_compressor_sampled (50000 Sm3/d)
+#
+#   flare_gas ──► flare (1200 Sm3/d)
+#
+#   diesel ──► diesel_consumers (500 l/d)
+#
+#   power_from_shore ──► subsea_cable ──┐
+#                                       ├──► electrical_bus ──► heating (10 MW)
+#   wind_turbine ───────────────────────┘
+
+ENERGY_NETWORK:
+  SOURCES:
+    - NAME: fuel_gas
+      TYPE: FUEL_GAS
+
+    - NAME: flare_gas
+      TYPE: FUEL_GAS
+
+    - NAME: diesel
+      TYPE: DIESEL
+
+    - NAME: power_from_shore
+      TYPE: ELECTRICAL
+      CAPACITY: 20  # MW
+
+    - NAME: wind_turbine
+      TYPE: ELECTRICAL
+      CAPACITY: 4.4  # MW
+
+  UNITS:
+    # --- Converters ---
+    - NAME: genset_a
+      TYPE: GENERATOR_SET
+      INPUT: fuel_gas
+      MODEL: genset_17mw
+      CAPACITY: 17  # MW
+
+    - NAME: export_turbine
+      TYPE: GAS_TURBINE
+      INPUT: fuel_gas
+      MODEL: turbine_30mw
+      CAPACITY: 30  # MW
+
+    - NAME: waterinj_motor
+      TYPE: ELECTRICAL_MOTOR
+      INPUT: genset_a
+      EFFICIENCY: 0.95
+      CAPACITY: 5  # MW
+
+    - NAME: subsea_cable
+      TYPE: ELECTRICAL_CABLE
+      INPUT: power_from_shore
+      EFFICIENCY: 0.97
+
+    # --- Junctions ---
+    - NAME: electrical_bus
+      TYPE: ELECTRICAL_BUS
+      INPUT: [subsea_cable, wind_turbine]
+      DISPATCH_STRATEGY: PRIORITY
+
+    - NAME: fuel_manifold
+      TYPE: FUEL_GAS_MANIFOLD
+      INPUT: [fuel_gas]
+
+    # --- Consumers ---
+    - NAME: base_load
+      TYPE: ELECTRICAL
+      INPUT: genset_a
+      LOAD: 5  # MW
+
+    - NAME: steamgen
+      TYPE: ELECTRICAL
+      INPUT: genset_a
+      LOAD: 3
+
+    - NAME: heating_sat_a
+      TYPE: ELECTRICAL
+      INPUT: genset_a
+      LOAD: 2
+
+    - NAME: heating
+      TYPE: ELECTRICAL
+      INPUT: electrical_bus
+      LOAD: 10
+
+    - NAME: flare
+      TYPE: FUEL_GAS
+      INPUT: flare_gas
+      RATE: 1200  # Sm3/d
+
+    - NAME: gas_compressor_sampled
+      TYPE: FUEL_GAS
+      INPUT: fuel_manifold
+      RATE: 50000  # Sm3/d
+
+    - NAME: diesel_consumers
+      TYPE: DIESEL
+      INPUT: diesel
+      RATE: 500  # l/d
+
+    # Process simulation driven
+    - NAME: export_train
+      TYPE: MECHANICAL
+      INPUT: export_turbine
+      PROCESS_SIMULATION: export_compressor_sim
+
+    - NAME: waterinj_train
+      TYPE: MECHANICAL
+      INPUT: waterinj_motor
+      PROCESS_SIMULATION: waterinj_pump_sim
