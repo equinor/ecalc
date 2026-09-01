@@ -22,10 +22,10 @@ from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 def chart_resource_with_speed():
     return MemoryResource(
         data=[
-            [5.0, 5],
-            [6, 6],
-            [7, 7],
-            [8, 8],
+            [5.0, 5],  # speed
+            [6, 7],  # rate
+            [8, 7],  # head
+            [8, 8],  # efficiency
         ],  # float and int with equal value should count as equal.
         headers=[
             EcalcYamlKeywords.consumer_chart_speed,
@@ -40,9 +40,9 @@ def chart_resource_with_speed():
 def chart_resource_without_speed():
     return MemoryResource(
         data=[
-            [6, 6],
-            [7, 7],
-            [8, 8],
+            [6, 7],  # rate
+            [8, 7],  # head
+            [8, 8],  # efficiency
         ],
         headers=[
             EcalcYamlKeywords.consumer_chart_rate,
@@ -137,8 +137,8 @@ class TestCompressorChartSingleSpeed:
         assert len(curves) == 1
         curve = curves[0]
         assert curve.speed == 5
-        assert curve.rate == [6.0, 6.0]
-        assert curve.head == [7000.0, 7000.0]
+        assert curve.rate == [6.0, 7.0]
+        assert curve.head == [8000.0, 7000.0]
         assert curve.efficiency == [0.08, 0.08]
 
     def test_valid_without_speed(self, compressor_chart, chart_resource_without_speed):
@@ -152,8 +152,8 @@ class TestCompressorChartSingleSpeed:
         assert len(curves) == 1
         curve = curves[0]
         assert curve.speed == 1
-        assert curve.rate == [6.0, 6.0]
-        assert curve.head == [7000.0, 7000.0]
+        assert curve.rate == [6.0, 7.0]
+        assert curve.head == [8000.0, 7000.0]
         assert curve.efficiency == [0.08, 0.08]
 
     def test_invalid_unequal_speed(self, compressor_chart, chart_resource_unequal_speed):
