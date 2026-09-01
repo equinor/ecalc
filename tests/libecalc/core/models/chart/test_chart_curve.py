@@ -85,16 +85,16 @@ def test_chart_curve_data_invalid_setup_from_arrays():
 
 
 def test_chart_curve_sort_input_values():
-    """Values should be sorted by the root validator in pydantic."""
+    """Chart points should be sorted by rate."""
     curve = ChartCurve(
         rate_actual_m3_hour=[3, 2, 4, 1],
-        polytropic_head_joule_per_kg=[1, 2, 3, 4],
+        polytropic_head_joule_per_kg=[2, 3, 1, 4],
         efficiency_fraction=[1, 1, 1, 1],
         speed_rpm=1,
     )
 
     assert curve.rate_actual_m3_hour == [1, 2, 3, 4]
-    assert curve.polytropic_head_joule_per_kg == [4, 2, 1, 3]
+    assert curve.polytropic_head_joule_per_kg == [4, 3, 2, 1]
 
 
 def test_efficiency_as_function_of_rate(chart_curve):
@@ -140,7 +140,7 @@ def test_distance_efficiency():
     """Integration test."""
     chart_curve = ChartCurve(
         rate_actual_m3_hour=[577, 336, 708, 842, 824, 826, 825, 1028],
-        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1602.7, 1460.6],
+        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1601.9, 1460.6],
         efficiency_fraction=[0.6203, 0.4717, 0.6683, 0.6996, 0.695, 0.6975, 0.6981, 0.7193],
         speed_rpm=1,
     )
@@ -158,11 +158,11 @@ def test_distance_efficiency():
 
 def test_interpolation_functions():
     """Integration test."""
-    # NB: Minimum rate not first, will be sorted
+    # Input points are not ordered by rate and are sorted when the curve is created.
     # Random order of input columns
     chart_curve = ChartCurve(
         rate_actual_m3_hour=[577, 336, 708, 842, 824, 826, 825, 1028],
-        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1602.7, 1460.6],
+        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1601.9, 1460.6],
         efficiency_fraction=[0.6203, 0.4717, 0.6683, 0.6996, 0.695, 0.6975, 0.6981, 0.7193],
         speed_rpm=1,
     )
@@ -184,3 +184,20 @@ def test_interpolation_functions():
     assert chart_curve.head_as_function_of_rate(600) == pytest.approx(1709.3068702290077)
     assert chart_curve.head_as_function_of_rate(300) == pytest.approx(1778.7)
     assert chart_curve.head_as_function_of_rate(1100) == pytest.approx(1460.6)
+
+
+def test_rejects_head_increasing_with_rate():
+    with pytest.raises(
+        EcalcValidationException,
+        match="Head must be non-increasing with increasing rate",
+    ) as exc_info:
+        ChartCurve(
+            rate_actual_m3_hour=[1, 2, 3],
+            polytropic_head_joule_per_kg=[3, 4, 2],
+            efficiency_fraction=[0.8, 0.8, 0.8],
+            speed_rpm=1,
+        )
+
+    message = str(exc_info.value)
+    assert "Given head values:" in message
+    assert "Given rate values:" in message
