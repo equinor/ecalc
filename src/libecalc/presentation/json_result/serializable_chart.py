@@ -58,16 +58,6 @@ class ChartCurveDTO(EcalcBaseModel):
             duplicate_rates = {x for x in self.rate_actual_m3_hour if self.rate_actual_m3_hour.count(x) > 1}
             logger.warning(f"Duplicate rate values in ChartCurve: {duplicate_rates}")
 
-        if not np.all(np.diff(np.asarray(self.polytropic_head_joule_per_kg)) <= 0):
-            heads = self.polytropic_head_joule_per_kg
-            rates = self.rate_actual_m3_hour
-            logger.warning(
-                "Head is increasing with rate in a ChartCurve."
-                " Interpolations are based on the assumption of an inverse monotonic function between head and rate."
-                f" Given head values: {heads}"
-                f" Given rate values: {rates}"
-            )
-
         return self
 
     @property

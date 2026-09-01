@@ -11,13 +11,13 @@ class TestVariableSpeedCompressorChart:
                 ChartCurveDTO(
                     speed_rpm=1,
                     rate_actual_m3_hour=[1, 2, 3],
-                    polytropic_head_joule_per_kg=[4, 5, 6],
+                    polytropic_head_joule_per_kg=[6, 5, 4],
                     efficiency_fraction=[0.7, 0.8, 0.9],
                 ),
                 ChartCurveDTO(
                     speed_rpm=1,
                     rate_actual_m3_hour=[4, 5, 6],
-                    polytropic_head_joule_per_kg=[7, 8, 9],
+                    polytropic_head_joule_per_kg=[9, 8, 7],
                     efficiency_fraction=[0.101, 0.82, 0.9],
                 ),
             ],
