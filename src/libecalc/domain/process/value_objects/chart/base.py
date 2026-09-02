@@ -62,10 +62,7 @@ class ChartCurve:
 
         head_differences = np.diff(np.asarray(self.polytropic_head_joule_per_kg))
 
-        # Generic-from-input charts use an all-zero curve to preserve constant-efficiency evaluation for zero operating data.
-        is_zero_curve = all(rate == 0 for rate in rates) and all(head == 0 for head in heads)
-
-        if not is_zero_curve and not np.all(head_differences < 0):
+        if not np.all(head_differences < 0):
             raise EcalcValidationException(
                 "Head must be strictly decreasing with increasing rate in a ChartCurve. "
                 f"Given head values: {heads}. "
