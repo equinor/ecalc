@@ -20,7 +20,7 @@ STP: "flare" column has been added to STP Export - for `FIXED` installations onl
 
 ## Breaking changes
 
-- Chart curves must have non-increasing head as rate increases. Curves that violate this are now rejected during model validation instead of being accepted with a warning.
+- Chart curves must have strictly decreasing head as rate increases. Curves with increasing or equal head values, including all-zero curves, are rejected. Generic compressor charts also require design rate and design head greater than zero.
 
 ### Compressor calculations
 

@@ -251,35 +251,6 @@ def test_get_efficiency_variable_chart(chart_curve_factory, pump_chart_factory):
     np.testing.assert_almost_equal(efficiencies, [0.3253873, 0.4079482, 0.4251169])
 
 
-def test_efficiency_as_function_of_rate_and_head_zero_chart_data(chart_curve_factory, pump_chart_factory):
-    """Edge case when we create a chart based on generic from input where the design points are rate=0, head=0 and
-    a given efficiency such as 95%. For robustness and defencive programming we allow this to happen when asking
-    for efficiency interpolation.
-    """
-    first_curve = chart_curve_factory(
-        rate_actual_m3_hour=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        polytropic_head_joule_per_kg=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        efficiency_fraction=[0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
-        speed_rpm=75.0,
-    )
-    second_curve = chart_curve_factory(
-        rate_actual_m3_hour=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        polytropic_head_joule_per_kg=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        efficiency_fraction=[0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
-        speed_rpm=105.0,
-    )
-    chart = pump_chart_factory(
-        curves=[
-            first_curve,
-            second_curve,
-        ]
-    )
-
-    efficiencies = chart.efficiency_as_function_of_rate_and_head(rates=np.array([1, 2, 3]), heads=np.array([3, 2, 1]))
-
-    assert efficiencies.tolist() == [0.95, 0.95, 0.95]
-
-
 def test_min_flow_function(pump_chart_factory, chart_curve_factory):
     chart = pump_chart_factory(
         curves=[

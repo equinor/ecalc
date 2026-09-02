@@ -57,12 +57,14 @@ class ChartCurve:
             duplicate_rates = {x for x in self.rate_actual_m3_hour if self.rate_actual_m3_hour.count(x) > 1}
             logger.warning(f"Duplicate rate values in ChartCurve: {duplicate_rates}")
 
+        heads = self.polytropic_head_joule_per_kg
+        rates = self.rate_actual_m3_hour
+
         head_differences = np.diff(np.asarray(self.polytropic_head_joule_per_kg))
-        if not np.all(head_differences <= 0):
-            heads = self.polytropic_head_joule_per_kg
-            rates = self.rate_actual_m3_hour
+
+        if not np.all(head_differences < 0):
             raise EcalcValidationException(
-                "Head must be non-increasing with increasing rate in a ChartCurve. "
+                "Head must be strictly decreasing with increasing rate in a ChartCurve. "
                 f"Given head values: {heads}. "
                 f"Given rate values: {rates}."
             )

@@ -140,7 +140,7 @@ def test_distance_efficiency():
     """Integration test."""
     chart_curve = ChartCurve(
         rate_actual_m3_hour=[577, 336, 708, 842, 824, 826, 825, 1028],
-        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1601.9, 1460.6],
+        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.7, 1601.8, 1460.6],
         efficiency_fraction=[0.6203, 0.4717, 0.6683, 0.6996, 0.695, 0.6975, 0.6981, 0.7193],
         speed_rpm=1,
     )
@@ -162,7 +162,7 @@ def test_interpolation_functions():
     # Random order of input columns
     chart_curve = ChartCurve(
         rate_actual_m3_hour=[577, 336, 708, 842, 824, 826, 825, 1028],
-        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.9, 1601.9, 1460.6],
+        polytropic_head_joule_per_kg=[1718.7, 1778.7, 1665.2, 1587.8, 1601.9, 1601.7, 1601.8, 1460.6],
         efficiency_fraction=[0.6203, 0.4717, 0.6683, 0.6996, 0.695, 0.6975, 0.6981, 0.7193],
         speed_rpm=1,
     )
@@ -189,7 +189,7 @@ def test_interpolation_functions():
 def test_rejects_head_increasing_with_rate():
     with pytest.raises(
         EcalcValidationException,
-        match="Head must be non-increasing with increasing rate",
+        match="Head must be strictly decreasing with increasing rate",
     ) as exc_info:
         ChartCurve(
             rate_actual_m3_hour=[1, 2, 3],
@@ -201,3 +201,16 @@ def test_rejects_head_increasing_with_rate():
     message = str(exc_info.value)
     assert "Given head values:" in message
     assert "Given rate values:" in message
+
+
+def test_rejects_equal_head_values():
+    with pytest.raises(
+        EcalcValidationException,
+        match="Head must be strictly decreasing",
+    ):
+        ChartCurve(
+            rate_actual_m3_hour=[1, 2, 3],
+            polytropic_head_joule_per_kg=[3, 3, 2],
+            efficiency_fraction=[0.8, 0.8, 0.8],
+            speed_rpm=1,
+        )
