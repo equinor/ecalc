@@ -1,6 +1,7 @@
 import numpy as np
 
 from libecalc.common.chart_type import ChartType
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.numeric_methods import (
     maximize_x_given_boolean_condition_function,
 )
@@ -225,6 +226,12 @@ class CompressorChartCreator:
             f"design_head: {design_head_joule_per_kg},"
             f"polytropic_efficiency: {polytropic_efficiency}"
         )
+        if design_actual_rate_m3_per_hour <= 0:
+            raise EcalcValidationException("Design rate must be greater than zero.")
+
+        if design_head_joule_per_kg <= 0:
+            raise EcalcValidationException("Design head must be greater than zero.")
+
         max_speed_volume_rates = design_actual_rate_m3_per_hour * UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_RATES
         min_speed_volume_rates = design_actual_rate_m3_per_hour * UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES
         max_speed_heads = design_head_joule_per_kg * UNIFIED_GENERIC_CHART_CURVE_MAXIMUM_SPEED_HEADS
