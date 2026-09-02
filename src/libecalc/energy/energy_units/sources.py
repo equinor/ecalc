@@ -1,7 +1,7 @@
 from libecalc.energy import Energy
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.provider import Source
+from libecalc.energy.roles import Source
 
 
 class FuelGasSource(Source):

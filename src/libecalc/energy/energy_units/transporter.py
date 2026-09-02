@@ -1,30 +1,5 @@
-import abc
-
-from libecalc.energy import ElectricalPower, Energy, EnergyUnitId, Provider
-
-
-class Transporter(Provider):
-    """Moves energy without changing form, possibly with loss.
-
-    Subclasses set energy_type — input and output are always the same.
-    """
-
-    @classmethod
-    @abc.abstractmethod
-    def get_energy_type(cls) -> type[Energy]: ...
-
-    @classmethod
-    def get_input_energy_type(cls) -> type[Energy]:
-        return cls.get_energy_type()
-
-    @classmethod
-    def get_output_energy_type(cls) -> type[Energy]:
-        return cls.get_energy_type()
-
-    @abc.abstractmethod
-    def get_input_energy(self, output_energy: Energy) -> Energy:
-        """Given output needed, what input is required?"""
-        ...
+from libecalc.energy import ElectricalPower, EnergyUnitId
+from libecalc.energy.roles import Transporter
 
 
 class ElectricalCable(Transporter):
@@ -50,5 +25,5 @@ class ElectricalCable(Transporter):
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self._max_power)
 
-    def get_input_energy(self, output_energy: ElectricalPower) -> ElectricalPower:
+    def _get_input_energy(self, output_energy: ElectricalPower) -> ElectricalPower:
         return ElectricalPower(output_energy.value / (1 - self._loss_fraction))

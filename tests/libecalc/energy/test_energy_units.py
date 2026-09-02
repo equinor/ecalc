@@ -21,6 +21,7 @@ from libecalc.energy.energy_units import (
     GeneratorSet,
     Pump,
     SampledFuelConsumer,
+    Shaft,
 )
 
 
@@ -59,6 +60,12 @@ class TestConverters:
         assert result.value == pytest.approx(7.0 / 0.93)
         assert isinstance(result, ElectricalPower)
         assert motor.capacity() == MechanicalPower(8.0)
+
+    def test_shaft_accounts_for_loss(self):
+        shaft = Shaft("shaft", loss_fraction=0.05)
+        result = shaft.get_input_energy(MechanicalPower(10.0))
+        assert result.value == pytest.approx(10.0 / 0.95)
+        assert shaft.max_predecessors() == 1
 
 
 class TestConsumers:

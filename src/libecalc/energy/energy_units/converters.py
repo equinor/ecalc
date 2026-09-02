@@ -2,22 +2,13 @@ from collections.abc import Callable
 
 from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.provider import Converter
+from libecalc.energy.roles import Converter
+
+# TODO: consider splitting into Generator (single engine) + GeneratorSet (multiple engines, pluggable dispatch).
 
 
 class GeneratorSet(Converter):
-    """Gas-fired generator set converting fuel gas to electrical power.
-
-    The power_to_fuel curve determines the fuel consumption characteristic.
-    A smooth curve represents a single generator unit; a stepped curve with
-    discontinuities can encode multiple physical generators switching on at
-    load breakpoints (as in the legacy eCalc model).
-
-    Alternatively, individual generators can be modelled as separate
-    GeneratorSet instances connected to the same bus. The network solver's
-    priority dispatch will then fill them one by one in connection order,
-    invoking additional units only when prior ones reach capacity.
-    """
+    """Gas-fired generator set converting fuel gas to electrical power."""
 
     def __init__(
         self,
@@ -44,7 +35,7 @@ class GeneratorSet(Converter):
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self._max_power)
 
-    def get_input_energy(self, output_energy: ElectricalPower) -> FuelGasRate:
+    def _get_input_energy(self, output_energy: ElectricalPower) -> FuelGasRate:
         return FuelGasRate(self._power_to_fuel(output_energy.value))
 
 
@@ -76,7 +67,7 @@ class GasTurbine(Converter):
     def capacity(self) -> MechanicalPower | None:
         return MechanicalPower(self._max_power)
 
-    def get_input_energy(self, output_energy: MechanicalPower) -> FuelGasRate:
+    def _get_input_energy(self, output_energy: MechanicalPower) -> FuelGasRate:
         return FuelGasRate(self._power_to_fuel(output_energy.value))
 
 
@@ -107,5 +98,5 @@ class ElectricalMotor(Converter):
     def capacity(self) -> MechanicalPower | None:
         return MechanicalPower(self._max_power)
 
-    def get_input_energy(self, output_energy: MechanicalPower) -> ElectricalPower:
+    def _get_input_energy(self, output_energy: MechanicalPower) -> ElectricalPower:
         return ElectricalPower(output_energy.value / self._efficiency)

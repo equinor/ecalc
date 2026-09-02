@@ -1,4 +1,5 @@
 from enum import StrEnum
+from graphlib import CycleError, TopologicalSorter
 from typing import Annotated, Literal, Union
 
 from pydantic import ConfigDict, Field, field_validator, model_validator
@@ -410,8 +411,6 @@ class YamlEnergyNetwork(YamlBase):
 
     @model_validator(mode="after")
     def check_no_cycles(self):
-        from graphlib import CycleError, TopologicalSorter
-
         graph: dict[str, set[str]] = {c.name: set(_get_input_names(c)) for c in self.units}
         try:
             tuple(TopologicalSorter(graph).static_order())

@@ -5,22 +5,17 @@ from dataclasses import dataclass
 from typing import Self
 
 from libecalc.common.units import Unit
+from libecalc.energy.errors import NegativeEnergyError
 
 
 @dataclass(frozen=True)
 class Energy(abc.ABC):
-    """Base for all energy types.
-
-    Additional energy types (e.g. ThermalPower/Steam) can be added as subclasses
-    when thermal energy modeling is needed.
-    """
+    """Base for all energy types; subclass for additional types (e.g. ThermalPower)."""
 
     value: float
 
     def __post_init__(self) -> None:
         if self.value < 0:
-            from libecalc.energy.errors import NegativeEnergyError
-
             raise NegativeEnergyError(self.value, type(self).__name__)
 
     @property

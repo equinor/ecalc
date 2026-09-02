@@ -1,26 +1,6 @@
-import abc
-
-from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate
-from libecalc.energy.energy_unit import EnergyUnit
-
-
-class Junction(EnergyUnit):
-    """Aggregation point for energy of the same type.
-
-    Connections and energy calculations are managed by EnergyNetwork.
-    """
-
-    @classmethod
-    @abc.abstractmethod
-    def get_energy_type(cls) -> type[Energy]: ...
-
-    @classmethod
-    def get_input_energy_type(cls) -> type[Energy]:
-        return cls.get_energy_type()
-
-    @classmethod
-    def get_output_energy_type(cls) -> type[Energy]:
-        return cls.get_energy_type()
+from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
+from libecalc.energy.energy_unit import EnergyUnitId
+from libecalc.energy.roles import Junction
 
 
 class ElectricalBus(Junction):
@@ -37,3 +17,21 @@ class FuelGasManifold(Junction):
     @classmethod
     def get_energy_type(cls) -> type[FuelGasRate]:
         return FuelGasRate
+
+
+class Shaft(Junction):
+    """Mechanical shaft: one driver, possibly many driven loads, with friction loss."""
+
+    def __init__(self, name: str, loss_fraction: float = 0.0, energy_unit_id: EnergyUnitId | None = None) -> None:
+        super().__init__(name, energy_unit_id, max_predecessors=1)
+        self._loss_fraction = loss_fraction
+
+    @classmethod
+    def get_energy_type(cls) -> type[MechanicalPower]:
+        return MechanicalPower
+
+    def get_loss_fraction(self) -> float:
+        return self._loss_fraction
+
+    def _get_input_energy(self, output_energy: MechanicalPower) -> MechanicalPower:
+        return MechanicalPower(output_energy.value / (1 - self._loss_fraction))

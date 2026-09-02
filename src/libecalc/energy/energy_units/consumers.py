@@ -1,14 +1,10 @@
-from libecalc.energy.consumer import Consumer
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
+from libecalc.energy.roles import Consumer
 
 
 class BaseLoad(Consumer):
-    """Fixed electrical load (e.g. heating, steam generator, lighting).
-
-    Some base loads (e.g. steam generator) may become converters if thermal
-    energy modeling is introduced.
-    """
+    """Fixed electrical load (e.g. heating, steam generator, lighting)."""
 
     def __init__(self, name: str, load: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         super().__init__(name, energy_unit_id)

@@ -2,14 +2,12 @@ from collections.abc import Iterable
 from graphlib import CycleError, TopologicalSorter
 
 from libecalc.common.ddd import value_object
-from libecalc.energy.consumer import Consumer
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
-from libecalc.energy.provider import Converter, Provider, Source
+from libecalc.energy.roles import Consumer, DerivedInputProvider, Junction, Provider
 
-type EnergyNetworkNode = Consumer | Provider | Junction
+type EnergyNetworkNode = Consumer | Provider
 
 
 @value_object
@@ -50,6 +48,7 @@ class EnergyNetwork:
 
         self._add_connections(connections)
         self._validate_required_predecessors()
+        self._validate_predecessor_limits()
         self._topological_order = self._create_topological_order()
 
     # Node access
@@ -87,29 +86,18 @@ class EnergyNetwork:
     ) -> Energy | None:
         node = self.get_node(node_id)
 
-        # A consumer defines its own input energy.
+        if isinstance(node, DerivedInputProvider):
+            # This node's input is derived from the output it is asked to deliver.
+            requested_output = self.get_output_energy(node_id)
+            if requested_output is None:
+                raise InvalidEnergyNetworkError(f"Energy unit {node_id} has no output energy")
+            return node.get_input_energy(requested_output)
+
         if isinstance(node, Consumer):
+            # A pure sink's own demand is fixed, independent of any output.
             return node.get_input_energy()
 
-        # A source has no input energy
-        if isinstance(node, Source):
-            return None
-
-        if isinstance(node, (Junction, Converter)):
-            output_energy = self.get_output_energy(node_id)
-
-            if output_energy is None:
-                raise InvalidEnergyNetworkError(f"Energy unit {node_id} has no output energy")
-
-            # A junction passes energy through without conversion.
-            if isinstance(node, Junction):
-                return output_energy
-
-            # A converter derives its input energy from its output energy.
-            if isinstance(node, Converter):
-                return node.get_input_energy(output_energy)
-
-        raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
+        return None
 
     def get_output_energy(
         self,
@@ -117,16 +105,12 @@ class EnergyNetwork:
     ) -> Energy | None:
         node = self.get_node(node_id)
 
-        # A consumer has no output energy within the network boundary.
-        if isinstance(node, Consumer):
+        if not isinstance(node, Provider):
             return None
-
-        if not isinstance(node, (Provider, Junction)):
-            raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
 
         output_energy = node.get_output_energy_type()(value=0)
 
-        # A provider or junction outputs the combined input energy of its successors.
+        # A source node's output is the combined input demand of its successors.
         for successor_id in self.get_successors(node_id):
             successor_input_energy = self.get_input_energy(successor_id)
 
@@ -137,7 +121,7 @@ class EnergyNetwork:
             if successor_input_energy.value > 0 and len(self.get_predecessors(successor_id)) > 1:
                 raise EnergyAllocationRequiredError(
                     f"Cannot calculate output energy for unit {node_id}: "
-                    f"successor {successor_id} has {len(self._predecessors)} predecessors, "
+                    f"successor {successor_id} has {len(self.get_predecessors(successor_id))} predecessors, "
                     "so an allocation strategy is required"
                 )
 
@@ -210,14 +194,27 @@ class EnergyNetwork:
 
     def _validate_required_predecessors(self) -> None:
         for unit_id, unit in self._nodes.items():
-            if isinstance(unit, (Consumer, Converter, Junction)) and not self._predecessors[unit_id]:
+            if isinstance(unit, Consumer | DerivedInputProvider) and not self._predecessors[unit_id]:
                 raise InvalidEnergyNetworkError(f"Energy unit {unit_id} requires input energy but has no predecessor")
+
+    def _validate_predecessor_limits(self) -> None:
+        for unit_id, unit in self._nodes.items():
+            if not isinstance(unit, Junction):
+                continue
+
+            max_predecessors = unit.max_predecessors()
+            predecessor_count = len(self._predecessors[unit_id])
+
+            if max_predecessors is not None and predecessor_count > max_predecessors:
+                raise InvalidEnergyNetworkError(
+                    f"Energy unit {unit_id} allows at most {max_predecessors} predecessor(s), got {predecessor_count}"
+                )
 
     @staticmethod
     def _get_output_type(
         node: EnergyNetworkNode,
     ) -> type[Energy]:
-        if not isinstance(node, (Provider, Junction)):
+        if not isinstance(node, Provider):
             raise InvalidEnergyNetworkError(
                 f"Source node of type '{type(node).__name__}' with id '{node.get_id()}' provides no energy"
             )
@@ -228,7 +225,7 @@ class EnergyNetwork:
     def _get_input_type(
         node: EnergyNetworkNode,
     ) -> type[Energy]:
-        if not isinstance(node, (Consumer, Converter, Transporter, Junction)):
+        if not isinstance(node, Consumer | DerivedInputProvider):
             raise InvalidEnergyNetworkError(
                 f"Target node of type '{type(node).__name__}' with id '{node.get_id()}' requires no energy"
             )

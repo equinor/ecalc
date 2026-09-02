@@ -4,14 +4,17 @@ from inline_snapshot import snapshot
 from libecalc.energy import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_units import (
     BaseLoad,
+    Compressor,
     ElectricalBus,
     ElectricalCable,
     ElectricalMotor,
     FuelGasSource,
+    GasTurbine,
     GeneratorSet,
     OffshoreWind,
     OnshoreGrid,
     Pump,
+    Shaft,
 )
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
@@ -154,6 +157,28 @@ class TestEnergyNetworkValidation:
             match="requires input energy but has no predecessor",
         ):
             EnergyNetwork(nodes=[base_load], connections=[])
+
+    def test_rejects_too_many_predecessors_for_shaft(self):
+        fuel_source = FuelGasSource("fg")
+        first_turbine = GasTurbine("t1", max_power=25.0, power_to_fuel=lambda mw: mw * 3500)
+        second_turbine = GasTurbine("t2", max_power=25.0, power_to_fuel=lambda mw: mw * 3500)
+        shaft = Shaft("shaft")
+        compressor = Compressor("comp", power=10)
+
+        with pytest.raises(
+            InvalidEnergyNetworkError,
+            match="allows at most 1 predecessor",
+        ):
+            EnergyNetwork(
+                nodes=[fuel_source, first_turbine, second_turbine, shaft, compressor],
+                connections=[
+                    EnergyConnection(source_id=fuel_source.get_id(), target_id=first_turbine.get_id()),
+                    EnergyConnection(source_id=fuel_source.get_id(), target_id=second_turbine.get_id()),
+                    EnergyConnection(source_id=first_turbine.get_id(), target_id=shaft.get_id()),
+                    EnergyConnection(source_id=second_turbine.get_id(), target_id=shaft.get_id()),
+                    EnergyConnection(source_id=shaft.get_id(), target_id=compressor.get_id()),
+                ],
+            )
 
 
 class TestEnergyNetworkTopology:
@@ -354,7 +379,7 @@ class TestEnergyNetworkEnergyCalculation:
 
         with pytest.raises(
             EnergyAllocationRequiredError,
-            match="allocation strategy is required",
+            match="successor .* has 2 predecessors",
         ):
             network.get_output_energy(first_grid.get_id())
 
