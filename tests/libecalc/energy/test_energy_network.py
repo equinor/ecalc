@@ -1,4 +1,5 @@
 import pytest
+from inline_snapshot import snapshot
 
 from libecalc.energy import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_units import (
@@ -65,14 +66,15 @@ class TestEnergyNetworkValidation:
                 ],
             )
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_rejects_consumer_as_source(self):
         source = BaseLoad(name="source", load=5)
         target = BaseLoad(name="target", load=5)
 
         with pytest.raises(
             InvalidEnergyNetworkError,
-            match="Source node provides no energy",
-        ):
+        ) as exc_info:
             EnergyNetwork(
                 nodes=[source, target],
                 connections=[
@@ -82,15 +84,19 @@ class TestEnergyNetworkValidation:
                     )
                 ],
             )
+        assert str(exc_info.value) == snapshot(
+            f"Energy domain error: Source node of type 'BaseLoad' with id '{source.get_id()}' provides no energy"
+        )
 
+    @pytest.mark.snapshot
+    @pytest.mark.inlinesnapshot
     def test_rejects_source_as_target(self):
         source = FuelGasSource(name="source")
         target = FuelGasSource(name="target")
 
         with pytest.raises(
             InvalidEnergyNetworkError,
-            match="Target node requires no energy",
-        ):
+        ) as exc_info:
             EnergyNetwork(
                 nodes=[source, target],
                 connections=[
@@ -100,6 +106,9 @@ class TestEnergyNetworkValidation:
                     )
                 ],
             )
+        assert str(exc_info.value) == snapshot(
+            f"Energy domain error: Target node of type 'FuelGasSource' with id '{target.get_id()}' requires no energy"
+        )
 
     def test_rejects_duplicate_node_ids(self):
         duplicate_id = FuelGasSource._create_id()

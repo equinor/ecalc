@@ -5,7 +5,7 @@ from libecalc.common.ddd import value_object
 from libecalc.energy.consumer import Consumer
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.energy_units import Junction
+from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
 from libecalc.energy.provider import Converter, Provider, Source
 
@@ -218,7 +218,9 @@ class EnergyNetwork:
         node: EnergyNetworkNode,
     ) -> type[Energy]:
         if not isinstance(node, (Provider, Junction)):
-            raise InvalidEnergyNetworkError("Source node provides no energy")
+            raise InvalidEnergyNetworkError(
+                f"Source node of type '{type(node).__name__}' with id '{node.get_id()}' provides no energy"
+            )
 
         return node.get_output_energy_type()
 
@@ -226,8 +228,10 @@ class EnergyNetwork:
     def _get_input_type(
         node: EnergyNetworkNode,
     ) -> type[Energy]:
-        if not isinstance(node, (Consumer, Converter, Junction)):
-            raise InvalidEnergyNetworkError("Target node requires no energy")
+        if not isinstance(node, (Consumer, Converter, Transporter, Junction)):
+            raise InvalidEnergyNetworkError(
+                f"Target node of type '{type(node).__name__}' with id '{node.get_id()}' requires no energy"
+            )
 
         return node.get_input_energy_type()
 
