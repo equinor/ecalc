@@ -1,5 +1,4 @@
 from collections.abc import Callable
-from typing import Final
 
 from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
@@ -27,10 +26,9 @@ class GeneratorSet(Converter):
         power_to_fuel: Callable[[float], float],
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
-        self._name = name
+        super().__init__(name, energy_unit_id)
         self._max_power = max_power
         self._power_to_fuel = power_to_fuel
-        self._id: Final[EnergyUnitId] = energy_unit_id or GeneratorSet._create_id()
 
     @classmethod
     def get_input_energy_type(cls) -> type[FuelGasRate]:
@@ -39,12 +37,6 @@ class GeneratorSet(Converter):
     @classmethod
     def get_output_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
     def get_max_power(self) -> float:
         return self._max_power
@@ -66,10 +58,9 @@ class GasTurbine(Converter):
         power_to_fuel: Callable[[float], float],
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
-        self._name = name
+        super().__init__(name, energy_unit_id)
         self._max_power = max_power
         self._power_to_fuel = power_to_fuel
-        self._id: Final[EnergyUnitId] = energy_unit_id or GasTurbine._create_id()
 
     @classmethod
     def get_input_energy_type(cls) -> type[FuelGasRate]:
@@ -78,12 +69,6 @@ class GasTurbine(Converter):
     @classmethod
     def get_output_energy_type(cls) -> type[MechanicalPower]:
         return MechanicalPower
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
     def get_max_power(self) -> float:
         return self._max_power
@@ -101,10 +86,9 @@ class ElectricalMotor(Converter):
     def __init__(
         self, name: str, max_power: float, efficiency: float = 0.95, energy_unit_id: EnergyUnitId | None = None
     ) -> None:
-        self._name = name
+        super().__init__(name, energy_unit_id)
         self._max_power = max_power
         self._efficiency = efficiency
-        self._id: Final[EnergyUnitId] = energy_unit_id or ElectricalMotor._create_id()
 
     @classmethod
     def get_input_energy_type(cls) -> type[ElectricalPower]:
@@ -113,12 +97,6 @@ class ElectricalMotor(Converter):
     @classmethod
     def get_output_energy_type(cls) -> type[MechanicalPower]:
         return MechanicalPower
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
     def get_max_power(self) -> float:
         return self._max_power
