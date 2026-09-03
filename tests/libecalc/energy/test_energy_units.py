@@ -12,15 +12,15 @@ from libecalc.energy.energy_types import (
     MechanicalPower,
 )
 from libecalc.energy.energy_units import (
-    BaseLoad,
     Compressor,
     ElectricalCable,
+    ElectricalConsumer,
     ElectricalMotor,
+    FuelGasConsumer,
     FuelGasSource,
     GasTurbine,
     GeneratorSet,
     Pump,
-    SampledFuelConsumer,
 )
 
 
@@ -65,10 +65,10 @@ class TestConsumers:
     @pytest.mark.parametrize(
         ("consumer", "expected_energy"),
         [
-            (BaseLoad("load", load=1.5), ElectricalPower(1.5)),
+            (ElectricalConsumer("load", load=1.5), ElectricalPower(1.5)),
             (Compressor("compressor", power=2), MechanicalPower(2)),
             (Pump("pump", power=3), MechanicalPower(3)),
-            (SampledFuelConsumer("sampled", fuel_rate=1_000), FuelGasRate(1_000)),
+            (FuelGasConsumer("sampled", rate=1_000), FuelGasRate(1_000)),
         ],
     )
     def test_consumer_returns_input_energy(self, consumer: Consumer, expected_energy: Energy):

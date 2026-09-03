@@ -59,9 +59,9 @@ class OnshoreGrid(Source):
 class OffshoreWind(Source):
     """Offshore wind park, capped at total rated output."""
 
-    def __init__(self, name: str, power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, max_power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         self._name = name
-        self._power = power
+        self._max_power = max_power
         self._id: Final[EnergyUnitId] = energy_unit_id or OffshoreWind._create_id()
 
     @classmethod
@@ -74,20 +74,20 @@ class OffshoreWind(Source):
     def get_name(self) -> str:
         return self._name
 
-    def get_power(self) -> float:
-        return self._power
+    def get_max_power(self) -> float:
+        return self._max_power
 
     def capacity(self) -> ElectricalPower | None:
-        return ElectricalPower(self._power)
+        return ElectricalPower(self._max_power)
 
 
-class DieselSupply(Source):
+class DieselSource(Source):
     """Diesel fuel supply, brought to platform/rig by supply vessels."""
 
     def __init__(self, name: str, max_rate: float | None = None, energy_unit_id: EnergyUnitId | None = None) -> None:
         self._name = name
         self._max_rate = max_rate
-        self._id: Final[EnergyUnitId] = energy_unit_id or DieselSupply._create_id()
+        self._id: Final[EnergyUnitId] = energy_unit_id or DieselSource._create_id()
 
     @classmethod
     def get_output_energy_type(cls) -> type[DieselRate]:

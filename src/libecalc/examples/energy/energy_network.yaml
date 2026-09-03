@@ -22,20 +22,20 @@
 ENERGY_NETWORK:
   SOURCES:
     - NAME: fuel_gas
-      TYPE: FUEL_GAS
+      TYPE: FUEL_GAS_SOURCE
 
     - NAME: flare_gas
-      TYPE: FUEL_GAS
+      TYPE: FUEL_GAS_SOURCE
 
     - NAME: diesel
-      TYPE: DIESEL
+      TYPE: DIESEL_SOURCE
 
     - NAME: power_from_shore
-      TYPE: ELECTRICAL
+      TYPE: ONSHORE_GRID
       CAPACITY: 20  # MW
 
     - NAME: wind_turbine
-      TYPE: ELECTRICAL
+      TYPE: OFFSHORE_WIND
       CAPACITY: 4.4  # MW
 
   UNITS:
@@ -75,47 +75,55 @@ ENERGY_NETWORK:
 
     # --- Consumers ---
     - NAME: base_load
-      TYPE: ELECTRICAL
+      TYPE: ELECTRICAL_CONSUMER
       INPUT: genset_a
       LOAD: 5  # MW
+      METADATA:
+        ENERGY_USE: BASE_LOAD
 
     - NAME: steamgen
-      TYPE: ELECTRICAL
+      TYPE: ELECTRICAL_CONSUMER
       INPUT: genset_a
       LOAD: 3
 
     - NAME: heating_sat_a
-      TYPE: ELECTRICAL
+      TYPE: ELECTRICAL_CONSUMER
       INPUT: genset_a
       LOAD: 2
+      METADATA:
+        ENERGY_USE: HEATING
 
     - NAME: heating
-      TYPE: ELECTRICAL
+      TYPE: ELECTRICAL_CONSUMER
       INPUT: electrical_bus
       LOAD: 10
+      METADATA:
+        ENERGY_USE: HEATING
 
     - NAME: flare
-      TYPE: FUEL_GAS
+      TYPE: FUEL_GAS_CONSUMER
       INPUT: flare_gas
       RATE: 1200  # Sm3/d
+      METADATA:
+        ENERGY_USE: FLARING
 
     - NAME: gas_compressor_sampled
-      TYPE: FUEL_GAS
+      TYPE: FUEL_GAS_CONSUMER
       INPUT: fuel_manifold
       RATE: 50000  # Sm3/d
 
     - NAME: diesel_consumers
-      TYPE: DIESEL
+      TYPE: DIESEL_CONSUMER
       INPUT: diesel
       RATE: 500  # l/d
 
     # Process simulation driven
     - NAME: export_train
-      TYPE: MECHANICAL
+      TYPE: COMPRESSOR
       INPUT: export_turbine
       PROCESS_SIMULATION: export_compressor_sim
 
     - NAME: waterinj_train
-      TYPE: MECHANICAL
+      TYPE: PUMP
       INPUT: waterinj_motor
       PROCESS_SIMULATION: waterinj_pump_sim

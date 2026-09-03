@@ -1,8 +1,14 @@
 import abc
+from enum import StrEnum
 from typing import Final
 
 from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate
 from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
+
+
+class DispatchStrategy(StrEnum):
+    PRIORITY = "PRIORITY"
+    EQUAL_SPLIT = "EQUAL_SPLIT"
 
 
 class Junction(EnergyUnit):

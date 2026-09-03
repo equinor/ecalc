@@ -1,19 +1,17 @@
-from .consumers import BaseLoad, Compressor, DieselConsumer, Flare, Pump, SampledFuelConsumer, SampledPowerConsumer
+from .consumers import Compressor, DieselConsumer, ElectricalConsumer, FuelGasConsumer, Pump
 from .converters import ElectricalMotor, GasTurbine, GeneratorSet
 from .junction import ElectricalBus, FuelGasManifold, Junction
-from .sources import DieselSupply, FuelGasSource, OffshoreWind, OnshoreGrid
+from .sources import DieselSource, FuelGasSource, OffshoreWind, OnshoreGrid
 from .transporter import ElectricalCable, Transporter
 
 __all__ = [
-    "BaseLoad",
     "Compressor",
     "DieselConsumer",
-    "DieselSupply",
+    "DieselSource",
     "ElectricalBus",
     "ElectricalCable",
     "ElectricalMotor",
     "Junction",
-    "Flare",
     "FuelGasManifold",
     "FuelGasSource",
     "GasTurbine",
@@ -21,7 +19,7 @@ __all__ = [
     "OffshoreWind",
     "OnshoreGrid",
     "Pump",
-    "SampledFuelConsumer",
-    "SampledPowerConsumer",
     "Transporter",
+    "ElectricalConsumer",
+    "FuelGasConsumer",
 ]
