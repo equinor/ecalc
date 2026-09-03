@@ -86,16 +86,18 @@ class UserDefinedChartData(ChartData):
                 )
             ]
         else:
-            resource_headers = resource.get_headers()
-
-            if "SPEED" not in resource_headers:
-                raise InvalidColumnException(message="Resource is missing SPEED header!", header="SPEED")
+            expected_headers = [
+                EcalcYamlKeywords.consumer_chart_speed,
+                EcalcYamlKeywords.consumer_chart_rate,
+                EcalcYamlKeywords.consumer_chart_head,
+                EcalcYamlKeywords.consumer_chart_efficiency,
+            ]
 
             resource_data = []
-            for header in resource_headers:
-                column = resource.get_float_column(header)
+            for header in expected_headers:
+                column = resource.get_float_column(header)  # Will raise error if not exists
                 resource_data.append(column)
-            df = pd.DataFrame(data=resource_data, index=resource_headers).transpose().astype(float)
+            df = pd.DataFrame(data=resource_data, index=expected_headers).transpose().astype(float)
             grouped_by_speed = df.groupby(EcalcYamlKeywords.consumer_chart_speed, sort=False)
             curves = [
                 ChartCurve(
