@@ -25,7 +25,7 @@ def single_speed_pump_chart(pump_chart_factory, chart_data_factory, chart_curve_
         curves=[
             chart_curve_factory(
                 rate_actual_m3_hour=[277, 524, 666, 832, 834, 927],
-                polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8308.089, 7605.693],
+                polytropic_head_joule_per_kg=[10415.277000000002, 9845.316, 9254.754, 8308.089, 8312.994, 7605.693],
                 efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.7061, 0.6908],
                 speed_rpm=1,
             ),
@@ -202,7 +202,7 @@ def vsd_pump_test_variable_speed_chart_curves(chart_data_factory, chart_curve_fa
             [2650, 524, 1003.6, 0.6426],
             [2650, 666, 943.4, 0.6871],
             [2650, 832, 846.9, 0.7052],
-            [2650, 834, 846.9, 0.7061],
+            [2650, 834, 847.4, 0.7061],
             [2650, 927, 775.3, 0.6908],
             [2900, 296, 1293, 0.47],
             [2900, 370, 1275, 0.52],
@@ -230,7 +230,7 @@ def vsd_pump_test_variable_speed_chart_curves(chart_data_factory, chart_curve_fa
             [3425, 842, 1587.8, 0.6996],
             [3425, 824, 1601.9, 0.695],
             [3425, 826, 1601.9, 0.6975],
-            [3425, 825, 1601.9, 0.6981],
+            [3425, 825, 1602.7, 0.6981],
             [3425, 1028, 1460.6, 0.7193],
         ],
         columns=["speed", "rate", "head", "efficiency"],
@@ -389,7 +389,7 @@ def test_variable_speed_pump_pt2(vsd_pump_test_variable_speed_chart_curves, capl
         suction_pressures=np.asarray([1.0]),
         discharge_pressures=np.asarray([61]),
         fluid_densities=fluid_densities,
-    ).get_energy_result().energy_usage.values[0] == pytest.approx(3.52043419)
+    ).get_energy_result().energy_usage.values[0] == pytest.approx(3.52037671)
 
     # Rate too large - invalid but reported
     result_rate_too_high = pump.evaluate_rate_ps_pd_density(

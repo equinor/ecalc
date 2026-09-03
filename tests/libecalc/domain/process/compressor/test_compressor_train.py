@@ -16,7 +16,7 @@ class TestCompressorTrain:
                     chart_curve_factory(
                         speed_rpm=1,
                         rate_actual_m3_hour=[1, 2],
-                        polytropic_head_joule_per_kg=[4, 3],
+                        polytropic_head_joule_per_kg=[3, 4],
                         efficiency_fraction=[0.5, 0.5],
                     )
                 ]
@@ -42,7 +42,7 @@ class TestCompressorTrain:
                         chart_curve_factory(
                             speed_rpm=1,
                             rate_actual_m3_hour=[1, 2, 3],
-                            polytropic_head_joule_per_kg=[3, 2, 1],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
                             efficiency_fraction=[0.1, 0.2, 0.3],
                         )
                     ],
@@ -56,13 +56,13 @@ class TestCompressorTrain:
                         chart_curve_factory(
                             speed_rpm=1,
                             rate_actual_m3_hour=[1, 2, 3],
-                            polytropic_head_joule_per_kg=[3, 2, 1],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
                             efficiency_fraction=[0.1, 0.2, 0.3],
                         ),
                         chart_curve_factory(
                             speed_rpm=2,
                             rate_actual_m3_hour=[1, 2, 3],
-                            polytropic_head_joule_per_kg=[3, 2, 1],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
                             efficiency_fraction=[0.1, 0.2, 0.3],
                         ),
                     ],
@@ -89,7 +89,7 @@ class TestCompressorTrain:
                         chart_curve_factory(
                             speed_rpm=3,
                             rate_actual_m3_hour=[1, 2, 3],
-                            polytropic_head_joule_per_kg=[3, 2, 1],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
                             efficiency_fraction=[0.1, 0.2, 0.3],
                         )
                     ],
@@ -103,13 +103,13 @@ class TestCompressorTrain:
                         chart_curve_factory(
                             speed_rpm=1,
                             rate_actual_m3_hour=[1, 2, 3],
-                            polytropic_head_joule_per_kg=[3, 2, 1],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
                             efficiency_fraction=[0.1, 0.2, 0.3],
                         ),
                         chart_curve_factory(
                             speed_rpm=2,
                             rate_actual_m3_hour=[1, 2, 3],
-                            polytropic_head_joule_per_kg=[3, 2, 1],
+                            polytropic_head_joule_per_kg=[1, 2, 3],
                             efficiency_fraction=[0.1, 0.2, 0.3],
                         ),
                     ],

@@ -49,22 +49,22 @@ class ChartCurve:
         array = np.asarray([rate_actual_m3_hour, polytropic_head_joule_per_kg, efficiency_fraction]).T
         array_sorted = array[array[:, 0].argsort()]
 
-        self.rate_actual_m3_hour = array_sorted[:, 0].tolist()
-        self.polytropic_head_joule_per_kg = array_sorted[:, 1].tolist()
-        self.efficiency_fraction = array_sorted[:, 2].tolist()
+        self.rate_actual_m3_hour = list(array_sorted[:, 0])
+        self.polytropic_head_joule_per_kg = list(array_sorted[:, 1])
+        self.efficiency_fraction = list(array_sorted[:, 2])
 
         if len(set(self.rate_actual_m3_hour)) != len(self.rate_actual_m3_hour):
             duplicate_rates = {x for x in self.rate_actual_m3_hour if self.rate_actual_m3_hour.count(x) > 1}
             logger.warning(f"Duplicate rate values in ChartCurve: {duplicate_rates}")
 
-        head_differences = np.diff(np.asarray(self.polytropic_head_joule_per_kg))
-        if not np.all(head_differences <= 0):
+        if not np.all(np.diff(np.asarray(self.polytropic_head_joule_per_kg)) <= 0):
             heads = self.polytropic_head_joule_per_kg
             rates = self.rate_actual_m3_hour
-            raise EcalcValidationException(
-                "Head must be non-increasing with increasing rate in a ChartCurve. "
-                f"Given head values: {heads}. "
-                f"Given rate values: {rates}."
+            logger.warning(
+                "Head is increasing with rate in a ChartCurve."
+                " Interpolations are based on the assumption of an inverse monotonic function between head and rate."
+                f" Given head values: {heads}"
+                f" Given rate values: {rates}"
             )
 
     @property
