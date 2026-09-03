@@ -1,5 +1,4 @@
 import abc
-from typing import Final
 
 from libecalc.energy import ElectricalPower, Energy, EnergyUnitId, Provider
 
@@ -34,20 +33,13 @@ class ElectricalCable(Transporter):
     def __init__(
         self, name: str, max_power: float, loss_fraction: float = 0.0, energy_unit_id: EnergyUnitId | None = None
     ) -> None:
-        self._name = name
+        super().__init__(name, energy_unit_id)
         self._max_power = max_power
         self._loss_fraction = loss_fraction
-        self._id: Final[EnergyUnitId] = energy_unit_id or ElectricalCable._create_id()
 
     @classmethod
     def get_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
     def get_max_power(self) -> float:
         return self._max_power

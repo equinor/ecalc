@@ -1,8 +1,7 @@
 import abc
-from typing import Final
 
 from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate
-from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
+from libecalc.energy.energy_unit import EnergyUnit
 
 
 class Junction(EnergyUnit):
@@ -10,10 +9,6 @@ class Junction(EnergyUnit):
 
     Connections and energy calculations are managed by EnergyNetwork.
     """
-
-    def __init__(self, name: str, energy_unit_id: EnergyUnitId | None = None) -> None:
-        self._name = name
-        self._id: Final[EnergyUnitId] = energy_unit_id or Junction._create_id()
 
     @classmethod
     @abc.abstractmethod
@@ -26,12 +21,6 @@ class Junction(EnergyUnit):
     @classmethod
     def get_output_energy_type(cls) -> type[Energy]:
         return cls.get_energy_type()
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
 
 class ElectricalBus(Junction):

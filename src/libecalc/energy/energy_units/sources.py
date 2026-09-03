@@ -1,5 +1,3 @@
-from typing import Final
-
 from libecalc.energy import Energy
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate
 from libecalc.energy.energy_unit import EnergyUnitId
@@ -10,19 +8,12 @@ class FuelGasSource(Source):
     """Platform fuel gas supply, typically from the reservoir."""
 
     def __init__(self, name: str, max_rate: float | None = None, energy_unit_id: EnergyUnitId | None = None) -> None:
-        self._name = name
+        super().__init__(name, energy_unit_id)
         self._max_rate = max_rate
-        self._id: Final[EnergyUnitId] = energy_unit_id or FuelGasSource._create_id()
 
     @classmethod
     def get_output_energy_type(cls) -> type[Energy]:
         return FuelGasRate
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
     def get_max_rate(self) -> float | None:
         return self._max_rate
@@ -35,19 +26,12 @@ class OnshoreGrid(Source):
     """Onshore electrical grid connection, capped at contracted capacity."""
 
     def __init__(self, name: str, max_power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        self._name = name
+        super().__init__(name, energy_unit_id)
         self._max_power = max_power
-        self._id: Final[EnergyUnitId] = energy_unit_id or OnshoreGrid._create_id()
 
     @classmethod
     def get_output_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
     def get_max_power(self) -> float:
         return self._max_power
@@ -60,19 +44,12 @@ class OffshoreWind(Source):
     """Offshore wind park, capped at total rated output."""
 
     def __init__(self, name: str, power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        self._name = name
+        super().__init__(name, energy_unit_id)
         self._power = power
-        self._id: Final[EnergyUnitId] = energy_unit_id or OffshoreWind._create_id()
 
     @classmethod
     def get_output_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
     def get_power(self) -> float:
         return self._power
@@ -85,19 +62,12 @@ class DieselSupply(Source):
     """Diesel fuel supply, brought to platform/rig by supply vessels."""
 
     def __init__(self, name: str, max_rate: float | None = None, energy_unit_id: EnergyUnitId | None = None) -> None:
-        self._name = name
+        super().__init__(name, energy_unit_id)
         self._max_rate = max_rate
-        self._id: Final[EnergyUnitId] = energy_unit_id or DieselSupply._create_id()
 
     @classmethod
     def get_output_energy_type(cls) -> type[DieselRate]:
         return DieselRate
-
-    def get_id(self) -> EnergyUnitId:
-        return self._id
-
-    def get_name(self) -> str:
-        return self._name
 
     def get_max_rate(self) -> float | None:
         return self._max_rate
