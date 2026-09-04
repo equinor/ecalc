@@ -214,7 +214,7 @@ class TestNetworkValidation:
                 }
             )
 
-    def test_diesel_genset_accepted(self):
+    def test_diesel_genset_rejected(self):
         with pytest.raises(ValueError, match="expects FUEL_GAS input"):
             YamlEnergyNetwork.model_validate(
                 {
