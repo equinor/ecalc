@@ -36,8 +36,8 @@ class TestExampleYamlParsing:
     def test_sources_have_no_input(self):
         network = _load_network(EXAMPLE_YAML)
         by_name = {s.name: s for s in network.sources}
-        assert by_name["fuel_gas"].type == "FUEL_GAS"
-        assert by_name["power_from_shore"].type == "ELECTRICAL"
+        assert by_name["fuel_gas"].type == "FUEL_GAS_SOURCE"
+        assert by_name["power_from_shore"].type == "ONSHORE_GRID"
         assert by_name["power_from_shore"].capacity == 20
 
     def test_units_are_correct_types(self):
@@ -94,11 +94,11 @@ class TestNumericBounds:
 
     def test_negative_load_rejected(self):
         with pytest.raises(ValidationError, match="LOAD must be non-negative"):
-            _component_adapter.validate_python({"NAME": "c", "TYPE": "ELECTRICAL", "INPUT": "g", "LOAD": -1})
+            _component_adapter.validate_python({"NAME": "c", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "g", "LOAD": -1})
 
     def test_negative_rate_rejected(self):
         with pytest.raises(ValidationError, match="RATE must be non-negative"):
-            _component_adapter.validate_python({"NAME": "c", "TYPE": "FUEL_GAS", "INPUT": "f", "RATE": -100})
+            _component_adapter.validate_python({"NAME": "c", "TYPE": "FUEL_GAS_CONSUMER", "INPUT": "f", "RATE": -100})
 
     def test_expression_capacity_accepted(self):
         """String expressions bypass numeric bounds — validated at evaluation time."""
@@ -130,8 +130,8 @@ class TestNetworkValidation:
             YamlEnergyNetwork.model_validate(
                 {
                     "SOURCES": [
-                        {"NAME": "dup", "TYPE": "FUEL_GAS"},
-                        {"NAME": "dup", "TYPE": "FUEL_GAS"},
+                        {"NAME": "dup", "TYPE": "FUEL_GAS_SOURCE"},
+                        {"NAME": "dup", "TYPE": "FUEL_GAS_SOURCE"},
                     ],
                 }
             )
@@ -140,7 +140,7 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="Duplicate"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS"}],
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [{"NAME": "fuel", "TYPE": "GENERATOR_SET", "INPUT": "fuel"}],
                 }
             )
@@ -149,7 +149,7 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="not a known source or provider"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS"}],
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
                         {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "nonexistent"},
                     ],
@@ -160,10 +160,10 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="not a known source or provider"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS"}],
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "load_a", "TYPE": "ELECTRICAL", "INPUT": "fuel", "LOAD": 5},
-                        {"NAME": "load_b", "TYPE": "ELECTRICAL", "INPUT": "load_a", "LOAD": 3},
+                        {"NAME": "load_a", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "fuel", "LOAD": 5},
+                        {"NAME": "load_b", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "load_a", "LOAD": 3},
                     ],
                 }
             )
@@ -172,7 +172,7 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="Cycle detected"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS"}],
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
                         {"NAME": "a", "TYPE": "GENERATOR_SET", "INPUT": "b"},
                         {"NAME": "b", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "a"},
@@ -184,7 +184,7 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="Cycle detected"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS"}],
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
                         {"NAME": "a", "TYPE": "GENERATOR_SET", "INPUT": "a"},
                     ],
@@ -192,10 +192,10 @@ class TestNetworkValidation:
             )
 
     def test_incompatible_energy_type_rejected(self):
-        with pytest.raises(ValueError, match="expects DIESEL/FUEL_GAS input.*provides ELECTRICAL"):
+        with pytest.raises(ValueError, match="expects FUEL_GAS input.*provides ELECTRICAL"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "grid", "TYPE": "ELECTRICAL"}],
+                    "SOURCES": [{"NAME": "grid", "TYPE": "ONSHORE_GRID", "CAPACITY": 10}],
                     "UNITS": [
                         {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "grid"},
                     ],
@@ -206,33 +206,38 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="expects ELECTRICAL input.*provides MECHANICAL"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS"}],
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
                         {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel"},
-                        {"NAME": "load", "TYPE": "ELECTRICAL", "INPUT": "turbine", "LOAD": 5},
+                        {"NAME": "load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "turbine", "LOAD": 5},
                     ],
                 }
             )
 
-    def test_diesel_genset_accepted(self):
-        network = YamlEnergyNetwork.model_validate(
-            {
-                "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL"}],
-                "UNITS": [
-                    {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "diesel"},
-                ],
-            }
-        )
-        assert len(network.units) == 1
+    def test_diesel_genset_rejected(self):
+        with pytest.raises(ValueError, match="expects FUEL_GAS input"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
+                    "UNITS": [
+                        {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "diesel"},
+                    ],
+                }
+            )
 
     def test_compatible_chain_accepted(self):
         network = YamlEnergyNetwork.model_validate(
             {
-                "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS"}],
+                "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                 "UNITS": [
                     {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel"},
                     {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset"},
-                    {"NAME": "compressor", "TYPE": "MECHANICAL", "INPUT": "motor", "PROCESS_SIMULATION": "sim"},
+                    {
+                        "NAME": "compressor",
+                        "TYPE": "MECHANICAL_CONSUMER",
+                        "INPUT": "motor",
+                        "PROCESS_SIMULATION": "sim",
+                    },
                 ],
             }
         )
@@ -242,10 +247,10 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="either LOAD or PROCESS_SIMULATION"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS"}],
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
                         {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel"},
-                        {"NAME": "comp", "TYPE": "MECHANICAL", "INPUT": "turbine"},
+                        {"NAME": "comp", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "turbine"},
                     ],
                 }
             )
@@ -253,5 +258,5 @@ class TestNetworkValidation:
     def test_mechanical_consumer_rejects_both_load_and_sim(self):
         with pytest.raises(ValueError, match="cannot specify both"):
             _component_adapter.validate_python(
-                {"NAME": "c", "TYPE": "MECHANICAL", "INPUT": "x", "LOAD": 5, "PROCESS_SIMULATION": "sim"}
+                {"NAME": "c", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "x", "LOAD": 5, "PROCESS_SIMULATION": "sim"}
             )
