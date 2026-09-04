@@ -44,19 +44,19 @@ class TestConverters:
 
     def test_generator_set_applies_fuel_curve(self):
         genset = GeneratorSet("gs1", max_power=20.0, power_to_fuel=lambda mw: 5000 + mw * 4500)
-        result = genset.get_energy_demand(ElectricalPower(10.0))
+        result = genset.get_input_energy(ElectricalPower(10.0))
         assert result == FuelGasRate(5000 + 10 * 4500)
         assert genset.capacity() == ElectricalPower(20.0)
 
     def test_gas_turbine_applies_fuel_curve(self):
         turbine = GasTurbine("t1", max_power=25.0, power_to_fuel=lambda mw: 3000 + mw * 3500)
-        result = turbine.get_energy_demand(MechanicalPower(15.0))
+        result = turbine.get_input_energy(MechanicalPower(15.0))
         assert result == FuelGasRate(3000 + 15 * 3500)
         assert turbine.capacity() == MechanicalPower(25.0)
 
     def test_electrical_motor_divides_by_efficiency(self):
         motor = ElectricalMotor("m1", max_power=8.0, efficiency=0.93)
-        result = motor.get_energy_demand(MechanicalPower(7.0))
+        result = motor.get_input_energy(MechanicalPower(7.0))
         assert result.value == pytest.approx(7.0 / 0.93)
         assert isinstance(result, ElectricalPower)
         assert motor.capacity() == MechanicalPower(8.0)

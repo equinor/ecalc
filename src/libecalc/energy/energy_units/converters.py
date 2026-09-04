@@ -44,7 +44,7 @@ class GeneratorSet(Converter):
     def capacity(self) -> ElectricalPower | None:
         return ElectricalPower(self._max_power)
 
-    def get_energy_demand(self, output_energy: ElectricalPower) -> FuelGasRate:
+    def get_input_energy(self, output_energy: ElectricalPower) -> FuelGasRate:
         return FuelGasRate(self._power_to_fuel(output_energy.value))
 
 
@@ -76,7 +76,7 @@ class GasTurbine(Converter):
     def capacity(self) -> MechanicalPower | None:
         return MechanicalPower(self._max_power)
 
-    def get_energy_demand(self, output_energy: MechanicalPower) -> FuelGasRate:
+    def get_input_energy(self, output_energy: MechanicalPower) -> FuelGasRate:
         return FuelGasRate(self._power_to_fuel(output_energy.value))
 
 
@@ -107,5 +107,5 @@ class ElectricalMotor(Converter):
     def capacity(self) -> MechanicalPower | None:
         return MechanicalPower(self._max_power)
 
-    def get_energy_demand(self, output_energy: MechanicalPower) -> ElectricalPower:
+    def get_input_energy(self, output_energy: MechanicalPower) -> ElectricalPower:
         return ElectricalPower(output_energy.value / self._efficiency)
