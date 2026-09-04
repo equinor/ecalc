@@ -2,6 +2,7 @@ import pytest
 from inline_snapshot import snapshot
 
 from libecalc.energy import ElectricalPower, FuelGasRate, MechanicalPower
+from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_units import (
     BaseLoad,
     Compressor,
@@ -180,6 +181,78 @@ class TestEnergyNetworkValidation:
                 ],
             )
 
+    @pytest.mark.parametrize("load", [0, 10])
+    def test_rejects_fan_in_into_consumer(self, load: float):
+        first_grid = OnshoreGrid("first_grid", max_power=20)
+        second_grid = OnshoreGrid("second_grid", max_power=20)
+        consumer = BaseLoad("load", load=load)
+
+        with pytest.raises(InvalidEnergyNetworkError, match="only junctions support fan-in"):
+            EnergyNetwork(
+                nodes=[first_grid, second_grid, consumer],
+                connections=[
+                    EnergyConnection(first_grid.get_id(), consumer.get_id()),
+                    EnergyConnection(second_grid.get_id(), consumer.get_id()),
+                ],
+            )
+
+    def test_requires_dispatch_strategy_for_junction_with_multiple_predecessors(self):
+        first_grid = OnshoreGrid("first_grid", max_power=20)
+        second_grid = OnshoreGrid("second_grid", max_power=20)
+        bus = ElectricalBus("bus")
+        load = BaseLoad("load", load=10)
+
+        with pytest.raises(EnergyAllocationRequiredError, match="requires a dispatch strategy"):
+            EnergyNetwork(
+                nodes=[first_grid, second_grid, bus, load],
+                connections=[
+                    EnergyConnection(first_grid.get_id(), bus.get_id()),
+                    EnergyConnection(second_grid.get_id(), bus.get_id()),
+                    EnergyConnection(bus.get_id(), load.get_id()),
+                ],
+            )
+
+    def test_rejects_dispatch_strategy_provider_ids_that_do_not_match_predecessors(self):
+        first_grid = OnshoreGrid("first_grid", max_power=20)
+        second_grid = OnshoreGrid("second_grid", max_power=20)
+        missing_grid = OnshoreGrid("missing_grid", max_power=20)
+        bus = ElectricalBus(
+            "bus",
+            dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), missing_grid.get_id())),
+        )
+        load = BaseLoad("load", load=10)
+
+        with pytest.raises(InvalidEnergyNetworkError, match="must match its predecessors"):
+            EnergyNetwork(
+                nodes=[first_grid, second_grid, bus, load],
+                connections=[
+                    EnergyConnection(first_grid.get_id(), bus.get_id()),
+                    EnergyConnection(second_grid.get_id(), bus.get_id()),
+                    EnergyConnection(bus.get_id(), load.get_id()),
+                ],
+            )
+
+    def test_rejects_provider_shared_by_dispatched_junction_and_another_successor(self):
+        first_grid = OnshoreGrid("first_grid", max_power=20)
+        second_grid = OnshoreGrid("second_grid", max_power=20)
+        bus = ElectricalBus(
+            "bus",
+            dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), second_grid.get_id())),
+        )
+        bus_load = BaseLoad("bus_load", load=10)
+        direct_load = BaseLoad("direct_load", load=2)
+
+        with pytest.raises(InvalidEnergyNetworkError, match="must have exactly one successor"):
+            EnergyNetwork(
+                nodes=[first_grid, second_grid, bus, bus_load, direct_load],
+                connections=[
+                    EnergyConnection(first_grid.get_id(), bus.get_id()),
+                    EnergyConnection(first_grid.get_id(), direct_load.get_id()),
+                    EnergyConnection(second_grid.get_id(), bus.get_id()),
+                    EnergyConnection(bus.get_id(), bus_load.get_id()),
+                ],
+            )
+
 
 class TestEnergyNetworkTopology:
     def test_exposes_nodes_in_topological_order(self):
@@ -251,7 +324,10 @@ class TestEnergyNetworkTopology:
         grid = OnshoreGrid(name="grid", max_power=20)
         wind = OffshoreWind(name="wind", power=5)
 
-        bus = ElectricalBus(name="bus")
+        bus = ElectricalBus(
+            name="bus",
+            dispatch_strategy=PriorityDispatch(order=(grid.get_id(), wind.get_id())),
+        )
         load = BaseLoad(name="load", load=10)
 
         network = EnergyNetwork(
@@ -364,39 +440,163 @@ class TestEnergyNetworkEnergyCalculation:
 
         assert network.get_output_energy(source.get_id()) == FuelGasRate(0)
 
-    def test_requires_allocation_for_multiple_predecessors(self):
-        first_grid = OnshoreGrid("first_grid", max_power=20)
-        second_grid = OnshoreGrid("second_grid", max_power=20)
-        load = BaseLoad("load", load=10)
+    def test_dispatches_to_shore_before_genset(self):
+        fuel_source = FuelGasSource("fuel_source")
+        grid = OnshoreGrid("grid", max_power=5)
+        genset = GeneratorSet("genset", max_power=10, power_to_fuel=lambda power: power * 1_000)
+        bus = ElectricalBus(
+            "bus",
+            dispatch_strategy=PriorityDispatch(order=(grid.get_id(), genset.get_id())),
+        )
+        load = BaseLoad("load", load=8)
 
         network = EnergyNetwork(
-            nodes=[first_grid, second_grid, load],
+            nodes=[fuel_source, grid, genset, bus, load],
             connections=[
-                EnergyConnection(first_grid.get_id(), load.get_id()),
-                EnergyConnection(second_grid.get_id(), load.get_id()),
+                EnergyConnection(fuel_source.get_id(), genset.get_id()),
+                EnergyConnection(grid.get_id(), bus.get_id()),
+                EnergyConnection(genset.get_id(), bus.get_id()),
+                EnergyConnection(bus.get_id(), load.get_id()),
             ],
         )
 
-        with pytest.raises(
-            EnergyAllocationRequiredError,
-            match="successor .* has 2 predecessors",
-        ):
-            network.get_output_energy(first_grid.get_id())
+        assert network.get_output_energy(grid.get_id()) == ElectricalPower(5)
+        assert network.get_output_energy(genset.get_id()) == ElectricalPower(3)
+        assert network.get_input_energy(genset.get_id()) == FuelGasRate(3_000)
+        assert network.get_output_energy(fuel_source.get_id()) == FuelGasRate(3_000)
+        assert network.is_feasible()
 
-    def test_does_not_require_allocation_for_zero_energy(self):
-        first_grid = OnshoreGrid("first_grid", max_power=20)
-        second_grid = OnshoreGrid("second_grid", max_power=20)
-        load = BaseLoad("load", load=0)
+    def test_separate_genset_curves_reproduce_legacy_fuel_jump(self):
+        fuel_source = FuelGasSource("fuel_source")
+        first_genset = GeneratorSet("first_genset", max_power=10, power_to_fuel=lambda power: power * 1_000)
+        second_genset = GeneratorSet(
+            "second_genset",
+            max_power=10,
+            power_to_fuel=lambda power: 10_000 + power * 2_000,
+        )
+        bus = ElectricalBus(
+            "bus",
+            dispatch_strategy=PriorityDispatch(order=(first_genset.get_id(), second_genset.get_id())),
+        )
+        load = BaseLoad("load", load=12)
 
         network = EnergyNetwork(
-            nodes=[first_grid, second_grid, load],
+            nodes=[fuel_source, first_genset, second_genset, bus, load],
             connections=[
-                EnergyConnection(first_grid.get_id(), load.get_id()),
-                EnergyConnection(second_grid.get_id(), load.get_id()),
+                EnergyConnection(fuel_source.get_id(), first_genset.get_id()),
+                EnergyConnection(fuel_source.get_id(), second_genset.get_id()),
+                EnergyConnection(first_genset.get_id(), bus.get_id()),
+                EnergyConnection(second_genset.get_id(), bus.get_id()),
+                EnergyConnection(bus.get_id(), load.get_id()),
             ],
         )
 
-        assert network.get_output_energy(first_grid.get_id()) == ElectricalPower(0)
+        assert network.get_output_energy(first_genset.get_id()) == ElectricalPower(10)
+        assert network.get_output_energy(second_genset.get_id()) == ElectricalPower(2)
+        assert network.get_output_energy(fuel_source.get_id()) == FuelGasRate(24_000)
+
+    def test_conserves_energy_across_dispatched_junction(self):
+        first_grid = OnshoreGrid("first_grid", max_power=5)
+        second_grid = OnshoreGrid("second_grid", max_power=10)
+        bus = ElectricalBus(
+            "bus",
+            dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), second_grid.get_id())),
+        )
+        load = BaseLoad("load", load=8)
+
+        network = EnergyNetwork(
+            nodes=[first_grid, second_grid, bus, load],
+            connections=[
+                EnergyConnection(first_grid.get_id(), bus.get_id()),
+                EnergyConnection(second_grid.get_id(), bus.get_id()),
+                EnergyConnection(bus.get_id(), load.get_id()),
+            ],
+        )
+
+        first_output = network.get_output_energy(first_grid.get_id())
+        second_output = network.get_output_energy(second_grid.get_id())
+        assert isinstance(first_output, ElectricalPower)
+        assert isinstance(second_output, ElectricalPower)
+        predecessor_output = first_output + second_output
+        assert network.get_input_energy(bus.get_id()) == predecessor_output
+
+    def test_overflows_last_provider_when_total_capacity_is_insufficient(self):
+        first_grid = OnshoreGrid("first_grid", max_power=5)
+        second_grid = OnshoreGrid("second_grid", max_power=5)
+        bus = ElectricalBus(
+            "bus",
+            dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), second_grid.get_id())),
+        )
+        load = BaseLoad("load", load=12)
+
+        network = EnergyNetwork(
+            nodes=[first_grid, second_grid, bus, load],
+            connections=[
+                EnergyConnection(first_grid.get_id(), bus.get_id()),
+                EnergyConnection(second_grid.get_id(), bus.get_id()),
+                EnergyConnection(bus.get_id(), load.get_id()),
+            ],
+        )
+
+        assert network.get_output_energy(first_grid.get_id()) == ElectricalPower(5)
+        assert network.get_output_energy(second_grid.get_id()) == ElectricalPower(7)
+        assert network.is_capacity_exceeded(second_grid.get_id())
+        assert not network.is_feasible()
+
+    def test_dispatch_uses_cable_capacity_not_upstream_grid_capacity(self):
+        grid = OnshoreGrid("grid", max_power=20)
+        cable = ElectricalCable("cable", max_power=30)
+        wind = OffshoreWind("wind", power=10)
+        bus = ElectricalBus(
+            "bus",
+            dispatch_strategy=PriorityDispatch(order=(cable.get_id(), wind.get_id())),
+        )
+        load = BaseLoad("load", load=25)
+
+        network = EnergyNetwork(
+            nodes=[grid, cable, wind, bus, load],
+            connections=[
+                EnergyConnection(grid.get_id(), cable.get_id()),
+                EnergyConnection(cable.get_id(), bus.get_id()),
+                EnergyConnection(wind.get_id(), bus.get_id()),
+                EnergyConnection(bus.get_id(), load.get_id()),
+            ],
+        )
+
+        assert network.get_output_energy(cable.get_id()) == ElectricalPower(25)
+        assert network.get_output_energy(grid.get_id()) == ElectricalPower(25)
+        assert network.is_capacity_exceeded(grid.get_id())
+        assert not network.is_feasible()
+
+    def test_calculates_shipped_cable_wind_bus_heating_shape_with_loss(self):
+        power_from_shore = OnshoreGrid("power_from_shore", max_power=20)
+        subsea_cable = ElectricalCable("subsea_cable", max_power=20, loss_fraction=0.03)
+        wind_turbine = OffshoreWind("wind_turbine", power=4.4)
+        electrical_bus = ElectricalBus(
+            "electrical_bus",
+            dispatch_strategy=PriorityDispatch(order=(subsea_cable.get_id(), wind_turbine.get_id())),
+        )
+        heating = BaseLoad("heating", load=10)
+
+        network = EnergyNetwork(
+            nodes=[power_from_shore, subsea_cable, wind_turbine, electrical_bus, heating],
+            connections=[
+                EnergyConnection(power_from_shore.get_id(), subsea_cable.get_id()),
+                EnergyConnection(subsea_cable.get_id(), electrical_bus.get_id()),
+                EnergyConnection(wind_turbine.get_id(), electrical_bus.get_id()),
+                EnergyConnection(electrical_bus.get_id(), heating.get_id()),
+            ],
+        )
+
+        assert network.get_output_energy(subsea_cable.get_id()) == ElectricalPower(10)
+        cable_input = network.get_input_energy(subsea_cable.get_id())
+        shore_output = network.get_output_energy(power_from_shore.get_id())
+        assert isinstance(cable_input, ElectricalPower)
+        assert isinstance(shore_output, ElectricalPower)
+        assert cable_input.value == pytest.approx(10 / 0.97)
+        assert shore_output.value == pytest.approx(10 / 0.97)
+        assert network.get_output_energy(wind_turbine.get_id()) == ElectricalPower(0)
+        assert network.is_feasible()
 
 
 class TestEnergyNetworkFeasibility:

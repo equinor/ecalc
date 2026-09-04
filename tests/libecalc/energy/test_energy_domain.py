@@ -49,3 +49,23 @@ class TestEnergyDomainContracts:
 
         # Same type works
         assert (electrical + ElectricalPower(5.0)).value == 15.0
+
+    def test_type_safety_prevents_comparing_energy_types(self):
+        """Runtime guard on Energy comparisons, mirroring the guard on addition.
+
+        Ordering is restricted to one energy form so it stays total. Equality already
+        requires the same type, so allowing cross-form ordering would leave a < b,
+        a > b and a == b all false for two equal magnitudes.
+        """
+        electrical = ElectricalPower(10.0)
+        mechanical = MechanicalPower(10.0)
+
+        with pytest.raises(TypeError):
+            _ = electrical < mechanical  # type: ignore[operator]
+
+        assert electrical != mechanical
+
+        # Same type orders on value
+        assert ElectricalPower(5.0) < electrical
+        assert electrical >= ElectricalPower(10.0)
+        assert min(electrical, ElectricalPower(5.0)) == ElectricalPower(5.0)

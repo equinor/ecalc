@@ -22,4 +22,8 @@ class InvalidEnergyNetworkError(EnergyDomainError):
 
 
 class EnergyAllocationRequiredError(EnergyDomainError):
-    """Raised when an energy unit has multiple predecessors."""
+    """Raised when a junction with multiple predecessors has no dispatch strategy."""
+
+
+class InvalidDispatchError(EnergyDomainError):
+    """Raised when a dispatch strategy is asked to allocate over candidates it cannot serve."""

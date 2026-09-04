@@ -34,6 +34,24 @@ class Energy(abc.ABC):
             raise TypeError(msg)
         return type(self)(value=self.value - other.value)
 
+    def _comparable_value(self, other: Self) -> float:
+        if type(self) is not type(other):
+            msg = f"Cannot compare {type(self).__name__} and {type(other).__name__}"
+            raise TypeError(msg)
+        return other.value
+
+    def __lt__(self, other: Self) -> bool:
+        return self.value < self._comparable_value(other)
+
+    def __le__(self, other: Self) -> bool:
+        return self.value <= self._comparable_value(other)
+
+    def __gt__(self, other: Self) -> bool:
+        return self.value > self._comparable_value(other)
+
+    def __ge__(self, other: Self) -> bool:
+        return self.value >= self._comparable_value(other)
+
 
 @dataclass(frozen=True)
 class MechanicalPower(Energy):

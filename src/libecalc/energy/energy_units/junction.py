@@ -1,3 +1,4 @@
+from libecalc.energy.dispatch import DispatchStrategy
 from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.roles import Junction
@@ -6,6 +7,15 @@ from libecalc.energy.roles import Junction
 class ElectricalBus(Junction):
     """Electrical power distribution bus (busbar)."""
 
+    # Narrows Junction's constructor: a bus takes a dispatch strategy but sets no predecessor limit.
+    def __init__(
+        self,
+        name: str,
+        energy_unit_id: EnergyUnitId | None = None,
+        dispatch_strategy: DispatchStrategy | None = None,
+    ) -> None:
+        super().__init__(name, energy_unit_id, dispatch_strategy=dispatch_strategy)
+
     @classmethod
     def get_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
@@ -13,6 +23,15 @@ class ElectricalBus(Junction):
 
 class FuelGasManifold(Junction):
     """Fuel gas distribution manifold (header)."""
+
+    # Narrows Junction's constructor: a manifold takes a dispatch strategy but sets no predecessor limit.
+    def __init__(
+        self,
+        name: str,
+        energy_unit_id: EnergyUnitId | None = None,
+        dispatch_strategy: DispatchStrategy | None = None,
+    ) -> None:
+        super().__init__(name, energy_unit_id, dispatch_strategy=dispatch_strategy)
 
     @classmethod
     def get_energy_type(cls) -> type[FuelGasRate]:

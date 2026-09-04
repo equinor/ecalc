@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import abc
 
+from libecalc.energy.dispatch import DispatchStrategy
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
 
@@ -82,13 +83,23 @@ class Transporter(DerivedInputProvider):
 
 
 class Junction(DerivedInputProvider, abc.ABC):
-    """Aggregation point for same-type energy; multi-predecessor allocation is not yet implemented."""
+    """Aggregation point for same-type energy.
+
+    A junction with more than one predecessor needs a dispatch strategy: it is the only role that
+    supports fan-in, and the strategy carries the priority order explicitly, since the connections
+    a network is built from are unordered.
+    """
 
     def __init__(
-        self, name: str, energy_unit_id: EnergyUnitId | None = None, max_predecessors: int | None = None
+        self,
+        name: str,
+        energy_unit_id: EnergyUnitId | None = None,
+        max_predecessors: int | None = None,
+        dispatch_strategy: DispatchStrategy | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
         self._max_predecessors = max_predecessors
+        self._dispatch_strategy = dispatch_strategy
 
     @classmethod
     @abc.abstractmethod
@@ -105,6 +116,9 @@ class Junction(DerivedInputProvider, abc.ABC):
     def max_predecessors(self) -> int | None:
         """Maximum number of predecessors allowed; None means unlimited."""
         return self._max_predecessors
+
+    def get_dispatch_strategy(self) -> DispatchStrategy | None:
+        return self._dispatch_strategy
 
     def capacity(self) -> Energy | None:
         return None
