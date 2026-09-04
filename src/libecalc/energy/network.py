@@ -3,13 +3,14 @@ from graphlib import CycleError, TopologicalSorter
 
 from libecalc.common.ddd import value_object
 from libecalc.energy.consumer import Consumer
+from libecalc.energy.converter import Converter
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
-from libecalc.energy.provider import Converter, Provider, Source
+from libecalc.energy.source import Source
 
-type EnergyNetworkNode = Consumer | Provider | Junction
+type EnergyNetworkNode = Consumer | Source | Converter | Transporter | Junction
 
 
 @value_object
@@ -121,12 +122,13 @@ class EnergyNetwork:
         if isinstance(node, Consumer):
             return None
 
-        if not isinstance(node, (Provider, Junction)):
+        if not isinstance(node, (Source, Converter, Transporter, Junction)):
             raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
 
         output_energy = node.get_output_energy_type()(value=0)
 
-        # A provider or junction outputs the combined input energy of its successors.
+        # A source, converter, transporter, or junction outputs the combined input
+        # energy of its successors.
         for successor_id in self.get_successors(node_id):
             successor_input_energy = self.get_input_energy(successor_id)
 
@@ -152,7 +154,7 @@ class EnergyNetwork:
     ) -> Energy | None:
         unit = self.get_node(unit_id)
 
-        if isinstance(unit, Provider):
+        if isinstance(unit, (Source, Converter, Transporter)):
             return unit.capacity()
 
         return None
@@ -217,7 +219,7 @@ class EnergyNetwork:
     def _get_output_type(
         node: EnergyNetworkNode,
     ) -> type[Energy]:
-        if not isinstance(node, (Provider, Junction)):
+        if not isinstance(node, (Source, Converter, Transporter, Junction)):
             raise InvalidEnergyNetworkError(
                 f"Source node of type '{type(node).__name__}' with id '{node.get_id()}' provides no energy"
             )
