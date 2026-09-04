@@ -1,9 +1,9 @@
 import abc
 
-from libecalc.energy import ElectricalPower, Energy, EnergyUnitId, Provider
+from libecalc.energy import ElectricalPower, Energy, EnergyUnit, EnergyUnitId
 
 
-class Transporter(Provider):
+class Transporter(EnergyUnit, abc.ABC):
     """Moves energy without changing form, possibly with loss.
 
     Subclasses set energy_type — input and output are always the same.
@@ -24,6 +24,11 @@ class Transporter(Provider):
     @abc.abstractmethod
     def get_input_energy(self, output_energy: Energy) -> Energy:
         """Given output needed, what input is required?"""
+        ...
+
+    @abc.abstractmethod
+    def capacity(self) -> Energy | None:
+        """Maximum this transporter can deliver. None = unlimited."""
         ...
 
 

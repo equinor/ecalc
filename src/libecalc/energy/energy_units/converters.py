@@ -1,8 +1,8 @@
 from collections.abc import Callable
 
+from libecalc.energy.converter import Converter
 from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.provider import Converter
 
 
 class GeneratorSet(Converter):

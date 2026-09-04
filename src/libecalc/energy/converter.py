@@ -6,30 +6,7 @@ from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnit
 
 
-class Provider(EnergyUnit, abc.ABC):
-    """Anything that supplies energy — from outside the system,
-    by converting one energy type to another, or by distributing across providers."""
-
-    @classmethod
-    @abc.abstractmethod
-    def get_output_energy_type(cls) -> type[Energy]: ...
-
-    @abc.abstractmethod
-    def capacity(self) -> Energy | None:
-        """Maximum this provider can deliver. None = unlimited."""
-        ...
-
-
-class Source(Provider):
-    """Energy enters the system from an external source.
-
-    Examples: power from shore (ElectricalPower), fuel gas supply (FuelGasRate).
-    """
-
-    ...
-
-
-class Converter(Provider):
+class Converter(EnergyUnit, abc.ABC):
     """Converts one energy type to another.
 
     input_energy_type is what this converter needs as input,
@@ -45,7 +22,16 @@ class Converter(Provider):
     @abc.abstractmethod
     def get_input_energy_type(cls) -> type[Energy]: ...
 
+    @classmethod
+    @abc.abstractmethod
+    def get_output_energy_type(cls) -> type[Energy]: ...
+
     @abc.abstractmethod
     def get_input_energy(self, output_energy: Energy) -> Energy:
         """Given output needed, what input is required?"""
+        ...
+
+    @abc.abstractmethod
+    def capacity(self) -> Energy | None:
+        """Maximum this converter can deliver. None = unlimited."""
         ...
