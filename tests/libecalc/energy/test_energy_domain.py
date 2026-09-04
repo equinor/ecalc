@@ -27,7 +27,7 @@ class TestEnergyDomainContracts:
         """
 
         def required_input_energy(converter: Converter, output_energy: Energy) -> Energy:
-            return converter.get_input_energy(output_energy)
+            return converter.get_energy_demand(output_energy)
 
         genset = GeneratorSet("genset", max_power=17.0, power_to_fuel=lambda output_power: output_power * 5000.0)
         turbine = GasTurbine("turbine", max_power=30.0, power_to_fuel=lambda output_power: output_power * 6000.0)

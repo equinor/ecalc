@@ -3,15 +3,15 @@ from inline_snapshot import snapshot
 
 from libecalc.energy import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_units import (
-    BaseLoad,
     ElectricalBus,
     ElectricalCable,
+    ElectricalConsumer,
     ElectricalMotor,
     FuelGasSource,
     GeneratorSet,
+    MechanicalConsumer,
     OffshoreWind,
     OnshoreGrid,
-    Pump,
 )
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
@@ -20,7 +20,7 @@ from libecalc.energy.network import EnergyConnection, EnergyNetwork
 class TestEnergyNetworkValidation:
     def test_rejects_incompatible_energy_types(self):
         source = FuelGasSource(name="source")
-        load = BaseLoad(name="load", load=5)
+        load = ElectricalConsumer(name="load", power=5)
 
         with pytest.raises(
             InvalidEnergyNetworkError,
@@ -37,7 +37,7 @@ class TestEnergyNetworkValidation:
             )
 
     def test_rejects_unknown_source(self):
-        load = BaseLoad(name="load", load=5)
+        load = ElectricalConsumer(name="load", power=5)
         missing_id = FuelGasSource._create_id()
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown source"):
@@ -53,7 +53,7 @@ class TestEnergyNetworkValidation:
 
     def test_rejects_unknown_target(self):
         source = FuelGasSource(name="source")
-        missing_id = BaseLoad._create_id()
+        missing_id = ElectricalConsumer._create_id()
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown target"):
             EnergyNetwork(
@@ -69,8 +69,8 @@ class TestEnergyNetworkValidation:
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_rejects_consumer_as_source(self):
-        source = BaseLoad(name="source", load=5)
-        target = BaseLoad(name="target", load=5)
+        source = ElectricalConsumer(name="source", power=5)
+        target = ElectricalConsumer(name="target", power=5)
 
         with pytest.raises(
             InvalidEnergyNetworkError,
@@ -85,7 +85,7 @@ class TestEnergyNetworkValidation:
                 ],
             )
         assert str(exc_info.value) == snapshot(
-            f"Energy domain error: Source node of type 'BaseLoad' with id '{source.get_id()}' provides no energy"
+            f"Energy domain error: Source node of type 'ElectricalConsumer' with id '{source.get_id()}' provides no energy"
         )
 
     @pytest.mark.snapshot
@@ -120,7 +120,7 @@ class TestEnergyNetworkValidation:
             EnergyNetwork(
                 nodes=[
                     FuelGasSource(name="source", energy_unit_id=duplicate_id),
-                    BaseLoad(name="load", load=5, energy_unit_id=duplicate_id),
+                    ElectricalConsumer(name="load", power=5, energy_unit_id=duplicate_id),
                 ],
                 connections=[],
             )
@@ -148,7 +148,7 @@ class TestEnergyNetworkValidation:
             )
 
     def test_rejects_consumer_without_predecessor(self):
-        base_load = BaseLoad("load", load=1)
+        base_load = ElectricalConsumer("load", power=1)
         with pytest.raises(
             InvalidEnergyNetworkError,
             match="requires input energy but has no predecessor",
@@ -162,7 +162,7 @@ class TestEnergyNetworkTopology:
         generator = GeneratorSet(
             name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000.0
         )
-        load = BaseLoad(name="load", load=5)
+        load = ElectricalConsumer(name="load", power=5)
 
         network = EnergyNetwork(
             nodes=[source, generator, load],
@@ -189,8 +189,8 @@ class TestEnergyNetworkTopology:
         """A provider can supply multiple downstream consumers."""
         source = FuelGasSource(name="source")
         generator = GeneratorSet(name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000)
-        first_load = BaseLoad(name="first_load", load=3)
-        second_load = BaseLoad(name="second_load", load=4)
+        first_load = ElectricalConsumer(name="first_load", power=3)
+        second_load = ElectricalConsumer(name="second_load", power=4)
 
         network = EnergyNetwork(
             nodes=[
@@ -227,7 +227,7 @@ class TestEnergyNetworkTopology:
         wind = OffshoreWind(name="wind", power=5)
 
         bus = ElectricalBus(name="bus")
-        load = BaseLoad(name="load", load=10)
+        load = ElectricalConsumer(name="load", power=10)
 
         network = EnergyNetwork(
             nodes=[grid, wind, bus, load],
@@ -265,7 +265,7 @@ class TestEnergyNetworkTopology:
             max_power=15,
             loss_fraction=0.04,
         )
-        load = BaseLoad(name="load", load=10)
+        load = ElectricalConsumer(name="load", power=10)
 
         network = EnergyNetwork(
             nodes=[grid, cable, load],
@@ -295,8 +295,8 @@ class TestEnergyNetworkEnergyCalculation:
         )
         bus = ElectricalBus("bus")
         motor = ElectricalMotor("motor", max_power=5, efficiency=0.8)
-        pump = Pump("pump", power=4)
-        base_load = BaseLoad("base_load", load=5)
+        pump = MechanicalConsumer("pump", power=4)
+        base_load = ElectricalConsumer("base_load", power=5)
 
         network = EnergyNetwork(
             nodes=[source, generator, bus, motor, pump, base_load],
@@ -342,7 +342,7 @@ class TestEnergyNetworkEnergyCalculation:
     def test_requires_allocation_for_multiple_predecessors(self):
         first_grid = OnshoreGrid("first_grid", max_power=20)
         second_grid = OnshoreGrid("second_grid", max_power=20)
-        load = BaseLoad("load", load=10)
+        load = ElectricalConsumer("load", power=10)
 
         network = EnergyNetwork(
             nodes=[first_grid, second_grid, load],
@@ -361,7 +361,7 @@ class TestEnergyNetworkEnergyCalculation:
     def test_does_not_require_allocation_for_zero_energy(self):
         first_grid = OnshoreGrid("first_grid", max_power=20)
         second_grid = OnshoreGrid("second_grid", max_power=20)
-        load = BaseLoad("load", load=0)
+        load = ElectricalConsumer("load", power=0)
 
         network = EnergyNetwork(
             nodes=[first_grid, second_grid, load],
@@ -377,7 +377,7 @@ class TestEnergyNetworkEnergyCalculation:
 class TestEnergyNetworkFeasibility:
     def test_reports_capacity_exceeded_without_capping_output_energy(self):
         grid = OnshoreGrid("grid", max_power=5)
-        load = BaseLoad("load", load=6)
+        load = ElectricalConsumer("load", power=6)
 
         network = EnergyNetwork(
             nodes=[grid, load],
@@ -393,7 +393,7 @@ class TestEnergyNetworkFeasibility:
 
     def test_capacity_equal_to_output_energy_is_feasible(self):
         grid = OnshoreGrid("grid", max_power=5)
-        load = BaseLoad("load", load=5)
+        load = ElectricalConsumer("load", power=5)
 
         network = EnergyNetwork(
             nodes=[grid, load],

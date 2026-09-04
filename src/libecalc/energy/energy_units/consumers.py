@@ -3,84 +3,8 @@ from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRat
 from libecalc.energy.energy_unit import EnergyUnitId
 
 
-class BaseLoad(Consumer):
-    """Fixed electrical load (e.g. heating, steam generator, lighting).
-
-    Some base loads (e.g. steam generator) may become converters if thermal
-    energy modeling is introduced.
-    """
-
-    def __init__(self, name: str, load: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        super().__init__(name, energy_unit_id)
-        self._load = load
-
-    @classmethod
-    def get_input_energy_type(cls) -> type[ElectricalPower]:
-        return ElectricalPower
-
-    def get_load(self) -> float:
-        return self._load
-
-    def get_input_energy(self) -> ElectricalPower:
-        return ElectricalPower(self._load)
-
-
-class Compressor(Consumer):
-    """Compressor requiring mechanical power (driven by turbine or motor)."""
-
-    def __init__(self, name: str, power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        super().__init__(name, energy_unit_id)
-        self._power = power
-
-    @classmethod
-    def get_input_energy_type(cls) -> type[MechanicalPower]:
-        return MechanicalPower
-
-    def get_power(self) -> float:
-        return self._power
-
-    def get_input_energy(self) -> MechanicalPower:
-        return MechanicalPower(self._power)
-
-
-class Pump(Consumer):
-    """Pump requiring mechanical power (e.g. water injection pump)."""
-
-    def __init__(self, name: str, power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        super().__init__(name, energy_unit_id)
-        self._power = power
-
-    @classmethod
-    def get_input_energy_type(cls) -> type[MechanicalPower]:
-        return MechanicalPower
-
-    def get_power(self) -> float:
-        return self._power
-
-    def get_input_energy(self) -> MechanicalPower:
-        return MechanicalPower(self._power)
-
-
-class SampledFuelConsumer(Consumer):
-    """Consumer with fuel rate from lookup (e.g. compressor+turbine as black box)."""
-
-    def __init__(self, name: str, fuel_rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
-        super().__init__(name, energy_unit_id)
-        self._fuel_rate = fuel_rate
-
-    @classmethod
-    def get_input_energy_type(cls) -> type[FuelGasRate]:
-        return FuelGasRate
-
-    def get_fuel_rate(self) -> float:
-        return self._fuel_rate
-
-    def get_input_energy(self) -> FuelGasRate:
-        return FuelGasRate(self._fuel_rate)
-
-
-class SampledPowerConsumer(Consumer):
-    """Consumer with power demand from lookup (e.g. sampled compressor on electrical drive)."""
+class ElectricalConsumer(Consumer):
+    """Consumes electrical power."""
 
     def __init__(self, name: str, power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         super().__init__(name, energy_unit_id)
@@ -97,26 +21,44 @@ class SampledPowerConsumer(Consumer):
         return ElectricalPower(self._power)
 
 
-class Flare(Consumer):
-    """Flare consuming fuel gas."""
+class MechanicalConsumer(Consumer):
+    """Consumes mechanical power."""
 
-    def __init__(self, name: str, fuel_rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         super().__init__(name, energy_unit_id)
-        self._fuel_rate = fuel_rate
+        self._power = power
+
+    @classmethod
+    def get_input_energy_type(cls) -> type[MechanicalPower]:
+        return MechanicalPower
+
+    def get_power(self) -> float:
+        return self._power
+
+    def get_input_energy(self) -> MechanicalPower:
+        return MechanicalPower(self._power)
+
+
+class FuelGasConsumer(Consumer):
+    """Consumes fuel gas."""
+
+    def __init__(self, name: str, rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
+        super().__init__(name, energy_unit_id)
+        self._rate = rate
 
     @classmethod
     def get_input_energy_type(cls) -> type[FuelGasRate]:
         return FuelGasRate
 
-    def get_fuel_rate(self) -> float:
-        return self._fuel_rate
+    def get_rate(self) -> float:
+        return self._rate
 
     def get_input_energy(self) -> FuelGasRate:
-        return FuelGasRate(self._fuel_rate)
+        return FuelGasRate(self._rate)
 
 
 class DieselConsumer(Consumer):
-    """Direct diesel consumer (e.g. mobile rig, emergency generator)."""
+    """Consumes diesel."""
 
     def __init__(self, name: str, rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
         super().__init__(name, energy_unit_id)
