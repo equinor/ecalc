@@ -20,8 +20,6 @@ STP: "flare" column has been added to STP Export - for `FIXED` installations onl
 
 ## Breaking changes
 
-- Chart curves must have non-increasing head as rate increases. Curves that violate this are now rejected during model validation instead of being accepted with a warning.
-
 ### Compressor calculations
 
 - Compressor calculations now validate PH flash results more strictly. Existing models that previously completed with invalid or non-physical PH flash states may now fail or report invalid compressor/capacity results instead.
