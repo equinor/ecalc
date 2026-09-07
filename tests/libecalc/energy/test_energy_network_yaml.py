@@ -15,6 +15,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasManifold,
     YamlGeneratorSet,
     YamlMechanicalConsumer,
+    YamlSampledCompressor,
 )
 
 EXAMPLE_YAML = Path(__file__).parents[3] / "src" / "libecalc" / "examples" / "energy" / "energy_network.yaml"
@@ -259,4 +260,139 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="cannot specify both"):
             _component_adapter.validate_python(
                 {"NAME": "c", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "x", "LOAD": 5, "PROCESS_SIMULATION": "sim"}
+            )
+
+
+class TestSampledCompressor:
+    def test_sampled_compressor_accepts_file_and_rate(self):
+        component = _component_adapter.validate_python(
+            {
+                "NAME": "gas_compressor_sampled",
+                "TYPE": "SAMPLED_COMPRESSOR",
+                "INPUT": "fuel_manifold",
+                "FILE": "compressor.csv",
+                "RATE": 50000,
+            }
+        )
+        assert isinstance(component, YamlSampledCompressor)
+        assert component.file == "compressor.csv"
+        assert component.rate == 50000
+
+    def test_sampled_compressor_requires_file(self):
+        with pytest.raises(ValueError):
+            _component_adapter.validate_python({"NAME": "c", "TYPE": "SAMPLED_COMPRESSOR", "INPUT": "x", "RATE": 50000})
+
+    def test_sampled_compressor_requires_at_least_one_variable(self):
+        with pytest.raises(ValueError, match="at least one of RATE/SUCTION_PRESSURE/DISCHARGE_PRESSURE"):
+            _component_adapter.validate_python(
+                {"NAME": "c", "TYPE": "SAMPLED_COMPRESSOR", "INPUT": "x", "FILE": "compressor.csv"}
+            )
+
+    def test_sampled_compressor_accepts_pressures(self):
+        component = _component_adapter.validate_python(
+            {
+                "NAME": "compressor",
+                "TYPE": "SAMPLED_COMPRESSOR",
+                "INPUT": "motor",
+                "FILE": "compressor.csv",
+                "SUCTION_PRESSURE": 20,
+                "DISCHARGE_PRESSURE": 80,
+            }
+        )
+        assert isinstance(component, YamlSampledCompressor)
+        assert component.suction_pressure == 20
+        assert component.discharge_pressure == 80
+
+    def test_sampled_compressor_can_take_fuel_or_electrical_input(self):
+        network = YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [
+                    {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"},
+                    {"NAME": "power", "TYPE": "ELECTRICAL_SOURCE"},
+                ],
+                "UNITS": [
+                    {
+                        "NAME": "compressor_a",
+                        "TYPE": "SAMPLED_COMPRESSOR",
+                        "INPUT": "fuel",
+                        "FILE": "compressor.csv",
+                        "RATE": 50000,
+                    },
+                    {
+                        "NAME": "compressor_b",
+                        "TYPE": "SAMPLED_COMPRESSOR",
+                        "INPUT": "power",
+                        "FILE": "compressor.csv",
+                        "RATE": 50000,
+                    },
+                ],
+            }
+        )
+        assert [type(unit) for unit in network.units] == [YamlSampledCompressor, YamlSampledCompressor]
+        assert [unit.input for unit in network.units] == ["fuel", "power"]
+
+    def test_sampled_compressor_rejects_diesel_input(self):
+        with pytest.raises(ValueError, match="expects one of .* input"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
+                    "UNITS": [
+                        {
+                            "NAME": "compressor",
+                            "TYPE": "SAMPLED_COMPRESSOR",
+                            "INPUT": "diesel",
+                            "FILE": "compressor.csv",
+                            "RATE": 50000,
+                        }
+                    ],
+                }
+            )
+
+    def test_sampled_compressor_allows_mechanical_input(self):
+        # A SAMPLED_COMPRESSOR may sit downstream of a real (physics-based) GAS_TURBINE,
+        # letting the turbine's own model - not FILE's columns - determine fuel usage.
+        YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                "UNITS": [
+                    {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel"},
+                    {
+                        "NAME": "compressor",
+                        "TYPE": "SAMPLED_COMPRESSOR",
+                        "INPUT": "turbine",
+                        "FILE": "compressor.csv",
+                        "RATE": 50000,
+                    },
+                ],
+            }
+        )
+
+    def test_sampled_compressor_rejects_negative_rate(self):
+        with pytest.raises(ValueError, match="RATE must be non-negative"):
+            _component_adapter.validate_python(
+                {"NAME": "c", "TYPE": "SAMPLED_COMPRESSOR", "INPUT": "x", "FILE": "compressor.csv", "RATE": -1}
+            )
+
+    def test_sampled_compressor_rejects_negative_suction_pressure(self):
+        with pytest.raises(ValueError, match="SUCTION_PRESSURE must be non-negative"):
+            _component_adapter.validate_python(
+                {
+                    "NAME": "c",
+                    "TYPE": "SAMPLED_COMPRESSOR",
+                    "INPUT": "x",
+                    "FILE": "compressor.csv",
+                    "SUCTION_PRESSURE": -1,
+                }
+            )
+
+    def test_sampled_compressor_rejects_negative_discharge_pressure(self):
+        with pytest.raises(ValueError, match="DISCHARGE_PRESSURE must be non-negative"):
+            _component_adapter.validate_python(
+                {
+                    "NAME": "c",
+                    "TYPE": "SAMPLED_COMPRESSOR",
+                    "INPUT": "x",
+                    "FILE": "compressor.csv",
+                    "DISCHARGE_PRESSURE": -1,
+                }
             )

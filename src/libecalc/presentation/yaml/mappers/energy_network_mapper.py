@@ -17,6 +17,11 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlGasTurbine,
     YamlGeneratorSet,
     YamlMechanicalConsumer,
+    YamlSampledCompressor,
+    _SampledElectricalConsumer,
+    _SampledFuelGasConsumer,
+    _SampledGasTurbine,
+    _SampledMechanicalConsumer,
 )
 
 
@@ -81,6 +86,16 @@ class EnergyNetworkMapper:
                 return FuelGasRate, None
             case YamlDieselConsumer():
                 return DieselRate, None
+            case _SampledFuelGasConsumer():
+                return FuelGasRate, None
+            case _SampledElectricalConsumer():
+                return ElectricalPower, None
+            case _SampledGasTurbine():
+                return FuelGasRate, MechanicalPower
+            case _SampledMechanicalConsumer():
+                return MechanicalPower, None
+            case YamlSampledCompressor():
+                raise AssertionError("SAMPLED_COMPRESSOR must be resolved by expand_sampled_compressors before mapping")
 
     @staticmethod
     def _get_input_names(unit: YamlComponent) -> list[str]:
