@@ -37,7 +37,7 @@ class TestExampleYamlParsing:
         network = _load_network(EXAMPLE_YAML)
         by_name = {s.name: s for s in network.sources}
         assert by_name["fuel_gas"].type == "FUEL_GAS_SOURCE"
-        assert by_name["power_from_shore"].type == "ONSHORE_GRID"
+        assert by_name["power_from_shore"].type == "ELECTRICAL_SOURCE"
         assert by_name["power_from_shore"].capacity == 20
 
     def test_units_are_correct_types(self):
@@ -70,7 +70,7 @@ class TestExampleYamlParsing:
 class TestNumericBounds:
     def test_negative_capacity_on_source_rejected(self):
         with pytest.raises(ValidationError, match="CAPACITY must be non-negative"):
-            YamlEnergySource.model_validate({"NAME": "fuel", "TYPE": "FUEL_GAS", "CAPACITY": -10})
+            YamlEnergySource.model_validate({"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": -10})
 
     def test_negative_capacity_on_converter_rejected(self):
         with pytest.raises(ValidationError, match="CAPACITY must be non-negative"):
@@ -195,7 +195,7 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="expects FUEL_GAS input.*provides ELECTRICAL"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "grid", "TYPE": "ONSHORE_GRID", "CAPACITY": 10}],
+                    "SOURCES": [{"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE", "CAPACITY": 10}],
                     "UNITS": [
                         {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "grid"},
                     ],

@@ -4,7 +4,7 @@ from uuid import UUID
 
 import pytest
 
-from libecalc.energy import Consumer
+from libecalc.energy import Consumer, Source
 from libecalc.energy.energy_types import (
     DieselRate,
     ElectricalPower,
@@ -14,9 +14,11 @@ from libecalc.energy.energy_types import (
 )
 from libecalc.energy.energy_units import (
     DieselConsumer,
+    DieselSource,
     ElectricalCable,
     ElectricalConsumer,
     ElectricalMotor,
+    ElectricalSource,
     FuelGasConsumer,
     FuelGasSource,
     GasTurbine,
@@ -30,9 +32,16 @@ class TestSources:
         src = FuelGasSource("fg", max_rate=100_000.0)
         assert src.capacity() == FuelGasRate(100_000.0)
 
-    def test_uncapped_source_has_no_limit(self):
-        src = FuelGasSource("fg")
-        assert src.capacity() is None
+    @pytest.mark.parametrize(
+        "source",
+        [
+            FuelGasSource("fuel"),
+            DieselSource("diesel"),
+            ElectricalSource("electricity"),
+        ],
+    )
+    def test_uncapped_source_has_no_limit(self, source: Source):
+        assert source.capacity() is None
 
 
 class TestConverters:

@@ -31,11 +31,11 @@ ENERGY_NETWORK:
       TYPE: DIESEL_SOURCE
 
     - NAME: power_from_shore
-      TYPE: ONSHORE_GRID
+      TYPE: ELECTRICAL_SOURCE
       CAPACITY: 20  # MW
 
     - NAME: wind_turbine
-      TYPE: OFFSHORE_WIND
+      TYPE: ELECTRICAL_SOURCE
       CAPACITY: 4.4  # MW
 
   UNITS:

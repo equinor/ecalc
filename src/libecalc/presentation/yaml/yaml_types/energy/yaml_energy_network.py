@@ -21,8 +21,7 @@ def _check_efficiency(v: YamlExpressionType | None) -> YamlExpressionType | None
 
 class YamlEnergySourceType(StrEnum):
     FUEL_GAS_SOURCE = "FUEL_GAS_SOURCE"
-    ONSHORE_GRID = "ONSHORE_GRID"
-    OFFSHORE_WIND = "OFFSHORE_WIND"
+    ELECTRICAL_SOURCE = "ELECTRICAL_SOURCE"
     DIESEL_SOURCE = "DIESEL_SOURCE"
 
 
@@ -55,19 +54,6 @@ class YamlEnergySource(YamlBase):
     @classmethod
     def _capacity_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
         return _check_non_negative(v, "CAPACITY")
-
-    @model_validator(mode="after")
-    def check_capacity_required(self):
-        if (
-            self.type
-            in {
-                YamlEnergySourceType.ONSHORE_GRID,
-                YamlEnergySourceType.OFFSHORE_WIND,
-            }
-            and self.capacity is None
-        ):
-            raise ValueError(f"{self.type} requires CAPACITY.")
-        return self
 
 
 class YamlConverterBase(YamlBase):
@@ -368,8 +354,7 @@ OUTPUT_ENERGY: dict[str, EnergyType] = {
 SOURCE_OUTPUT_ENERGY: dict[YamlEnergySourceType, EnergyType] = {
     YamlEnergySourceType.FUEL_GAS_SOURCE: EnergyType.FUEL_GAS,
     YamlEnergySourceType.DIESEL_SOURCE: EnergyType.DIESEL,
-    YamlEnergySourceType.ONSHORE_GRID: EnergyType.ELECTRICAL,
-    YamlEnergySourceType.OFFSHORE_WIND: EnergyType.ELECTRICAL,
+    YamlEnergySourceType.ELECTRICAL_SOURCE: EnergyType.ELECTRICAL,
 }
 
 CONSUMER_TYPES = set(INPUT_ENERGY) - set(OUTPUT_ENERGY)
