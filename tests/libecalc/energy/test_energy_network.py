@@ -7,11 +7,10 @@ from libecalc.energy.energy_units import (
     ElectricalCable,
     ElectricalConsumer,
     ElectricalMotor,
+    ElectricalSource,
     FuelGasSource,
     GeneratorSet,
     MechanicalConsumer,
-    OffshoreWind,
-    OnshoreGrid,
 )
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
@@ -223,8 +222,8 @@ class TestEnergyNetworkTopology:
         )
 
     def test_connects_multiple_providers_to_consumer_through_junction(self):
-        grid = OnshoreGrid(name="grid", max_power=20)
-        wind = OffshoreWind(name="wind", power=5)
+        grid = ElectricalSource(name="grid", max_power=20)
+        wind = ElectricalSource(name="wind", max_power=5)
 
         bus = ElectricalBus(name="bus")
         load = ElectricalConsumer(name="load", power=10)
@@ -256,7 +255,7 @@ class TestEnergyNetworkTopology:
         assert network.get_successors(bus.get_id()) == frozenset({load.get_id()})
 
     def test_connects_source_to_consumer_through_transporter(self):
-        grid = OnshoreGrid(
+        grid = ElectricalSource(
             name="grid",
             max_power=20,
         )
@@ -340,8 +339,8 @@ class TestEnergyNetworkEnergyCalculation:
         assert network.get_output_energy(source.get_id()) == FuelGasRate(0)
 
     def test_requires_allocation_for_multiple_predecessors(self):
-        first_grid = OnshoreGrid("first_grid", max_power=20)
-        second_grid = OnshoreGrid("second_grid", max_power=20)
+        first_grid = ElectricalSource("first_grid", max_power=20)
+        second_grid = ElectricalSource("second_grid", max_power=20)
         load = ElectricalConsumer("load", power=10)
 
         network = EnergyNetwork(
@@ -359,8 +358,8 @@ class TestEnergyNetworkEnergyCalculation:
             network.get_output_energy(first_grid.get_id())
 
     def test_does_not_require_allocation_for_zero_energy(self):
-        first_grid = OnshoreGrid("first_grid", max_power=20)
-        second_grid = OnshoreGrid("second_grid", max_power=20)
+        first_grid = ElectricalSource("first_grid", max_power=20)
+        second_grid = ElectricalSource("second_grid", max_power=20)
         load = ElectricalConsumer("load", power=0)
 
         network = EnergyNetwork(
@@ -376,7 +375,7 @@ class TestEnergyNetworkEnergyCalculation:
 
 class TestEnergyNetworkFeasibility:
     def test_reports_capacity_exceeded_without_capping_output_energy(self):
-        grid = OnshoreGrid("grid", max_power=5)
+        grid = ElectricalSource("grid", max_power=5)
         load = ElectricalConsumer("load", power=6)
 
         network = EnergyNetwork(
@@ -392,7 +391,7 @@ class TestEnergyNetworkFeasibility:
         assert not network.is_feasible()
 
     def test_capacity_equal_to_output_energy_is_feasible(self):
-        grid = OnshoreGrid("grid", max_power=5)
+        grid = ElectricalSource("grid", max_power=5)
         load = ElectricalConsumer("load", power=5)
 
         network = EnergyNetwork(

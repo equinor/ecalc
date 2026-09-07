@@ -20,9 +20,9 @@ def _check_efficiency(v: YamlExpressionType | None) -> YamlExpressionType | None
 
 
 class YamlEnergySourceType(StrEnum):
-    FUEL_GAS = "FUEL_GAS"
-    ELECTRICAL = "ELECTRICAL"
-    DIESEL = "DIESEL"
+    FUEL_GAS_SOURCE = "FUEL_GAS_SOURCE"
+    ELECTRICAL_SOURCE = "ELECTRICAL_SOURCE"
+    DIESEL_SOURCE = "DIESEL_SOURCE"
 
 
 class YamlEnergySource(YamlBase):
@@ -39,7 +39,7 @@ class YamlEnergySource(YamlBase):
         YamlEnergySourceType,
         Field(
             title="TYPE",
-            description="Energy type this source provides (FUEL_GAS, ELECTRICAL, or DIESEL).",
+            description="Type of external energy source.",
         ),
     ]
     capacity: Annotated[
@@ -221,7 +221,7 @@ class YamlConsumerBase(YamlBase):
 class YamlElectricalConsumer(YamlConsumerBase):
     model_config = ConfigDict(title="ElectricalConsumer")
 
-    type: Literal["ELECTRICAL"]
+    type: Literal["ELECTRICAL_CONSUMER"]
     load: Annotated[
         YamlExpressionType,
         Field(
@@ -239,7 +239,7 @@ class YamlElectricalConsumer(YamlConsumerBase):
 class YamlMechanicalConsumer(YamlConsumerBase):
     model_config = ConfigDict(title="MechanicalConsumer")
 
-    type: Literal["MECHANICAL"]
+    type: Literal["MECHANICAL_CONSUMER"]
     load: Annotated[
         YamlExpressionType | None,
         Field(
@@ -272,7 +272,7 @@ class YamlMechanicalConsumer(YamlConsumerBase):
 class YamlFuelGasConsumer(YamlConsumerBase):
     model_config = ConfigDict(title="FuelGasConsumer")
 
-    type: Literal["FUEL_GAS"]
+    type: Literal["FUEL_GAS_CONSUMER"]
     rate: Annotated[
         YamlExpressionType,
         Field(
@@ -290,7 +290,7 @@ class YamlFuelGasConsumer(YamlConsumerBase):
 class YamlDieselConsumer(YamlConsumerBase):
     model_config = ConfigDict(title="DieselConsumer")
 
-    type: Literal["DIESEL"]
+    type: Literal["DIESEL_CONSUMER"]
     rate: Annotated[
         YamlExpressionType,
         Field(
@@ -329,17 +329,17 @@ class EnergyType(StrEnum):
     DIESEL = "DIESEL"
 
 
-INPUT_ENERGY: dict[str, set[EnergyType]] = {
-    "GENERATOR_SET": {EnergyType.FUEL_GAS, EnergyType.DIESEL},
-    "GAS_TURBINE": {EnergyType.FUEL_GAS},
-    "ELECTRICAL_MOTOR": {EnergyType.ELECTRICAL},
-    "ELECTRICAL_CABLE": {EnergyType.ELECTRICAL},
-    "ELECTRICAL_BUS": {EnergyType.ELECTRICAL},
-    "FUEL_GAS_MANIFOLD": {EnergyType.FUEL_GAS},
-    "ELECTRICAL": {EnergyType.ELECTRICAL},
-    "MECHANICAL": {EnergyType.MECHANICAL},
-    "FUEL_GAS": {EnergyType.FUEL_GAS},
-    "DIESEL": {EnergyType.DIESEL},
+INPUT_ENERGY: dict[str, EnergyType] = {
+    "GENERATOR_SET": EnergyType.FUEL_GAS,
+    "GAS_TURBINE": EnergyType.FUEL_GAS,
+    "ELECTRICAL_MOTOR": EnergyType.ELECTRICAL,
+    "ELECTRICAL_CABLE": EnergyType.ELECTRICAL,
+    "ELECTRICAL_BUS": EnergyType.ELECTRICAL,
+    "FUEL_GAS_MANIFOLD": EnergyType.FUEL_GAS,
+    "ELECTRICAL_CONSUMER": EnergyType.ELECTRICAL,
+    "MECHANICAL_CONSUMER": EnergyType.MECHANICAL,
+    "FUEL_GAS_CONSUMER": EnergyType.FUEL_GAS,
+    "DIESEL_CONSUMER": EnergyType.DIESEL,
 }
 
 OUTPUT_ENERGY: dict[str, EnergyType] = {
@@ -349,6 +349,12 @@ OUTPUT_ENERGY: dict[str, EnergyType] = {
     "ELECTRICAL_CABLE": EnergyType.ELECTRICAL,
     "ELECTRICAL_BUS": EnergyType.ELECTRICAL,
     "FUEL_GAS_MANIFOLD": EnergyType.FUEL_GAS,
+}
+
+SOURCE_OUTPUT_ENERGY: dict[YamlEnergySourceType, EnergyType] = {
+    YamlEnergySourceType.FUEL_GAS_SOURCE: EnergyType.FUEL_GAS,
+    YamlEnergySourceType.DIESEL_SOURCE: EnergyType.DIESEL,
+    YamlEnergySourceType.ELECTRICAL_SOURCE: EnergyType.ELECTRICAL,
 }
 
 CONSUMER_TYPES = set(INPUT_ENERGY) - set(OUTPUT_ENERGY)
@@ -423,7 +429,7 @@ class YamlEnergyNetwork(YamlBase):
     def check_energy_type_compatibility(self):
         output_types: dict[str, EnergyType] = {}
         for s in self.sources:
-            output_types[s.name] = EnergyType(s.type.value)
+            output_types[s.name] = SOURCE_OUTPUT_ENERGY[s.type]
         for c in self.units:
             if c.type in OUTPUT_ENERGY:
                 output_types[c.name] = OUTPUT_ENERGY[c.type]
@@ -431,12 +437,11 @@ class YamlEnergyNetwork(YamlBase):
         for c in self.units:
             if c.type not in INPUT_ENERGY:
                 raise ValueError(f"'{c.name}': unknown component type '{c.type}' — not in energy type map.")
-            expected_inputs = INPUT_ENERGY[c.type]
+            expected_input = INPUT_ENERGY[c.type]
             for ref in _get_input_names(c):
                 provided = output_types.get(ref)
-                if provided is not None and provided not in expected_inputs:
+                if provided is not None and provided != expected_input:
                     raise ValueError(
-                        f"'{c.name}' ({c.type}) expects {'/'.join(sorted(expected_inputs))} input, "
-                        f"but '{ref}' provides {provided}."
+                        f"'{c.name}' ({c.type}) expects {expected_input} input, but '{ref}' provides {provided}."
                     )
         return self
