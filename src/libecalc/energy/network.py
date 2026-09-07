@@ -1,7 +1,10 @@
 from collections.abc import Iterable
 from graphlib import CycleError, TopologicalSorter
+from typing import NewType, Self
+from uuid import UUID
 
 from libecalc.common.ddd import value_object
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.energy.consumer import Consumer
 from libecalc.energy.converter import Converter
 from libecalc.energy.energy_types import Energy
@@ -21,6 +24,9 @@ class EnergyConnection:
     target_id: EnergyUnitId
 
 
+EnergyNetworkId = NewType("EnergyNetworkId", UUID)
+
+
 class EnergyNetwork:
     """A validated, directed acyclic graph of typed energy units."""
 
@@ -28,6 +34,7 @@ class EnergyNetwork:
         self,
         nodes: Iterable[EnergyNetworkNode],
         connections: Iterable[EnergyConnection],
+        energy_network_id: UUID | None = None,
     ):
         self._nodes: dict[
             EnergyUnitId,
@@ -52,6 +59,14 @@ class EnergyNetwork:
         self._add_connections(connections)
         self._validate_required_predecessors()
         self._topological_order = self._create_topological_order()
+        self._id = energy_network_id or EnergyNetwork._create_id()
+
+    @classmethod
+    def _create_id(cls: type[Self]) -> EnergyNetworkId:
+        return EnergyNetworkId(ecalc_id_generator())
+
+    def get_id(self) -> UUID:
+        return self._id
 
     # Node access
     def get_node(
