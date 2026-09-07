@@ -15,6 +15,13 @@ from libecalc.energy.source import Source
 
 type EnergyNetworkNode = Consumer | Source | Converter | Transporter | Junction
 
+# Role groups the network asks about. Each question has one definition, so a new role
+# cannot be handled in one place and forgotten in another.
+ProvidesEnergy = Source | Converter | Transporter | Junction
+RequiresEnergy = Consumer | Converter | Transporter | Junction
+DerivesInputFromOutput = Junction | Converter | Transporter
+HasCapacity = Source | Converter | Transporter
+
 
 @value_object
 class EnergyConnection:
@@ -111,19 +118,13 @@ class EnergyNetwork:
         if isinstance(node, Source):
             return None
 
-        if isinstance(node, (Junction, Converter)):
+        if isinstance(node, DerivesInputFromOutput):
             output_energy = self.get_output_energy(node_id)
 
             if output_energy is None:
                 raise InvalidEnergyNetworkError(f"Energy unit {node_id} has no output energy")
 
-            # A junction passes energy through without conversion.
-            if isinstance(node, Junction):
-                return output_energy
-
-            # A converter derives its input energy from its output energy.
-            if isinstance(node, Converter):
-                return node.get_input_energy(output_energy)
+            return node.get_input_energy(output_energy)
 
         raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
 
@@ -137,7 +138,7 @@ class EnergyNetwork:
         if isinstance(node, Consumer):
             return None
 
-        if not isinstance(node, (Source, Converter, Transporter, Junction)):
+        if not isinstance(node, ProvidesEnergy):
             raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
 
         output_energy = node.get_output_energy_type()(value=0)
@@ -154,7 +155,7 @@ class EnergyNetwork:
             if successor_input_energy.value > 0 and len(self.get_predecessors(successor_id)) > 1:
                 raise EnergyAllocationRequiredError(
                     f"Cannot calculate output energy for unit {node_id}: "
-                    f"successor {successor_id} has {len(self._predecessors)} predecessors, "
+                    f"successor {successor_id} has {len(self.get_predecessors(successor_id))} predecessors, "
                     "so an allocation strategy is required"
                 )
 
@@ -169,7 +170,7 @@ class EnergyNetwork:
     ) -> Energy | None:
         unit = self.get_node(unit_id)
 
-        if isinstance(unit, (Source, Converter, Transporter)):
+        if isinstance(unit, HasCapacity):
             return unit.capacity()
 
         return None
@@ -227,14 +228,14 @@ class EnergyNetwork:
 
     def _validate_required_predecessors(self) -> None:
         for unit_id, unit in self._nodes.items():
-            if isinstance(unit, (Consumer, Converter, Junction)) and not self._predecessors[unit_id]:
+            if isinstance(unit, RequiresEnergy) and not self._predecessors[unit_id]:
                 raise InvalidEnergyNetworkError(f"Energy unit {unit_id} requires input energy but has no predecessor")
 
     @staticmethod
     def _get_output_type(
         node: EnergyNetworkNode,
     ) -> type[Energy]:
-        if not isinstance(node, (Source, Converter, Transporter, Junction)):
+        if not isinstance(node, ProvidesEnergy):
             raise InvalidEnergyNetworkError(
                 f"Source node of type '{type(node).__name__}' with id '{node.get_id()}' provides no energy"
             )
@@ -245,7 +246,7 @@ class EnergyNetwork:
     def _get_input_type(
         node: EnergyNetworkNode,
     ) -> type[Energy]:
-        if not isinstance(node, (Consumer, Converter, Transporter, Junction)):
+        if not isinstance(node, RequiresEnergy):
             raise InvalidEnergyNetworkError(
                 f"Target node of type '{type(node).__name__}' with id '{node.get_id()}' requires no energy"
             )

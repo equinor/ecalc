@@ -13,7 +13,7 @@ from libecalc.energy.energy_units import (
     MechanicalConsumer,
 )
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
-from libecalc.energy.network import EnergyConnection, EnergyNetwork
+from libecalc.energy.network import EnergyConnection, EnergyNetwork, EnergyNetworkNode
 
 
 class TestEnergyNetworkValidation:
@@ -154,6 +154,20 @@ class TestEnergyNetworkValidation:
         ):
             EnergyNetwork(nodes=[base_load], connections=[])
 
+    def test_rejects_transporter_without_predecessor(self):
+        """A transporter needs a supply; without one it would deliver energy from nowhere."""
+        cable = ElectricalCable("cable", max_power=15)
+        load = ElectricalConsumer("load", power=10)
+
+        with pytest.raises(
+            InvalidEnergyNetworkError,
+            match="requires input energy but has no predecessor",
+        ):
+            EnergyNetwork(
+                nodes=[cable, load],
+                connections=[EnergyConnection(cable.get_id(), load.get_id())],
+            )
+
 
 class TestEnergyNetworkTopology:
     def test_exposes_nodes_in_topological_order(self):
@@ -282,6 +296,59 @@ class TestEnergyNetworkTopology:
 
         assert network.get_predecessors(cable.get_id()) == frozenset({grid.get_id()})
         assert network.get_successors(cable.get_id()) == frozenset({load.get_id()})
+
+    @pytest.mark.parametrize(
+        ("unit", "consumer", "expected_input"),
+        [
+            pytest.param(
+                ElectricalBus(name="bus"),
+                ElectricalConsumer(name="load", power=10),
+                ElectricalPower(10),
+                id="junction_passes_through",
+            ),
+            pytest.param(
+                ElectricalMotor(name="motor", max_power=5, efficiency=0.8),
+                MechanicalConsumer(name="pump", power=4),
+                ElectricalPower(5),
+                id="converter_applies_efficiency",
+            ),
+            pytest.param(
+                ElectricalCable(name="cable", max_power=15, loss_fraction=0.04),
+                ElectricalConsumer(name="load", power=10),
+                ElectricalPower(10 / 0.96),
+                id="transporter_applies_loss",
+            ),
+        ],
+    )
+    def test_derives_input_energy_from_requested_output(
+        self,
+        unit: EnergyNetworkNode,
+        consumer: EnergyNetworkNode,
+        expected_input: ElectricalPower,
+    ):
+        """Every unit between a source and a consumer derives its input from its output.
+
+        Junctions, converters and transporters each reach this through their own branch,
+        so all three are covered to keep the branches in step.
+        """
+        grid = ElectricalSource(name="grid", max_power=20)
+
+        network = EnergyNetwork(
+            nodes=[grid, unit, consumer],
+            connections=[
+                EnergyConnection(source_id=grid.get_id(), target_id=unit.get_id()),
+                EnergyConnection(source_id=unit.get_id(), target_id=consumer.get_id()),
+            ],
+        )
+
+        unit_input = network.get_input_energy(unit.get_id())
+        assert isinstance(unit_input, ElectricalPower)
+        assert unit_input.value == pytest.approx(expected_input.value)
+
+        # The source upstream supplies exactly what the unit draws.
+        grid_output = network.get_output_energy(grid.get_id())
+        assert isinstance(grid_output, ElectricalPower)
+        assert grid_output.value == pytest.approx(expected_input.value)
 
 
 class TestEnergyNetworkEnergyCalculation:
