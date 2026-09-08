@@ -6,13 +6,12 @@ from libecalc.common.logger import logger
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Periods
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result import ConsumerSystemResult
-from libecalc.core.result.results import GenericComponentResult
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import (
     ConsumerFunction,
     ConsumerFunctionResult,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunctionResult
+from libecalc.domain.infrastructure.energy_components.results import ConsumerSystemResult, GenericComponentResult
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel

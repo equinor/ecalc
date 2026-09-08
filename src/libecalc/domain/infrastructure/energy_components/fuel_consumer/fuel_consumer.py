@@ -8,8 +8,6 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result import CompressorResult, ConsumerSystemResult
-from libecalc.core.result.results import GenericComponentResult, PumpResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent
 from libecalc.domain.energy.emitter import EmissionName
 from libecalc.domain.fuel import Fuel
@@ -18,6 +16,12 @@ from libecalc.domain.infrastructure.energy_components.legacy_consumer.component 
     Consumer as ConsumerEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
+from libecalc.domain.infrastructure.energy_components.results import (
+    CompressorResult,
+    ConsumerSystemResult,
+    GenericComponentResult,
+    PumpResult,
+)
 from libecalc.domain.installation import FuelConsumer, FuelConsumption
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled

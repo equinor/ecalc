@@ -21,9 +21,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesInt,
     TimeSeriesRate,
 )
-from libecalc.core.result.results import CompressorResult, PumpResult
-from libecalc.core.result.results import ConsumerSystemResult as CoreConsumerSystemResult
-from libecalc.core.result.results import GenericComponentResult as CoreGenericComponentResult
 from libecalc.domain.energy import Emitter, EnergyModel
 from libecalc.domain.energy.energy_component import EnergyContainerID
 from libecalc.domain.infrastructure.energy_components.electricity_consumer.electricity_consumer import (
@@ -32,6 +29,11 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 from libecalc.domain.infrastructure.energy_components.fuel_consumer.fuel_consumer import FuelConsumerComponent
 from libecalc.domain.infrastructure.energy_components.installation.installation import InstallationComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.system import ConsumerSystemConsumerFunction
+from libecalc.domain.infrastructure.energy_components.results import CompressorResult, PumpResult
+from libecalc.domain.infrastructure.energy_components.results import ConsumerSystemResult as CoreConsumerSystemResult
+from libecalc.domain.infrastructure.energy_components.results import (
+    GenericComponentResult as CoreGenericComponentResult,
+)
 from libecalc.domain.installation import FuelConsumer, PowerConsumer
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled

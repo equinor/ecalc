@@ -21,7 +21,6 @@ from libecalc.common.utils.rates import (
     TimeSeriesStreamDayRate,
 )
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result import GeneratorSetResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyComponent
 from libecalc.domain.energy.emitter import EmissionName
 from libecalc.domain.fuel import Fuel
@@ -30,6 +29,7 @@ from libecalc.domain.infrastructure.energy_components.electricity_consumer.elect
 )
 from libecalc.domain.infrastructure.energy_components.fuel_model.fuel_model import FuelModel
 from libecalc.domain.infrastructure.energy_components.generator_set import GeneratorSetModel
+from libecalc.domain.infrastructure.energy_components.results import GeneratorSetResult
 from libecalc.domain.installation import ElectricityProducer, FuelConsumer, FuelConsumption
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.time_series_cable_loss import TimeSeriesCableLoss
