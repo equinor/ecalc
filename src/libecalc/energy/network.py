@@ -22,7 +22,7 @@ HasCapacity = Source | Converter | Transporter
 
 @value_object
 class EnergyConnection:
-    """A directed connection between two energy units."""
+    """A directed connection between two energy nodes."""
 
     source_id: EnergyUnitId
     target_id: EnergyUnitId
@@ -32,7 +32,7 @@ EnergyNetworkId = NewType("EnergyNetworkId", UUID)
 
 
 class EnergyNetwork:
-    """A validated, directed acyclic graph of typed energy units."""
+    """A validated, directed acyclic graph of typed energy nodes."""
 
     def __init__(
         self,
@@ -100,7 +100,7 @@ class EnergyNetwork:
     ) -> tuple[EnergyUnitId, ...]:
         return self._topological_order
 
-    # Per-unit energy
+    # Per-node energy
     def get_input_energy(
         self,
         node_id: EnergyUnitId,
@@ -163,33 +163,33 @@ class EnergyNetwork:
     # Capacity and feasibility
     def get_capacity(
         self,
-        unit_id: EnergyUnitId,
+        node_id: EnergyUnitId,
     ) -> Energy | None:
-        unit = self.get_node(unit_id)
+        node = self.get_node(node_id)
 
-        if isinstance(unit, HasCapacity):
-            return unit.capacity()
+        if isinstance(node, HasCapacity):
+            return node.capacity()
 
         return None
 
     def is_capacity_exceeded(
         self,
-        unit_id: EnergyUnitId,
+        node_id: EnergyUnitId,
     ) -> bool:
-        capacity = self.get_capacity(unit_id)
+        capacity = self.get_capacity(node_id)
 
         if capacity is None:
             return False
 
-        output_energy = self.get_output_energy(unit_id)
+        output_energy = self.get_output_energy(node_id)
 
         if output_energy is None:
-            raise InvalidEnergyNetworkError(f"Energy unit {unit_id} has capacity but no output energy")
+            raise InvalidEnergyNetworkError(f"Energy unit {node_id} has capacity but no output energy")
 
         return output_energy.value > capacity.value
 
     def is_feasible(self) -> bool:
-        return not any(self.is_capacity_exceeded(unit_id) for unit_id in self.get_topological_order())
+        return not any(self.is_capacity_exceeded(node_id) for node_id in self.get_topological_order())
 
     # Private topology construction and validation
     def _add_connections(
