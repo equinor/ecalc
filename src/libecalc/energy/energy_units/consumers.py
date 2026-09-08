@@ -6,9 +6,9 @@ from libecalc.energy.energy_unit import EnergyUnitId
 class ElectricalConsumer(Consumer):
     """Consumes electrical power."""
 
-    def __init__(self, name: str, power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, power: float | None = None, energy_unit_id: EnergyUnitId | None = None) -> None:
         super().__init__(name, energy_unit_id)
-        self._power = power
+        self._power = power if power is not None else 0.0
 
     @classmethod
     def get_input_energy_type(cls) -> type[ElectricalPower]:
@@ -24,9 +24,9 @@ class ElectricalConsumer(Consumer):
 class MechanicalConsumer(Consumer):
     """Consumes mechanical power."""
 
-    def __init__(self, name: str, power: float, energy_unit_id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, power: float | None = None, energy_unit_id: EnergyUnitId | None = None) -> None:
         super().__init__(name, energy_unit_id)
-        self._power = power
+        self._power = power if power is not None else 0.0
 
     @classmethod
     def get_input_energy_type(cls) -> type[MechanicalPower]:
@@ -42,9 +42,9 @@ class MechanicalConsumer(Consumer):
 class FuelGasConsumer(Consumer):
     """Consumes fuel gas."""
 
-    def __init__(self, name: str, rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, rate: float | None = None, energy_unit_id: EnergyUnitId | None = None) -> None:
         super().__init__(name, energy_unit_id)
-        self._rate = rate
+        self._rate = rate if rate is not None else 0.0
 
     @classmethod
     def get_input_energy_type(cls) -> type[FuelGasRate]:
@@ -60,9 +60,9 @@ class FuelGasConsumer(Consumer):
 class DieselConsumer(Consumer):
     """Consumes diesel."""
 
-    def __init__(self, name: str, rate: float, energy_unit_id: EnergyUnitId | None = None) -> None:
+    def __init__(self, name: str, rate: float | None = None, energy_unit_id: EnergyUnitId | None = None) -> None:
         super().__init__(name, energy_unit_id)
-        self._rate = rate
+        self._rate = rate if rate is not None else 0.0
 
     @classmethod
     def get_input_energy_type(cls) -> type[DieselRate]:

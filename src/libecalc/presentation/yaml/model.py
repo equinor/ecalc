@@ -39,6 +39,7 @@ from libecalc.ecalc_model.ecalc_event import (
     EcalcEventService,
 )
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
+from libecalc.energy.network import EnergyNetwork
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -51,6 +52,7 @@ from libecalc.presentation.yaml.domain.time_series_collections import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapper
+from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
@@ -276,6 +278,12 @@ class YamlModel:
             mapped_process_simulations.append(process_simulation)
 
         return mapped_process_pipelines, mapped_process_simulations
+
+    def get_energy_network(self) -> EnergyNetwork | None:
+        yaml_energy_network = self._configuration.energy_network
+        if yaml_energy_network is None:
+            return None
+        return EnergyNetworkMapper().map_energy_network(yaml_energy_network)
 
     def get_events(self) -> list[EcalcEvent]:
         return EcalcEventMapper().map_events(

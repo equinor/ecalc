@@ -13,6 +13,7 @@ from libecalc.presentation.yaml.yaml_entities import (
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
@@ -100,6 +101,11 @@ class YamlValidator(abc.ABC):
     @property
     @abc.abstractmethod
     def process_simulations(self) -> Iterable[YamlProcessSimulation]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def energy_network(self) -> YamlEnergyNetwork | None:
         pass
 
     @property

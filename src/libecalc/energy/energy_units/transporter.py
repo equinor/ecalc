@@ -36,24 +36,28 @@ class ElectricalCable(Transporter):
     """Electrical cable with transmission loss (e.g. subsea cable from shore)."""
 
     def __init__(
-        self, name: str, max_power: float, loss_fraction: float = 0.0, energy_unit_id: EnergyUnitId | None = None
+        self,
+        name: str,
+        max_power: float | None = None,
+        loss_fraction: float | None = None,
+        energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
         self._max_power = max_power
-        self._loss_fraction = loss_fraction
+        self._loss_fraction = loss_fraction if loss_fraction is not None else 0.0
 
     @classmethod
     def get_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
 
-    def get_max_power(self) -> float:
+    def get_max_power(self) -> float | None:
         return self._max_power
 
     def get_loss_fraction(self) -> float:
         return self._loss_fraction
 
     def capacity(self) -> ElectricalPower | None:
-        return ElectricalPower(self._max_power)
+        return ElectricalPower(self._max_power) if self._max_power is not None else None
 
     def get_input_energy(self, output_energy: ElectricalPower) -> ElectricalPower:
         return ElectricalPower(output_energy.value / (1 - self._loss_fraction))
