@@ -8,24 +8,21 @@ from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.energy.consumer import Consumer
 from libecalc.energy.converter import Converter
 from libecalc.energy.energy_types import Energy
-from libecalc.energy.energy_unit import EnergyUnitId
+from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
 from libecalc.energy.source import Source
 
-type EnergyNetworkNode = Consumer | Source | Converter | Transporter | Junction
-
 # Role groups the network asks about. Each question has one definition, so a new role
 # cannot be handled in one place and forgotten in another.
 ProvidesEnergy = Source | Converter | Transporter | Junction
-RequiresEnergy = Consumer | Converter | Transporter | Junction
 DerivesInputFromOutput = Junction | Converter | Transporter
 HasCapacity = Source | Converter | Transporter
 
 
 @value_object
 class EnergyConnection:
-    """A directed connection between two energy units."""
+    """A directed connection between two energy nodes."""
 
     source_id: EnergyUnitId
     target_id: EnergyUnitId
@@ -35,17 +32,17 @@ EnergyNetworkId = NewType("EnergyNetworkId", UUID)
 
 
 class EnergyNetwork:
-    """A validated, directed acyclic graph of typed energy units."""
+    """A validated, directed acyclic graph of typed energy nodes."""
 
     def __init__(
         self,
-        nodes: Iterable[EnergyNetworkNode],
+        nodes: Iterable[EnergyUnit],
         connections: Iterable[EnergyConnection],
         energy_network_id: UUID | None = None,
     ):
         self._nodes: dict[
             EnergyUnitId,
-            EnergyNetworkNode,
+            EnergyUnit,
         ] = {}
 
         for node in nodes:
@@ -79,10 +76,10 @@ class EnergyNetwork:
     def get_node(
         self,
         node_id: EnergyUnitId,
-    ) -> EnergyNetworkNode:
+    ) -> EnergyUnit:
         return self._nodes[node_id]
 
-    def get_nodes(self) -> tuple[EnergyNetworkNode, ...]:
+    def get_nodes(self) -> tuple[EnergyUnit, ...]:
         return tuple(self._nodes[node_id] for node_id in self._topological_order)
 
     # Topology
@@ -103,7 +100,7 @@ class EnergyNetwork:
     ) -> tuple[EnergyUnitId, ...]:
         return self._topological_order
 
-    # Per-unit energy
+    # Per-node energy
     def get_input_energy(
         self,
         node_id: EnergyUnitId,
@@ -166,33 +163,33 @@ class EnergyNetwork:
     # Capacity and feasibility
     def get_capacity(
         self,
-        unit_id: EnergyUnitId,
+        node_id: EnergyUnitId,
     ) -> Energy | None:
-        unit = self.get_node(unit_id)
+        node = self.get_node(node_id)
 
-        if isinstance(unit, HasCapacity):
-            return unit.capacity()
+        if isinstance(node, HasCapacity):
+            return node.capacity()
 
         return None
 
     def is_capacity_exceeded(
         self,
-        unit_id: EnergyUnitId,
+        node_id: EnergyUnitId,
     ) -> bool:
-        capacity = self.get_capacity(unit_id)
+        capacity = self.get_capacity(node_id)
 
         if capacity is None:
             return False
 
-        output_energy = self.get_output_energy(unit_id)
+        output_energy = self.get_output_energy(node_id)
 
         if output_energy is None:
-            raise InvalidEnergyNetworkError(f"Energy unit {unit_id} has capacity but no output energy")
+            raise InvalidEnergyNetworkError(f"Energy unit {node_id} has capacity but no output energy")
 
         return output_energy.value > capacity.value
 
     def is_feasible(self) -> bool:
-        return not any(self.is_capacity_exceeded(unit_id) for unit_id in self.get_topological_order())
+        return not any(self.is_capacity_exceeded(node_id) for node_id in self.get_topological_order())
 
     # Private topology construction and validation
     def _add_connections(
@@ -218,40 +215,37 @@ class EnergyNetwork:
         source = self._nodes[connection.source_id]
         target = self._nodes[connection.target_id]
 
-        output_type = self._get_output_type(source)
-        input_type = self._get_input_type(target)
+        output_type = source.get_output_energy_type()
+        if output_type is None:
+            raise InvalidEnergyNetworkError(
+                f"Connection source '{source.get_name()}' ({source.get_id()}) "
+                f"of type {type(source).__name__} provides no output energy"
+            )
 
+        input_type = target.get_input_energy_type()
+        if input_type is None:
+            raise InvalidEnergyNetworkError(
+                f"Connection target '{target.get_name()}' ({target.get_id()}) "
+                f"of type {type(target).__name__} accepts no input energy"
+            )
         if output_type is not input_type:
             raise InvalidEnergyNetworkError(
-                f"Incompatible energy types: {output_type.__name__} -> {input_type.__name__}"
+                f"Incompatible energy types for connection from "
+                f"'{source.get_name()}' to "
+                f"'{target.get_name()}': "
+                f"source outputs {output_type.__name__}, "
+                f"target accepts {input_type.__name__}"
             )
 
     def _validate_required_predecessors(self) -> None:
-        for unit_id, unit in self._nodes.items():
-            if isinstance(unit, RequiresEnergy) and not self._predecessors[unit_id]:
-                raise InvalidEnergyNetworkError(f"Energy unit {unit_id} requires input energy but has no predecessor")
+        for node_id, node in self._nodes.items():
+            input_type = node.get_input_energy_type()
 
-    @staticmethod
-    def _get_output_type(
-        node: EnergyNetworkNode,
-    ) -> type[Energy]:
-        if not isinstance(node, ProvidesEnergy):
-            raise InvalidEnergyNetworkError(
-                f"Source node of type '{type(node).__name__}' with id '{node.get_id()}' provides no energy"
-            )
-
-        return node.get_output_energy_type()
-
-    @staticmethod
-    def _get_input_type(
-        node: EnergyNetworkNode,
-    ) -> type[Energy]:
-        if not isinstance(node, RequiresEnergy):
-            raise InvalidEnergyNetworkError(
-                f"Target node of type '{type(node).__name__}' with id '{node.get_id()}' requires no energy"
-            )
-
-        return node.get_input_energy_type()
+            if input_type is not None and not self._predecessors[node_id]:
+                raise InvalidEnergyNetworkError(
+                    f"Energy unit '{node.get_name()}' ({node_id}) requires input energy "
+                    f"but has no predecessor; accepted input type: {input_type.__name__}"
+                )
 
     def _create_topological_order(
         self,

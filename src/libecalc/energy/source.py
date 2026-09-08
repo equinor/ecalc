@@ -13,6 +13,10 @@ class Source(EnergyUnit, abc.ABC):
     """
 
     @classmethod
+    def get_input_energy_type(cls) -> None:
+        return None
+
+    @classmethod
     @abc.abstractmethod
     def get_output_energy_type(cls) -> type[Energy]: ...
 

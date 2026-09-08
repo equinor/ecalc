@@ -1,7 +1,7 @@
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.energy import ElectricalPower, FuelGasRate, MechanicalPower
+from libecalc.energy import ElectricalPower, EnergyUnit, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_units import (
     ElectricalBus,
     ElectricalCable,
@@ -13,7 +13,7 @@ from libecalc.energy.energy_units import (
     MechanicalConsumer,
 )
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
-from libecalc.energy.network import EnergyConnection, EnergyNetwork, EnergyNetworkNode
+from libecalc.energy.network import EnergyConnection, EnergyNetwork
 
 
 class TestEnergyNetworkValidation:
@@ -84,7 +84,8 @@ class TestEnergyNetworkValidation:
                 ],
             )
         assert str(exc_info.value) == snapshot(
-            f"Energy domain error: Source node of type 'ElectricalConsumer' with id '{source.get_id()}' provides no energy"
+            f"Energy domain error: Connection source 'source' ({source.get_id()}) "
+            "of type ElectricalConsumer provides no output energy"
         )
 
     @pytest.mark.snapshot
@@ -106,7 +107,8 @@ class TestEnergyNetworkValidation:
                 ],
             )
         assert str(exc_info.value) == snapshot(
-            f"Energy domain error: Target node of type 'FuelGasSource' with id '{target.get_id()}' requires no energy"
+            f"Energy domain error: Connection target 'target' ({target.get_id()}) "
+            "of type FuelGasSource accepts no input energy"
         )
 
     def test_rejects_duplicate_node_ids(self):
@@ -322,8 +324,8 @@ class TestEnergyNetworkTopology:
     )
     def test_derives_input_energy_from_requested_output(
         self,
-        unit: EnergyNetworkNode,
-        consumer: EnergyNetworkNode,
+        unit: EnergyUnit,
+        consumer: EnergyUnit,
         expected_input: ElectricalPower,
     ):
         """Every unit between a source and a consumer derives its input from its output.
