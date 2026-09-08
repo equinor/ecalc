@@ -1,3 +1,4 @@
+from libecalc.energy.energy_unit import EnergyUnit
 from libecalc.energy.energy_units import (
     DieselConsumer,
     DieselSource,
@@ -13,7 +14,7 @@ from libecalc.energy.energy_units import (
     GeneratorSet,
     MechanicalConsumer,
 )
-from libecalc.energy.network import EnergyConnection, EnergyNetwork, EnergyNetworkNode
+from libecalc.energy.network import EnergyConnection, EnergyNetwork
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlDieselConsumer,
@@ -34,7 +35,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
 
 class EnergyNetworkMapper:
     def map_energy_network(self, yaml_energy_network: YamlEnergyNetwork) -> EnergyNetwork:
-        nodes_by_name: dict[str, EnergyNetworkNode] = {}
+        nodes_by_name: dict[str, EnergyUnit] = {}
 
         for source in yaml_energy_network.sources:
             nodes_by_name[source.name] = self._map_source(source)
@@ -62,7 +63,7 @@ class EnergyNetworkMapper:
                 return DieselSource(name=source.name)
 
     @staticmethod
-    def _map_unit(unit: YamlComponent) -> EnergyNetworkNode:
+    def _map_unit(unit: YamlComponent) -> EnergyUnit:
         match unit:
             case YamlGeneratorSet():
                 return GeneratorSet(name=unit.name)
