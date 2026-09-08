@@ -6,13 +6,17 @@ from libecalc.common.consumption_type import ConsumptionType
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.utils.rates import TimeSeriesRate
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.core.result import CompressorResult, ConsumerSystemResult
-from libecalc.core.result.results import GenericComponentResult, PumpResult
 from libecalc.domain.energy import ComponentEnergyContext, EnergyComponent
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.component import (
     Consumer as ConsumerEnergyComponent,
 )
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunction
+from libecalc.domain.infrastructure.energy_components.results import (
+    CompressorResult,
+    ConsumerSystemResult,
+    GenericComponentResult,
+    PumpResult,
+)
 from libecalc.domain.process.compressor.core.base import CompressorWithTurbineModel
 from libecalc.domain.process.compressor.core.sampled import CompressorModelSampled
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel

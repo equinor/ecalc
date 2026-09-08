@@ -12,12 +12,11 @@ from libecalc.common.time_utils import Period, Periods
 from libecalc.common.units import Unit
 from libecalc.common.utils.rates import TimeSeriesBoolean, TimeSeriesFloat, TimeSeriesInt, TimeSeriesStreamDayRate
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
-from libecalc.core.result import ComponentResult, CompressorResult
-from libecalc.core.result.results import PumpResult
 from libecalc.domain.energy import ComponentEnergyContext, Emitter, EnergyModel
 from libecalc.domain.energy.energy_component import EnergyContainerID
 from libecalc.domain.infrastructure.energy_components.asset.asset import Asset
 from libecalc.domain.infrastructure.energy_components.legacy_consumer.consumer_function import ConsumerFunctionResult
+from libecalc.domain.infrastructure.energy_components.results import ComponentResult, CompressorResult, PumpResult
 from libecalc.domain.installation import (
     ElectricityProducer,
     FuelConsumer,

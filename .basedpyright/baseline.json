@@ -648,24 +648,6 @@
                 }
             }
         ],
-        "./src/libecalc/core/result/results.py": [
-            {
-                "code": "reportArgumentType",
-                "range": {
-                    "startColumn": 21,
-                    "endColumn": 25,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportReturnType",
-                "range": {
-                    "startColumn": 23,
-                    "endColumn": 27,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/libecalc/domain/emission/time_series_intensity.py": [
             {
                 "code": "reportGeneralTypeIssues",
@@ -896,6 +878,16 @@
                 "range": {
                     "startColumn": 31,
                     "endColumn": 49,
+                    "lineCount": 1
+                }
+            }
+        ],
+        "./src/libecalc/domain/infrastructure/energy_components/results.py": [
+            {
+                "code": "reportReturnType",
+                "range": {
+                    "startColumn": 23,
+                    "endColumn": 27,
                     "lineCount": 1
                 }
             }

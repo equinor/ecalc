@@ -73,7 +73,7 @@ class ConcatenatedProperty[T: TimeSeries]:
         self,
         class_: type[T],
         fill_value: Any,
-        unit: Unit = None,
+        unit: Unit | None = None,
         accessor: Callable | None = None,
         allow_none: bool = False,
         post_processor: Callable[[T], T] | None = None,
