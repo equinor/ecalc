@@ -1,11 +1,13 @@
 from __future__ import annotations
 
 import abc
+from abc import abstractmethod
 from typing import Final, NewType, Self
 from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.energy.energy_types import Energy
 
 EnergyUnitId = NewType("EnergyUnitId", UUID)
 
@@ -22,6 +24,14 @@ class EnergyUnit(Entity[EnergyUnitId], abc.ABC):
 
     def get_name(self) -> str:
         return self._name
+
+    @classmethod
+    @abstractmethod
+    def get_input_energy_type(cls) -> type[Energy] | None: ...
+
+    @classmethod
+    @abstractmethod
+    def get_output_energy_type(cls) -> type[Energy] | None: ...
 
     @classmethod
     def _create_id(cls: type[Self]) -> EnergyUnitId:

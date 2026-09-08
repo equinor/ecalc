@@ -13,6 +13,10 @@ class Consumer(EnergyUnit, abc.ABC):
     @abc.abstractmethod
     def get_input_energy_type(cls) -> type[Energy]: ...
 
+    @classmethod
+    def get_output_energy_type(cls) -> None:
+        return None
+
     @abc.abstractmethod
     def get_input_energy(self) -> Energy:
         """Return the input energy demanded by this consumer."""

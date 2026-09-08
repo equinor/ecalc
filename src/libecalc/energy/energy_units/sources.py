@@ -1,4 +1,3 @@
-from libecalc.energy import Energy
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.source import Source
@@ -12,7 +11,7 @@ class FuelGasSource(Source):
         self._max_rate = max_rate
 
     @classmethod
-    def get_output_energy_type(cls) -> type[Energy]:
+    def get_output_energy_type(cls) -> type[FuelGasRate]:
         return FuelGasRate
 
     def get_max_rate(self) -> float | None:
