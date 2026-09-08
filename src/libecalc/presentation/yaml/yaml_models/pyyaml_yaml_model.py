@@ -28,6 +28,7 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration,
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
@@ -501,6 +502,13 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             except PydanticValidationError:
                 pass
         return process_simulations
+
+    @property
+    def energy_network(self) -> YamlEnergyNetwork | None:
+        try:
+            return YamlEnergyNetwork.model_validate(self._get_yaml_dict_or_empty("ENERGY_NETWORK"))
+        except PydanticValidationError:
+            return None
 
     @property
     def ecalc_events(self) -> list[YamlEcalcEvent]:

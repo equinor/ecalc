@@ -4,6 +4,7 @@ from pydantic_core.core_schema import ValidationInfo
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
@@ -109,6 +110,11 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="ECALC_EVENTS",
         description="Defines eCalc events associated with temporal model changes",
+    )
+    energy_network: YamlEnergyNetwork | None = Field(
+        None,
+        title="ENERGY_NETWORK",
+        description="Defines the energy network configuration.",
     )
     process_events: list[YamlProcessEvent] = Field(
         default_factory=list,

@@ -22,8 +22,8 @@ class GeneratorSet(Converter):
     def __init__(
         self,
         name: str,
-        max_power: float,
-        power_to_fuel: Callable[[float], float],
+        max_power: float | None = None,
+        power_to_fuel: Callable[[float], float] = lambda power: power,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
@@ -38,11 +38,11 @@ class GeneratorSet(Converter):
     def get_output_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
 
-    def get_max_power(self) -> float:
+    def get_max_power(self) -> float | None:
         return self._max_power
 
     def capacity(self) -> ElectricalPower | None:
-        return ElectricalPower(self._max_power)
+        return ElectricalPower(self._max_power) if self._max_power is not None else None
 
     def get_input_energy(self, output_energy: ElectricalPower) -> FuelGasRate:
         return FuelGasRate(self._power_to_fuel(output_energy.value))
@@ -54,8 +54,8 @@ class GasTurbine(Converter):
     def __init__(
         self,
         name: str,
-        max_power: float,
-        power_to_fuel: Callable[[float], float],
+        max_power: float | None = None,
+        power_to_fuel: Callable[[float], float] = lambda power: power,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
@@ -70,11 +70,11 @@ class GasTurbine(Converter):
     def get_output_energy_type(cls) -> type[MechanicalPower]:
         return MechanicalPower
 
-    def get_max_power(self) -> float:
+    def get_max_power(self) -> float | None:
         return self._max_power
 
     def capacity(self) -> MechanicalPower | None:
-        return MechanicalPower(self._max_power)
+        return MechanicalPower(self._max_power) if self._max_power is not None else None
 
     def get_input_energy(self, output_energy: MechanicalPower) -> FuelGasRate:
         return FuelGasRate(self._power_to_fuel(output_energy.value))
@@ -84,11 +84,15 @@ class ElectricalMotor(Converter):
     """Electrical motor converting electrical power to mechanical power."""
 
     def __init__(
-        self, name: str, max_power: float, efficiency: float = 0.95, energy_unit_id: EnergyUnitId | None = None
+        self,
+        name: str,
+        max_power: float | None = None,
+        efficiency: float | None = None,
+        energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
         self._max_power = max_power
-        self._efficiency = efficiency
+        self._efficiency = efficiency if efficiency is not None else 0.95
 
     @classmethod
     def get_input_energy_type(cls) -> type[ElectricalPower]:
@@ -98,14 +102,14 @@ class ElectricalMotor(Converter):
     def get_output_energy_type(cls) -> type[MechanicalPower]:
         return MechanicalPower
 
-    def get_max_power(self) -> float:
+    def get_max_power(self) -> float | None:
         return self._max_power
 
     def get_efficiency(self) -> float:
         return self._efficiency
 
     def capacity(self) -> MechanicalPower | None:
-        return MechanicalPower(self._max_power)
+        return MechanicalPower(self._max_power) if self._max_power is not None else None
 
     def get_input_energy(self, output_energy: MechanicalPower) -> ElectricalPower:
         return ElectricalPower(output_energy.value / self._efficiency)
