@@ -16,7 +16,6 @@ from libecalc.energy.source import Source
 # Role groups the network asks about. Each question has one definition, so a new role
 # cannot be handled in one place and forgotten in another.
 ProvidesEnergy = Source | Converter | Transporter | Junction
-RequiresEnergy = Consumer | Converter | Transporter | Junction
 DerivesInputFromOutput = Junction | Converter | Transporter
 HasCapacity = Source | Converter | Transporter
 
