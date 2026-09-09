@@ -1,5 +1,3 @@
-from collections.abc import Mapping
-
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
@@ -14,7 +12,7 @@ class EnergyNetworkEvaluation:
     def __init__(
         self,
         energy_network: EnergyNetwork,
-        consumer_demands: Mapping[EnergyUnitId, Energy],
+        consumer_demands: dict[EnergyUnitId, Energy],
     ) -> None:
         self._energy_network = energy_network
         self._consumer_demands = dict(consumer_demands)
@@ -97,7 +95,7 @@ class EnergyNetworkEvaluation:
         provided_ids: set[EnergyUnitId],
         expected_ids: set[EnergyUnitId],
         value_name: str,
-        nodes: Mapping[EnergyUnitId, EnergyUnit],
+        nodes: dict[EnergyUnitId, EnergyUnit],
     ) -> None:
         missing_ids = expected_ids - provided_ids
         if missing_ids:
@@ -117,7 +115,7 @@ class EnergyNetworkEvaluation:
 
     def _validate_energy_types(
         self,
-        nodes: Mapping[EnergyUnitId, EnergyUnit],
+        nodes: dict[EnergyUnitId, EnergyUnit],
     ) -> None:
         for node_id, demand in self._consumer_demands.items():
             node = nodes[node_id]
@@ -133,7 +131,7 @@ class EnergyNetworkEvaluation:
     @staticmethod
     def _format_node_references(
         node_ids: set[EnergyUnitId],
-        nodes: Mapping[EnergyUnitId, EnergyUnit],
+        nodes: dict[EnergyUnitId, EnergyUnit],
     ) -> str:
         return ", ".join(
             (f"'{nodes[node_id].get_name()}' ({node_id})" if node_id in nodes else str(node_id))
