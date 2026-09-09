@@ -44,7 +44,7 @@ class TestEnergyNetworkEvaluationInputValidation:
                 consumer_demands={},
             )
 
-    def test_rejects_input_energy_for_non_consumer(self):
+    def test_rejects_consumer_demand_for_non_consumer(self):
         network, source, consumer = create_electrical_network()
 
         with pytest.raises(
