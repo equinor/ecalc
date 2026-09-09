@@ -23,3 +23,7 @@ class InvalidEnergyNetworkError(EnergyDomainError):
 
 class EnergyAllocationRequiredError(EnergyDomainError):
     """Raised when an energy unit has multiple predecessors."""
+
+
+class InvalidEnergyNetworkEvaluationInputError(EnergyDomainError):
+    """Raised when energy network evaluation input is invalid."""
