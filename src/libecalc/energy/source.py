@@ -19,8 +19,3 @@ class Source(EnergyUnit, abc.ABC):
     @classmethod
     @abc.abstractmethod
     def get_output_energy_type(cls) -> type[Energy]: ...
-
-    @abc.abstractmethod
-    def capacity(self) -> Energy | None:
-        """Maximum this source can deliver. None = unlimited."""
-        ...
