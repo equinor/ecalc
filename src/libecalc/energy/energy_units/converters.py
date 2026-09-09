@@ -12,22 +12,15 @@ class GeneratorSet(Converter):
     A smooth curve represents a single generator unit; a stepped curve with
     discontinuities can encode multiple physical generators switching on at
     load breakpoints (as in the legacy eCalc model).
-
-    Alternatively, individual generators can be modelled as separate
-    GeneratorSet instances connected to the same bus. The network solver's
-    priority dispatch will then fill them one by one in connection order,
-    invoking additional units only when prior ones reach capacity.
     """
 
     def __init__(
         self,
         name: str,
-        max_power: float | None = None,
         power_to_fuel: Callable[[float], float] = lambda power: power,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
-        self._max_power = max_power
         self._power_to_fuel = power_to_fuel
 
     @classmethod
@@ -37,12 +30,6 @@ class GeneratorSet(Converter):
     @classmethod
     def get_output_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
-
-    def get_max_power(self) -> float | None:
-        return self._max_power
-
-    def capacity(self) -> ElectricalPower | None:
-        return ElectricalPower(self._max_power) if self._max_power is not None else None
 
     def get_input_energy(self, output_energy: ElectricalPower) -> FuelGasRate:
         return FuelGasRate(self._power_to_fuel(output_energy.value))
@@ -54,12 +41,10 @@ class GasTurbine(Converter):
     def __init__(
         self,
         name: str,
-        max_power: float | None = None,
         power_to_fuel: Callable[[float], float] = lambda power: power,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
-        self._max_power = max_power
         self._power_to_fuel = power_to_fuel
 
     @classmethod
@@ -69,12 +54,6 @@ class GasTurbine(Converter):
     @classmethod
     def get_output_energy_type(cls) -> type[MechanicalPower]:
         return MechanicalPower
-
-    def get_max_power(self) -> float | None:
-        return self._max_power
-
-    def capacity(self) -> MechanicalPower | None:
-        return MechanicalPower(self._max_power) if self._max_power is not None else None
 
     def get_input_energy(self, output_energy: MechanicalPower) -> FuelGasRate:
         return FuelGasRate(self._power_to_fuel(output_energy.value))
@@ -86,12 +65,10 @@ class ElectricalMotor(Converter):
     def __init__(
         self,
         name: str,
-        max_power: float | None = None,
         efficiency: float | None = None,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
-        self._max_power = max_power
         self._efficiency = efficiency if efficiency is not None else 0.95
 
     @classmethod
@@ -102,14 +79,8 @@ class ElectricalMotor(Converter):
     def get_output_energy_type(cls) -> type[MechanicalPower]:
         return MechanicalPower
 
-    def get_max_power(self) -> float | None:
-        return self._max_power
-
     def get_efficiency(self) -> float:
         return self._efficiency
-
-    def capacity(self) -> MechanicalPower | None:
-        return MechanicalPower(self._max_power) if self._max_power is not None else None
 
     def get_input_energy(self, output_energy: MechanicalPower) -> ElectricalPower:
         return ElectricalPower(output_energy.value / self._efficiency)

@@ -30,8 +30,3 @@ class Converter(EnergyUnit, abc.ABC):
     def get_input_energy(self, output_energy: Energy) -> Energy:
         """Given output needed, what input is required?"""
         ...
-
-    @abc.abstractmethod
-    def capacity(self) -> Energy | None:
-        """Maximum this converter can deliver. None = unlimited."""
-        ...

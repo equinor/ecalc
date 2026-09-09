@@ -28,47 +28,45 @@ from libecalc.energy.energy_units import (
 
 
 class TestSources:
-    def test_capped_source_reports_capacity(self):
-        src = FuelGasSource("fg", max_rate=100_000.0)
-        assert src.capacity() == FuelGasRate(100_000.0)
-
     @pytest.mark.parametrize(
-        "source",
+        ("source", "expected_output_type"),
         [
-            FuelGasSource("fuel"),
-            DieselSource("diesel"),
-            ElectricalSource("electricity"),
+            (FuelGasSource("fuel"), FuelGasRate),
+            (DieselSource("diesel"), DieselRate),
+            (ElectricalSource("electricity"), ElectricalPower),
         ],
     )
-    def test_uncapped_source_has_no_limit(self, source: Source):
-        assert source.capacity() is None
+    def test_source_energy_contract(
+        self,
+        source: Source,
+        expected_output_type: type[Energy],
+    ):
+        assert source.get_input_energy_type() is None
+        assert source.get_output_energy_type() is expected_output_type
+        assert isinstance(source.get_id(), UUID)
 
 
 class TestConverters:
     def test_electrical_cable_accounts_for_loss(self):
-        cable = ElectricalCable("cable", max_power=45.0, loss_fraction=0.04)
+        cable = ElectricalCable("cable", loss_fraction=0.04)
         result = cable.get_input_energy(ElectricalPower(10.0))
         assert result.value == pytest.approx(10.0 / 0.96)
-        assert cable.capacity() == ElectricalPower(45.0)
 
     def test_generator_set_applies_fuel_curve(self):
-        genset = GeneratorSet("gs1", max_power=20.0, power_to_fuel=lambda mw: 5000 + mw * 4500)
+        genset = GeneratorSet("gs1", power_to_fuel=lambda mw: 5000 + mw * 4500)
         result = genset.get_input_energy(ElectricalPower(10.0))
         assert result == FuelGasRate(5000 + 10 * 4500)
-        assert genset.capacity() == ElectricalPower(20.0)
 
     def test_gas_turbine_applies_fuel_curve(self):
-        turbine = GasTurbine("t1", max_power=25.0, power_to_fuel=lambda mw: 3000 + mw * 3500)
+        turbine = GasTurbine("t1", power_to_fuel=lambda mw: 3000 + mw * 3500)
         result = turbine.get_input_energy(MechanicalPower(15.0))
         assert result == FuelGasRate(3000 + 15 * 3500)
-        assert turbine.capacity() == MechanicalPower(25.0)
 
     def test_electrical_motor_divides_by_efficiency(self):
-        motor = ElectricalMotor("m1", max_power=8.0, efficiency=0.93)
+        motor = ElectricalMotor("m1", efficiency=0.93)
         result = motor.get_input_energy(MechanicalPower(7.0))
         assert result.value == pytest.approx(7.0 / 0.93)
         assert isinstance(result, ElectricalPower)
-        assert motor.capacity() == MechanicalPower(8.0)
 
 
 class TestConsumers:

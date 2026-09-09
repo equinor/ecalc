@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId
+from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -8,6 +9,8 @@ from libecalc.energy.errors import (
     InvalidEnergyNetworkEvaluationInputError,
 )
 from libecalc.energy.network import EnergyConnectionId, EnergyNetwork
+
+SupportsCapacity = Source | Converter | Transporter
 
 
 class EnergyNetworkEvaluation:
@@ -174,6 +177,17 @@ class EnergyNetworkEvaluation:
                 raise InvalidEnergyNetworkEvaluationInputError(
                     f"Consumer demand for connection {connection_id} requires "
                     f"{expected_type.__name__}, got {type(demand).__name__}"
+                )
+
+        for node_id, capacity in self._capacities.items():
+            node = nodes[node_id]
+            expected_type = node.get_output_energy_type()
+            assert expected_type is not None
+
+            if type(capacity) is not expected_type:
+                raise InvalidEnergyNetworkEvaluationInputError(
+                    f"Capacity for '{node.get_name()}' ({node_id}) must be "
+                    f"{expected_type.__name__}, got {type(capacity).__name__}"
                 )
 
     def _format_connection_ids(self, connection_ids: set[EnergyConnectionId]) -> str:
