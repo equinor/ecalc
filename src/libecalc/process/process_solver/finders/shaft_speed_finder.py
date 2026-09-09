@@ -7,6 +7,7 @@ from libecalc.process.process_pipeline.process_error import (
     CompressorStonewallError,
     CompressorSurgeError,
     InsufficientInletPressureError,
+    OutletFluidNotAchievableError,
 )
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.configuration import SpeedConfiguration
@@ -16,6 +17,7 @@ from libecalc.process.process_solver.solver import (
     CompressorStonewallFailure,
     CompressorSurgeFailure,
     InsufficientInletPressureFailure,
+    OutletFluidNotAchievableFailure,
     TargetDirection,
     TargetPressureUnreachableFailure,
     ThermodynamicCalculationFailure,
@@ -58,6 +60,23 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
                     failure=ThermodynamicCalculationFailure(
                         reason=f"EOS failed at all speeds in boundary [{self._boundary.min:.1f}, {self._boundary.max:.1f}] rpm"
                     ),
+                )
+            return ShaftSpeedFinder(
+                search_strategy=self._search_strategy,
+                root_finding_strategy=self._root_finding_strategy,
+                boundary=Boundary(min=self._boundary.min, max=valid_max),
+                target_pressure=self._target_pressure,
+            ).find(func)
+        except OutletFluidNotAchievableError as e:
+            logger.debug(
+                "Outlet fluid not achievable at max speed %.1f rpm; searching for highest valid speed.",
+                self._boundary.max,
+            )
+            valid_max = self._search_strategy.highest_true(self._boundary, lambda speed: self._eos_ok(func, speed))
+            if valid_max is None:
+                return Finding(
+                    configuration=max_speed_configuration,
+                    failure=OutletFluidNotAchievableFailure.from_error(e),
                 )
             return ShaftSpeedFinder(
                 search_strategy=self._search_strategy,
@@ -136,6 +155,7 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
             return True
         except (
             CompressorThermodynamicCalculationError,
+            OutletFluidNotAchievableError,
             CompressorStonewallError,
             CompressorSurgeError,
             InsufficientInletPressureError,
@@ -147,7 +167,7 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
     ) -> tuple[SpeedConfiguration, FluidStream]:
         """Return the lowest speed configuration within flow capacity, and its outlet stream.
 
-        ``CompressorStonewallError``, ``CompressorThermodynamicCalculationError``, and
+        ``CompressorStonewallError``, ``CompressorThermodynamicCalculationError``, ``OutletFluidNotAchievableError``, and
         ``InsufficientInletPressureError`` at the boundary minimum are recoverable:
         higher speed raises the stonewall limit or enters the valid EOS/pressure range;
         search upward.
@@ -156,7 +176,12 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
         try:
             minimum_result = func(minimum_speed_configuration)
             return minimum_speed_configuration, minimum_result
-        except (CompressorStonewallError, CompressorThermodynamicCalculationError, InsufficientInletPressureError) as e:
+        except (
+            CompressorStonewallError,
+            OutletFluidNotAchievableError,
+            CompressorThermodynamicCalculationError,
+            InsufficientInletPressureError,
+        ) as e:
             logger.debug(f"No solution found for minimum speed: {self._boundary.min}", exc_info=e)
 
             def bool_speed_func(x: float) -> BisectResult:
@@ -166,6 +191,7 @@ class ShaftSpeedFinder(Finder[SpeedConfiguration]):
                 except (
                     CompressorStonewallError,
                     CompressorThermodynamicCalculationError,
+                    OutletFluidNotAchievableError,
                     InsufficientInletPressureError,
                 ):
                     return BisectResult(higher=True, accepted=False)

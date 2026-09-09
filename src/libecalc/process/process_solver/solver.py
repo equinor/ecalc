@@ -10,11 +10,13 @@ from typing import Self, TypeVar
 from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import (
+    CompressorOperatingPoint,
     CompressorStonewallError,
     CompressorSurgeError,
     InsufficientInletPressureError,
     LiquidAtInletError,
     OfftakeExceedsInletError,
+    OutletFluidNotAchievableError,
     ProcessError,
 )
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessPipelineSectionId
@@ -72,6 +74,21 @@ class CompressorSurgeFailure(SolverFailure):
 @dataclass
 class ThermodynamicCalculationFailure(SolverFailure):
     reason: str = ""
+
+
+@dataclass
+class OutletFluidNotAchievableFailure(SolverFailure):
+    """The compressor EOS calculation could not produce a valid outlet stream."""
+
+    process_unit_id: ProcessUnitId | None = None
+    operating_point: CompressorOperatingPoint | None = None
+
+    @classmethod
+    def from_error(cls, e: OutletFluidNotAchievableError) -> Self:
+        return cls(
+            process_unit_id=e.process_unit_id,
+            operating_point=e.unachievable_operating_point,
+        )
 
 
 @dataclass
@@ -140,6 +157,8 @@ def process_error_to_failure(e: ProcessError) -> SolverFailure:
         )
     if isinstance(e, InsufficientInletPressureError):
         return InsufficientInletPressureFailure.from_error(e)
+    if isinstance(e, OutletFluidNotAchievableError):
+        return OutletFluidNotAchievableFailure.from_error(e)
     if isinstance(e, CompressorThermodynamicCalculationError):
         return ThermodynamicCalculationFailure(reason=str(e))
     if isinstance(e, CompressorStonewallError):
