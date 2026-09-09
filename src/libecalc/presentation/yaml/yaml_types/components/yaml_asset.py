@@ -1,6 +1,7 @@
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -241,3 +242,59 @@ class YamlAsset(YamlBase):
                 f" Duplicated references are: {', '.join(duplicated_references)}"
             )
         return self
+
+    @model_validator(mode="before")
+    @classmethod
+    def validate_v2_fields_require_v2(cls, data):
+        if not isinstance(data, dict):
+            return data
+
+        def get_raw_value(field_name: str):
+            alias = cls.model_fields[field_name].alias
+            if alias is not None and alias in data:
+                return data[alias]
+            return data.get(field_name)
+
+        version_value = data.get("VERSION", data.get("version"))
+        if isinstance(version_value, Version):
+            version = version_value
+        elif isinstance(version_value, str):
+            version = Version.from_string(version_value)
+        else:
+            version = Version(major=1)
+
+        if version.major >= 2:
+            return data
+
+        # Check that v1 is not using v2 elements
+        v2_only_fields = [
+            "inlet_streams",
+            "process_pipelines",
+            "process_simulations",
+            "ecalc_events",
+            "energy_network",
+            "process_events",
+            "pump_process_simulations",
+        ]
+        used_fields = [field for field in v2_only_fields if get_raw_value(field)]
+
+        definitions_value = get_raw_value("definitions")
+        if isinstance(definitions_value, dict):
+            definitions_used = (
+                definitions_value.get("PROCESS_UNITS")
+                or definitions_value.get("process_units")
+                or definitions_value.get("FLUIDS")
+                or definitions_value.get("fluids")
+            )
+        else:
+            definitions_used = bool(definitions_value)  # already-constructed YamlDefinitions instance
+        if definitions_used:
+            used_fields.append("definitions")
+
+        if used_fields:
+            used_aliases: list[str] = [cls.model_fields[field].alias or field for field in used_fields]
+            raise EcalcValidationException(
+                f"{', '.join(used_aliases)} require yaml {cls.model_fields['version'].alias} 2 or higher."
+            )
+
+        return data
