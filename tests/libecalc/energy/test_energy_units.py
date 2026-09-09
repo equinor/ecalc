@@ -73,14 +73,19 @@ class TestConverters:
 
 class TestConsumers:
     @pytest.mark.parametrize(
-        ("consumer", "expected_energy"),
+        ("consumer", "expected_input_type"),
         [
-            (ElectricalConsumer("electrical_consumer", power=1.5), ElectricalPower(1.5)),
-            (MechanicalConsumer("compressor", power=2), MechanicalPower(2)),
-            (DieselConsumer("diesel_consumer", rate=500.0), DieselRate(500.0)),
-            (FuelGasConsumer("fuel_consumer", rate=1_000), FuelGasRate(1_000)),
+            (ElectricalConsumer("electrical_consumer"), ElectricalPower),
+            (MechanicalConsumer("compressor"), MechanicalPower),
+            (DieselConsumer("diesel_consumer"), DieselRate),
+            (FuelGasConsumer("fuel_consumer"), FuelGasRate),
         ],
     )
-    def test_consumer_returns_input_energy(self, consumer: Consumer, expected_energy: Energy):
-        assert consumer.get_input_energy() == expected_energy
+    def test_consumer_energy_contract(
+        self,
+        consumer: Consumer,
+        expected_input_type: type[Energy],
+    ):
+        assert consumer.get_input_energy_type() is expected_input_type
+        assert consumer.get_output_energy_type() is None
         assert isinstance(consumer.get_id(), UUID)

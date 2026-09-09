@@ -5,19 +5,8 @@ from uuid import UUID
 
 from libecalc.common.ddd import value_object
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.energy.consumer import Consumer
-from libecalc.energy.converter import Converter
-from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
-from libecalc.energy.energy_units import Junction, Transporter
-from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
-from libecalc.energy.source import Source
-
-# Role groups the network asks about. Each question has one definition, so a new role
-# cannot be handled in one place and forgotten in another.
-ProvidesEnergy = Source | Converter | Transporter | Junction
-DerivesInputFromOutput = Junction | Converter | Transporter
-HasCapacity = Source | Converter | Transporter
+from libecalc.energy.errors import InvalidEnergyNetworkError
 
 
 @value_object
@@ -99,97 +88,6 @@ class EnergyNetwork:
         self,
     ) -> tuple[EnergyUnitId, ...]:
         return self._topological_order
-
-    # Per-node energy
-    def get_input_energy(
-        self,
-        node_id: EnergyUnitId,
-    ) -> Energy | None:
-        node = self.get_node(node_id)
-
-        # A consumer defines its own input energy.
-        if isinstance(node, Consumer):
-            return node.get_input_energy()
-
-        # A source has no input energy
-        if isinstance(node, Source):
-            return None
-
-        if isinstance(node, DerivesInputFromOutput):
-            output_energy = self.get_output_energy(node_id)
-
-            if output_energy is None:
-                raise InvalidEnergyNetworkError(f"Energy unit {node_id} has no output energy")
-
-            return node.get_input_energy(output_energy)
-
-        raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
-
-    def get_output_energy(
-        self,
-        node_id: EnergyUnitId,
-    ) -> Energy | None:
-        node = self.get_node(node_id)
-
-        # A consumer has no output energy within the network boundary.
-        if isinstance(node, Consumer):
-            return None
-
-        if not isinstance(node, ProvidesEnergy):
-            raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
-
-        output_energy = node.get_output_energy_type()(value=0)
-
-        # A source, converter, transporter, or junction outputs the combined input
-        # energy of its successors.
-        for successor_id in self.get_successors(node_id):
-            successor_input_energy = self.get_input_energy(successor_id)
-
-            if successor_input_energy is None:
-                raise InvalidEnergyNetworkError(f"Energy unit {successor_id} has no input energy")
-
-            # Positive demand with multiple predecessors requires allocation.
-            if successor_input_energy.value > 0 and len(self.get_predecessors(successor_id)) > 1:
-                raise EnergyAllocationRequiredError(
-                    f"Cannot calculate output energy for unit {node_id}: "
-                    f"successor {successor_id} has {len(self.get_predecessors(successor_id))} predecessors, "
-                    "so an allocation strategy is required"
-                )
-
-            output_energy += successor_input_energy
-
-        return output_energy
-
-    # Capacity and feasibility
-    def get_capacity(
-        self,
-        node_id: EnergyUnitId,
-    ) -> Energy | None:
-        node = self.get_node(node_id)
-
-        if isinstance(node, HasCapacity):
-            return node.capacity()
-
-        return None
-
-    def is_capacity_exceeded(
-        self,
-        node_id: EnergyUnitId,
-    ) -> bool:
-        capacity = self.get_capacity(node_id)
-
-        if capacity is None:
-            return False
-
-        output_energy = self.get_output_energy(node_id)
-
-        if output_energy is None:
-            raise InvalidEnergyNetworkError(f"Energy unit {node_id} has capacity but no output energy")
-
-        return output_energy.value > capacity.value
-
-    def is_feasible(self) -> bool:
-        return not any(self.is_capacity_exceeded(node_id) for node_id in self.get_topological_order())
 
     # Private topology construction and validation
     def _add_connections(

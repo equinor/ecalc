@@ -1,25 +1,22 @@
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.energy import ElectricalPower, EnergyUnit, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_units import (
     ElectricalBus,
     ElectricalCable,
     ElectricalConsumer,
-    ElectricalMotor,
     ElectricalSource,
     FuelGasSource,
     GeneratorSet,
-    MechanicalConsumer,
 )
-from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkError
+from libecalc.energy.errors import InvalidEnergyNetworkError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
 
 
 class TestEnergyNetworkValidation:
     def test_rejects_incompatible_energy_types(self):
         source = FuelGasSource(name="source")
-        load = ElectricalConsumer(name="load", power=5)
+        load = ElectricalConsumer(name="load")
 
         with pytest.raises(
             InvalidEnergyNetworkError,
@@ -36,7 +33,7 @@ class TestEnergyNetworkValidation:
             )
 
     def test_rejects_unknown_source(self):
-        load = ElectricalConsumer(name="load", power=5)
+        load = ElectricalConsumer(name="load")
         missing_id = FuelGasSource._create_id()
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown source"):
@@ -68,8 +65,8 @@ class TestEnergyNetworkValidation:
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_rejects_consumer_as_source(self):
-        source = ElectricalConsumer(name="source", power=5)
-        target = ElectricalConsumer(name="target", power=5)
+        source = ElectricalConsumer(name="source")
+        target = ElectricalConsumer(name="target")
 
         with pytest.raises(
             InvalidEnergyNetworkError,
@@ -121,7 +118,7 @@ class TestEnergyNetworkValidation:
             EnergyNetwork(
                 nodes=[
                     FuelGasSource(name="source", energy_unit_id=duplicate_id),
-                    ElectricalConsumer(name="load", power=5, energy_unit_id=duplicate_id),
+                    ElectricalConsumer(name="load", energy_unit_id=duplicate_id),
                 ],
                 connections=[],
             )
@@ -149,7 +146,7 @@ class TestEnergyNetworkValidation:
             )
 
     def test_rejects_consumer_without_predecessor(self):
-        base_load = ElectricalConsumer("load", power=1)
+        base_load = ElectricalConsumer("load")
         with pytest.raises(
             InvalidEnergyNetworkError,
             match="requires input energy but has no predecessor",
@@ -159,7 +156,7 @@ class TestEnergyNetworkValidation:
     def test_rejects_transporter_without_predecessor(self):
         """A transporter needs a supply; without one it would deliver energy from nowhere."""
         cable = ElectricalCable("cable", max_power=15)
-        load = ElectricalConsumer("load", power=10)
+        load = ElectricalConsumer("load")
 
         with pytest.raises(
             InvalidEnergyNetworkError,
@@ -177,7 +174,7 @@ class TestEnergyNetworkTopology:
         generator = GeneratorSet(
             name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000.0
         )
-        load = ElectricalConsumer(name="load", power=5)
+        load = ElectricalConsumer(name="load")
 
         network = EnergyNetwork(
             nodes=[source, generator, load],
@@ -204,8 +201,8 @@ class TestEnergyNetworkTopology:
         """A provider can supply multiple downstream consumers."""
         source = FuelGasSource(name="source")
         generator = GeneratorSet(name="generator", max_power=10, power_to_fuel=lambda output_power: output_power * 5000)
-        first_load = ElectricalConsumer(name="first_load", power=3)
-        second_load = ElectricalConsumer(name="second_load", power=4)
+        first_load = ElectricalConsumer(name="first_load")
+        second_load = ElectricalConsumer(name="second_load")
 
         network = EnergyNetwork(
             nodes=[
@@ -238,11 +235,11 @@ class TestEnergyNetworkTopology:
         )
 
     def test_connects_multiple_providers_to_consumer_through_junction(self):
-        grid = ElectricalSource(name="grid", max_power=20)
-        wind = ElectricalSource(name="wind", max_power=5)
+        grid = ElectricalSource(name="grid")
+        wind = ElectricalSource(name="wind")
 
         bus = ElectricalBus(name="bus")
-        load = ElectricalConsumer(name="load", power=10)
+        load = ElectricalConsumer(name="load")
 
         network = EnergyNetwork(
             nodes=[grid, wind, bus, load],
@@ -273,14 +270,13 @@ class TestEnergyNetworkTopology:
     def test_connects_source_to_consumer_through_transporter(self):
         grid = ElectricalSource(
             name="grid",
-            max_power=20,
         )
         cable = ElectricalCable(
             name="cable",
             max_power=15,
             loss_fraction=0.04,
         )
-        load = ElectricalConsumer(name="load", power=10)
+        load = ElectricalConsumer(name="load")
 
         network = EnergyNetwork(
             nodes=[grid, cable, load],
@@ -298,177 +294,3 @@ class TestEnergyNetworkTopology:
 
         assert network.get_predecessors(cable.get_id()) == frozenset({grid.get_id()})
         assert network.get_successors(cable.get_id()) == frozenset({load.get_id()})
-
-    @pytest.mark.parametrize(
-        ("unit", "consumer", "expected_input"),
-        [
-            pytest.param(
-                ElectricalBus(name="bus"),
-                ElectricalConsumer(name="load", power=10),
-                ElectricalPower(10),
-                id="junction_passes_through",
-            ),
-            pytest.param(
-                ElectricalMotor(name="motor", max_power=5, efficiency=0.8),
-                MechanicalConsumer(name="pump", power=4),
-                ElectricalPower(5),
-                id="converter_applies_efficiency",
-            ),
-            pytest.param(
-                ElectricalCable(name="cable", max_power=15, loss_fraction=0.04),
-                ElectricalConsumer(name="load", power=10),
-                ElectricalPower(10 / 0.96),
-                id="transporter_applies_loss",
-            ),
-        ],
-    )
-    def test_derives_input_energy_from_requested_output(
-        self,
-        unit: EnergyUnit,
-        consumer: EnergyUnit,
-        expected_input: ElectricalPower,
-    ):
-        """Every unit between a source and a consumer derives its input from its output.
-
-        Junctions, converters and transporters each reach this through their own branch,
-        so all three are covered to keep the branches in step.
-        """
-        grid = ElectricalSource(name="grid", max_power=20)
-
-        network = EnergyNetwork(
-            nodes=[grid, unit, consumer],
-            connections=[
-                EnergyConnection(source_id=grid.get_id(), target_id=unit.get_id()),
-                EnergyConnection(source_id=unit.get_id(), target_id=consumer.get_id()),
-            ],
-        )
-
-        unit_input = network.get_input_energy(unit.get_id())
-        assert isinstance(unit_input, ElectricalPower)
-        assert unit_input.value == pytest.approx(expected_input.value)
-
-        # The source upstream supplies exactly what the unit draws.
-        grid_output = network.get_output_energy(grid.get_id())
-        assert isinstance(grid_output, ElectricalPower)
-        assert grid_output.value == pytest.approx(expected_input.value)
-
-
-class TestEnergyNetworkEnergyCalculation:
-    def test_calculates_input_and_output_energy_through_network(self):
-        source = FuelGasSource("source")
-        generator = GeneratorSet(
-            "generator",
-            max_power=12,
-            power_to_fuel=lambda power: power * 1_000,
-        )
-        bus = ElectricalBus("bus")
-        motor = ElectricalMotor("motor", max_power=5, efficiency=0.8)
-        pump = MechanicalConsumer("pump", power=4)
-        base_load = ElectricalConsumer("base_load", power=5)
-
-        network = EnergyNetwork(
-            nodes=[source, generator, bus, motor, pump, base_load],
-            connections=[
-                EnergyConnection(source.get_id(), generator.get_id()),
-                EnergyConnection(generator.get_id(), bus.get_id()),
-                EnergyConnection(bus.get_id(), motor.get_id()),
-                EnergyConnection(motor.get_id(), pump.get_id()),
-                EnergyConnection(bus.get_id(), base_load.get_id()),
-            ],
-        )
-
-        # The pump has 4 MW of mechanical input and no output energy.
-        assert network.get_input_energy(pump.get_id()) == MechanicalPower(4)
-        assert network.get_output_energy(pump.get_id()) is None
-
-        # The base load has 5 MW of electrical input and no output energy.
-        assert network.get_input_energy(base_load.get_id()) == ElectricalPower(5)
-        assert network.get_output_energy(base_load.get_id()) is None
-
-        # The motor outputs 4 MW mechanical from 5 MW electrical input.
-        assert network.get_input_energy(motor.get_id()) == ElectricalPower(5)
-        assert network.get_output_energy(motor.get_id()) == MechanicalPower(4)
-
-        # The bus passes through 10 MW for the motor and base load.
-        assert network.get_input_energy(bus.get_id()) == ElectricalPower(10)
-        assert network.get_output_energy(bus.get_id()) == ElectricalPower(10)
-
-        # The generator outputs 10 MW from 10,000 Sm3/day of fuel-gas input.
-        assert network.get_input_energy(generator.get_id()) == FuelGasRate(10_000)
-        assert network.get_output_energy(generator.get_id()) == ElectricalPower(10)
-
-        # The source supplies the generator's total fuel-gas input.
-        assert network.get_input_energy(source.get_id()) is None
-        assert network.get_output_energy(source.get_id()) == FuelGasRate(10_000)
-
-    def test_returns_typed_zero_output_for_source_without_successors(self):
-        source = FuelGasSource("source")
-        network = EnergyNetwork(nodes=[source], connections=[])
-
-        assert network.get_output_energy(source.get_id()) == FuelGasRate(0)
-
-    def test_requires_allocation_for_multiple_predecessors(self):
-        first_grid = ElectricalSource("first_grid", max_power=20)
-        second_grid = ElectricalSource("second_grid", max_power=20)
-        load = ElectricalConsumer("load", power=10)
-
-        network = EnergyNetwork(
-            nodes=[first_grid, second_grid, load],
-            connections=[
-                EnergyConnection(first_grid.get_id(), load.get_id()),
-                EnergyConnection(second_grid.get_id(), load.get_id()),
-            ],
-        )
-
-        with pytest.raises(
-            EnergyAllocationRequiredError,
-            match="allocation strategy is required",
-        ):
-            network.get_output_energy(first_grid.get_id())
-
-    def test_does_not_require_allocation_for_zero_energy(self):
-        first_grid = ElectricalSource("first_grid", max_power=20)
-        second_grid = ElectricalSource("second_grid", max_power=20)
-        load = ElectricalConsumer("load", power=0)
-
-        network = EnergyNetwork(
-            nodes=[first_grid, second_grid, load],
-            connections=[
-                EnergyConnection(first_grid.get_id(), load.get_id()),
-                EnergyConnection(second_grid.get_id(), load.get_id()),
-            ],
-        )
-
-        assert network.get_output_energy(first_grid.get_id()) == ElectricalPower(0)
-
-
-class TestEnergyNetworkFeasibility:
-    def test_reports_capacity_exceeded_without_capping_output_energy(self):
-        grid = ElectricalSource("grid", max_power=5)
-        load = ElectricalConsumer("load", power=6)
-
-        network = EnergyNetwork(
-            nodes=[grid, load],
-            connections=[
-                EnergyConnection(grid.get_id(), load.get_id()),
-            ],
-        )
-
-        assert network.get_capacity(grid.get_id()) == ElectricalPower(5)
-        assert network.get_output_energy(grid.get_id()) == ElectricalPower(6)
-        assert network.is_capacity_exceeded(grid.get_id())
-        assert not network.is_feasible()
-
-    def test_capacity_equal_to_output_energy_is_feasible(self):
-        grid = ElectricalSource("grid", max_power=5)
-        load = ElectricalConsumer("load", power=5)
-
-        network = EnergyNetwork(
-            nodes=[grid, load],
-            connections=[
-                EnergyConnection(grid.get_id(), load.get_id()),
-            ],
-        )
-
-        assert not network.is_capacity_exceeded(grid.get_id())
-        assert network.is_feasible()
