@@ -54,7 +54,7 @@ class YamlAsset(YamlBase):
     )
 
     version: YamlVersion = Field(
-        default_factory=Version,
+        default_factory=lambda: Version(major=1),
         title="VERSION",
         description="Version of the yaml schema for this file.",
     )
