@@ -2,6 +2,7 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
+from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
@@ -21,6 +22,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import Yaml
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
+from libecalc.presentation.yaml.yaml_types.yaml_version import YamlVersion
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 
@@ -51,6 +53,11 @@ class YamlAsset(YamlBase):
         title="Asset",
     )
 
+    version: YamlVersion = Field(
+        default_factory=Version,
+        title="VERSION",
+        description="Version of the yaml schema for this file.",
+    )
     definitions: YamlDefinitions = Field(
         default_factory=YamlDefinitions,
         title="DEFINITIONS",
