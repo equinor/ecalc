@@ -1,20 +1,6 @@
-from libecalc.energy.energy_unit import EnergyUnit
-from libecalc.energy.energy_units import (
-    DieselConsumer,
-    DieselSource,
-    ElectricalBus,
-    ElectricalCable,
-    ElectricalConsumer,
-    ElectricalMotor,
-    ElectricalSource,
-    FuelGasConsumer,
-    FuelGasManifold,
-    FuelGasSource,
-    GasTurbine,
-    GeneratorSet,
-    MechanicalConsumer,
-)
+from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
+from libecalc.energy.network_unit import EnergyNetworkUnit
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlDieselConsumer,
@@ -35,7 +21,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
 
 class EnergyNetworkMapper:
     def map_energy_network(self, yaml_energy_network: YamlEnergyNetwork) -> EnergyNetwork:
-        nodes_by_name: dict[str, EnergyUnit] = {}
+        nodes_by_name: dict[str, EnergyNetworkUnit] = {}
 
         for source in yaml_energy_network.sources:
             nodes_by_name[source.name] = self._map_source(source)
@@ -53,38 +39,38 @@ class EnergyNetworkMapper:
         return EnergyNetwork(nodes=nodes_by_name.values(), connections=connections)
 
     @staticmethod
-    def _map_source(source: YamlEnergySource) -> FuelGasSource | ElectricalSource | DieselSource:
+    def _map_source(source: YamlEnergySource) -> EnergyNetworkUnit:
         match source.type:
             case YamlEnergySourceType.FUEL_GAS_SOURCE:
-                return FuelGasSource(name=source.name)
+                return EnergyNetworkUnit(source.name, None, FuelGasRate)
             case YamlEnergySourceType.ELECTRICAL_SOURCE:
-                return ElectricalSource(name=source.name)
+                return EnergyNetworkUnit(source.name, None, ElectricalPower)
             case YamlEnergySourceType.DIESEL_SOURCE:
-                return DieselSource(name=source.name)
+                return EnergyNetworkUnit(source.name, None, DieselRate)
 
     @staticmethod
-    def _map_unit(unit: YamlComponent) -> EnergyUnit:
+    def _map_unit(unit: YamlComponent) -> EnergyNetworkUnit:
         match unit:
             case YamlGeneratorSet():
-                return GeneratorSet(name=unit.name)
+                return EnergyNetworkUnit(unit.name, FuelGasRate, ElectricalPower)
             case YamlGasTurbine():
-                return GasTurbine(name=unit.name)
+                return EnergyNetworkUnit(unit.name, FuelGasRate, MechanicalPower)
             case YamlElectricalMotor():
-                return ElectricalMotor(name=unit.name)
+                return EnergyNetworkUnit(unit.name, ElectricalPower, MechanicalPower)
             case YamlElectricalCable():
-                return ElectricalCable(name=unit.name)
+                return EnergyNetworkUnit(unit.name, ElectricalPower, ElectricalPower)
             case YamlElectricalBus():
-                return ElectricalBus(name=unit.name)
+                return EnergyNetworkUnit(unit.name, ElectricalPower, ElectricalPower)
             case YamlFuelGasManifold():
-                return FuelGasManifold(name=unit.name)
+                return EnergyNetworkUnit(unit.name, FuelGasRate, FuelGasRate)
             case YamlElectricalConsumer():
-                return ElectricalConsumer(name=unit.name)
+                return EnergyNetworkUnit(unit.name, ElectricalPower, None)
             case YamlMechanicalConsumer():
-                return MechanicalConsumer(name=unit.name)
+                return EnergyNetworkUnit(unit.name, MechanicalPower, None)
             case YamlFuelGasConsumer():
-                return FuelGasConsumer(name=unit.name)
+                return EnergyNetworkUnit(unit.name, FuelGasRate, None)
             case YamlDieselConsumer():
-                return DieselConsumer(name=unit.name)
+                return EnergyNetworkUnit(unit.name, DieselRate, None)
 
     @staticmethod
     def _get_input_names(unit: YamlComponent) -> list[str]:

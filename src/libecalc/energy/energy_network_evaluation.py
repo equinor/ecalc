@@ -1,3 +1,5 @@
+from collections.abc import Iterable
+
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
@@ -12,9 +14,19 @@ class EnergyNetworkEvaluation:
     def __init__(
         self,
         energy_network: EnergyNetwork,
+        energy_units: Iterable[EnergyUnit],
         consumer_demands: dict[EnergyUnitId, Energy],
     ) -> None:
         self._energy_network = energy_network
+        self._energy_units: dict[EnergyUnitId, EnergyUnit] = {}
+
+        for energy_unit in energy_units:
+            energy_unit_id = energy_unit.get_id()
+            if energy_unit_id in self._energy_units:
+                raise InvalidEnergyNetworkEvaluationInputError(f"Duplicate energy unit ID: {energy_unit_id}")
+
+            self._energy_units[energy_unit_id] = energy_unit
+
         self._consumer_demands = dict(consumer_demands)
         self._validate_inputs()
 
@@ -23,7 +35,7 @@ class EnergyNetworkEvaluation:
         self,
         node_id: EnergyUnitId,
     ) -> Energy | None:
-        node = self._energy_network.get_node(node_id)
+        node = self._energy_units[node_id]
 
         if isinstance(node, Consumer):
             return self._consumer_demands[node_id]
@@ -48,7 +60,7 @@ class EnergyNetworkEvaluation:
         self,
         node_id: EnergyUnitId,
     ) -> Energy | None:
-        node = self._energy_network.get_node(node_id)
+        node = self._energy_units[node_id]
         output_type = node.get_output_energy_type()
 
         if output_type is None:
@@ -77,7 +89,10 @@ class EnergyNetworkEvaluation:
         return output_energy
 
     def _validate_inputs(self) -> None:
-        nodes = {node.get_id(): node for node in self._energy_network.get_nodes()}
+        network_nodes = {node.get_id(): node for node in self._energy_network.get_nodes()}
+        nodes = self._energy_units
+
+        self._validate_energy_units(network_nodes)
 
         consumer_ids = {node_id for node_id, node in nodes.items() if isinstance(node, Consumer)}
 
@@ -90,7 +105,34 @@ class EnergyNetworkEvaluation:
 
         self._validate_energy_types(nodes)
 
+    def _validate_energy_units(self, network_nodes: dict[EnergyUnitId, EnergyUnit]) -> None:
+        self._validate_node_ids(
+            provided_ids=set(self._energy_units),
+            expected_ids=set(network_nodes),
+            value_name="energy units",
+            nodes=network_nodes,
+        )
+
+        for node_id, energy_unit in self._energy_units.items():
+            network_node = network_nodes[node_id]
+            if (
+                energy_unit.get_input_energy_type() is not network_node.get_input_energy_type()
+                or energy_unit.get_output_energy_type() is not network_node.get_output_energy_type()
+            ):
+                raise InvalidEnergyNetworkEvaluationInputError(
+                    f"Energy unit '{energy_unit.get_name()}' ({node_id}) has energy types that do not match the network"
+                )
+
     def _validate_consumer_demands(
+        self,
+        provided_ids: set[EnergyUnitId],
+        expected_ids: set[EnergyUnitId],
+        value_name: str,
+        nodes: dict[EnergyUnitId, EnergyUnit],
+    ) -> None:
+        self._validate_node_ids(provided_ids, expected_ids, value_name, nodes)
+
+    def _validate_node_ids(
         self,
         provided_ids: set[EnergyUnitId],
         expected_ids: set[EnergyUnitId],

@@ -14,13 +14,16 @@ from libecalc.energy.energy_units import (
 )
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkEvaluationInputError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
+from libecalc.energy.network_unit import EnergyNetworkUnit
 
 
 def create_electrical_network():
     source = ElectricalSource("source")
     consumer = ElectricalConsumer("consumer")
+    network_source = EnergyNetworkUnit("source", None, ElectricalPower, source.get_id())
+    network_consumer = EnergyNetworkUnit("consumer", ElectricalPower, None, consumer.get_id())
     network = EnergyNetwork(
-        nodes=[source, consumer],
+        nodes=[network_source, network_consumer],
         connections=[
             EnergyConnection(
                 source.get_id(),
@@ -32,8 +35,22 @@ def create_electrical_network():
 
 
 class TestEnergyNetworkEvaluationInputValidation:
+    def test_rejects_energy_units_with_different_energy_types_than_network(self):
+        network, source, consumer = create_electrical_network()
+        incompatible_consumer = MechanicalConsumer("consumer", energy_unit_id=consumer.get_id())
+
+        with pytest.raises(
+            InvalidEnergyNetworkEvaluationInputError,
+            match="energy types that do not match the network",
+        ):
+            EnergyNetworkEvaluation(
+                energy_network=network,
+                energy_units=[source, incompatible_consumer],
+                consumer_demands={incompatible_consumer.get_id(): MechanicalPower(5)},
+            )
+
     def test_rejects_missing_consumer_input_energy(self):
-        network, _, _ = create_electrical_network()
+        network, source, consumer = create_electrical_network()
 
         with pytest.raises(
             InvalidEnergyNetworkEvaluationInputError,
@@ -41,6 +58,7 @@ class TestEnergyNetworkEvaluationInputValidation:
         ):
             EnergyNetworkEvaluation(
                 energy_network=network,
+                energy_units=[source, consumer],
                 consumer_demands={},
             )
 
@@ -53,6 +71,7 @@ class TestEnergyNetworkEvaluationInputValidation:
         ):
             EnergyNetworkEvaluation(
                 energy_network=network,
+                energy_units=[source, consumer],
                 consumer_demands={
                     source.get_id(): ElectricalPower(5),
                     consumer.get_id(): ElectricalPower(5),
@@ -60,7 +79,7 @@ class TestEnergyNetworkEvaluationInputValidation:
             )
 
     def test_rejects_wrong_consumer_input_energy_type(self):
-        network, _, consumer = create_electrical_network()
+        network, source, consumer = create_electrical_network()
 
         with pytest.raises(
             InvalidEnergyNetworkEvaluationInputError,
@@ -68,6 +87,7 @@ class TestEnergyNetworkEvaluationInputValidation:
         ):
             EnergyNetworkEvaluation(
                 energy_network=network,
+                energy_units=[source, consumer],
                 consumer_demands={
                     consumer.get_id(): FuelGasRate(5),
                 },
@@ -95,6 +115,7 @@ class TestEnergyNetworkEnergyCalculation:
         )
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
+            energy_units=[source, generator, bus, motor, pump, base_load],
             consumer_demands={
                 pump.get_id(): MechanicalPower(4),
                 base_load.get_id(): ElectricalPower(5),
@@ -130,6 +151,7 @@ class TestEnergyNetworkEnergyCalculation:
         network = EnergyNetwork(nodes=[source], connections=[])
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
+            energy_units=[source],
             consumer_demands={},
         )
 
@@ -149,6 +171,7 @@ class TestEnergyNetworkEnergyCalculation:
         )
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
+            energy_units=[first_grid, second_grid, load],
             consumer_demands={
                 load.get_id(): ElectricalPower(10),
             },
@@ -175,6 +198,7 @@ class TestEnergyNetworkEnergyCalculation:
 
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
+            energy_units=[first_grid, second_grid, load],
             consumer_demands={
                 load.get_id(): ElectricalPower(0),
             },
@@ -197,6 +221,7 @@ class TestEnergyNetworkEnergyCalculation:
 
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
+            energy_units=[source, cable, consumer],
             consumer_demands={
                 consumer.get_id(): ElectricalPower(10),
             },
