@@ -9,7 +9,7 @@ from libecalc.energy.energy_units import (
     FuelGasSource,
 )
 from libecalc.energy.errors import InvalidEnergyNetworkError
-from libecalc.energy.network import EnergyNetwork
+from libecalc.energy.network import EnergyConnection, EnergyConnectionId, EnergyNetwork
 
 
 def create_network(units, connections):
@@ -62,6 +62,22 @@ class TestEnergyNetworkValidation:
 
         with pytest.raises(InvalidEnergyNetworkError, match="cannot be cyclic"):
             create_network([first, second], [(first, second), (second, first)])
+
+    def test_rejects_duplicate_connection_pair(self):
+        source = ElectricalSource("source")
+        load = ElectricalConsumer("load")
+
+        with pytest.raises(InvalidEnergyNetworkError, match="Duplicate energy connection from"):
+            create_network([source, load], [(source, load), (source, load)])
+
+    def test_rejects_duplicate_connection_id(self):
+        source = ElectricalSource("source")
+        load = ElectricalConsumer("load")
+        connection_id = EnergyConnectionId(ElectricalSource._create_id())
+        connection = EnergyConnection(connection_id, source.get_id(), load.get_id(), ElectricalPower)
+
+        with pytest.raises(InvalidEnergyNetworkError, match="Duplicate energy connection ID"):
+            EnergyNetwork(nodes=[source.get_id(), load.get_id()], connections=[connection, connection])
 
 
 class TestEnergyNetworkTopology:
