@@ -7,7 +7,7 @@ from libecalc.energy.errors import (
     InvalidEnergyNetworkError,
     InvalidEnergyNetworkEvaluationInputError,
 )
-from libecalc.energy.network import EnergyConnection, EnergyNetwork
+from libecalc.energy.network import EnergyConnectionId, EnergyNetwork
 
 
 class EnergyNetworkEvaluation:
@@ -28,13 +28,22 @@ class EnergyNetworkEvaluation:
 
         self._validate_energy_units()
 
-    def propagate_energy(self, consumer_demands: dict[EnergyUnitId, Energy]) -> dict[EnergyConnection, Energy]:
-        """Calculate the energy flowing through each connection for the supplied demands."""
-        self._validate_consumer_demands(consumer_demands)
+    def propagate_energy(
+        self, connection_demands: dict[EnergyConnectionId, Energy]
+    ) -> dict[EnergyConnectionId, Energy]:
+        """Calculate connection energy from demands on consumer-targeting connections."""
+        self._validate_connection_demands(connection_demands)
 
-        connection_energy: dict[EnergyConnection, Energy] = {}
+        connection_energy: dict[EnergyConnectionId, Energy] = {}
         for node_id in reversed(self._energy_network.get_topological_order()):
-            input_energy = self._get_input_energy(node_id, consumer_demands, connection_energy)
+            node = self._energy_units[node_id]
+            if isinstance(node, Consumer):
+                for predecessor_id in self._energy_network.get_predecessors(node_id):
+                    connection = self._energy_network.get_connection(predecessor_id, node_id)
+                    connection_energy[connection.id] = connection_demands[connection.id]
+                continue
+
+            input_energy = self._get_input_energy(node_id, connection_energy)
             if input_energy is None:
                 continue
 
@@ -46,20 +55,17 @@ class EnergyNetworkEvaluation:
                 )
 
             for predecessor_id in predecessors:
-                connection_energy[self._energy_network.get_connection(predecessor_id, node_id)] = input_energy
+                connection = self._energy_network.get_connection(predecessor_id, node_id)
+                connection_energy[connection.id] = input_energy
 
         return connection_energy
 
     def _get_input_energy(
         self,
         node_id: EnergyUnitId,
-        consumer_demands: dict[EnergyUnitId, Energy],
-        connection_energy: dict[EnergyConnection, Energy],
+        connection_energy: dict[EnergyConnectionId, Energy],
     ) -> Energy | None:
         node = self._energy_units[node_id]
-        if isinstance(node, Consumer):
-            return consumer_demands[node_id]
-
         input_energy_type = node.get_input_energy_type()
         if input_energy_type is None:
             return None
@@ -70,7 +76,8 @@ class EnergyNetworkEvaluation:
 
         output_energy = output_energy_type(0)
         for successor_id in self._energy_network.get_successors(node_id):
-            output_energy += connection_energy[self._energy_network.get_connection(node_id, successor_id)]
+            connection = self._energy_network.get_connection(node_id, successor_id)
+            output_energy += connection_energy[connection.id]
 
         if isinstance(node, Junction):
             return output_energy
@@ -104,15 +111,18 @@ class EnergyNetworkEvaluation:
                     f"Energy unit '{energy_unit.get_name()}' ({node_id}) has energy types that do not match the network"
                 )
 
-    def _validate_consumer_demands(self, consumer_demands: dict[EnergyUnitId, Energy]) -> None:
-        consumer_ids = {node_id for node_id, node in self._energy_units.items() if isinstance(node, Consumer)}
-        self._validate_node_ids(
-            provided_ids=set(consumer_demands),
-            expected_ids=consumer_ids,
-            value_name="consumer demands",
-            nodes=self._energy_units,
+    def _validate_connection_demands(self, connection_demands: dict[EnergyConnectionId, Energy]) -> None:
+        consumer_connection_ids = {
+            connection.id
+            for connection in self._energy_network.get_connections()
+            if isinstance(self._energy_units[connection.target_id], Consumer)
+        }
+        self._validate_connection_ids(
+            provided_ids=set(connection_demands),
+            expected_ids=consumer_connection_ids,
+            value_name="connection demands",
         )
-        self._validate_energy_types(consumer_demands)
+        self._validate_energy_types(connection_demands)
 
     def _validate_node_ids(
         self,
@@ -137,17 +147,37 @@ class EnergyNetworkEvaluation:
             )
             raise InvalidEnergyNetworkEvaluationInputError(f"Unexpected {value_name} for nodes: {node_references}")
 
-    def _validate_energy_types(self, consumer_demands: dict[EnergyUnitId, Energy]) -> None:
-        for node_id, demand in consumer_demands.items():
-            node = self._energy_units[node_id]
-            assert isinstance(node, Consumer)
-            expected_type = node.get_input_energy_type()
+    def _validate_connection_ids(
+        self,
+        provided_ids: set[EnergyConnectionId],
+        expected_ids: set[EnergyConnectionId],
+        value_name: str,
+    ) -> None:
+        missing_ids = expected_ids - provided_ids
+        if missing_ids:
+            raise InvalidEnergyNetworkEvaluationInputError(
+                f"Missing {value_name} for connections: {self._format_connection_ids(missing_ids)}"
+            )
+
+        unexpected_ids = provided_ids - expected_ids
+        if unexpected_ids:
+            raise InvalidEnergyNetworkEvaluationInputError(
+                f"Unexpected {value_name} for connections: {self._format_connection_ids(unexpected_ids)}"
+            )
+
+    def _validate_energy_types(self, connection_demands: dict[EnergyConnectionId, Energy]) -> None:
+        for connection_id, demand in connection_demands.items():
+            connection = self._energy_network.get_connection_by_id(connection_id)
+            expected_type = connection.energy_type
 
             if type(demand) is not expected_type:
                 raise InvalidEnergyNetworkEvaluationInputError(
-                    f"Consumer '{node.get_name()}' ({node_id}) requires "
+                    f"Consumer demand for connection {connection_id} requires "
                     f"{expected_type.__name__}, got {type(demand).__name__}"
                 )
+
+    def _format_connection_ids(self, connection_ids: set[EnergyConnectionId]) -> str:
+        return ", ".join(str(connection_id) for connection_id in sorted(connection_ids, key=str))
 
     @staticmethod
     def _format_node_references(

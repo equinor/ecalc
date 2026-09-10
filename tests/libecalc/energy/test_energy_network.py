@@ -77,6 +77,7 @@ class TestEnergyNetworkTopology:
             network.get_connection(source.get_id(), cable.get_id()),
             network.get_connection(cable.get_id(), load.get_id()),
         )
+        assert len({connection.id for connection in network.get_connections()}) == len(network.get_connections())
         assert all(connection.energy_type is ElectricalPower for connection in network.get_connections())
 
     def test_connects_multiple_providers_to_junction(self):
