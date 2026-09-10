@@ -46,7 +46,6 @@ class TestEnergyNetworkEvaluationInputValidation:
             EnergyNetworkEvaluation(
                 energy_network=network,
                 energy_units=[source, incompatible_consumer],
-                consumer_demands={incompatible_consumer.get_id(): MechanicalPower(5)},
             )
 
     def test_rejects_missing_consumer_input_energy(self):
@@ -59,8 +58,7 @@ class TestEnergyNetworkEvaluationInputValidation:
             EnergyNetworkEvaluation(
                 energy_network=network,
                 energy_units=[source, consumer],
-                consumer_demands={},
-            )
+            ).propagate_energy({})
 
     def test_rejects_consumer_demand_for_non_consumer(self):
         network, source, consumer = create_electrical_network()
@@ -72,10 +70,11 @@ class TestEnergyNetworkEvaluationInputValidation:
             EnergyNetworkEvaluation(
                 energy_network=network,
                 energy_units=[source, consumer],
-                consumer_demands={
+            ).propagate_energy(
+                {
                     source.get_id(): ElectricalPower(5),
                     consumer.get_id(): ElectricalPower(5),
-                },
+                }
             )
 
     def test_rejects_wrong_consumer_input_energy_type(self):
@@ -88,9 +87,10 @@ class TestEnergyNetworkEvaluationInputValidation:
             EnergyNetworkEvaluation(
                 energy_network=network,
                 energy_units=[source, consumer],
-                consumer_demands={
+            ).propagate_energy(
+                {
                     consumer.get_id(): FuelGasRate(5),
-                },
+                }
             )
 
 
@@ -116,46 +116,31 @@ class TestEnergyNetworkEnergyCalculation:
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
             energy_units=[source, generator, bus, motor, pump, base_load],
-            consumer_demands={
+        )
+        connection_energy = evaluation.propagate_energy(
+            {
                 pump.get_id(): MechanicalPower(4),
                 base_load.get_id(): ElectricalPower(5),
-            },
+            }
         )
 
-        # The pump has 4 MW of mechanical input and no output energy.
-        assert evaluation.get_input_energy(pump.get_id()) == MechanicalPower(4)
-        assert evaluation.get_output_energy(pump.get_id()) is None
+        assert connection_energy == {
+            EnergyConnection(source.get_id(), generator.get_id()): FuelGasRate(10_000),
+            EnergyConnection(generator.get_id(), bus.get_id()): ElectricalPower(10),
+            EnergyConnection(bus.get_id(), motor.get_id()): ElectricalPower(5),
+            EnergyConnection(motor.get_id(), pump.get_id()): MechanicalPower(4),
+            EnergyConnection(bus.get_id(), base_load.get_id()): ElectricalPower(5),
+        }
 
-        # The base load has 5 MW of electrical input and no output energy.
-        assert evaluation.get_input_energy(base_load.get_id()) == ElectricalPower(5)
-        assert evaluation.get_output_energy(base_load.get_id()) is None
-
-        # The motor outputs 4 MW mechanical from 5 MW electrical input.
-        assert evaluation.get_input_energy(motor.get_id()) == ElectricalPower(5)
-        assert evaluation.get_output_energy(motor.get_id()) == MechanicalPower(4)
-
-        # The bus passes through 10 MW for the motor and base load.
-        assert evaluation.get_input_energy(bus.get_id()) == ElectricalPower(10)
-        assert evaluation.get_output_energy(bus.get_id()) == ElectricalPower(10)
-
-        # The generator outputs 10 MW from 10,000 Sm3/day of fuel-gas input.
-        assert evaluation.get_input_energy(generator.get_id()) == FuelGasRate(10_000)
-        assert evaluation.get_output_energy(generator.get_id()) == ElectricalPower(10)
-
-        # The source supplies the generator's total fuel-gas input.
-        assert evaluation.get_input_energy(source.get_id()) is None
-        assert evaluation.get_output_energy(source.get_id()) == FuelGasRate(10_000)
-
-    def test_returns_typed_zero_output_for_source_without_successors(self):
+    def test_returns_no_connection_energy_for_source_without_successors(self):
         source = FuelGasSource("source")
         network = EnergyNetwork(nodes=[source], connections=[])
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
             energy_units=[source],
-            consumer_demands={},
         )
 
-        assert evaluation.get_output_energy(source.get_id()) == FuelGasRate(0)
+        assert evaluation.propagate_energy({}) == {}
 
     def test_requires_allocation_for_multiple_predecessors(self):
         first_grid = ElectricalSource("first_grid")
@@ -172,16 +157,13 @@ class TestEnergyNetworkEnergyCalculation:
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
             energy_units=[first_grid, second_grid, load],
-            consumer_demands={
-                load.get_id(): ElectricalPower(10),
-            },
         )
 
         with pytest.raises(
             EnergyAllocationRequiredError,
             match="allocation strategy is required",
         ):
-            evaluation.get_output_energy(first_grid.get_id())
+            evaluation.propagate_energy({load.get_id(): ElectricalPower(10)})
 
     def test_does_not_require_allocation_for_zero_energy(self):
         first_grid = ElectricalSource("first_grid")
@@ -199,12 +181,12 @@ class TestEnergyNetworkEnergyCalculation:
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
             energy_units=[first_grid, second_grid, load],
-            consumer_demands={
-                load.get_id(): ElectricalPower(0),
-            },
         )
 
-        assert evaluation.get_output_energy(first_grid.get_id()) == ElectricalPower(0)
+        assert evaluation.propagate_energy({load.get_id(): ElectricalPower(0)}) == {
+            EnergyConnection(first_grid.get_id(), load.get_id()): ElectricalPower(0),
+            EnergyConnection(second_grid.get_id(), load.get_id()): ElectricalPower(0),
+        }
 
     def test_calculates_input_energy_for_transporter(self):
         source = ElectricalSource("source")
@@ -222,9 +204,9 @@ class TestEnergyNetworkEnergyCalculation:
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
             energy_units=[source, cable, consumer],
-            consumer_demands={
-                consumer.get_id(): ElectricalPower(10),
-            },
         )
 
-        assert evaluation.get_input_energy(cable.get_id()) == ElectricalPower(10 / 0.96)
+        assert evaluation.propagate_energy({consumer.get_id(): ElectricalPower(10)}) == {
+            EnergyConnection(source.get_id(), cable.get_id()): ElectricalPower(10 / 0.96),
+            EnergyConnection(cable.get_id(), consumer.get_id()): ElectricalPower(10),
+        }

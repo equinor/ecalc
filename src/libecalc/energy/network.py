@@ -71,6 +71,13 @@ class EnergyNetwork:
     def get_nodes(self) -> tuple[EnergyUnit, ...]:
         return tuple(self._nodes[node_id] for node_id in self._topological_order)
 
+    def get_connections(self) -> tuple[EnergyConnection, ...]:
+        return tuple(
+            EnergyConnection(source_id=source_id, target_id=target_id)
+            for source_id in self._topological_order
+            for target_id in self._successors[source_id]
+        )
+
     # Topology
     def get_predecessors(
         self,
