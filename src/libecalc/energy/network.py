@@ -146,6 +146,13 @@ class EnergyNetwork:
         for connection in connections:
             self._validate_connection(connection)
 
+            if connection.id in self._connections_by_id:
+                raise InvalidEnergyNetworkError(f"Duplicate energy connection ID: {connection.id}")
+            if (connection.source_id, connection.target_id) in self._connections:
+                raise InvalidEnergyNetworkError(
+                    f"Duplicate energy connection from {connection.source_id} to {connection.target_id}"
+                )
+
             self._successors[connection.source_id].add(connection.target_id)
             self._predecessors[connection.target_id].add(connection.source_id)
             self._connections[connection.source_id, connection.target_id] = connection
