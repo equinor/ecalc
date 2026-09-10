@@ -46,7 +46,7 @@ class EnergyNetworkEvaluation:
                 )
 
             for predecessor_id in predecessors:
-                connection_energy[EnergyConnection(predecessor_id, node_id)] = input_energy
+                connection_energy[self._energy_network.get_connection(predecessor_id, node_id)] = input_energy
 
         return connection_energy
 
@@ -70,7 +70,7 @@ class EnergyNetworkEvaluation:
 
         output_energy = output_energy_type(0)
         for successor_id in self._energy_network.get_successors(node_id):
-            output_energy += connection_energy[EnergyConnection(node_id, successor_id)]
+            output_energy += connection_energy[self._energy_network.get_connection(node_id, successor_id)]
 
         if isinstance(node, Junction):
             return output_energy
@@ -79,20 +79,26 @@ class EnergyNetworkEvaluation:
         raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
 
     def _validate_energy_units(self) -> None:
-        network_nodes = {node.get_id(): node for node in self._energy_network.get_nodes()}
-
         self._validate_node_ids(
             provided_ids=set(self._energy_units),
-            expected_ids=set(network_nodes),
+            expected_ids=set(self._energy_network.get_topological_order()),
             value_name="energy units",
-            nodes=network_nodes,
+            nodes=self._energy_units,
         )
 
         for node_id, energy_unit in self._energy_units.items():
-            network_node = network_nodes[node_id]
-            if (
-                energy_unit.get_input_energy_type() is not network_node.get_input_energy_type()
-                or energy_unit.get_output_energy_type() is not network_node.get_output_energy_type()
+            input_types = {
+                connection.energy_type
+                for connection in self._energy_network.get_connections()
+                if connection.target_id == node_id
+            }
+            output_types = {
+                connection.energy_type
+                for connection in self._energy_network.get_connections()
+                if connection.source_id == node_id
+            }
+            if (input_types and energy_unit.get_input_energy_type() not in input_types) or (
+                output_types and energy_unit.get_output_energy_type() not in output_types
             ):
                 raise InvalidEnergyNetworkEvaluationInputError(
                     f"Energy unit '{energy_unit.get_name()}' ({node_id}) has energy types that do not match the network"

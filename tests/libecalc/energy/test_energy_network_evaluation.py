@@ -14,21 +14,23 @@ from libecalc.energy.energy_units import (
 )
 from libecalc.energy.errors import EnergyAllocationRequiredError, InvalidEnergyNetworkEvaluationInputError
 from libecalc.energy.network import EnergyConnection, EnergyNetwork
-from libecalc.energy.network_unit import EnergyNetworkUnit
+
+
+def create_network(nodes, connections):
+    return EnergyNetwork.create(
+        node_input_types={node.get_id(): node.get_input_energy_type() for node in nodes},
+        node_output_types={node.get_id(): node.get_output_energy_type() for node in nodes},
+        connections=connections,
+    )
 
 
 def create_electrical_network():
     source = ElectricalSource("source")
     consumer = ElectricalConsumer("consumer")
-    network_source = EnergyNetworkUnit("source", None, ElectricalPower, source.get_id())
-    network_consumer = EnergyNetworkUnit("consumer", ElectricalPower, None, consumer.get_id())
-    network = EnergyNetwork(
-        nodes=[network_source, network_consumer],
+    network = create_network(
+        nodes=[source, consumer],
         connections=[
-            EnergyConnection(
-                source.get_id(),
-                consumer.get_id(),
-            ),
+            (source.get_id(), consumer.get_id()),
         ],
     )
     return network, source, consumer
@@ -103,14 +105,14 @@ class TestEnergyNetworkEnergyCalculation:
         pump = MechanicalConsumer("pump")
         base_load = ElectricalConsumer("base_load")
 
-        network = EnergyNetwork(
+        network = create_network(
             nodes=[source, generator, bus, motor, pump, base_load],
             connections=[
-                EnergyConnection(source.get_id(), generator.get_id()),
-                EnergyConnection(generator.get_id(), bus.get_id()),
-                EnergyConnection(bus.get_id(), motor.get_id()),
-                EnergyConnection(motor.get_id(), pump.get_id()),
-                EnergyConnection(bus.get_id(), base_load.get_id()),
+                (source.get_id(), generator.get_id()),
+                (generator.get_id(), bus.get_id()),
+                (bus.get_id(), motor.get_id()),
+                (motor.get_id(), pump.get_id()),
+                (bus.get_id(), base_load.get_id()),
             ],
         )
         evaluation = EnergyNetworkEvaluation(
@@ -125,16 +127,16 @@ class TestEnergyNetworkEnergyCalculation:
         )
 
         assert connection_energy == {
-            EnergyConnection(source.get_id(), generator.get_id()): FuelGasRate(10_000),
-            EnergyConnection(generator.get_id(), bus.get_id()): ElectricalPower(10),
-            EnergyConnection(bus.get_id(), motor.get_id()): ElectricalPower(5),
-            EnergyConnection(motor.get_id(), pump.get_id()): MechanicalPower(4),
-            EnergyConnection(bus.get_id(), base_load.get_id()): ElectricalPower(5),
+            EnergyConnection(source.get_id(), generator.get_id(), FuelGasRate): FuelGasRate(10_000),
+            EnergyConnection(generator.get_id(), bus.get_id(), ElectricalPower): ElectricalPower(10),
+            EnergyConnection(bus.get_id(), motor.get_id(), ElectricalPower): ElectricalPower(5),
+            EnergyConnection(motor.get_id(), pump.get_id(), MechanicalPower): MechanicalPower(4),
+            EnergyConnection(bus.get_id(), base_load.get_id(), ElectricalPower): ElectricalPower(5),
         }
 
     def test_returns_no_connection_energy_for_source_without_successors(self):
         source = FuelGasSource("source")
-        network = EnergyNetwork(nodes=[source], connections=[])
+        network = create_network(nodes=[source], connections=[])
         evaluation = EnergyNetworkEvaluation(
             energy_network=network,
             energy_units=[source],
@@ -147,11 +149,11 @@ class TestEnergyNetworkEnergyCalculation:
         second_grid = ElectricalSource("second_grid")
         load = ElectricalConsumer("load")
 
-        network = EnergyNetwork(
+        network = create_network(
             nodes=[first_grid, second_grid, load],
             connections=[
-                EnergyConnection(first_grid.get_id(), load.get_id()),
-                EnergyConnection(second_grid.get_id(), load.get_id()),
+                (first_grid.get_id(), load.get_id()),
+                (second_grid.get_id(), load.get_id()),
             ],
         )
         evaluation = EnergyNetworkEvaluation(
@@ -170,11 +172,11 @@ class TestEnergyNetworkEnergyCalculation:
         second_grid = ElectricalSource("second_grid")
         load = ElectricalConsumer("load")
 
-        network = EnergyNetwork(
+        network = create_network(
             nodes=[first_grid, second_grid, load],
             connections=[
-                EnergyConnection(first_grid.get_id(), load.get_id()),
-                EnergyConnection(second_grid.get_id(), load.get_id()),
+                (first_grid.get_id(), load.get_id()),
+                (second_grid.get_id(), load.get_id()),
             ],
         )
 
@@ -184,8 +186,8 @@ class TestEnergyNetworkEnergyCalculation:
         )
 
         assert evaluation.propagate_energy({load.get_id(): ElectricalPower(0)}) == {
-            EnergyConnection(first_grid.get_id(), load.get_id()): ElectricalPower(0),
-            EnergyConnection(second_grid.get_id(), load.get_id()): ElectricalPower(0),
+            EnergyConnection(first_grid.get_id(), load.get_id(), ElectricalPower): ElectricalPower(0),
+            EnergyConnection(second_grid.get_id(), load.get_id(), ElectricalPower): ElectricalPower(0),
         }
 
     def test_calculates_input_energy_for_transporter(self):
@@ -193,11 +195,11 @@ class TestEnergyNetworkEnergyCalculation:
         cable = ElectricalCable("cable", max_power=10, loss_fraction=0.04)
         consumer = ElectricalConsumer("consumer")
 
-        network = EnergyNetwork(
+        network = create_network(
             nodes=[source, cable, consumer],
             connections=[
-                EnergyConnection(source.get_id(), cable.get_id()),
-                EnergyConnection(cable.get_id(), consumer.get_id()),
+                (source.get_id(), cable.get_id()),
+                (cable.get_id(), consumer.get_id()),
             ],
         )
 
@@ -207,6 +209,6 @@ class TestEnergyNetworkEnergyCalculation:
         )
 
         assert evaluation.propagate_energy({consumer.get_id(): ElectricalPower(10)}) == {
-            EnergyConnection(source.get_id(), cable.get_id()): ElectricalPower(10 / 0.96),
-            EnergyConnection(cable.get_id(), consumer.get_id()): ElectricalPower(10),
+            EnergyConnection(source.get_id(), cable.get_id(), ElectricalPower): ElectricalPower(10 / 0.96),
+            EnergyConnection(cable.get_id(), consumer.get_id(), ElectricalPower): ElectricalPower(10),
         }
