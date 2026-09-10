@@ -9,17 +9,18 @@ from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkError
 
+EnergyNetworkId = NewType("EnergyNetworkId", UUID)
+EnergyConnectionId = NewType("EnergyConnectionId", UUID)
+
 
 @value_object
 class EnergyConnection:
     """A directed connection between two energy nodes."""
 
+    id: EnergyConnectionId
     source_id: EnergyUnitId
     target_id: EnergyUnitId
     energy_type: type[Energy]
-
-
-EnergyNetworkId = NewType("EnergyNetworkId", UUID)
 
 
 class EnergyNetwork:
@@ -48,6 +49,7 @@ class EnergyNetwork:
         ] = {node_id: set() for node_id in self._nodes}
 
         self._connections: dict[tuple[EnergyUnitId, EnergyUnitId], EnergyConnection] = {}
+        self._connections_by_id: dict[EnergyConnectionId, EnergyConnection] = {}
         self._add_connections(connections)
         self._topological_order = self._create_topological_order()
         self._id = energy_network_id or EnergyNetwork._create_id()
@@ -88,7 +90,14 @@ class EnergyNetwork:
                     f"source outputs {output_type.__name__}, target accepts {input_type.__name__}"
                 )
             predecessors[target_id].add(source_id)
-            connection_list.append(EnergyConnection(source_id, target_id, output_type))
+            connection_list.append(
+                EnergyConnection(
+                    id=EnergyConnectionId(ecalc_id_generator()),
+                    source_id=source_id,
+                    target_id=target_id,
+                    energy_type=output_type,
+                )
+            )
 
         for node_id, input_type in node_input_types.items():
             if input_type is not None and not predecessors[node_id]:
@@ -107,6 +116,9 @@ class EnergyNetwork:
 
     def get_connection(self, source_id: EnergyUnitId, target_id: EnergyUnitId) -> EnergyConnection:
         return self._connections[source_id, target_id]
+
+    def get_connection_by_id(self, connection_id: EnergyConnectionId) -> EnergyConnection:
+        return self._connections_by_id[connection_id]
 
     # Topology
     def get_predecessors(
@@ -137,6 +149,7 @@ class EnergyNetwork:
             self._successors[connection.source_id].add(connection.target_id)
             self._predecessors[connection.target_id].add(connection.source_id)
             self._connections[connection.source_id, connection.target_id] = connection
+            self._connections_by_id[connection.id] = connection
 
     def _validate_connection(
         self,
