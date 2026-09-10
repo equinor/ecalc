@@ -1,6 +1,7 @@
-from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
-from libecalc.energy.network import EnergyConnection, EnergyNetwork
-from libecalc.energy.network_unit import EnergyNetworkUnit
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
+from libecalc.energy.energy_unit import EnergyUnitId
+from libecalc.energy.network import EnergyNetwork
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlDieselConsumer,
@@ -21,56 +22,65 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
 
 class EnergyNetworkMapper:
     def map_energy_network(self, yaml_energy_network: YamlEnergyNetwork) -> EnergyNetwork:
-        nodes_by_name: dict[str, EnergyNetworkUnit] = {}
+        node_energy_types_by_name: dict[str, tuple[type[Energy] | None, type[Energy] | None]] = {}
 
         for source in yaml_energy_network.sources:
-            nodes_by_name[source.name] = self._map_source(source)
+            node_energy_types_by_name[source.name] = self._map_source(source)
         for unit in yaml_energy_network.units:
-            nodes_by_name[unit.name] = self._map_unit(unit)
+            node_energy_types_by_name[unit.name] = self._map_unit(unit)
+
+        node_ids_by_name: dict[str, EnergyUnitId] = {
+            name: EnergyUnitId(ecalc_id_generator()) for name in node_energy_types_by_name
+        }
 
         connections = [
-            EnergyConnection(
-                source_id=nodes_by_name[input_name].get_id(),
-                target_id=nodes_by_name[unit.name].get_id(),
-            )
+            (node_ids_by_name[input_name], node_ids_by_name[unit.name])
             for unit in yaml_energy_network.units
             for input_name in self._get_input_names(unit)
         ]
-        return EnergyNetwork(nodes=nodes_by_name.values(), connections=connections)
+        return EnergyNetwork.create(
+            node_input_types={
+                node_ids_by_name[name]: input_type for name, (input_type, _) in node_energy_types_by_name.items()
+            },
+            node_output_types={
+                node_ids_by_name[name]: output_type for name, (_, output_type) in node_energy_types_by_name.items()
+            },
+            connections=connections,
+        )
 
     @staticmethod
-    def _map_source(source: YamlEnergySource) -> EnergyNetworkUnit:
+    def _map_source(source: YamlEnergySource) -> tuple[None, type[Energy]]:
         match source.type:
             case YamlEnergySourceType.FUEL_GAS_SOURCE:
-                return EnergyNetworkUnit(source.name, None, FuelGasRate)
+                return None, FuelGasRate
             case YamlEnergySourceType.ELECTRICAL_SOURCE:
-                return EnergyNetworkUnit(source.name, None, ElectricalPower)
+                return None, ElectricalPower
             case YamlEnergySourceType.DIESEL_SOURCE:
-                return EnergyNetworkUnit(source.name, None, DieselRate)
+                return None, DieselRate
 
     @staticmethod
-    def _map_unit(unit: YamlComponent) -> EnergyNetworkUnit:
+    def _map_unit(unit: YamlComponent) -> tuple[type[Energy], type[Energy] | None]:
         match unit:
             case YamlGeneratorSet():
-                return EnergyNetworkUnit(unit.name, FuelGasRate, ElectricalPower)
+                return FuelGasRate, ElectricalPower
             case YamlGasTurbine():
-                return EnergyNetworkUnit(unit.name, FuelGasRate, MechanicalPower)
+                return FuelGasRate, MechanicalPower
             case YamlElectricalMotor():
-                return EnergyNetworkUnit(unit.name, ElectricalPower, MechanicalPower)
+                return ElectricalPower, MechanicalPower
             case YamlElectricalCable():
-                return EnergyNetworkUnit(unit.name, ElectricalPower, ElectricalPower)
+                return ElectricalPower, ElectricalPower
             case YamlElectricalBus():
-                return EnergyNetworkUnit(unit.name, ElectricalPower, ElectricalPower)
+                return ElectricalPower, ElectricalPower
             case YamlFuelGasManifold():
-                return EnergyNetworkUnit(unit.name, FuelGasRate, FuelGasRate)
+                return FuelGasRate, FuelGasRate
             case YamlElectricalConsumer():
-                return EnergyNetworkUnit(unit.name, ElectricalPower, None)
+                return ElectricalPower, None
             case YamlMechanicalConsumer():
-                return EnergyNetworkUnit(unit.name, MechanicalPower, None)
+                return MechanicalPower, None
             case YamlFuelGasConsumer():
-                return EnergyNetworkUnit(unit.name, FuelGasRate, None)
+                return FuelGasRate, None
             case YamlDieselConsumer():
-                return EnergyNetworkUnit(unit.name, DieselRate, None)
+                return DieselRate, None
 
     @staticmethod
     def _get_input_names(unit: YamlComponent) -> list[str]:
