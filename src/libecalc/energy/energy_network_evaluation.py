@@ -91,8 +91,6 @@ class EnergyNetworkEvaluation:
         self._validate_capacity(node_id=node_id, capacity=capacity)
 
         output_energy = self._get_output_energy(node_id, connection_energy)
-        if output_energy is None:
-            raise InvalidEnergyNetworkError(f"Energy unit {node_id} has capacity but no output energy")
 
         return output_energy.value > capacity.value
 
@@ -107,8 +105,6 @@ class EnergyNetworkEvaluation:
             return None
 
         output_energy = self._get_output_energy(node_id, connection_energy)
-        if output_energy is None:
-            raise InvalidEnergyNetworkError(f"Energy unit {node_id} has no output energy")
 
         if isinstance(node, Junction):
             return output_energy
@@ -120,11 +116,11 @@ class EnergyNetworkEvaluation:
         self,
         node_id: EnergyUnitId,
         connection_energy: dict[EnergyConnectionId, Energy],
-    ) -> Energy | None:
+    ) -> Energy:
         node = self._energy_units[node_id]
         output_energy_type = node.get_output_energy_type()
         if output_energy_type is None:
-            return None
+            raise InvalidEnergyNetworkError(f"Energy unit {node_id} has no output energy")
 
         output_energy = output_energy_type(0)
         for successor_id in self._energy_network.get_successors(node_id):
