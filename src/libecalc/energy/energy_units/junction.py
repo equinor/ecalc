@@ -1,14 +1,29 @@
 import abc
 
+from libecalc.energy.dispatch import DispatchStrategy
 from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate
-from libecalc.energy.energy_unit import EnergyUnit
+from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
 
 
 class Junction(EnergyUnit):
     """Aggregation point for energy of the same type.
 
-    Connections and energy calculations are managed by EnergyNetwork.
+    Connections and energy calculations are managed by EnergyNetwork. A junction fed by more
+    than one predecessor needs a dispatch strategy, which carries the candidate order explicitly
+    because the connections a network is built from are unordered.
     """
+
+    def __init__(
+        self,
+        name: str,
+        energy_unit_id: EnergyUnitId | None = None,
+        dispatch_strategy: DispatchStrategy[EnergyUnitId] | None = None,
+    ) -> None:
+        super().__init__(name, energy_unit_id)
+        self._dispatch_strategy = dispatch_strategy
+
+    def get_dispatch_strategy(self) -> DispatchStrategy[EnergyUnitId] | None:
+        return self._dispatch_strategy
 
     @classmethod
     @abc.abstractmethod
