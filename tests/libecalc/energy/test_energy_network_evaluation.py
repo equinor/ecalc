@@ -1,3 +1,5 @@
+from typing import cast
+
 import pytest
 
 from libecalc.energy import ElectricalPower, FuelGasRate, MechanicalPower
@@ -13,7 +15,7 @@ from libecalc.energy.energy_units import (
     MechanicalConsumer,
 )
 from libecalc.energy.errors import InvalidEnergyNetworkEvaluationInputError
-from libecalc.energy.network import EnergyNetwork
+from libecalc.energy.network import EnergyConnectionId, EnergyNetwork
 
 
 def create_network(nodes, connections):
@@ -55,7 +57,7 @@ class TestEnergyNetworkEvaluationInputValidation:
 
         with pytest.raises(
             InvalidEnergyNetworkEvaluationInputError,
-            match="Missing connection demands for connections",
+            match=r"Missing connection demands for connections: 'source'.*-> 'consumer'",
         ):
             EnergyNetworkEvaluation(
                 energy_network=network,
@@ -75,7 +77,7 @@ class TestEnergyNetworkEvaluationInputValidation:
             ).propagate_energy(
                 {
                     network.get_connection(source.get_id(), consumer.get_id()).id: ElectricalPower(5),
-                    ElectricalSource._create_id(): ElectricalPower(5),
+                    cast(EnergyConnectionId, ElectricalSource._create_id()): ElectricalPower(5),
                 }
             )
 
@@ -84,7 +86,7 @@ class TestEnergyNetworkEvaluationInputValidation:
 
         with pytest.raises(
             InvalidEnergyNetworkEvaluationInputError,
-            match="requires ElectricalPower",
+            match=r"Consumer demand for connection 'source'.*-> 'consumer'.*requires ElectricalPower",
         ):
             EnergyNetworkEvaluation(
                 energy_network=network,

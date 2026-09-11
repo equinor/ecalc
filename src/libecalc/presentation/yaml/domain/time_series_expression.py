@@ -78,3 +78,6 @@ class TimeSeriesExpression:
 
         """
         return self.expression_evaluator.get_periods().periods
+
+    def get_masked_items(self) -> dict[Period, float]:
+        return dict(zip(self.get_periods(), self.get_masked_values(), strict=True))

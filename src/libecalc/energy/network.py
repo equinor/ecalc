@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from graphlib import CycleError, TopologicalSorter
 from typing import NewType, Self
 from uuid import UUID
@@ -28,16 +28,16 @@ class EnergyNetwork:
 
     def __init__(
         self,
-        nodes: Iterable[EnergyUnitId],
+        nodes: Sequence[EnergyUnitId],
         connections: Iterable[EnergyConnection],
         energy_network_id: UUID | None = None,
     ):
-        self._nodes: set[EnergyUnitId] = set()
+        self._nodes: list[EnergyUnitId] = []
 
         for node_id in nodes:
             if node_id in self._nodes:
                 raise InvalidEnergyNetworkError(f"Duplicate energy node ID: {node_id}")
-            self._nodes.add(node_id)
+            self._nodes.append(node_id)
 
         self._predecessors: dict[
             EnergyUnitId,
@@ -106,10 +106,15 @@ class EnergyNetwork:
                     f"accepted input type: {input_type.__name__}"
                 )
 
-        return cls(nodes=node_input_types, connections=connection_list, energy_network_id=energy_network_id)
+        return cls(
+            nodes=list(node_input_types.keys()), connections=connection_list, energy_network_id=energy_network_id
+        )
 
     def get_id(self) -> UUID:
         return self._id
+
+    def get_nodes(self) -> Sequence[EnergyUnitId]:
+        return tuple(self._nodes)
 
     def get_connections(self) -> tuple[EnergyConnection, ...]:
         return tuple(self._connections.values())
