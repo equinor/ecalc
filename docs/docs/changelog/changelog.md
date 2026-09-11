@@ -1,5 +1,88 @@
 # Changelog
 
+## [14.0.0](https://github.com/equinor/ecalc/compare/v13.12.1...v14.0.0) (2026-09-11)
+
+
+### ⚠ BREAKING CHANGES
+
+* reject chart curves with increasing head ([#1752](https://github.com/equinor/ecalc/issues/1752))
+
+### Features
+
+* add energy network ([#1740](https://github.com/equinor/ecalc/issues/1740)) ([7401094](https://github.com/equinor/ecalc/commit/74010943ff9ba51539ce164baeb55ab168968d85))
+* add energy network evaluation ([#1775](https://github.com/equinor/ecalc/issues/1775)) ([4c7879d](https://github.com/equinor/ecalc/commit/4c7879dac588e198e45ef344b56ea6b13e846a2e))
+* calculate energy directly in EnergyNetwork ([#1748](https://github.com/equinor/ecalc/issues/1748)) ([c691f67](https://github.com/equinor/ecalc/commit/c691f67d3204b1a1c931dbe2af2ba5f771e6d727))
+* **libecalc:** add energy domain ABCs with type-safe demand types ([#1728](https://github.com/equinor/ecalc/issues/1728)) ([a6d9773](https://github.com/equinor/ecalc/commit/a6d97738694fe4587a00dfe06bca43430031c64e))
+* **libecalc:** add energy network YAML types with example and tests ([#1753](https://github.com/equinor/ecalc/issues/1753)) ([7b9b2d8](https://github.com/equinor/ecalc/commit/7b9b2d8f2e0cec35b75aa8282af32b32d6ccbb1a))
+* **libecalc:** add energy unit implementations ([#1734](https://github.com/equinor/ecalc/issues/1734)) ([ac8dc96](https://github.com/equinor/ecalc/commit/ac8dc968f1ac345f65a1658072d51ae9c9a5d899))
+* **libecalc:** add EnergyUnitId with Entity pattern ([#1739](https://github.com/equinor/ecalc/issues/1739)) ([93bff38](https://github.com/equinor/ecalc/commit/93bff383b698d278e9ba3eb19cedff8a50ffedbc))
+* remove generics from energy domain, rename Demand to Energy ([#1743](https://github.com/equinor/ecalc/issues/1743)) ([9b47062](https://github.com/equinor/ecalc/commit/9b470626f69d099ced1311589d125d1b98c190f5))
+
+
+### Bug Fixes
+
+* error message for missing chart headers ([7515e26](https://github.com/equinor/ecalc/commit/7515e2616ae3b5bdadce64e95a1af2b81800431f))
+* error message when comparing results ([e5de9b5](https://github.com/equinor/ecalc/commit/e5de9b5bd62bf2fa66e97f5739fc4fd3223fb998))
+* **libecalc:** bound pump head to the chart envelope ([#1750](https://github.com/equinor/ecalc/issues/1750)) ([6a48d01](https://github.com/equinor/ecalc/commit/6a48d01e7fdf15e57dacff62d463f0f0c4251d68))
+* **libecalc:** give each energy role check a single definition ([#1768](https://github.com/equinor/ecalc/issues/1768)) ([124cb6b](https://github.com/equinor/ecalc/commit/124cb6b74e64d7f8530bc6556880eaf1e1616e25))
+* **libecalc:** import EnergyUnit in the energy network mapper ([#1773](https://github.com/equinor/ecalc/issues/1773)) ([01d0069](https://github.com/equinor/ecalc/commit/01d006930a4331a86588edc11794657bbea1ddf9))
+* provide resource context when invalid chart from resource ([0968813](https://github.com/equinor/ecalc/commit/0968813d3e69da8a2843050c3da11e6f3eb366f5))
+* reject chart curves with increasing head ([#1752](https://github.com/equinor/ecalc/issues/1752)) ([59e7a79](https://github.com/equinor/ecalc/commit/59e7a79185efb65f188ea52f973f7d7c975ed56d))
+
+
+### Reverts
+
+* defer increasing-head chart validation ([#1760](https://github.com/equinor/ecalc/issues/1760)) ([3875056](https://github.com/equinor/ecalc/commit/387505611287edd77b533b846ce123cea5fc5d86))
+
+
+### Documentation
+
+* generate process reference ([31ece39](https://github.com/equinor/ecalc/commit/31ece39a52ea85f542c2dadee4af089b1257c9f3))
+* link to definitions instead of repeating ([90dba0f](https://github.com/equinor/ecalc/commit/90dba0f26fb55e761443a4f5519ac0c7aac54796))
+* update process reference description ([2bffd8f](https://github.com/equinor/ecalc/commit/2bffd8f840b184c027794d78e71d99158fb087b5))
+
+
+### Miscellaneous Chores
+
+* add connection id ([e1bb47b](https://github.com/equinor/ecalc/commit/e1bb47b6f18f7eb5552f4c785a7e39806e2e06cb))
+* add context to logger message in validation ([#1738](https://github.com/equinor/ecalc/issues/1738)) ([82c6f82](https://github.com/equinor/ecalc/commit/82c6f8285c4e8d0f0285dfd0b401eb70f7968dea))
+* add energy network id ([0d570ab](https://github.com/equinor/ecalc/commit/0d570ab351a12e3337a47c538d75901aceeb9230))
+* check for duplicate connections ([6d1f79a](https://github.com/equinor/ecalc/commit/6d1f79a4cf873f536e15e0d5fd7e01e800ae5cd0))
+* check for stale PRs ([c4f10b5](https://github.com/equinor/ecalc/commit/c4f10b5ebf03d44b8578f6cff83ed1516be29028))
+* connection centric energy propagation ([6018d7f](https://github.com/equinor/ecalc/commit/6018d7fa78e4ae9e6ebdbe8037fb775987c31c8a))
+* **deps:** bump astral-sh/setup-uv from 9.0.0 to 10.0.1 ([e9dbb57](https://github.com/equinor/ecalc/commit/e9dbb57df1798d601fb5db654cf384f89ff80b77))
+* **deps:** bump zizmorcore/zizmor-action from 0.6.2 to 0.6.3 ([6058dcd](https://github.com/equinor/ecalc/commit/6058dcd40a7447bd8e3f4dcada1f734d3219c178))
+* improve error messages for invalid definitions ([e6bcc93](https://github.com/equinor/ecalc/commit/e6bcc933ddad6bc70230b779b08dcc50f638c25f))
+* improve invalid instance reference error messages ([827f93b](https://github.com/equinor/ecalc/commit/827f93b68e3fbf50148ae70c4c607e2bb864faf2))
+* map energy network ([e809c6f](https://github.com/equinor/ecalc/commit/e809c6f49fa1658d14ac1a9e6e34ba7e60fc3b46))
+* map energy units, expressions and implement get_energy ([7ea83c2](https://github.com/equinor/ecalc/commit/7ea83c2f316e6b9611075d98c8468e6e7fc4ed48))
+* only pass EnergyUnit to network ([ace4c1e](https://github.com/equinor/ecalc/commit/ace4c1eeb894699a0882ede6f4a7fa70cd5eb195))
+* topology only energy network ([039ef27](https://github.com/equinor/ecalc/commit/039ef279ca17e4b17b057b0341c0f2a3d3f0f41b))
+* update baseline ([071af2e](https://github.com/equinor/ecalc/commit/071af2ee99ec5b3a5620e68a4872495142652e26))
+* upgrade dependencies for week 36. Auto-generated by devCalc ([7d1e239](https://github.com/equinor/ecalc/commit/7d1e239b7a58c5ef28f61f940b7a90586f1ce7ed))
+
+
+### Code Refactoring
+
+* align energy network YAML type names ([#1765](https://github.com/equinor/ecalc/issues/1765)) ([1ce4387](https://github.com/equinor/ecalc/commit/1ce4387bf6a7fa077047b083a04b4096264c3828))
+* consolidate consumers by input energy type ([#1764](https://github.com/equinor/ecalc/issues/1764)) ([62b8fb6](https://github.com/equinor/ecalc/commit/62b8fb654899f97c9708a1a8f5906243493f0f7c))
+* **libecalc:** drop Provider abstraction layer ([#1763](https://github.com/equinor/ecalc/issues/1763)) ([176a005](https://github.com/equinor/ecalc/commit/176a00507ac468e384daf1f211a27737433ee108))
+* **libecalc:** move id/name storage into EnergyUnit base class ([a3e7543](https://github.com/equinor/ecalc/commit/a3e7543baebd5a2600acab1f8cd365207824850b))
+* **libecalc:** remove unused pump LiquidStreamPropagator ([#1749](https://github.com/equinor/ecalc/issues/1749)) ([13b8859](https://github.com/equinor/ecalc/commit/13b885901c051c430c11ac16960366298ecf83ee))
+* move core results into domain.infrastructure ([3733dda](https://github.com/equinor/ecalc/commit/3733ddaa79ee3f7ac36c230a6780259043ac5045))
+* move energy type contract to EnergyUnit ([#1771](https://github.com/equinor/ecalc/issues/1771)) ([36d1302](https://github.com/equinor/ecalc/commit/36d13026344f0f7811cf1e2afd8bb7e7429a3563))
+* remove consumer state and duplicate energy calculations ([#1776](https://github.com/equinor/ecalc/issues/1776)) ([522b717](https://github.com/equinor/ecalc/commit/522b7176319f27b4a20ab186178e09f40b8df97a))
+* transport is not a converter ([a5f545c](https://github.com/equinor/ecalc/commit/a5f545c58302ec7564308fd09e6004ccecbc3e68))
+
+
+### Continuous Integration
+
+* ad-hoc run release-please with npx ([#1744](https://github.com/equinor/ecalc/issues/1744)) ([576d997](https://github.com/equinor/ecalc/commit/576d9970cf4716ac755c98d72c2f49eb65d0b9ac))
+* bump minor by default instead ([#1747](https://github.com/equinor/ecalc/issues/1747)) ([5b36d3e](https://github.com/equinor/ecalc/commit/5b36d3e0438ff733ced1b6e102add6833361974b))
+* fast-track for hotfixes ([#1736](https://github.com/equinor/ecalc/issues/1736)) ([0d52237](https://github.com/equinor/ecalc/commit/0d5223728aaea78bd93860481e59af8044bf35cf))
+* handle dry-run release-please gracefully in publish ([#1746](https://github.com/equinor/ecalc/issues/1746)) ([b80d635](https://github.com/equinor/ecalc/commit/b80d635bf9d2dc8dab3045ccc0ce11f6cb911f4f))
+* need to explicitly set gh token for release-please cli ([#1745](https://github.com/equinor/ecalc/issues/1745)) ([f3978e4](https://github.com/equinor/ecalc/commit/f3978e46d8ab16450e82fc9646ff1e7facc932c5))
+
 ## [13.12.1](https://github.com/equinor/ecalc/compare/v13.12.0...v13.12.1) (2026-08-25)
 
 
