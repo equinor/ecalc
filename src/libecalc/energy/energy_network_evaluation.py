@@ -93,8 +93,6 @@ class EnergyNetworkEvaluation:
         self._validate_capacity(node_id=node_id, capacity=capacity)
 
         output_energy = self._get_output_energy(node_id, connection_energy)
-        if output_energy is None:
-            raise InvalidEnergyNetworkError(f"Energy unit {node_id} has capacity but no output energy")
 
         return output_energy.value > capacity.value
 
@@ -109,34 +107,7 @@ class EnergyNetworkEvaluation:
             return None
 
         output_energy = self._get_output_energy(node_id, connection_energy)
-        if output_energy is None:
-            raise InvalidEnergyNetworkError(f"Energy unit {node_id} has no output energy")
 
-        if isinstance(node, Junction):
-            return output_energy
-        if isinstance(node, (Converter, Transporter)):
-            return node.get_input_energy(output_energy)
-        raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
-
-    def _get_output_energy(
-        self,
-        node_id: EnergyUnitId,
-        connection_energy: dict[EnergyConnectionId, Energy],
-    ) -> Energy | None:
-        node = self._energy_units[node_id]
-        output_energy_type = node.get_output_energy_type()
-        if output_energy_type is None:
-            raise InvalidEnergyNetworkError(
-                f"Energy unit {self._format_energy_unit_reference(node_id)} has no output energy"
-            )
-            return None
-
-        output_energy = output_energy_type(0)
-        for successor_id in self._energy_network.get_successors(node_id):
-            connection = self._energy_network.get_connection(node_id, successor_id)
-            output_energy += connection_energy[connection.id]
-
-        return output_energy
         if isinstance(node, Junction):
             return output_energy
         if isinstance(node, (Converter, Transporter)):
@@ -144,6 +115,25 @@ class EnergyNetworkEvaluation:
         raise InvalidEnergyNetworkError(
             f"Unsupported energy unit type for {self._format_energy_unit_reference(node_id)}: {type(node).__name__}"
         )
+
+    def _get_output_energy(
+        self,
+        node_id: EnergyUnitId,
+        connection_energy: dict[EnergyConnectionId, Energy],
+    ) -> Energy:
+        node = self._energy_units[node_id]
+        output_energy_type = node.get_output_energy_type()
+        if output_energy_type is None:
+            raise InvalidEnergyNetworkError(
+                f"Energy unit {self._format_energy_unit_reference(node_id)} has no output energy"
+            )
+
+        output_energy = output_energy_type(0)
+        for successor_id in self._energy_network.get_successors(node_id):
+            connection = self._energy_network.get_connection(node_id, successor_id)
+            output_energy += connection_energy[connection.id]
+
+        return output_energy
 
     def _validate_energy_units(self) -> None:
         self._validate_node_ids(
@@ -265,9 +255,6 @@ class EnergyNetworkEvaluation:
     ) -> None:
         for node_id, capacity in capacities.items():
             self._validate_capacity(node_id=node_id, capacity=capacity)
-
-    def _format_connection_ids(self, connection_ids: set[EnergyConnectionId]) -> str:
-        return ", ".join(str(connection_id) for connection_id in sorted(connection_ids, key=str))
 
     def _format_connection_references(self, connection_ids: set[EnergyConnectionId]) -> str:
         return ", ".join(
