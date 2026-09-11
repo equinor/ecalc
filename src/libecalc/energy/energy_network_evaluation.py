@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 
-from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId
+from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
+from libecalc.energy.dispatch import Candidate
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -28,7 +29,11 @@ class EnergyNetworkEvaluation:
 
             self._energy_units[energy_unit_id] = energy_unit
 
+        # _validate_energy_units must run first: the validators below look up predecessors for every
+        # unit, which raises KeyError for a unit the network does not know.
         self._validate_energy_units()
+        self._validate_fan_in()
+        self._validate_dispatch()
 
     def propagate_energy(
         self, connection_demands: dict[EnergyConnectionId, Energy]
@@ -50,17 +55,46 @@ class EnergyNetworkEvaluation:
                 continue
 
             predecessors = self._energy_network.get_predecessors(node_id)
-            if input_energy.value > 0 and len(predecessors) > 1:
-                raise EnergyAllocationRequiredError(
-                    f"Cannot calculate input energy for unit {self._format_energy_unit_reference(node_id)}: "
-                    f"it has {len(predecessors)} predecessors, so an allocation strategy is required"
-                )
 
+            # Consumers were handled above, and validation rejects fan-in into anything but a junction,
+            # so several predecessors here means a junction that splits its demand between them.
+            if len(predecessors) > 1:
+                for predecessor_id, share in self._allocate(node_id, input_energy).items():
+                    connection = self._energy_network.get_connection(predecessor_id, node_id)
+                    connection_energy[connection.id] = share
+                continue
+
+            # A single predecessor supplies all the energy.
             for predecessor_id in predecessors:
                 connection = self._energy_network.get_connection(predecessor_id, node_id)
                 connection_energy[connection.id] = input_energy
 
         return connection_energy
+
+    def _allocate(self, junction_id: EnergyUnitId, demand: Energy) -> dict[EnergyUnitId, Energy]:
+        """Split a junction's demand between the candidates feeding it.
+
+        Validation has already established that the node is a junction with a strategy whose candidates
+        are exactly its predecessors.
+        """
+        junction = self._energy_units[junction_id]
+        assert isinstance(junction, Junction)
+
+        strategy = junction.get_dispatch_strategy()
+        assert strategy is not None
+
+        candidates = tuple(
+            Candidate(candidate_id=predecessor_id, available=self._capacity(predecessor_id))
+            for predecessor_id in self._energy_network.get_predecessors(junction_id)
+        )
+        return strategy.allocate(demand=demand, candidates=candidates)
+
+    def _capacity(self, node_id: EnergyUnitId) -> Energy | None:
+        """What a node is rated to supply. None means unlimited."""
+        node = self._energy_units[node_id]
+        if isinstance(node, (Source, Converter, Transporter)):
+            return node.capacity()
+        return None
 
     def _get_input_energy(
         self,
@@ -116,6 +150,63 @@ class EnergyNetworkEvaluation:
                 raise InvalidEnergyNetworkEvaluationInputError(
                     f"Energy unit {self._format_energy_unit_reference(node_id)} has energy types that do not match the network"
                 )
+
+    def _validate_fan_in(self) -> None:
+        """Only a junction may be fed by more than one predecessor.
+
+        The YAML schema agrees: INPUT is a list for a junction and a single reference for everything
+        else. Without this rule a converter or consumer with two supplies would reach _allocate,
+        which assumes a junction, and fail there instead of at construction.
+        """
+        for node_id, energy_unit in self._energy_units.items():
+            if isinstance(energy_unit, Junction):
+                continue
+
+            predecessor_count = len(self._energy_network.get_predecessors(node_id))
+            if predecessor_count > 1:
+                raise InvalidEnergyNetworkError(
+                    f"Energy unit {self._format_energy_unit_reference(node_id, energy_unit)} has "
+                    f"{predecessor_count} predecessors; only junctions support fan-in"
+                )
+
+    def _validate_dispatch(self) -> None:
+        """Reject a junction whose demand cannot be split, before any energy is propagated.
+
+        Fan-in into anything other than a junction is rejected by _validate_fan_in, so only
+        junctions are of interest here.
+        """
+        for node_id, energy_unit in self._energy_units.items():
+            if not isinstance(energy_unit, Junction):
+                continue
+
+            predecessors = self._energy_network.get_predecessors(node_id)
+            strategy = energy_unit.get_dispatch_strategy()
+
+            # Checked for any predecessor count, not just fan-in: a single candidate decides nothing,
+            # but naming a node that does not feed this junction is still an error.
+            if strategy is not None and strategy.get_candidate_ids() != predecessors:
+                raise InvalidEnergyNetworkError(
+                    f"Dispatch strategy candidate IDs for junction "
+                    f"{self._format_energy_unit_reference(node_id, energy_unit)} must match its predecessors"
+                )
+
+            if len(predecessors) <= 1:
+                continue
+
+            if strategy is None:
+                raise EnergyAllocationRequiredError(
+                    f"Junction {self._format_energy_unit_reference(node_id, energy_unit)} has "
+                    f"{len(predecessors)} predecessors and requires a dispatch strategy"
+                )
+
+            for predecessor_id in predecessors:
+                successor_count = len(self._energy_network.get_successors(predecessor_id))
+                if successor_count != 1:
+                    raise InvalidEnergyNetworkError(
+                        f"Predecessor {self._format_energy_unit_reference(predecessor_id)} feeds dispatched "
+                        f"junction {self._format_energy_unit_reference(node_id, energy_unit)} and must have "
+                        f"exactly one successor, got {successor_count}"
+                    )
 
     def _validate_connection_demands(self, connection_demands: dict[EnergyConnectionId, Energy]) -> None:
         consumer_connection_ids = {
