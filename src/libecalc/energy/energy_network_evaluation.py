@@ -1,6 +1,6 @@
 from collections.abc import Iterable
 
-from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId
+from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -8,6 +8,8 @@ from libecalc.energy.errors import (
     InvalidEnergyNetworkEvaluationInputError,
 )
 from libecalc.energy.network import EnergyConnectionId, EnergyNetwork
+
+SupportsCapacity = Source | Converter | Transporter
 
 
 class EnergyNetworkEvaluation:
@@ -60,6 +62,38 @@ class EnergyNetworkEvaluation:
 
         return connection_energy
 
+    def is_feasible(
+        self,
+        connection_energy: dict[EnergyConnectionId, Energy],
+        capacities: dict[EnergyUnitId, Energy],
+    ) -> bool:
+        self._validate_capacities(capacities)
+
+        return not any(
+            self.is_capacity_exceeded(
+                node_id=node_id,
+                connection_energy=connection_energy,
+                capacities=capacities,
+            )
+            for node_id in capacities
+        )
+
+    def is_capacity_exceeded(
+        self,
+        node_id: EnergyUnitId,
+        connection_energy: dict[EnergyConnectionId, Energy],
+        capacities: dict[EnergyUnitId, Energy],
+    ) -> bool:
+        capacity = capacities.get(node_id)
+        if capacity is None:
+            return False
+
+        self._validate_capacity(node_id=node_id, capacity=capacity)
+
+        output_energy = self._get_output_energy(node_id, connection_energy)
+
+        return output_energy.value > capacity.value
+
     def _get_input_energy(
         self,
         node_id: EnergyUnitId,
@@ -70,6 +104,20 @@ class EnergyNetworkEvaluation:
         if input_energy_type is None:
             return None
 
+        output_energy = self._get_output_energy(node_id, connection_energy)
+
+        if isinstance(node, Junction):
+            return output_energy
+        if isinstance(node, (Converter, Transporter)):
+            return node.get_input_energy(output_energy)
+        raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
+
+    def _get_output_energy(
+        self,
+        node_id: EnergyUnitId,
+        connection_energy: dict[EnergyConnectionId, Energy],
+    ) -> Energy:
+        node = self._energy_units[node_id]
         output_energy_type = node.get_output_energy_type()
         if output_energy_type is None:
             raise InvalidEnergyNetworkError(f"Energy unit {node_id} has no output energy")
@@ -79,11 +127,7 @@ class EnergyNetworkEvaluation:
             connection = self._energy_network.get_connection(node_id, successor_id)
             output_energy += connection_energy[connection.id]
 
-        if isinstance(node, Junction):
-            return output_energy
-        if isinstance(node, (Converter, Transporter)):
-            return node.get_input_energy(output_energy)
-        raise InvalidEnergyNetworkError(f"Unsupported energy unit type: {type(node).__name__}")
+        return output_energy
 
     def _validate_energy_units(self) -> None:
         self._validate_node_ids(
@@ -175,6 +219,36 @@ class EnergyNetworkEvaluation:
                     f"Consumer demand for connection {connection_id} requires "
                     f"{expected_type.__name__}, got {type(demand).__name__}"
                 )
+
+    def _validate_capacity(
+        self,
+        node_id: EnergyUnitId,
+        capacity: Energy,
+    ) -> None:
+        node = self._energy_units.get(node_id)
+
+        if not isinstance(node, SupportsCapacity):
+            node_references = self._format_node_references(
+                node_ids={node_id},
+                nodes=self._energy_units,
+            )
+            raise InvalidEnergyNetworkEvaluationInputError(f"Capacity provided for invalid nodes: {node_references}")
+
+        expected_type = node.get_output_energy_type()
+        assert expected_type is not None
+
+        if type(capacity) is not expected_type:
+            raise InvalidEnergyNetworkEvaluationInputError(
+                f"Capacity for '{node.get_name()}' ({node_id}) must be "
+                f"{expected_type.__name__}, got {type(capacity).__name__}"
+            )
+
+    def _validate_capacities(
+        self,
+        capacities: dict[EnergyUnitId, Energy],
+    ) -> None:
+        for node_id, capacity in capacities.items():
+            self._validate_capacity(node_id=node_id, capacity=capacity)
 
     def _format_connection_ids(self, connection_ids: set[EnergyConnectionId]) -> str:
         return ", ".join(str(connection_id) for connection_id in sorted(connection_ids, key=str))

@@ -99,9 +99,9 @@ class TestEnergyNetworkEvaluationInputValidation:
 class TestEnergyNetworkEnergyCalculation:
     def test_calculates_input_and_output_energy_through_network(self):
         source = FuelGasSource("source")
-        generator = GeneratorSet("generator", max_power=10, power_to_fuel=lambda output: output * 1_000)
+        generator = GeneratorSet("generator", power_to_fuel=lambda output: output * 1_000)
         bus = ElectricalBus("bus")
-        motor = ElectricalMotor("motor", max_power=10, efficiency=0.8)
+        motor = ElectricalMotor("motor", efficiency=0.8)
         pump = MechanicalConsumer("pump")
         base_load = ElectricalConsumer("base_load")
 
@@ -201,7 +201,7 @@ class TestEnergyNetworkEnergyCalculation:
 
     def test_calculates_input_energy_for_transporter(self):
         source = ElectricalSource("source")
-        cable = ElectricalCable("cable", max_power=10, loss_fraction=0.04)
+        cable = ElectricalCable("cable", loss_fraction=0.04)
         consumer = ElectricalConsumer("consumer")
 
         network = create_network(
@@ -223,3 +223,165 @@ class TestEnergyNetworkEnergyCalculation:
             network.get_connection(source.get_id(), cable.get_id()).id: ElectricalPower(10 / 0.96),
             network.get_connection(cable.get_id(), consumer.get_id()).id: ElectricalPower(10),
         }
+
+
+class TestEnergyNetworkFeasibility:
+    def test_reports_capacity_exceeded_without_capping_connection_energy(self):
+        grid = ElectricalSource("grid")
+        load = ElectricalConsumer("load")
+        network = create_network(
+            nodes=[grid, load],
+            connections=[(grid.get_id(), load.get_id())],
+        )
+        evaluation = EnergyNetworkEvaluation(
+            energy_network=network,
+            energy_units=[grid, load],
+        )
+        connection = network.get_connection(grid.get_id(), load.get_id())
+        connection_energy = evaluation.propagate_energy({connection.id: ElectricalPower(6)})
+        capacities = {grid.get_id(): ElectricalPower(5)}
+
+        assert connection_energy[connection.id] == ElectricalPower(6)
+        assert evaluation.is_capacity_exceeded(
+            node_id=grid.get_id(),
+            connection_energy=connection_energy,
+            capacities=capacities,
+        )
+
+        assert not evaluation.is_feasible(
+            connection_energy=connection_energy,
+            capacities=capacities,
+        )
+
+    def test_capacity_equal_to_connection_energy_is_feasible(self):
+        grid = ElectricalSource("grid")
+        load = ElectricalConsumer("load")
+        network = create_network(
+            nodes=[grid, load],
+            connections=[(grid.get_id(), load.get_id())],
+        )
+        evaluation = EnergyNetworkEvaluation(
+            energy_network=network,
+            energy_units=[grid, load],
+        )
+        connection = network.get_connection(grid.get_id(), load.get_id())
+        connection_energy = evaluation.propagate_energy({connection.id: ElectricalPower(5)})
+        capacities = {grid.get_id(): ElectricalPower(5)}
+
+        assert not evaluation.is_capacity_exceeded(
+            node_id=grid.get_id(),
+            connection_energy=connection_energy,
+            capacities=capacities,
+        )
+        assert evaluation.is_feasible(
+            connection_energy=connection_energy,
+            capacities=capacities,
+        )
+
+    def test_missing_capacity_means_unlimited(self):
+        network, source, consumer = create_electrical_network()
+        evaluation = EnergyNetworkEvaluation(
+            energy_network=network,
+            energy_units=[source, consumer],
+        )
+        connection = network.get_connection(source.get_id(), consumer.get_id())
+        connection_energy = evaluation.propagate_energy({connection.id: ElectricalPower(5)})
+        capacities = {}
+
+        assert not evaluation.is_capacity_exceeded(
+            node_id=source.get_id(),
+            connection_energy=connection_energy,
+            capacities=capacities,
+        )
+        assert evaluation.is_feasible(
+            connection_energy=connection_energy,
+            capacities=capacities,
+        )
+
+    def test_rejects_capacity_for_consumer(self):
+        network, source, consumer = create_electrical_network()
+        evaluation = EnergyNetworkEvaluation(
+            energy_network=network,
+            energy_units=[source, consumer],
+        )
+        connection = network.get_connection(source.get_id(), consumer.get_id())
+        connection_energy = evaluation.propagate_energy({connection.id: ElectricalPower(5)})
+
+        with pytest.raises(
+            InvalidEnergyNetworkEvaluationInputError,
+            match="Capacity provided for invalid node",
+        ):
+            evaluation.is_feasible(
+                connection_energy=connection_energy,
+                capacities={consumer.get_id(): ElectricalPower(10)},
+            )
+
+    def test_rejects_wrong_capacity_energy_type(self):
+        network, source, consumer = create_electrical_network()
+        evaluation = EnergyNetworkEvaluation(
+            energy_network=network,
+            energy_units=[source, consumer],
+        )
+        connection = network.get_connection(source.get_id(), consumer.get_id())
+        connection_energy = evaluation.propagate_energy({connection.id: ElectricalPower(5)})
+
+        with pytest.raises(
+            InvalidEnergyNetworkEvaluationInputError,
+            match="must be ElectricalPower",
+        ):
+            evaluation.is_feasible(
+                connection_energy=connection_energy,
+                capacities={source.get_id(): FuelGasRate(10)},
+            )
+
+    def test_compares_capacity_with_total_outgoing_energy(self):
+        grid = ElectricalSource("grid")
+        first_load = ElectricalConsumer("first_load")
+        second_load = ElectricalConsumer("second_load")
+        network = create_network(
+            nodes=[grid, first_load, second_load],
+            connections=[
+                (grid.get_id(), first_load.get_id()),
+                (grid.get_id(), second_load.get_id()),
+            ],
+        )
+        evaluation = EnergyNetworkEvaluation(
+            energy_network=network,
+            energy_units=[grid, first_load, second_load],
+        )
+        first_connection = network.get_connection(grid.get_id(), first_load.get_id())
+        second_connection = network.get_connection(grid.get_id(), second_load.get_id())
+        connection_energy = evaluation.propagate_energy(
+            {
+                first_connection.id: ElectricalPower(3),
+                second_connection.id: ElectricalPower(4),
+            }
+        )
+        capacities = {grid.get_id(): ElectricalPower(6)}
+
+        assert evaluation.is_capacity_exceeded(
+            node_id=grid.get_id(),
+            connection_energy=connection_energy,
+            capacities=capacities,
+        )
+
+    def test_validates_all_capacities_before_checking_feasibility(self):
+        network, source, consumer = create_electrical_network()
+        evaluation = EnergyNetworkEvaluation(
+            energy_network=network,
+            energy_units=[source, consumer],
+        )
+        connection = network.get_connection(source.get_id(), consumer.get_id())
+        connection_energy = evaluation.propagate_energy({connection.id: ElectricalPower(5)})
+
+        with pytest.raises(
+            InvalidEnergyNetworkEvaluationInputError,
+            match="Capacity provided for invalid node",
+        ):
+            evaluation.is_feasible(
+                connection_energy=connection_energy,
+                capacities={
+                    source.get_id(): ElectricalPower(4),
+                    consumer.get_id(): ElectricalPower(10),
+                },
+            )
