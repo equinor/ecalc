@@ -1,7 +1,25 @@
-from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
-from libecalc.energy.energy_unit import EnergyUnitId
+from collections.abc import Sequence
+
+from libecalc.common.variables import ExpressionEvaluator
+from libecalc.energy import EnergyUnit, EnergyUnitId
+from libecalc.energy.energy_units import (
+    DieselConsumer,
+    DieselSource,
+    ElectricalBus,
+    ElectricalCable,
+    ElectricalConsumer,
+    ElectricalMotor,
+    ElectricalSource,
+    FuelGasConsumer,
+    FuelGasManifold,
+    FuelGasSource,
+    GasTurbine,
+    GeneratorSet,
+    MechanicalConsumer,
+)
 from libecalc.energy.network import EnergyNetwork
+from libecalc.expression.expression import ExpressionType
+from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlDieselConsumer,
@@ -21,67 +39,81 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
 
 
 class EnergyNetworkMapper:
-    def map_energy_network(self, yaml_energy_network: YamlEnergyNetwork) -> EnergyNetwork:
-        node_energy_types_by_name: dict[str, tuple[type[Energy] | None, type[Energy] | None]] = {}
-
-        for source in yaml_energy_network.sources:
-            node_energy_types_by_name[source.name] = self._map_source(source)
-        for unit in yaml_energy_network.units:
-            node_energy_types_by_name[unit.name] = self._map_unit(unit)
-
-        node_ids_by_name: dict[str, EnergyUnitId] = {
-            name: EnergyUnitId(ecalc_id_generator()) for name in node_energy_types_by_name
-        }
+    def map_energy_network(
+        self,
+        yaml_energy_network: YamlEnergyNetwork,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> tuple[EnergyNetwork, Sequence[EnergyUnit], dict[EnergyUnitId, TimeSeriesExpression]]:
+        energy_units = [
+            *(self._map_source(source) for source in yaml_energy_network.sources),
+            *(self._map_unit(unit) for unit in yaml_energy_network.units),
+        ]
+        node_ids_by_name = {energy_unit.get_name(): energy_unit.get_id() for energy_unit in energy_units}
 
         connections = [
             (node_ids_by_name[input_name], node_ids_by_name[unit.name])
             for unit in yaml_energy_network.units
             for input_name in self._get_input_names(unit)
         ]
-        return EnergyNetwork.create(
+        energy_network = EnergyNetwork.create(
             node_input_types={
-                node_ids_by_name[name]: input_type for name, (input_type, _) in node_energy_types_by_name.items()
+                energy_unit.get_id(): energy_unit.get_input_energy_type() for energy_unit in energy_units
             },
             node_output_types={
-                node_ids_by_name[name]: output_type for name, (_, output_type) in node_energy_types_by_name.items()
+                energy_unit.get_id(): energy_unit.get_output_energy_type() for energy_unit in energy_units
             },
             connections=connections,
         )
+        consumer_expressions = {
+            energy_unit.get_id(): TimeSeriesExpression(expression=expression, expression_evaluator=expression_evaluator)
+            for unit, energy_unit in zip(yaml_energy_network.units, energy_units[len(yaml_energy_network.sources) :])
+            if (expression := self._get_consumer_expression(unit)) is not None
+        }
+        return energy_network, energy_units, consumer_expressions
 
     @staticmethod
-    def _map_source(source: YamlEnergySource) -> tuple[None, type[Energy]]:
+    def _map_source(source: YamlEnergySource) -> EnergyUnit:
         match source.type:
             case YamlEnergySourceType.FUEL_GAS_SOURCE:
-                return None, FuelGasRate
+                return FuelGasSource(name=source.name)
             case YamlEnergySourceType.ELECTRICAL_SOURCE:
-                return None, ElectricalPower
+                return ElectricalSource(name=source.name)
             case YamlEnergySourceType.DIESEL_SOURCE:
-                return None, DieselRate
+                return DieselSource(name=source.name)
 
     @staticmethod
-    def _map_unit(unit: YamlComponent) -> tuple[type[Energy], type[Energy] | None]:
+    def _map_unit(unit: YamlComponent) -> EnergyUnit:
         match unit:
             case YamlGeneratorSet():
-                return FuelGasRate, ElectricalPower
+                return GeneratorSet(name=unit.name)
             case YamlGasTurbine():
-                return FuelGasRate, MechanicalPower
+                return GasTurbine(name=unit.name)
             case YamlElectricalMotor():
-                return ElectricalPower, MechanicalPower
+                return ElectricalMotor(name=unit.name)
             case YamlElectricalCable():
-                return ElectricalPower, ElectricalPower
+                return ElectricalCable(name=unit.name)
             case YamlElectricalBus():
-                return ElectricalPower, ElectricalPower
+                return ElectricalBus(name=unit.name)
             case YamlFuelGasManifold():
-                return FuelGasRate, FuelGasRate
+                return FuelGasManifold(name=unit.name)
             case YamlElectricalConsumer():
-                return ElectricalPower, None
+                return ElectricalConsumer(name=unit.name)
             case YamlMechanicalConsumer():
-                return MechanicalPower, None
+                return MechanicalConsumer(name=unit.name)
             case YamlFuelGasConsumer():
-                return FuelGasRate, None
+                return FuelGasConsumer(name=unit.name)
             case YamlDieselConsumer():
-                return DieselRate, None
+                return DieselConsumer(name=unit.name)
 
     @staticmethod
     def _get_input_names(unit: YamlComponent) -> list[str]:
         return unit.input if isinstance(unit.input, list) else [unit.input]
+
+    @staticmethod
+    def _get_consumer_expression(unit: YamlComponent) -> ExpressionType | None:
+        match unit:
+            case YamlElectricalConsumer() | YamlMechanicalConsumer():
+                return unit.load
+            case YamlFuelGasConsumer() | YamlDieselConsumer():
+                return unit.rate
+        return None
