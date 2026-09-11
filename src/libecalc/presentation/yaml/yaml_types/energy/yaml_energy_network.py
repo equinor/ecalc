@@ -5,6 +5,7 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
 def _check_non_negative(v: YamlExpressionType | None, field_name: str) -> YamlExpressionType | None:
@@ -17,6 +18,16 @@ def _check_efficiency(v: YamlExpressionType | None) -> YamlExpressionType | None
     if isinstance(v, (int, float)) and not (0 < v <= 1):
         raise ValueError(f"EFFICIENCY must be in (0, 1], got {v}")
     return v
+
+
+def _check_at_least_one_sampled_variable(
+    name: str,
+    rate: YamlExpressionType | None,
+    suction_pressure: YamlExpressionType | None,
+    discharge_pressure: YamlExpressionType | None,
+) -> None:
+    if rate is None and suction_pressure is None and discharge_pressure is None:
+        raise ValueError(f"'{name}': at least one of RATE/SUCTION_PRESSURE/DISCHARGE_PRESSURE must be specified.")
 
 
 class YamlEnergySourceType(StrEnum):
@@ -287,6 +298,119 @@ class YamlFuelGasConsumer(YamlConsumerBase):
         return _check_non_negative(v, "RATE")  # type: ignore[return-value]
 
 
+class YamlSampledCompressor(YamlConsumerBase):
+    """A compressor modelled directly from tabulated energy usage data in FILE, with no
+    separate MODELS definition or manual turbine/compressor wiring required. The energy
+    usage type is not declared here: it is detected from which of the RATE,
+    SUCTION_PRESSURE, DISCHARGE_PRESSURE, FUEL, and POWER columns are present as headers in
+    FILE, matching the legacy COMPRESSOR_TABULAR facility model.
+
+    Only FUEL present: fuel gas is consumed directly, with no explicit turbine/compressor
+    split (INPUT must provide fuel gas, e.g. a source or manifold).
+    Only POWER present: POWER is interpreted according to what INPUT provides — electrical
+    power, consumed directly with no explicit motor/compressor split, if INPUT provides
+    electrical power (e.g. a generator set, bus, or cable); or mechanical power, consumed
+    directly with no explicit turbine/compressor split, if INPUT provides mechanical power
+    (e.g. an explicitly modelled GAS_TURBINE or ELECTRICAL_MOTOR upstream).
+    Both present: a turbine (fuel -> mechanical power, so INPUT must provide fuel gas)
+    drives a compressor (FUEL and POWER, resolved together from FILE
+    at the same operating point, giving the turbine its already-known fuel for that
+    power); both units are built and wired together automatically from this single
+    definition.
+
+    At least one of RATE/SUCTION_PRESSURE/DISCHARGE_PRESSURE must be given to query FILE for
+    the actual usage/prediction values.
+    """
+
+    model_config = ConfigDict(title="SampledCompressor")
+
+    type: Literal["SAMPLED_COMPRESSOR"]
+    file: Annotated[
+        str,
+        Field(
+            title="FILE",
+            description="Reference to a file tabulating energy usage against RATE, SUCTION_PRESSURE, "
+            "and/or DISCHARGE_PRESSURE.",
+        ),
+    ]
+    rate: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="RATE",
+            description="Fluid rate through the compressor (Sm³/d), queried against FILE.",
+        ),
+    ] = None
+    suction_pressure: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="SUCTION_PRESSURE",
+            description="Compressor inlet pressure (bara), queried against FILE.",
+        ),
+    ] = None
+    discharge_pressure: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="DISCHARGE_PRESSURE",
+            description="Compressor outlet pressure (bara), queried against FILE.",
+        ),
+    ] = None
+
+    validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
+
+    @field_validator("rate", mode="after")
+    @classmethod
+    def _rate_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
+        return _check_non_negative(v, "RATE")
+
+    @field_validator("suction_pressure", mode="after")
+    @classmethod
+    def _suction_pressure_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
+        return _check_non_negative(v, "SUCTION_PRESSURE")
+
+    @field_validator("discharge_pressure", mode="after")
+    @classmethod
+    def _discharge_pressure_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
+        return _check_non_negative(v, "DISCHARGE_PRESSURE")
+
+    @model_validator(mode="after")
+    def check_at_least_one_variable(self):
+        _check_at_least_one_sampled_variable(
+            self.name,
+            rate=self.rate,
+            suction_pressure=self.suction_pressure,
+            discharge_pressure=self.discharge_pressure,
+        )
+        return self
+
+
+class _SampledFuelGasConsumer(YamlSampledCompressor):
+    """Produced by expand_sampled_compressors when FILE has only a FUEL column: FILE's
+    energy usage is consumed directly as fuel gas, with no separate turbine/compressor
+    split. Not a member of YamlComponent, so it can never be parsed from user YAML."""
+
+
+class _SampledElectricalConsumer(YamlSampledCompressor):
+    """Produced by expand_sampled_compressors when FILE has only a POWER column and
+    INPUT provides electrical power: FILE's energy usage is consumed directly as
+    electrical power, with no separate motor/compressor split. Not a member of
+    YamlComponent, so it can never be parsed from user YAML."""
+
+
+class _SampledGasTurbine(YamlSampledCompressor):
+    """The fuel -> mechanical power half of expand_sampled_compressors's split, produced
+    when FILE has both FUEL and POWER columns. Not a member of YamlComponent, so it can
+    never be parsed from user YAML."""
+
+
+class _SampledMechanicalConsumer(YamlSampledCompressor):
+    """The mechanical power -> none half of expand_sampled_compressors's split, fed by
+    the paired _SampledGasTurbine. Also produced directly when FILE has only a POWER
+    column and INPUT already provides mechanical power (e.g. an explicitly modelled
+    upstream GAS_TURBINE or ELECTRICAL_MOTOR), in which case there is no paired
+    _SampledGasTurbine — FILE's energy usage is consumed directly as mechanical power.
+    Not a member of YamlComponent, so it can never be parsed from user YAML."""
+
+
 class YamlDieselConsumer(YamlConsumerBase):
     model_config = ConfigDict(title="DieselConsumer")
 
@@ -317,6 +441,7 @@ YamlComponent = Annotated[
         YamlMechanicalConsumer,
         YamlFuelGasConsumer,
         YamlDieselConsumer,
+        YamlSampledCompressor,
     ],
     Field(discriminator="type"),
 ]
@@ -342,6 +467,14 @@ INPUT_ENERGY: dict[str, EnergyType] = {
     "DIESEL_CONSUMER": EnergyType.DIESEL,
 }
 
+# SAMPLED_COMPRESSOR has no single fixed entry in INPUT_ENERGY: its real input energy
+# type (fuel gas, electrical, or mechanical) is only known once FILE's columns have been
+# read, at mapper time. At schema time we only know it must be one of these three; the
+# mapper's validate_input_energy_type narrows it to the actual one detected from FILE.
+INPUT_ENERGY_ALTERNATIVES: dict[str, set[EnergyType]] = {
+    "SAMPLED_COMPRESSOR": {EnergyType.FUEL_GAS, EnergyType.ELECTRICAL, EnergyType.MECHANICAL},
+}
+
 OUTPUT_ENERGY: dict[str, EnergyType] = {
     "GENERATOR_SET": EnergyType.ELECTRICAL,
     "GAS_TURBINE": EnergyType.MECHANICAL,
@@ -357,7 +490,7 @@ SOURCE_OUTPUT_ENERGY: dict[YamlEnergySourceType, EnergyType] = {
     YamlEnergySourceType.ELECTRICAL_SOURCE: EnergyType.ELECTRICAL,
 }
 
-CONSUMER_TYPES = set(INPUT_ENERGY) - set(OUTPUT_ENERGY)
+CONSUMER_TYPES = (set(INPUT_ENERGY) - set(OUTPUT_ENERGY)) | set(INPUT_ENERGY_ALTERNATIVES)
 
 
 def _get_input_names(component: YamlComponent) -> list[str]:
@@ -435,6 +568,16 @@ class YamlEnergyNetwork(YamlBase):
                 output_types[c.name] = OUTPUT_ENERGY[c.type]
 
         for c in self.units:
+            if c.type in INPUT_ENERGY_ALTERNATIVES:
+                allowed_inputs = INPUT_ENERGY_ALTERNATIVES[c.type]
+                for ref in _get_input_names(c):
+                    provided = output_types.get(ref)
+                    if provided is not None and provided not in allowed_inputs:
+                        raise ValueError(
+                            f"'{c.name}' ({c.type}) expects one of {allowed_inputs} input, "
+                            f"but '{ref}' provides {provided}."
+                        )
+                continue
             if c.type not in INPUT_ENERGY:
                 raise ValueError(f"'{c.name}': unknown component type '{c.type}' — not in energy type map.")
             expected_input = INPUT_ENERGY[c.type]

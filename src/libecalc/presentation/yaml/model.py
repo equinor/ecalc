@@ -52,6 +52,7 @@ from libecalc.presentation.yaml.domain.time_series_collections import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapper
+from libecalc.presentation.yaml.mappers.energy.sampled_compressor_mapper import expand_sampled_compressors
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
@@ -283,6 +284,8 @@ class YamlModel:
         yaml_energy_network = self._configuration.energy_network
         if yaml_energy_network is None:
             return None
+        facility_resources, _ = self._resource_service.get_facility_resources()
+        yaml_energy_network = expand_sampled_compressors(yaml_energy_network, facility_resources)
         return EnergyNetworkMapper().map_energy_network(yaml_energy_network)
 
     def get_events(self) -> list[EcalcEvent]:
