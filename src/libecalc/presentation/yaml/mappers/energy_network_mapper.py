@@ -119,16 +119,16 @@ class EnergyNetworkMapper:
                 return DieselConsumer(name=unit.name)
             case _SampledFuelGasConsumer():
                 model = build_sampled_compressor_model(facility_resources[unit.file])
-                return SampledCompressorFuelGasConsumer(name=unit.name, compressor=model)
+                return SampledCompressorFuelGasConsumer(name=unit.name, compressor=model.compressor)
             case _SampledElectricalConsumer():
                 model = build_sampled_compressor_model(facility_resources[unit.file])
-                return SampledCompressorElectricalConsumer(name=unit.name, compressor=model)
+                return SampledCompressorElectricalConsumer(name=unit.name, compressor=model.compressor)
             case _SampledGasTurbine():
                 model = build_sampled_compressor_model(facility_resources[unit.file])
-                return build_gas_turbine(unit.name, model)
+                return build_gas_turbine(unit.name, model.compressor)
             case _SampledMechanicalConsumer():
                 model = build_sampled_compressor_model(facility_resources[unit.file])
-                return SampledCompressorMechanicalConsumer(name=unit.name, compressor=model)
+                return SampledCompressorMechanicalConsumer(name=unit.name, compressor=model.compressor)
             case YamlSampledCompressor():
                 raise AssertionError(
                     f"'{unit.name}': unresolved SAMPLED_COMPRESSOR reached _map_unit - "

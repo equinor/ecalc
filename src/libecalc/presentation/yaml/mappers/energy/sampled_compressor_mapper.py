@@ -13,9 +13,13 @@ validation time. validate_input_energy_type re-checks that choice once FILE has 
 read.
 """
 
+from dataclasses import dataclass
+
+from libecalc.common.errors.ecalc_validation_error import ProcessHeaderValidationException
 from libecalc.common.errors.exceptions import IllegalStateException, InvalidColumnException
 from libecalc.domain.resource import Resource
 from libecalc.energy.models.sampled_compressor import SampledCompressor
+from libecalc.energy.models.sampled_compressor_units import get_invertible_fuel_power_samples
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
@@ -38,6 +42,14 @@ POWER_HEADER = "POWER"
 _VARIABLE_HEADERS = (RATE_HEADER, SUCTION_PRESSURE_HEADER, DISCHARGE_PRESSURE_HEADER)
 
 
+@dataclass
+class SampledCompressorModel:
+    """Result of build_sampled_compressor_model."""
+
+    compressor: SampledCompressor
+    consumes_fuel: bool
+
+
 def get_sampled_compressor_topology(resource: Resource) -> tuple[bool, bool]:
     """Returns (has_fuel, has_power) from FILE's headers only — cheap enough to call at
     topology-mapping time, before the full model needs to be built."""
@@ -45,15 +57,12 @@ def get_sampled_compressor_topology(resource: Resource) -> tuple[bool, bool]:
     has_fuel = FUEL_HEADER in headers
     has_power = POWER_HEADER in headers
     if not has_fuel and not has_power:
-        raise InvalidColumnException(
-            header=FUEL_HEADER,
-            message="Sampled compressor resource must contain FUEL, POWER, or both.",
-        )
+        raise ProcessHeaderValidationException(message=f"FILE must have a '{FUEL_HEADER}' or '{POWER_HEADER}' header")
     return has_fuel, has_power
 
 
-def build_sampled_compressor_model(resource: Resource) -> SampledCompressor:
-    """Parse a tabular Resource into a SampledCompressor model.
+def build_sampled_compressor_model(resource: Resource) -> SampledCompressorModel:
+    """Parse a tabular Resource into a SampledCompressorModel.
 
     Expected columns (case-insensitive, at least one of the three variables plus
     at least one of FUEL/POWER):
@@ -82,7 +91,7 @@ def build_sampled_compressor_model(resource: Resource) -> SampledCompressor:
         energy_usage_values = resource.get_float_column(POWER_HEADER)
         power_interpolation_values = None
 
-    return SampledCompressor(
+    compressor = SampledCompressor(
         energy_usage_values=energy_usage_values,
         rate_values=resource.get_float_column(RATE_HEADER) if RATE_HEADER in headers else None,
         suction_pressure_values=(
@@ -93,9 +102,17 @@ def build_sampled_compressor_model(resource: Resource) -> SampledCompressor:
         ),
         power_interpolation_values=power_interpolation_values,
     )
+    if power_interpolation_values is not None:
+        # Only called for its validation side effect here (raises if FUEL/POWER can't be
+        # inverted into a power-to-fuel curve) - catches a malformed FILE as early as
+        # possible, at topology-resolution time. The sorted samples themselves are
+        # recomputed later by build_gas_turbine, if/when this compressor is actually
+        # split into a turbine + consumer pair.
+        get_invertible_fuel_power_samples(name="FILE", compressor=compressor)
+    return SampledCompressorModel(compressor=compressor, consumes_fuel=has_fuel)
 
 
-def validate_input_energy_type(unit_name: str, has_fuel: bool, input_energy_type: EnergyType) -> None:
+def validate_input_energy_type(unit_name: str, model: SampledCompressorModel, input_energy_type: EnergyType) -> None:
     """Cross-checks a SAMPLED_COMPRESSOR unit's declared INPUT against what FILE actually
     provides, narrowing the fuel-or-electrical-or-mechanical ambiguity the schema alone
     permits.
@@ -104,11 +121,13 @@ def validate_input_energy_type(unit_name: str, has_fuel: bool, input_energy_type
     column accepts either electrical or mechanical input - whichever it actually is
     determines whether the unit is expanded into an electrical or mechanical consumer,
     so both are valid here."""
-    allowed_energy_types = {EnergyType.FUEL_GAS} if has_fuel else {EnergyType.ELECTRICAL, EnergyType.MECHANICAL}
+    allowed_energy_types = (
+        {EnergyType.FUEL_GAS} if model.consumes_fuel else {EnergyType.ELECTRICAL, EnergyType.MECHANICAL}
+    )
     if input_energy_type not in allowed_energy_types:
         raise ValueError(
             f"'{unit_name}': INPUT provides {input_energy_type}, but FILE has a "
-            f"{'FUEL' if has_fuel else 'POWER'} column, requiring "
+            f"{'FUEL' if model.consumes_fuel else 'POWER'} column, requiring "
             f"{' or '.join(sorted(allowed_energy_types))} input."
         )
 
@@ -184,7 +203,7 @@ def _expand_sampled_compressor(
             "This should be unreachable: YamlEnergyNetwork validation only accepts an INPUT "
             "naming a source or a unit with a known output energy type."
         )
-    validate_input_energy_type(unit.name, has_fuel, provided)
+    validate_input_energy_type(unit.name, build_sampled_compressor_model(resource), provided)
 
     if not has_fuel:
         # POWER-only: INPUT decides whether that's electrical or mechanical power.
