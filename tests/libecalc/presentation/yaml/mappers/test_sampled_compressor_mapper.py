@@ -106,24 +106,22 @@ class TestValidateInputEnergyType:
     alone can't catch this, since it doesn't know FILE's columns."""
 
     @pytest.mark.parametrize(
-        ("headers", "input_energy_type", "expected_error"),
+        ("has_fuel", "input_energy_type", "expected_error"),
         [
-            (["RATE", "FUEL"], EnergyType.FUEL_GAS, None),
-            (["RATE", "FUEL"], EnergyType.ELECTRICAL, "FUEL column"),
-            (["RATE", "FUEL"], EnergyType.MECHANICAL, "FUEL column"),
-            (["RATE", "POWER"], EnergyType.ELECTRICAL, None),
-            (["RATE", "POWER"], EnergyType.MECHANICAL, None),
-            (["RATE", "POWER"], EnergyType.FUEL_GAS, "POWER column"),
+            (True, EnergyType.FUEL_GAS, None),
+            (True, EnergyType.ELECTRICAL, "FUEL column"),
+            (True, EnergyType.MECHANICAL, "FUEL column"),
+            (False, EnergyType.ELECTRICAL, None),
+            (False, EnergyType.MECHANICAL, None),
+            (False, EnergyType.FUEL_GAS, "POWER column"),
         ],
     )
-    def test_input_energy_type_against_file_columns(self, headers, input_energy_type, expected_error):
-        resource = _resource(headers=headers, data=[[1000, 100], [2000, 150]])
-        model = build_sampled_compressor_model(resource)
+    def test_input_energy_type_against_file_columns(self, has_fuel, input_energy_type, expected_error):
         if expected_error is None:
-            validate_input_energy_type("compressor", model, input_energy_type)
+            validate_input_energy_type("compressor", has_fuel, input_energy_type)
         else:
             with pytest.raises(ValueError, match=expected_error):
-                validate_input_energy_type("compressor", model, input_energy_type)
+                validate_input_energy_type("compressor", has_fuel, input_energy_type)
 
 
 class TestExpandSampledCompressors:
@@ -272,28 +270,16 @@ class TestExpandSampledCompressors:
 
     def test_fuel_and_power_with_non_invertible_samples_raises(self):
         """FUEL+POWER implies a synthetic turbine (power -> fuel), which requires fuel
-        to be a well-defined (invertible) function of power - two different fuel
-        values at the same power breaks that."""
-        network = YamlEnergyNetwork.model_validate(
-            {
-                "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
-                "UNITS": [
-                    {
-                        "NAME": "compressor",
-                        "TYPE": "SAMPLED_COMPRESSOR",
-                        "INPUT": "fuel",
-                        "FILE": "compressor.csv",
-                        "RATE": 50000,
-                    },
-                ],
-            }
-        )
+        and power to be strictly monotonic - two different fuel values at the same
+        power breaks that. expand_sampled_compressors itself only inspects FILE's
+        column topology (cheap) and doesn't build the model, so this is only caught
+        once the model is actually built, e.g. by build_sampled_compressor_model."""
         resource = _resource(
             headers=["RATE", "FUEL", "POWER"],
             data=[[1000, 100, 1.0], [2000, 150, 1.0], [3000, 120, 1.0]],
         )
-        with pytest.raises(IllegalStateException, match="strictly increasing"):
-            expand_sampled_compressors(network, {"compressor.csv": resource})
+        with pytest.raises(IllegalStateException, match="strictly monotonic"):
+            build_sampled_compressor_model(resource)
 
     def test_input_energy_type_mismatching_file_raises(self):
         """The INPUT/FILE cross-check must be reached from the public entry point, not

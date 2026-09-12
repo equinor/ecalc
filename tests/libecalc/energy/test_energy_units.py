@@ -4,6 +4,7 @@ from uuid import UUID
 
 import pytest
 
+from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.energy import Consumer, Source
 from libecalc.energy.energy_types import (
     DieselRate,
@@ -136,7 +137,9 @@ class TestSampledCompressorConsumers:
         assert consumer.get_energy(rate=50.0) == pytest.approx(1.5)
 
     def test_mechanical_consumer_reads_power_from_turbine_compressor(self):
-        consumer = SampledCompressorMechanicalConsumer("compressor", self._fuel_and_turbine_compressor())
+        consumer = SampledCompressorMechanicalConsumer(
+            "compressor", self._fuel_and_turbine_compressor(), reports_power=True
+        )
         assert consumer.get_energy(rate=50.0) == pytest.approx(1.5)
 
     def test_mechanical_consumer_without_power_interpolation_reads_energy_usage_directly(self):
@@ -145,3 +148,7 @@ class TestSampledCompressorConsumers:
         # GAS_TURBINE/ELECTRICAL_MOTOR unit upstream, with no dedicated turbine of its own.
         consumer = SampledCompressorMechanicalConsumer("compressor", self._fuel_only_compressor())
         assert consumer.get_energy(rate=50.0) == pytest.approx(1500.0)
+
+    def test_reports_power_true_without_power_interpolation_raises(self):
+        with pytest.raises(IllegalStateException, match="reports_power=True requires"):
+            SampledCompressorMechanicalConsumer("compressor", self._fuel_only_compressor(), reports_power=True)

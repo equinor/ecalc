@@ -222,6 +222,25 @@ def test_turbine_and_compressor_split_shares_the_same_curve_and_derives_fuel_fro
     assert turbine_unit.get_input_energy(MechanicalPower(demand)).value == pytest.approx(125.0)
 
 
+def test_turbine_and_compressor_split_reports_zero_fuel_when_switched_off(expression_evaluator_factory, period):
+    """A rate<=0 demand means the compressor is switched off - the turbine must report
+    zero fuel for the resulting zero power demand, not the minimum sampled power's fuel
+    value (which the below-minimum clamp uses for 0 < power < minimum sampled power)."""
+    expanded, facility_resources = _sampled_compressor_network(
+        ["RATE", "FUEL", "POWER"],
+        [[1000, 100, 1.0], [2000, 150, 1.5], [3000, 200, 2.0]],
+        "fuel",
+        {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"},
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+    _, energy_units, _ = EnergyNetworkMapper().map_energy_network(expanded, expression_evaluator, facility_resources)
+    _, turbine_unit, compressor_unit = energy_units
+
+    demand = compressor_unit.get_energy(rate=0)
+    assert demand == pytest.approx(0.0)
+    assert turbine_unit.get_input_energy(MechanicalPower(demand)).value == pytest.approx(0.0)
+
+
 def test_power_only_mechanical_consumer_reads_energy_usage_not_power(expression_evaluator_factory, period):
     """A SAMPLED_COMPRESSOR downstream of an explicitly modelled GAS_TURBINE (FILE has
     only POWER, no FUEL) must not be split - it maps to a single

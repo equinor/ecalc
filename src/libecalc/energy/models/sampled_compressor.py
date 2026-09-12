@@ -64,6 +64,25 @@ def _as_float_array(values: list[float] | NDArray[np.float64]) -> FloatArray:
     return np.asarray(values, dtype=np.float64)
 
 
+def _require_strictly_monotonic_fuel_power_samples(
+    fuel_values: FloatArray, power_values: FloatArray
+) -> tuple[FloatArray, FloatArray]:
+    """Deduplicates exact-duplicate (fuel, power) rows, sorts by fuel, and requires both
+    to come out strictly increasing (a genuine, invertible one-to-one mapping). A table
+    where the same fuel maps to different power (or vice versa) is rejected rather than
+    silently resolved - a deliberate choice for the new energy domain."""
+    unique_pairs = np.unique(np.column_stack([fuel_values, power_values]), axis=0)
+    sorted_fuel, sorted_power = unique_pairs[:, 0], unique_pairs[:, 1]
+    if np.any(np.diff(sorted_fuel) <= 0) or np.any(np.diff(sorted_power) <= 0):
+        raise IllegalStateException(
+            "power_interpolation_values must be a strictly monotonic function of "
+            "energy_usage_values (after removing exact-duplicate sample rows): each "
+            "distinct fuel value must map to exactly one power value and vice versa, "
+            "so the fuel<->power relationship is invertible in both directions."
+        )
+    return sorted_fuel, sorted_power
+
+
 def _evaluate_interp1d(function: interp1d, value: float) -> float:
     return float(np.asarray(function(np.asarray([value], dtype=np.float64)), dtype=np.float64)[0])
 
@@ -682,9 +701,9 @@ class SampledCompressor:
             return None
         fuel_values = _as_float_array(self.energy_usage_values)
         power_values_array = _as_float_array(power_values)
-        sort_order = np.argsort(fuel_values, kind="stable")
-        self._fuel_power_samples = (fuel_values[sort_order], power_values_array[sort_order])
-        return interp1d(fuel_values, power_values_array, fill_value=(0, np.nan), bounds_error=False)
+        sorted_fuel, sorted_power = _require_strictly_monotonic_fuel_power_samples(fuel_values, power_values_array)
+        self._fuel_power_samples = (sorted_fuel, sorted_power)
+        return interp1d(sorted_fuel, sorted_power, fill_value=(0, np.nan), bounds_error=False)
 
     def get_fuel_power_samples(self) -> tuple[FloatArray, FloatArray] | None:
         """Sorted (fuel, power) samples this model's power function uses."""

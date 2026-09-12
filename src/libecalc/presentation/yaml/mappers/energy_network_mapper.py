@@ -25,7 +25,10 @@ from libecalc.energy.energy_units import (
 from libecalc.energy.models.sampled_compressor_units import build_gas_turbine
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.mappers.energy.sampled_compressor_mapper import build_sampled_compressor_model
+from libecalc.presentation.yaml.mappers.energy.sampled_compressor_mapper import (
+    SampledCompressorModel,
+    build_sampled_compressor_model,
+)
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlDieselConsumer,
@@ -95,7 +98,13 @@ class EnergyNetworkMapper:
                 return DieselSource(name=source.name)
 
     @staticmethod
-    def _map_unit(unit: YamlComponent, facility_resources: Mapping[str, Resource]) -> EnergyUnit:
+    def _map_unit(
+        unit: YamlComponent,
+        facility_resources: Mapping[str, Resource],
+    ) -> EnergyUnit:
+        def _get_model(file: str) -> SampledCompressorModel:
+            return build_sampled_compressor_model(facility_resources[file])
+
         match unit:
             case YamlGeneratorSet():
                 return GeneratorSet(name=unit.name)
@@ -118,17 +127,22 @@ class EnergyNetworkMapper:
             case YamlDieselConsumer():
                 return DieselConsumer(name=unit.name)
             case _SampledFuelGasConsumer():
-                model = build_sampled_compressor_model(facility_resources[unit.file])
+                model = _get_model(unit.file)
                 return SampledCompressorFuelGasConsumer(name=unit.name, compressor=model.compressor)
             case _SampledElectricalConsumer():
-                model = build_sampled_compressor_model(facility_resources[unit.file])
+                model = _get_model(unit.file)
                 return SampledCompressorElectricalConsumer(name=unit.name, compressor=model.compressor)
             case _SampledGasTurbine():
-                model = build_sampled_compressor_model(facility_resources[unit.file])
+                model = _get_model(unit.file)
                 return build_gas_turbine(unit.name, model.compressor)
             case _SampledMechanicalConsumer():
-                model = build_sampled_compressor_model(facility_resources[unit.file])
-                return SampledCompressorMechanicalConsumer(name=unit.name, compressor=model.compressor)
+                model = _get_model(unit.file)
+                # consumes_fuel (FILE had FUEL+POWER) means a turbine was split off -
+                # this consumer must report resolved power, not the fuel-valued
+                # energy_usage_values.
+                return SampledCompressorMechanicalConsumer(
+                    name=unit.name, compressor=model.compressor, reports_power=model.consumes_fuel
+                )
             case YamlSampledCompressor():
                 raise AssertionError(
                     f"'{unit.name}': unresolved SAMPLED_COMPRESSOR reached _map_unit - "

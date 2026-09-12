@@ -507,6 +507,19 @@ def test_power_interpolation():
     assert np.isnan(above_range.power)
 
 
+def test_power_interpolation_rejects_duplicate_fuel_with_different_power():
+    # Two operating points reporting the same fuel usage but different power make the
+    # fuel -> power mapping ambiguous (which power value should evaluate() report for
+    # that fuel?) - this must be rejected rather than silently resolved by picking
+    # whichever duplicate scipy's interpolator happens to prefer.
+    with pytest.raises(IllegalStateException, match="strictly monotonic"):
+        SampledCompressor(
+            energy_usage_values=[10.0, 10.0, 20.0],
+            rate_values=[1.0, 2.0, 3.0],
+            power_interpolation_values=[1.0, 2.0, 3.0],
+        )
+
+
 def test_get_max_standard_rate_matches_legacy():
     data = {
         "energy_usage_values": [52765, 71918, 139839, 144574],
