@@ -54,6 +54,7 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapper
+from libecalc.presentation.yaml.mappers.energy.sampled_compressor_mapper import expand_sampled_compressors
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
@@ -294,6 +295,8 @@ class YamlModel:
         time_series_name_map = {
             time_series_file_name_map[ts.file]: time_series_resources[ts.file] for ts in self._configuration.time_series
         }
+        facility_resources, _ = self._resource_service.get_facility_resources()
+        yaml_energy_network = expand_sampled_compressors(yaml_energy_network, facility_resources)
         end = self._configuration.end
         assert end is not None
         expression_evaluator = StrictExpressionEvaluator.from_expression_references(
@@ -303,7 +306,9 @@ class YamlModel:
             start=self._configuration.start,
             end=end,
         )
-        return EnergyNetworkMapper().map_energy_network(yaml_energy_network, expression_evaluator)
+        return EnergyNetworkMapper().map_energy_network(
+            yaml_energy_network, expression_evaluator, facility_resources=facility_resources
+        )
 
     def get_events(self) -> list[EcalcEvent]:
         return EcalcEventMapper().map_events(

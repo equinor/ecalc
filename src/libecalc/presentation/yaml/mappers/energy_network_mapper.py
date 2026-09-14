@@ -1,6 +1,7 @@
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from libecalc.common.variables import ExpressionEvaluator
+from libecalc.domain.resource import Resource
 from libecalc.energy import EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_units import (
@@ -17,9 +18,14 @@ from libecalc.energy.energy_units import (
     GasTurbine,
     GeneratorSet,
     MechanicalConsumer,
+    SampledCompressorElectricalConsumer,
+    SampledCompressorFuelGasConsumer,
+    SampledCompressorMechanicalConsumer,
 )
+from libecalc.energy.models.sampled_compressor_units import build_gas_turbine
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.mappers.energy.sampled_compressor_mapper import build_sampled_compressor_model
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlDieselConsumer,
@@ -35,6 +41,11 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlGasTurbine,
     YamlGeneratorSet,
     YamlMechanicalConsumer,
+    YamlSampledCompressor,
+    _SampledElectricalConsumer,
+    _SampledFuelGasConsumer,
+    _SampledGasTurbine,
+    _SampledMechanicalConsumer,
 )
 
 
@@ -43,10 +54,12 @@ class EnergyNetworkMapper:
         self,
         yaml_energy_network: YamlEnergyNetwork,
         expression_evaluator: ExpressionEvaluator,
+        facility_resources: Mapping[str, Resource] | None = None,
     ) -> tuple[EnergyNetworkTopology, Sequence[EnergyUnit], dict[EnergyUnitId, TimeSeriesExpression]]:
+        facility_resources = facility_resources or {}
         energy_units = [
             *(self._map_source(source) for source in yaml_energy_network.sources),
-            *(self._map_unit(unit) for unit in yaml_energy_network.units),
+            *(self._map_unit(unit, facility_resources) for unit in yaml_energy_network.units),
         ]
         node_ids_by_name = {energy_unit.get_name(): energy_unit.get_id() for energy_unit in energy_units}
 
@@ -82,7 +95,7 @@ class EnergyNetworkMapper:
                 return DieselSource(name=source.name)
 
     @staticmethod
-    def _map_unit(unit: YamlComponent) -> EnergyUnit:
+    def _map_unit(unit: YamlComponent, facility_resources: Mapping[str, Resource]) -> EnergyUnit:
         match unit:
             case YamlGeneratorSet():
                 return GeneratorSet(name=unit.name)
@@ -104,6 +117,23 @@ class EnergyNetworkMapper:
                 return FuelGasConsumer(name=unit.name)
             case YamlDieselConsumer():
                 return DieselConsumer(name=unit.name)
+            case _SampledFuelGasConsumer():
+                model = build_sampled_compressor_model(facility_resources[unit.file])
+                return SampledCompressorFuelGasConsumer(name=unit.name, compressor=model)
+            case _SampledElectricalConsumer():
+                model = build_sampled_compressor_model(facility_resources[unit.file])
+                return SampledCompressorElectricalConsumer(name=unit.name, compressor=model)
+            case _SampledGasTurbine():
+                model = build_sampled_compressor_model(facility_resources[unit.file])
+                return build_gas_turbine(unit.name, model)
+            case _SampledMechanicalConsumer():
+                model = build_sampled_compressor_model(facility_resources[unit.file])
+                return SampledCompressorMechanicalConsumer(name=unit.name, compressor=model)
+            case YamlSampledCompressor():
+                raise AssertionError(
+                    f"'{unit.name}': unresolved SAMPLED_COMPRESSOR reached _map_unit - "
+                    "expand_sampled_compressors must run before mapping."
+                )
 
     @staticmethod
     def _get_input_names(unit: YamlComponent) -> list[str]:
