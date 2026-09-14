@@ -29,5 +29,5 @@ class InvalidDispatchError(EnergyDomainError):
     """Raised when a dispatch strategy is asked to allocate over candidates it cannot serve."""
 
 
-class InvalidEnergyNetworkEvaluationInputError(EnergyDomainError):
+class InvalidEnergyNetworkInputError(EnergyDomainError):
     """Raised when energy network evaluation input is invalid."""

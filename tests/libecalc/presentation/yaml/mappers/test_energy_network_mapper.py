@@ -42,18 +42,18 @@ def test_maps_sources_units_connections_and_consumer_expressions(expression_eval
     )
 
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
-    network, energy_units, consumer_expressions = EnergyNetworkMapper().map_energy_network(
+    topology, energy_units, consumer_expressions = EnergyNetworkMapper().map_energy_network(
         yaml_network, expression_evaluator
     )
 
-    assert {connection.energy_type for connection in network.get_connections()} == {
+    assert {connection.energy_type for connection in topology.get_connections()} == {
         DieselRate,
         ElectricalPower,
         FuelGasRate,
         MechanicalPower,
     }
-    assert len(network.get_topological_order()) == 13
-    assert len(network.get_connections()) == 10
+    assert len(topology.get_topological_order()) == 13
+    assert len(topology.get_connections()) == 10
     assert [type(energy_unit) for energy_unit in energy_units] == [
         FuelGasSource,
         ElectricalSource,
@@ -84,7 +84,7 @@ def test_maps_sources_units_connections_and_consumer_expressions(expression_eval
         "fuel_load",
         "diesel_load",
     ]
-    assert {energy_unit.get_id() for energy_unit in energy_units} == set(network.get_nodes())
+    assert {energy_unit.get_id() for energy_unit in energy_units} == set(topology.get_nodes())
     consumer_ids_by_name = {energy_unit.get_name(): energy_unit.get_id() for energy_unit in energy_units}
     assert {
         consumer_ids_by_name["electrical_load"]: 5,
