@@ -24,9 +24,9 @@ def predefined_variable_speed_compressor_chart_2(
             "efficiency": [0.700, 0.715, 0.738, 0.761, 0.772, 0.776, 0.773, 0.769, 0.752, 0.730, 0.721],
         },
         1200: {
-            "rate": [152, 145, 136, 126, 116, 107, 97, 87, 78, 68, 64, 143],
-            "head": [771, 821, 900, 982, 1054, 1120, 1166, 1212, 1239, 1258, 1265, 682],
-            "efficiency": [0.700, 0.715, 0.738, 0.761, 0.772, 0.776, 0.773, 0.769, 0.752, 0.730, 0.721, 0.700],
+            "rate": [152, 145, 136, 126, 116, 107, 97, 87, 78, 68, 64],
+            "head": [771, 821, 900, 982, 1054, 1120, 1166, 1212, 1239, 1258, 1265],
+            "efficiency": [0.700, 0.715, 0.738, 0.761, 0.772, 0.776, 0.773, 0.769, 0.752, 0.730, 0.721],
         },
         1100: {
             "rate": [143, 137, 128, 119, 109, 100, 91, 89, 82, 73, 64, 60],
@@ -318,7 +318,7 @@ def test_single_speed_compressor_chart_control_margin(
     curve = chart_curve_factory(
         speed_rpm=1,
         rate_actual_m3_hour=[1, 2, 3],
-        polytropic_head_joule_per_kg=[4, 5, 6],
+        polytropic_head_joule_per_kg=[6, 5, 4],
         efficiency_fraction=[0.7, 0.8, 0.9],
     )
 
@@ -352,13 +352,13 @@ def test_variable_speed_compressor_chart_control_margin(
     curve_1 = chart_curve_factory(
         speed_rpm=1,
         rate_actual_m3_hour=[1, 2, 3],
-        polytropic_head_joule_per_kg=[4, 5, 6],
+        polytropic_head_joule_per_kg=[6, 5, 4],
         efficiency_fraction=[0.7, 0.8, 0.9],
     )
     curve_2 = chart_curve_factory(
         speed_rpm=1,
         rate_actual_m3_hour=[4, 5, 6],
-        polytropic_head_joule_per_kg=[7, 8, 9],
+        polytropic_head_joule_per_kg=[9, 8, 7],
         efficiency_fraction=[0.101, 0.82, 0.9],
     )
     control_margin = 0.1
