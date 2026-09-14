@@ -3,10 +3,6 @@
 ## [14.0.0](https://github.com/equinor/ecalc/compare/v13.12.1...v14.0.0) (2026-09-11)
 
 
-### ⚠ BREAKING CHANGES
-
-* reject chart curves with increasing head ([#1752](https://github.com/equinor/ecalc/issues/1752))
-
 ### Features
 
 * add energy network ([#1740](https://github.com/equinor/ecalc/issues/1740)) ([7401094](https://github.com/equinor/ecalc/commit/74010943ff9ba51539ce164baeb55ab168968d85))
@@ -27,12 +23,6 @@
 * **libecalc:** give each energy role check a single definition ([#1768](https://github.com/equinor/ecalc/issues/1768)) ([124cb6b](https://github.com/equinor/ecalc/commit/124cb6b74e64d7f8530bc6556880eaf1e1616e25))
 * **libecalc:** import EnergyUnit in the energy network mapper ([#1773](https://github.com/equinor/ecalc/issues/1773)) ([01d0069](https://github.com/equinor/ecalc/commit/01d006930a4331a86588edc11794657bbea1ddf9))
 * provide resource context when invalid chart from resource ([0968813](https://github.com/equinor/ecalc/commit/0968813d3e69da8a2843050c3da11e6f3eb366f5))
-* reject chart curves with increasing head ([#1752](https://github.com/equinor/ecalc/issues/1752)) ([59e7a79](https://github.com/equinor/ecalc/commit/59e7a79185efb65f188ea52f973f7d7c975ed56d))
-
-
-### Reverts
-
-* defer increasing-head chart validation ([#1760](https://github.com/equinor/ecalc/issues/1760)) ([3875056](https://github.com/equinor/ecalc/commit/387505611287edd77b533b846ce123cea5fc5d86))
 
 
 ### Documentation
