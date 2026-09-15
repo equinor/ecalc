@@ -1,9 +1,9 @@
 """
-Generate process reference documentation from pydantic models.
+Generate process and energy reference documentation from pydantic models.
 
 Two-step process:
 1. Build a tree of DocNode objects by introspecting the YamlAsset pydantic model.
-2. Render that tree into a single-page Docusaurus markdown document.
+2. Render the trees into single-page Docusaurus markdown documents.
 
 Usage:
     uv run python src/generate_yaml_asset_docs.py
@@ -46,7 +46,8 @@ from libecalc.testing.process_builders import (
 )
 
 # Top-level YamlAsset fields to document (by python attribute name)
-INCLUDE_FIELDS = {"definitions", "process_pipelines", "inlet_streams", "process_simulations"}
+PROCESS_INCLUDE_FIELDS = {"definitions", "process_pipelines", "inlet_streams", "process_simulations"}
+ENERGY_INCLUDE_FIELDS = {"energy_network"}
 
 # Maximum recursion depth to prevent infinite loops on circular references
 MAX_DEPTH = 8
@@ -450,9 +451,9 @@ def build_tree(
     return nodes
 
 
-def build_yaml_asset_tree() -> list[DocNode]:
-    """Build the documentation tree for YamlAsset, limited to the relevant sections."""
-    return build_tree(YamlAsset, include_fields=INCLUDE_FIELDS)
+def build_yaml_asset_tree(include_fields: set[str]) -> list[DocNode]:
+    """Build a documentation tree for selected YamlAsset sections."""
+    return build_tree(YamlAsset, include_fields=include_fields)
 
 
 # --- Step 2: Render tree to markdown ---
@@ -465,6 +466,7 @@ SIDEBAR_DEPTH: dict[str, int] = {
     "inlet_streams": 2,  # INLET_STREAMS only (h2)
     "process_pipelines": 2,  # PROCESS_PIPELINES only (h2)
     "process_simulations": 2,  # PROCESS_SIMULATIONS only (h2)
+    "energy_network": 3,  # ENERGY_NETWORK only (h2)
 }
 
 
@@ -820,23 +822,53 @@ def _get_model_docstring(model: Any) -> str | None:
     return None
 
 
-def generate_markdown() -> str:
-    """Generate the full markdown document for the YAML Asset reference."""
-    tree = build_yaml_asset_tree()
+def _generate_markdown(
+    *,
+    include_fields: set[str],
+    title: str,
+    sidebar_position: int,
+    description: str,
+    intro: str,
+    examples: list[Example],
+) -> str:
+    """Generate a reference document for selected YamlAsset sections."""
+    tree = build_yaml_asset_tree(include_fields)
 
-    frontmatter = """\
+    frontmatter = f"""\
 ---
-title: Process Reference (Experimental)
-sidebar_position: 6
+title: {title} (Experimental)
+sidebar_position: {sidebar_position}
 toc_max_heading_level: 4
-description: Complete reference for the process configuration.
+description: {description}
 ---
 """
 
-    intro = """\
+    imports = """\
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 
+"""
+
+    registry = ExampleRegistry(examples)
+
+    body_parts = []
+    for node in tree:
+        max_depth = SIDEBAR_DEPTH.get(node.name, 2)
+        body_parts.append(render_tree([node], depth=2, max_sidebar_depth=max_depth, registry=registry))
+
+    body = "\n".join(body_parts)
+
+    return frontmatter + "\n" + imports + intro + body
+
+
+def generate_process_markdown() -> str:
+    """Generate the process reference document."""
+    return _generate_markdown(
+        include_fields=PROCESS_INCLUDE_FIELDS,
+        title="Process Reference",
+        sidebar_position=6,
+        description="Complete reference for the process configuration.",
+        intro="""\
 # Process Reference
 
 This page documents the YAML configuration keys for the eCalc Asset model, covering the following top-level sections:
@@ -846,27 +878,39 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [PROCESS_PIPELINES](#process_pipelines)
 - [PROCESS_SIMULATIONS](#process_simulations)
 
-"""
+""",
+        examples=EXAMPLES,
+    )
 
-    registry = ExampleRegistry(EXAMPLES)
 
-    body_parts = []
-    for node in tree:
-        max_depth = SIDEBAR_DEPTH.get(node.name, 2)
-        body_parts.append(render_tree([node], depth=2, max_sidebar_depth=max_depth, registry=registry))
+def generate_energy_markdown() -> str:
+    """Generate the energy network reference document."""
+    return _generate_markdown(
+        include_fields=ENERGY_INCLUDE_FIELDS,
+        title="Energy Reference",
+        sidebar_position=7,
+        description="Complete reference for the energy network configuration.",
+        intro="""\
+# Energy Reference
 
-    body = "\n".join(body_parts)
+This page documents the [ENERGY_NETWORK](#energy_network) YAML configuration key for the eCalc Asset model.
 
-    return frontmatter + "\n" + intro + body
+""",
+        examples=[],
+    )
 
 
 def main():
-    output_path = Path(__file__).parent.parent / "docs" / "docs" / "about" / "process-reference.mdx"
-    output_path.parent.mkdir(parents=True, exist_ok=True)
+    output_dir = Path(__file__).parent.parent / "docs" / "docs" / "about"
+    output_dir.mkdir(parents=True, exist_ok=True)
 
-    content = generate_markdown()
-    output_path.write_text(content)
-    print(f"Generated: {output_path}")
+    outputs = {
+        output_dir / "process-reference.mdx": generate_process_markdown(),
+        output_dir / "energy-reference.mdx": generate_energy_markdown(),
+    }
+    for output_path, content in outputs.items():
+        output_path.write_text(content)
+        print(f"Generated: {output_path}")
 
 
 if __name__ == "__main__":
