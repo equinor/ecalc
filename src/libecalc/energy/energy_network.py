@@ -48,8 +48,8 @@ class EnergyNetwork:
     ]:
         """Calculate connection energy and capacity failures from demands on consumer-targeting connections.
 
-        `capacities` is consulted where a junction dispatches demand across several candidates and when checking
-        each unit's total outgoing energy. A unit absent from it is treated as unlimited.
+        `capacities` is consulted where a junction dispatches demand across several candidates; a
+        candidate absent from it is treated as unlimited, as elsewhere.
         """
         self._validate_connection_demands(connection_demands)
         capacities = capacities or {}
