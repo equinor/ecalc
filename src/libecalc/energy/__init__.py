@@ -2,6 +2,7 @@
 
 ABCs model a single operational point."""
 
+from libecalc.energy.capacity import CapacityFailure, CapacityFailureStatus
 from libecalc.energy.consumer import Consumer
 from libecalc.energy.converter import Converter
 from libecalc.energy.dispatch import Candidate, DispatchStrategy, PriorityDispatch
@@ -11,6 +12,8 @@ from libecalc.energy.source import Source
 
 __all__ = [
     "Candidate",
+    "CapacityFailure",
+    "CapacityFailureStatus",
     "Consumer",
     "Converter",
     "DispatchStrategy",
