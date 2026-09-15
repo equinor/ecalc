@@ -2,9 +2,9 @@ from collections.abc import Iterable
 
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
 from libecalc.energy.dispatch import Candidate
-from libecalc.energy.energy_failure import CapacityFailure, EnergyFailure, EnergyFailureStatus
+from libecalc.energy.energy_failure import CapacityFailure, EnergyFailureStatus
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
-from libecalc.energy.energy_propagation import ConnectionPropagation, EnergyPropagation
+from libecalc.energy.energy_propagation import EnergyPropagation
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -87,10 +87,7 @@ class EnergyNetwork:
         )
 
         return EnergyPropagation(
-            connections=self._create_connection_propagations(
-                connection_energy=connection_energy,
-                capacity_failures=capacity_failures,
-            ),
+            connection_energy=connection_energy,
             capacity_failures=capacity_failures,
         )
 
@@ -105,41 +102,11 @@ class EnergyNetwork:
             if output_energy.value > capacity.value:
                 failures[node_id] = CapacityFailure(
                     status=EnergyFailureStatus.CAPACITY_EXCEEDED,
-                    energy_unit_id=node_id,
                     required_energy=output_energy,
                     capacity=capacity,
                 )
 
         return failures
-
-    def _create_connection_propagations(
-        self,
-        connection_energy: dict[EnergyConnectionId, Energy],
-        capacity_failures: dict[EnergyUnitId, CapacityFailure],
-    ) -> dict[EnergyConnectionId, ConnectionPropagation]:
-        """Combine connection energy with failures originating on either side."""
-        ancestor_failures: dict[EnergyConnectionId, list[EnergyFailure]] = {}
-        descendant_failures: dict[EnergyConnectionId, list[EnergyFailure]] = {}
-
-        for failure in capacity_failures.values():
-            for connection in self._topology.get_ancestor_connections(failure.energy_unit_id):
-                if connection.id not in descendant_failures:
-                    descendant_failures[connection.id] = []
-                descendant_failures[connection.id].append(failure)
-
-            for connection in self._topology.get_descendant_connections(failure.energy_unit_id):
-                if connection.id not in ancestor_failures:
-                    ancestor_failures[connection.id] = []
-                ancestor_failures[connection.id].append(failure)
-
-        return {
-            connection_id: ConnectionPropagation(
-                energy=energy,
-                ancestor_failures=tuple(ancestor_failures.get(connection_id, ())),
-                descendant_failures=tuple(descendant_failures.get(connection_id, ())),
-            )
-            for connection_id, energy in connection_energy.items()
-        }
 
     def _allocate(
         self,
