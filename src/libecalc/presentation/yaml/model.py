@@ -40,7 +40,7 @@ from libecalc.ecalc_model.ecalc_event import (
 )
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.energy import EnergyUnit, EnergyUnitId
-from libecalc.energy.network import EnergyNetwork
+from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -283,7 +283,7 @@ class YamlModel:
 
     def get_energy_network(
         self,
-    ) -> tuple[EnergyNetwork | None, Sequence[EnergyUnit], dict[EnergyUnitId, TimeSeriesExpression]]:
+    ) -> tuple[EnergyNetworkTopology | None, Sequence[EnergyUnit], dict[EnergyUnitId, TimeSeriesExpression]]:
         self.validate_for_run()
         yaml_energy_network = self._configuration.energy_network
         if yaml_energy_network is None:

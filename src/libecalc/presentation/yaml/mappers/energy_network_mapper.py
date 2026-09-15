@@ -2,6 +2,7 @@ from collections.abc import Sequence
 
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.energy import EnergyUnit, EnergyUnitId
+from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_units import (
     DieselConsumer,
     DieselSource,
@@ -17,7 +18,6 @@ from libecalc.energy.energy_units import (
     GeneratorSet,
     MechanicalConsumer,
 )
-from libecalc.energy.network import EnergyNetwork
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
@@ -43,7 +43,7 @@ class EnergyNetworkMapper:
         self,
         yaml_energy_network: YamlEnergyNetwork,
         expression_evaluator: ExpressionEvaluator,
-    ) -> tuple[EnergyNetwork, Sequence[EnergyUnit], dict[EnergyUnitId, TimeSeriesExpression]]:
+    ) -> tuple[EnergyNetworkTopology, Sequence[EnergyUnit], dict[EnergyUnitId, TimeSeriesExpression]]:
         energy_units = [
             *(self._map_source(source) for source in yaml_energy_network.sources),
             *(self._map_unit(unit) for unit in yaml_energy_network.units),
@@ -55,7 +55,7 @@ class EnergyNetworkMapper:
             for unit in yaml_energy_network.units
             for input_name in self._get_input_names(unit)
         ]
-        energy_network = EnergyNetwork.create(
+        topology = EnergyNetworkTopology.create(
             node_input_types={
                 energy_unit.get_id(): energy_unit.get_input_energy_type() for energy_unit in energy_units
             },
@@ -69,7 +69,7 @@ class EnergyNetworkMapper:
             for unit, energy_unit in zip(yaml_energy_network.units, energy_units[len(yaml_energy_network.sources) :])
             if (expression := self._get_consumer_expression(unit)) is not None
         }
-        return energy_network, energy_units, consumer_expressions
+        return topology, energy_units, consumer_expressions
 
     @staticmethod
     def _map_source(source: YamlEnergySource) -> EnergyUnit:

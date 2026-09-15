@@ -23,7 +23,7 @@ class EnergyConnection:
     energy_type: type[Energy]
 
 
-class EnergyNetwork:
+class EnergyNetworkTopology:
     """A validated, directed acyclic graph of energy connections."""
 
     def __init__(
@@ -52,7 +52,7 @@ class EnergyNetwork:
         self._connections_by_id: dict[EnergyConnectionId, EnergyConnection] = {}
         self._add_connections(connections)
         self._topological_order = self._create_topological_order()
-        self._id = energy_network_id or EnergyNetwork._create_id()
+        self._id = energy_network_id or EnergyNetworkTopology._create_id()
 
     @classmethod
     def _create_id(cls: type[Self]) -> EnergyNetworkId:
