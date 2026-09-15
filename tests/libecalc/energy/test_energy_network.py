@@ -217,7 +217,10 @@ class TestEnergyNetworkCapacity:
         assert propagation.capacity_failures[grid.get_id()].energy_unit_id == grid.get_id()
         assert propagation.capacity_failures[grid.get_id()].required_energy == ElectricalPower(6)
         assert propagation.capacity_failures[grid.get_id()].capacity == ElectricalPower(5)
-        assert not propagation.connections[connection.id].affected_by
+        assert propagation.connections[connection.id].ancestor_failures == (
+            propagation.capacity_failures[grid.get_id()],
+        )
+        assert not propagation.connections[connection.id].descendant_failures
 
     def test_capacity_equal_to_connection_energy_has_no_failure(self):
         grid = ElectricalSource("grid")
@@ -250,44 +253,52 @@ class TestEnergyNetworkCapacity:
 
         assert not propagation.capacity_failures
 
-    def test_marks_connections_towards_source_as_affected_by_capacity_failure(self):
+    def test_relates_connections_on_both_sides_to_capacity_failure(self):
         source = ElectricalSource("source")
         upstream_cable = ElectricalCable("upstream_cable", loss_fraction=0)
         constrained_cable = ElectricalCable("constrained_cable", loss_fraction=0)
         load = ElectricalConsumer("load")
+        other_load = ElectricalConsumer("other_load")
         topology = create_topology(
-            nodes=[source, upstream_cable, constrained_cable, load],
+            nodes=[source, upstream_cable, constrained_cable, load, other_load],
             connections=[
                 (source.get_id(), upstream_cable.get_id()),
                 (upstream_cable.get_id(), constrained_cable.get_id()),
                 (constrained_cable.get_id(), load.get_id()),
+                (source.get_id(), other_load.get_id()),
             ],
         )
         network = EnergyNetwork(
             topology=topology,
-            energy_units=[source, upstream_cable, constrained_cable, load],
+            energy_units=[source, upstream_cable, constrained_cable, load, other_load],
         )
         source_connection = topology.get_connection(source.get_id(), upstream_cable.get_id())
         constrained_connection = topology.get_connection(upstream_cable.get_id(), constrained_cable.get_id())
         load_connection = topology.get_connection(constrained_cable.get_id(), load.get_id())
+        other_connection = topology.get_connection(source.get_id(), other_load.get_id())
 
         propagation = network.propagate_energy(
-            {load_connection.id: ElectricalPower(6)},
+            {
+                load_connection.id: ElectricalPower(6),
+                other_connection.id: ElectricalPower(1),
+            },
             capacities={
                 source.get_id(): ElectricalPower(10),
                 constrained_cable.get_id(): ElectricalPower(5),
             },
         )
 
-        # The local failure affects only predecessor connections and does not change their required energy.
+        # The local failure affects connections on both sides, but not other branches, and does not change energy.
         assert set(propagation.capacity_failures) == {constrained_cable.get_id()}
         assert propagation.connections[source_connection.id].energy == ElectricalPower(6)
         failure = propagation.capacity_failures[constrained_cable.get_id()]
-        assert propagation.connections[source_connection.id].affected_by == (failure,)
-        assert propagation.connections[constrained_connection.id].affected_by == (failure,)
-        assert not propagation.connections[load_connection.id].affected_by
+        assert propagation.connections[source_connection.id].descendant_failures == (failure,)
+        assert propagation.connections[constrained_connection.id].descendant_failures == (failure,)
+        assert propagation.connections[load_connection.id].ancestor_failures == (failure,)
+        assert not propagation.connections[other_connection.id].ancestor_failures
+        assert not propagation.connections[other_connection.id].descendant_failures
 
-    def test_connection_can_be_affected_by_multiple_capacity_failures(self):
+    def test_connection_can_have_multiple_descendant_failures(self):
         source = ElectricalSource("source")
         bus = ElectricalBus("bus")
         first_cable = ElectricalCable("first_cable", loss_fraction=0)
@@ -321,7 +332,7 @@ class TestEnergyNetworkCapacity:
 
         # Both downstream failures affect the connection shared on their paths towards the source.
         affected_unit_ids: set[EnergyUnitId] = set()
-        for failure in propagation.connections[source_connection.id].affected_by:
+        for failure in propagation.connections[source_connection.id].descendant_failures:
             assert isinstance(failure, CapacityFailure)
             affected_unit_ids.add(failure.energy_unit_id)
 

@@ -8,10 +8,12 @@ class ConnectionPropagation:
     def __init__(
         self,
         energy: Energy,
-        affected_by: tuple[EnergyFailure, ...],
+        ancestor_failures: tuple[EnergyFailure, ...],
+        descendant_failures: tuple[EnergyFailure, ...],
     ) -> None:
         self.energy = energy
-        self.affected_by = affected_by
+        self.ancestor_failures = ancestor_failures
+        self.descendant_failures = descendant_failures
 
 
 class EnergyPropagation:

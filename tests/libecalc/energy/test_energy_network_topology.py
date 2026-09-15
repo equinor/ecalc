@@ -126,3 +126,23 @@ class TestEnergyNetworkTopology:
                 topology.get_connection(bus.get_id(), load.get_id()),
             }
         )
+
+    def test_gets_descendant_connections(self):
+        source = ElectricalSource("source")
+        cable = ElectricalCable("cable")
+        bus = ElectricalBus("bus")
+        load = ElectricalConsumer("load")
+        other_load = ElectricalConsumer("other_load")
+        topology = create_topology(
+            [source, cable, bus, load, other_load],
+            [(source, cable), (cable, bus), (bus, load), (bus, other_load)],
+        )
+
+        # Descendants include every branch from the cable towards consumers, but not its source connection.
+        assert topology.get_descendant_connections(cable.get_id()) == frozenset(
+            {
+                topology.get_connection(cable.get_id(), bus.get_id()),
+                topology.get_connection(bus.get_id(), load.get_id()),
+                topology.get_connection(bus.get_id(), other_load.get_id()),
+            }
+        )

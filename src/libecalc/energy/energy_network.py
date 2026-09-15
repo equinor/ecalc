@@ -85,16 +85,12 @@ class EnergyNetwork:
             connection_energy=connection_energy,
             capacities=capacities,
         )
-        affected_connections = self._get_affected_connections(capacity_failures)
 
         return EnergyPropagation(
-            connections={
-                connection_id: ConnectionPropagation(
-                    energy=energy,
-                    affected_by=affected_connections.get(connection_id, ()),
-                )
-                for connection_id, energy in connection_energy.items()
-            },
+            connections=self._create_connection_propagations(
+                connection_energy=connection_energy,
+                capacity_failures=capacity_failures,
+            ),
             capacity_failures=capacity_failures,
         )
 
@@ -116,25 +112,34 @@ class EnergyNetwork:
 
         return failures
 
-    def _get_affected_connections(
+    def _create_connection_propagations(
         self,
+        connection_energy: dict[EnergyConnectionId, Energy],
         capacity_failures: dict[EnergyUnitId, CapacityFailure],
-    ) -> dict[EnergyConnectionId, tuple[EnergyFailure, ...]]:
-        """
-        Map each upstream connection to capacity failures originating downstream.
-
-        This preserves failure context without changing calculated connection energy.
-        """
-        affected_connections: dict[EnergyConnectionId, list[EnergyFailure]] = {}
+    ) -> dict[EnergyConnectionId, ConnectionPropagation]:
+        """Combine connection energy with failures originating on either side."""
+        ancestor_failures: dict[EnergyConnectionId, list[EnergyFailure]] = {}
+        descendant_failures: dict[EnergyConnectionId, list[EnergyFailure]] = {}
 
         for failure in capacity_failures.values():
             for connection in self._topology.get_ancestor_connections(failure.energy_unit_id):
-                if connection.id not in affected_connections:
-                    affected_connections[connection.id] = []
+                if connection.id not in descendant_failures:
+                    descendant_failures[connection.id] = []
+                descendant_failures[connection.id].append(failure)
 
-                affected_connections[connection.id].append(failure)
+            for connection in self._topology.get_descendant_connections(failure.energy_unit_id):
+                if connection.id not in ancestor_failures:
+                    ancestor_failures[connection.id] = []
+                ancestor_failures[connection.id].append(failure)
 
-        return {connection_id: tuple(failures) for connection_id, failures in affected_connections.items()}
+        return {
+            connection_id: ConnectionPropagation(
+                energy=energy,
+                ancestor_failures=tuple(ancestor_failures.get(connection_id, ())),
+                descendant_failures=tuple(descendant_failures.get(connection_id, ())),
+            )
+            for connection_id, energy in connection_energy.items()
+        }
 
     def _allocate(
         self,
