@@ -42,6 +42,22 @@ def test_process_to_import_process_or_common_only(libecalc_architecture):
 
 
 @pytest.mark.arch
+def test_energy_to_import_energy_or_common_only(libecalc_architecture):
+    # libecalc.energy is a from-scratch reimplementation that should only depend on
+    # libecalc.energy/libecalc.common - see module docstrings under
+    # libecalc/energy/models/ for what is being reimplemented and why.
+    rule = (
+        Rule()
+        .modules_that()
+        .are_named("libecalc.energy")
+        .should_only()
+        .import_modules_that()
+        .are_named(["libecalc.energy", "libecalc.common"])
+    )
+    rule.assert_applies(libecalc_architecture())
+
+
+@pytest.mark.arch
 def test_ecalc_model_to_import_ecalc_model_or_common_only(libecalc_architecture):
     allowed_process_dependencies = [
         "libecalc.common",
