@@ -138,6 +138,23 @@ class EnergyNetworkTopology:
     ) -> frozenset[EnergyUnitId]:
         return frozenset(self._successors[node_id])
 
+    def get_ancestor_connections(self, node_id: EnergyUnitId) -> frozenset[EnergyConnection]:
+        """Return all connections on paths from sources to the node."""
+        ancestor_connections: set[EnergyConnection] = set()
+        nodes_to_visit = [node_id]
+        seen_nodes = {node_id}
+
+        while nodes_to_visit:
+            current_node_id = nodes_to_visit.pop()
+            for predecessor_id in self._predecessors[current_node_id]:
+                ancestor_connections.add(self.get_connection(predecessor_id, current_node_id))
+
+                if predecessor_id not in seen_nodes:
+                    seen_nodes.add(predecessor_id)
+                    nodes_to_visit.append(predecessor_id)
+
+        return frozenset(ancestor_connections)
+
     def get_topological_order(
         self,
     ) -> tuple[EnergyUnitId, ...]:

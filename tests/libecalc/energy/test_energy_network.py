@@ -2,7 +2,14 @@ from typing import cast
 
 import pytest
 
-from libecalc.energy import CapacityFailure, ElectricalPower, EnergyFailureStatus, FuelGasRate, MechanicalPower
+from libecalc.energy import (
+    CapacityFailure,
+    ElectricalPower,
+    EnergyFailureStatus,
+    EnergyUnitId,
+    FuelGasRate,
+    MechanicalPower,
+)
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network import EnergyNetwork
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
@@ -133,7 +140,7 @@ class TestEnergyNetworkEnergyCalculation:
             }
         )
 
-        assert propagation.connection_energy == {
+        assert {connection_id: connection.energy for connection_id, connection in propagation.connections.items()} == {
             topology.get_connection(source.get_id(), generator.get_id()).id: FuelGasRate(10_000),
             topology.get_connection(generator.get_id(), bus.get_id()).id: ElectricalPower(10),
             topology.get_connection(bus.get_id(), motor.get_id()).id: ElectricalPower(5),
@@ -152,7 +159,7 @@ class TestEnergyNetworkEnergyCalculation:
 
         propagation = network.propagate_energy({})
 
-        assert not propagation.connection_energy
+        assert not propagation.connections
         assert not propagation.capacity_failures
 
     def test_calculates_input_energy_for_transporter(self):
@@ -177,7 +184,7 @@ class TestEnergyNetworkEnergyCalculation:
             {topology.get_connection(cable.get_id(), consumer.get_id()).id: ElectricalPower(10)}
         )
 
-        assert propagation.connection_energy == {
+        assert {connection_id: connection.energy for connection_id, connection in propagation.connections.items()} == {
             topology.get_connection(source.get_id(), cable.get_id()).id: ElectricalPower(10 / 0.96),
             topology.get_connection(cable.get_id(), consumer.get_id()).id: ElectricalPower(10),
         }
@@ -203,12 +210,14 @@ class TestEnergyNetworkCapacity:
             capacities=capacities,
         )
 
-        assert propagation.connection_energy[connection.id] == ElectricalPower(6)
+        assert propagation.connections[connection.id].energy == ElectricalPower(6)
         assert set(propagation.capacity_failures) == {grid.get_id()}
         assert isinstance(propagation.capacity_failures[grid.get_id()], CapacityFailure)
         assert propagation.capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
+        assert propagation.capacity_failures[grid.get_id()].energy_unit_id == grid.get_id()
         assert propagation.capacity_failures[grid.get_id()].required_energy == ElectricalPower(6)
         assert propagation.capacity_failures[grid.get_id()].capacity == ElectricalPower(5)
+        assert not propagation.connections[connection.id].affected_by
 
     def test_capacity_equal_to_connection_energy_has_no_failure(self):
         grid = ElectricalSource("grid")
@@ -240,6 +249,86 @@ class TestEnergyNetworkCapacity:
         propagation = network.propagate_energy({connection.id: ElectricalPower(5)})
 
         assert not propagation.capacity_failures
+
+    def test_marks_connections_towards_source_as_affected_by_capacity_failure(self):
+        source = ElectricalSource("source")
+        upstream_cable = ElectricalCable("upstream_cable", loss_fraction=0)
+        constrained_cable = ElectricalCable("constrained_cable", loss_fraction=0)
+        load = ElectricalConsumer("load")
+        topology = create_topology(
+            nodes=[source, upstream_cable, constrained_cable, load],
+            connections=[
+                (source.get_id(), upstream_cable.get_id()),
+                (upstream_cable.get_id(), constrained_cable.get_id()),
+                (constrained_cable.get_id(), load.get_id()),
+            ],
+        )
+        network = EnergyNetwork(
+            topology=topology,
+            energy_units=[source, upstream_cable, constrained_cable, load],
+        )
+        source_connection = topology.get_connection(source.get_id(), upstream_cable.get_id())
+        constrained_connection = topology.get_connection(upstream_cable.get_id(), constrained_cable.get_id())
+        load_connection = topology.get_connection(constrained_cable.get_id(), load.get_id())
+
+        propagation = network.propagate_energy(
+            {load_connection.id: ElectricalPower(6)},
+            capacities={
+                source.get_id(): ElectricalPower(10),
+                constrained_cable.get_id(): ElectricalPower(5),
+            },
+        )
+
+        # The local failure affects only predecessor connections and does not change their required energy.
+        assert set(propagation.capacity_failures) == {constrained_cable.get_id()}
+        assert propagation.connections[source_connection.id].energy == ElectricalPower(6)
+        failure = propagation.capacity_failures[constrained_cable.get_id()]
+        assert propagation.connections[source_connection.id].affected_by == (failure,)
+        assert propagation.connections[constrained_connection.id].affected_by == (failure,)
+        assert not propagation.connections[load_connection.id].affected_by
+
+    def test_connection_can_be_affected_by_multiple_capacity_failures(self):
+        source = ElectricalSource("source")
+        bus = ElectricalBus("bus")
+        first_cable = ElectricalCable("first_cable", loss_fraction=0)
+        second_cable = ElectricalCable("second_cable", loss_fraction=0)
+        first_load = ElectricalConsumer("first_load")
+        second_load = ElectricalConsumer("second_load")
+        units = [source, bus, first_cable, second_cable, first_load, second_load]
+        topology = create_topology(
+            nodes=units,
+            connections=[
+                (source.get_id(), bus.get_id()),
+                (bus.get_id(), first_cable.get_id()),
+                (bus.get_id(), second_cable.get_id()),
+                (first_cable.get_id(), first_load.get_id()),
+                (second_cable.get_id(), second_load.get_id()),
+            ],
+        )
+        network = EnergyNetwork(topology=topology, energy_units=units)
+        source_connection = topology.get_connection(source.get_id(), bus.get_id())
+
+        propagation = network.propagate_energy(
+            {
+                topology.get_connection(first_cable.get_id(), first_load.get_id()).id: ElectricalPower(6),
+                topology.get_connection(second_cable.get_id(), second_load.get_id()).id: ElectricalPower(7),
+            },
+            capacities={
+                first_cable.get_id(): ElectricalPower(5),
+                second_cable.get_id(): ElectricalPower(6),
+            },
+        )
+
+        # Both downstream failures affect the connection shared on their paths towards the source.
+        affected_unit_ids: set[EnergyUnitId] = set()
+        for failure in propagation.connections[source_connection.id].affected_by:
+            assert isinstance(failure, CapacityFailure)
+            affected_unit_ids.add(failure.energy_unit_id)
+
+        assert affected_unit_ids == {
+            first_cable.get_id(),
+            second_cable.get_id(),
+        }
 
     def test_rejects_capacity_for_consumer(self):
         topology, source, consumer = create_electrical_topology()
@@ -349,15 +438,15 @@ class TestJunctionDispatch:
             capacities={grid.get_id(): ElectricalPower(5), genset.get_id(): ElectricalPower(10)},
         )
 
-        assert propagation.connection_energy[
+        assert propagation.connections[
             topology.get_connection(grid.get_id(), bus.get_id()).id
-        ] == ElectricalPower(5)
-        assert propagation.connection_energy[
+        ].energy == ElectricalPower(5)
+        assert propagation.connections[
             topology.get_connection(genset.get_id(), bus.get_id()).id
-        ] == ElectricalPower(3)
-        assert propagation.connection_energy[
+        ].energy == ElectricalPower(3)
+        assert propagation.connections[
             topology.get_connection(fuel_source.get_id(), genset.get_id()).id
-        ] == FuelGasRate(3_000)
+        ].energy == FuelGasRate(3_000)
         assert not propagation.capacity_failures
 
     def test_separate_genset_curves_reproduce_legacy_fuel_jump(self):
@@ -386,18 +475,18 @@ class TestJunctionDispatch:
             capacities={first.get_id(): ElectricalPower(10), second.get_id(): ElectricalPower(10)},
         )
 
-        assert propagation.connection_energy[
+        assert propagation.connections[
             topology.get_connection(first.get_id(), bus.get_id()).id
-        ] == ElectricalPower(10)
-        assert propagation.connection_energy[
+        ].energy == ElectricalPower(10)
+        assert propagation.connections[
             topology.get_connection(second.get_id(), bus.get_id()).id
-        ] == ElectricalPower(2)
-        assert propagation.connection_energy[
+        ].energy == ElectricalPower(2)
+        assert propagation.connections[
             topology.get_connection(fuel_source.get_id(), first.get_id()).id
-        ] == FuelGasRate(10_000)
-        assert propagation.connection_energy[
+        ].energy == FuelGasRate(10_000)
+        assert propagation.connections[
             topology.get_connection(fuel_source.get_id(), second.get_id()).id
-        ] == FuelGasRate(14_000)
+        ].energy == FuelGasRate(14_000)
         assert not propagation.capacity_failures
 
     def test_overflows_last_candidate_when_total_capacity_is_insufficient(self):
@@ -426,12 +515,12 @@ class TestJunctionDispatch:
             capacities=capacities,
         )
 
-        assert propagation.connection_energy[
+        assert propagation.connections[
             topology.get_connection(first_grid.get_id(), bus.get_id()).id
-        ] == ElectricalPower(5)
-        assert propagation.connection_energy[
+        ].energy == ElectricalPower(5)
+        assert propagation.connections[
             topology.get_connection(second_grid.get_id(), bus.get_id()).id
-        ] == ElectricalPower(7)
+        ].energy == ElectricalPower(7)
 
         # The overflow is reported rather than raised: the second grid is over its rating.
         assert set(propagation.capacity_failures) == {second_grid.get_id()}
@@ -469,15 +558,15 @@ class TestJunctionDispatch:
 
         # The cable is filled to its own 30 MW rating, so the 20 MW grid behind it is over-drawn
         # and the 10 MW wind source is left idle.
-        assert propagation.connection_energy[
+        assert propagation.connections[
             topology.get_connection(cable.get_id(), bus.get_id()).id
-        ] == ElectricalPower(25)
-        assert propagation.connection_energy[
+        ].energy == ElectricalPower(25)
+        assert propagation.connections[
             topology.get_connection(grid.get_id(), cable.get_id()).id
-        ] == ElectricalPower(25)
-        assert propagation.connection_energy[
+        ].energy == ElectricalPower(25)
+        assert propagation.connections[
             topology.get_connection(wind.get_id(), bus.get_id()).id
-        ] == ElectricalPower(0)
+        ].energy == ElectricalPower(0)
 
         # The consequence is a model reported infeasible even though 25 MW is within the combined
         # 30 MW the grid and wind can supply. Allocating on deliverable rather than nominal capacity
@@ -619,9 +708,9 @@ class TestJunctionDispatch:
             }
         )
 
-        assert propagation.connection_energy[
+        assert propagation.connections[
             topology.get_connection(grid.get_id(), bus.get_id()).id
-        ] == ElectricalPower(10)
+        ].energy == ElectricalPower(10)
         assert not propagation.capacity_failures
 
         first_grid = ElectricalSource("first_grid")

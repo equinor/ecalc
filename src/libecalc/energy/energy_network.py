@@ -2,9 +2,9 @@ from collections.abc import Iterable
 
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
 from libecalc.energy.dispatch import Candidate
-from libecalc.energy.energy_failure import CapacityFailure, EnergyFailureStatus
+from libecalc.energy.energy_failure import CapacityFailure, EnergyFailure, EnergyFailureStatus
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
-from libecalc.energy.energy_propagation import EnergyPropagation
+from libecalc.energy.energy_propagation import ConnectionPropagation, EnergyPropagation
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -85,9 +85,16 @@ class EnergyNetwork:
             connection_energy=connection_energy,
             capacities=capacities,
         )
+        affected_connections = self._get_affected_connections(capacity_failures)
 
         return EnergyPropagation(
-            connection_energy=connection_energy,
+            connections={
+                connection_id: ConnectionPropagation(
+                    energy=energy,
+                    affected_by=affected_connections.get(connection_id, ()),
+                )
+                for connection_id, energy in connection_energy.items()
+            },
             capacity_failures=capacity_failures,
         )
 
@@ -102,11 +109,32 @@ class EnergyNetwork:
             if output_energy.value > capacity.value:
                 failures[node_id] = CapacityFailure(
                     status=EnergyFailureStatus.CAPACITY_EXCEEDED,
+                    energy_unit_id=node_id,
                     required_energy=output_energy,
                     capacity=capacity,
                 )
 
         return failures
+
+    def _get_affected_connections(
+        self,
+        capacity_failures: dict[EnergyUnitId, CapacityFailure],
+    ) -> dict[EnergyConnectionId, tuple[EnergyFailure, ...]]:
+        """
+        Map each upstream connection to capacity failures originating downstream.
+
+        This preserves failure context without changing calculated connection energy.
+        """
+        affected_connections: dict[EnergyConnectionId, list[EnergyFailure]] = {}
+
+        for failure in capacity_failures.values():
+            for connection in self._topology.get_ancestor_connections(failure.energy_unit_id):
+                if connection.id not in affected_connections:
+                    affected_connections[connection.id] = []
+
+                affected_connections[connection.id].append(failure)
+
+        return {connection_id: tuple(failures) for connection_id, failures in affected_connections.items()}
 
     def _allocate(
         self,
