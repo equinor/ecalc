@@ -1,5 +1,28 @@
 # Changelog
 
+## [14.1.0](https://github.com/equinor/ecalc/compare/v14.0.0...v14.1.0) (2026-09-15)
+
+
+### Features
+
+* **libecalc:** allocate junction demand across multiple inputs ([#1772](https://github.com/equinor/ecalc/issues/1772)) ([d2659e1](https://github.com/equinor/ecalc/commit/d2659e19ecc023e4e6c36388a53bfdfc5557db38))
+
+
+### Documentation
+
+* correct v14 chart validation changelog ([#1783](https://github.com/equinor/ecalc/issues/1783)) ([cff093e](https://github.com/equinor/ecalc/commit/cff093efa8b326f79f78c353f8e84c03d7c067bd))
+
+
+### Code Refactoring
+
+* move capacity and feasibility to network evaluation ([#1778](https://github.com/equinor/ecalc/issues/1778)) ([8706ca3](https://github.com/equinor/ecalc/commit/8706ca35cdd60e46c508f847cdb00736adfca2a9))
+* rename energy network topology ([#1784](https://github.com/equinor/ecalc/issues/1784)) ([a2e56bc](https://github.com/equinor/ecalc/commit/a2e56bc78c5094fe499088a7e88f07950d346c76))
+
+
+### Continuous Integration
+
+* correctly determine and set versioning strategy ([#1786](https://github.com/equinor/ecalc/issues/1786)) ([273dc03](https://github.com/equinor/ecalc/commit/273dc03bedd72da667ff04ebe4ccdd6fc37e79ba))
+
 ## [14.0.0](https://github.com/equinor/ecalc/compare/v13.12.1...v14.0.0) (2026-09-11)
 
 
