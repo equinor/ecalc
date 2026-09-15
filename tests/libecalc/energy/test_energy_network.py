@@ -2,7 +2,7 @@ from typing import cast
 
 import pytest
 
-from libecalc.energy import CapacityFailure, CapacityFailureStatus, ElectricalPower, FuelGasRate, MechanicalPower
+from libecalc.energy import CapacityFailure, ElectricalPower, EnergyFailureStatus, FuelGasRate, MechanicalPower
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network import EnergyNetwork
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
@@ -206,7 +206,7 @@ class TestEnergyNetworkCapacity:
         assert connection_energy[connection.id] == ElectricalPower(6)
         assert set(capacity_failures) == {grid.get_id()}
         assert isinstance(capacity_failures[grid.get_id()], CapacityFailure)
-        assert capacity_failures[grid.get_id()].status == CapacityFailureStatus.CAPACITY_EXCEEDED
+        assert capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
         assert capacity_failures[grid.get_id()].required_energy == ElectricalPower(6)
         assert capacity_failures[grid.get_id()].capacity == ElectricalPower(5)
 
@@ -300,7 +300,7 @@ class TestEnergyNetworkCapacity:
             },
             capacities=capacities,
         )
-        assert capacity_failures[grid.get_id()].status == CapacityFailureStatus.CAPACITY_EXCEEDED
+        assert capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
 
     def test_validates_all_capacities_before_propagating_energy(self):
         topology, source, consumer = create_electrical_topology()
@@ -417,7 +417,7 @@ class TestJunctionDispatch:
 
         # The overflow is reported rather than raised: the second grid is over its rating.
         assert set(capacity_failures) == {second_grid.get_id()}
-        assert capacity_failures[second_grid.get_id()].status == CapacityFailureStatus.CAPACITY_EXCEEDED
+        assert capacity_failures[second_grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
 
     def test_dispatch_uses_cable_capacity_not_upstream_grid_capacity(self):
         """Availability is a candidate's own capacity, not what the chain behind it can deliver."""
@@ -459,7 +459,7 @@ class TestJunctionDispatch:
         # 30 MW the grid and wind can supply. Allocating on deliverable rather than nominal capacity
         # would give cable 20 and wind 5, and this assertion should then be inverted.
         assert set(capacity_failures) == {grid.get_id()}
-        assert capacity_failures[grid.get_id()].status == CapacityFailureStatus.CAPACITY_EXCEEDED
+        assert capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
 
     def test_requires_dispatch_strategy_for_junction_with_multiple_predecessors(self):
         first_grid = ElectricalSource("first_grid")

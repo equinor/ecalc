@@ -1,8 +1,8 @@
 from collections.abc import Iterable
 
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
-from libecalc.energy.capacity import CapacityFailure, CapacityFailureStatus
 from libecalc.energy.dispatch import Candidate
+from libecalc.energy.energy_failure import CapacityFailure, EnergyFailureStatus
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
@@ -99,7 +99,7 @@ class EnergyNetwork:
             output_energy = self._get_output_energy(node_id, connection_energy)
             if output_energy.value > capacity.value:
                 failures[node_id] = CapacityFailure(
-                    status=CapacityFailureStatus.CAPACITY_EXCEEDED,
+                    status=EnergyFailureStatus.CAPACITY_EXCEEDED,
                     required_energy=output_energy,
                     capacity=capacity,
                 )
