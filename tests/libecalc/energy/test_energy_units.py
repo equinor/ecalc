@@ -24,7 +24,12 @@ from libecalc.energy.energy_units import (
     GasTurbine,
     GeneratorSet,
     MechanicalConsumer,
+    SampledCompressorElectricalConsumer,
+    SampledCompressorFuelGasConsumer,
+    SampledCompressorMechanicalConsumer,
 )
+from libecalc.energy.models.sampled_compressor import SampledCompressor
+from libecalc.energy.models.sampled_compressor_factory import SampledCompressorFactory
 
 
 class TestSources:
@@ -87,3 +92,60 @@ class TestConsumers:
         assert consumer.get_input_energy_type() is expected_input_type
         assert consumer.get_output_energy_type() is None
         assert isinstance(consumer.get_id(), UUID)
+
+
+class TestSampledCompressorConsumers:
+    @staticmethod
+    def _fuel_only_compressor() -> SampledCompressor:
+        return SampledCompressorFactory.create(
+            energy_usage_values=[1000.0, 2000.0, 3000.0],
+            rate_values=[0.0, 100.0, 200.0],
+        )
+
+    @staticmethod
+    def _fuel_and_turbine_compressor() -> SampledCompressor:
+        return SampledCompressorFactory.create(
+            energy_usage_values=[1000.0, 2000.0, 3000.0],
+            rate_values=[0.0, 100.0, 200.0],
+            power_interpolation_values=[1.0, 2.0, 3.0],
+        )
+
+    @pytest.mark.parametrize(
+        ("consumer_type", "expected_input_type"),
+        [
+            (SampledCompressorFuelGasConsumer, FuelGasRate),
+            (SampledCompressorElectricalConsumer, ElectricalPower),
+            (SampledCompressorMechanicalConsumer, MechanicalPower),
+        ],
+    )
+    def test_energy_contract(self, consumer_type, expected_input_type: type[Energy]):
+        consumer = consumer_type("compressor", self._fuel_only_compressor())
+        assert consumer.get_input_energy_type() is expected_input_type
+        assert consumer.get_output_energy_type() is None
+        assert isinstance(consumer.get_id(), UUID)
+
+    def test_fuel_gas_consumer_reads_energy_usage_directly(self):
+        consumer = SampledCompressorFuelGasConsumer("compressor", self._fuel_only_compressor())
+        assert consumer.get_energy(rate=50.0) == pytest.approx(1500.0)
+
+    def test_electrical_consumer_reads_power(self):
+        compressor = SampledCompressorFactory.create(
+            energy_usage_values=[1.0, 2.0, 3.0],
+            rate_values=[0.0, 100.0, 200.0],
+        )
+        consumer = SampledCompressorElectricalConsumer("compressor", compressor)
+        assert consumer.get_energy(rate=50.0) == pytest.approx(1.5)
+
+    def test_mechanical_consumer_reads_power_from_turbine_compressor(self):
+        # power_interpolation_values present -> the compressor's energy_usage is fuel,
+        # consumed by a separate dedicated turbine; this consumer demands that
+        # turbine's resolved power instead, auto-detected from the compressor itself.
+        consumer = SampledCompressorMechanicalConsumer("compressor", self._fuel_and_turbine_compressor())
+        assert consumer.get_energy(rate=50.0) == pytest.approx(1.5)
+
+    def test_mechanical_consumer_without_power_interpolation_reads_energy_usage_directly(self):
+        # No power_interpolation_values means this compressor's own energy_usage_values
+        # already are power - e.g. a POWER-only compressor driven directly by a
+        # GAS_TURBINE/ELECTRICAL_MOTOR unit upstream, with no dedicated turbine of its own.
+        consumer = SampledCompressorMechanicalConsumer("compressor", self._fuel_only_compressor())
+        assert consumer.get_energy(rate=50.0) == pytest.approx(1500.0)
