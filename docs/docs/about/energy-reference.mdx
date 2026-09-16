@@ -1,0 +1,151 @@
+---
+title: Energy Reference (Experimental)
+sidebar_position: 7
+toc_max_heading_level: 4
+description: Complete reference for the energy network configuration.
+---
+
+import Tabs from '@theme/Tabs';
+import TabItem from '@theme/TabItem';
+
+# Energy Reference
+
+This page documents the [ENERGY_NETWORK](#energy_network) YAML configuration key for the eCalc Asset model.
+
+## ENERGY_NETWORK
+
+Defines the energy network configuration.
+
+### SOURCES
+
+External energy entering the system (fuel gas, electrical, diesel).
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this energy source. | Required |
+| `TYPE` | Type of external energy source. | Required |
+| `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
+
+### UNITS
+
+Converters, junctions, and consumers forming the energy network.
+
+##### UNITS {/* #energy-network-units */}
+
+<Tabs>
+<TabItem value="GENERATOR_SET" label="GENERATOR_SET">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
+| `TYPE` | `GENERATOR_SET` | Required |
+| `MODEL` | Reference to a facility model defining the power-to-fuel curve. | Optional |
+
+</TabItem>
+
+<TabItem value="GAS_TURBINE" label="GAS_TURBINE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
+| `TYPE` | `GAS_TURBINE` | Required |
+| `MODEL` | Reference to a facility model defining the power-to-fuel curve. | Optional |
+
+</TabItem>
+
+<TabItem value="ELECTRICAL_MOTOR" label="ELECTRICAL_MOTOR">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
+| `TYPE` | `ELECTRICAL_MOTOR` | Required |
+| `EFFICIENCY` | Conversion efficiency (0–1]. Defaults to 0.95 if omitted. | Optional |
+
+</TabItem>
+
+<TabItem value="ELECTRICAL_CABLE" label="ELECTRICAL_CABLE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
+| `TYPE` | `ELECTRICAL_CABLE` | Required |
+| `EFFICIENCY` | Transmission efficiency (0–1]. 1.0 means no loss. Defaults to 1.0 if omitted. | Optional |
+
+</TabItem>
+
+<TabItem value="ELECTRICAL_BUS" label="ELECTRICAL_BUS">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Sources or units feeding into this junction. | Required |
+| `DISPATCH_STRATEGY` | How to allocate demand across multiple inputs. Required when INPUT has more than one entry. | Optional |
+| `TYPE` | `ELECTRICAL_BUS` | Required |
+
+</TabItem>
+
+<TabItem value="FUEL_GAS_MANIFOLD" label="FUEL_GAS_MANIFOLD">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Sources or units feeding into this junction. | Required |
+| `DISPATCH_STRATEGY` | How to allocate demand across multiple inputs. Required when INPUT has more than one entry. | Optional |
+| `TYPE` | `FUEL_GAS_MANIFOLD` | Required |
+
+</TabItem>
+
+<TabItem value="ELECTRICAL_CONSUMER" label="ELECTRICAL_CONSUMER">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `TYPE` | `ELECTRICAL_CONSUMER` | Required |
+| `LOAD` | Electrical power demand (MW). | Required |
+
+</TabItem>
+
+<TabItem value="MECHANICAL_CONSUMER" label="MECHANICAL_CONSUMER">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `TYPE` | `MECHANICAL_CONSUMER` | Required |
+| `LOAD` | Shaft power demand (MW). Mutually exclusive with PROCESS_SIMULATION. | Optional |
+| `PROCESS_SIMULATION` | Reference to a process simulation that determines shaft power demand. Mutually exclusive with LOAD. | Optional |
+
+</TabItem>
+
+<TabItem value="FUEL_GAS_CONSUMER" label="FUEL_GAS_CONSUMER">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `TYPE` | `FUEL_GAS_CONSUMER` | Required |
+| `RATE` | Fuel gas consumption rate (Sm³/d). | Required |
+
+</TabItem>
+
+<TabItem value="DIESEL_CONSUMER" label="DIESEL_CONSUMER">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `TYPE` | `DIESEL_CONSUMER` | Required |
+| `RATE` | Diesel consumption rate (l/d). | Required |
+
+</TabItem>
+
+</Tabs>
