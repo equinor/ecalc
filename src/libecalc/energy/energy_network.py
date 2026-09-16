@@ -2,7 +2,9 @@ from collections.abc import Iterable
 
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
 from libecalc.energy.dispatch import Candidate
+from libecalc.energy.energy_failure import CapacityFailure, EnergyFailureStatus
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
+from libecalc.energy.energy_propagation import EnergyPropagation
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -41,11 +43,11 @@ class EnergyNetwork:
         self,
         connection_demands: dict[EnergyConnectionId, Energy],
         capacities: dict[EnergyUnitId, Energy] | None = None,
-    ) -> dict[EnergyConnectionId, Energy]:
-        """Calculate connection energy from demands on consumer-targeting connections.
+    ) -> EnergyPropagation:
+        """Calculate connection energy and capacity failures from demands on consumer-targeting connections.
 
-        `capacities` is only consulted where a junction dispatches demand across several candidates; a
-        candidate absent from it is treated as unlimited, as elsewhere.
+        `capacities` is consulted where a junction dispatches demand across several candidates and when evaluating
+        capacity failures; a candidate absent from it is treated as unlimited, as elsewhere.
         """
         self._validate_connection_demands(connection_demands)
         capacities = capacities or {}
@@ -79,39 +81,32 @@ class EnergyNetwork:
                 connection = self._topology.get_connection(predecessor_id, node_id)
                 connection_energy[connection.id] = input_energy
 
-        return connection_energy
-
-    def is_feasible(
-        self,
-        connection_energy: dict[EnergyConnectionId, Energy],
-        capacities: dict[EnergyUnitId, Energy],
-    ) -> bool:
-        self._validate_capacities(capacities)
-
-        return not any(
-            self.is_capacity_exceeded(
-                node_id=node_id,
-                connection_energy=connection_energy,
-                capacities=capacities,
-            )
-            for node_id in capacities
+        capacity_failures = self._evaluate_capacities(
+            connection_energy=connection_energy,
+            capacities=capacities,
         )
 
-    def is_capacity_exceeded(
+        return EnergyPropagation(
+            connection_energy=connection_energy,
+            capacity_failures=capacity_failures,
+        )
+
+    def _evaluate_capacities(
         self,
-        node_id: EnergyUnitId,
         connection_energy: dict[EnergyConnectionId, Energy],
         capacities: dict[EnergyUnitId, Energy],
-    ) -> bool:
-        capacity = capacities.get(node_id)
-        if capacity is None:
-            return False
+    ) -> dict[EnergyUnitId, CapacityFailure]:
+        failures: dict[EnergyUnitId, CapacityFailure] = {}
+        for node_id, capacity in capacities.items():
+            output_energy = self._get_output_energy(node_id, connection_energy)
+            if output_energy.value > capacity.value:
+                failures[node_id] = CapacityFailure(
+                    status=EnergyFailureStatus.CAPACITY_EXCEEDED,
+                    required_energy=output_energy,
+                    capacity=capacity,
+                )
 
-        self._validate_capacity(node_id=node_id, capacity=capacity)
-
-        output_energy = self._get_output_energy(node_id, connection_energy)
-
-        return output_energy.value > capacity.value
+        return failures
 
     def _allocate(
         self,
