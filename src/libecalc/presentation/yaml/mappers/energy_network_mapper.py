@@ -22,6 +22,7 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
+    YamlConverterBase,
     YamlDieselConsumer,
     YamlElectricalBus,
     YamlElectricalCable,
@@ -43,7 +44,12 @@ class EnergyNetworkMapper:
         self,
         yaml_energy_network: YamlEnergyNetwork,
         expression_evaluator: ExpressionEvaluator,
-    ) -> tuple[EnergyNetworkTopology, Sequence[EnergyUnit], dict[EnergyUnitId, TimeSeriesExpression]]:
+    ) -> tuple[
+        EnergyNetworkTopology,
+        Sequence[EnergyUnit],
+        dict[EnergyUnitId, TimeSeriesExpression],
+        dict[EnergyUnitId, TimeSeriesExpression],
+    ]:
         energy_units = [
             *(self._map_source(source) for source in yaml_energy_network.sources),
             *(self._map_unit(unit) for unit in yaml_energy_network.units),
@@ -69,7 +75,16 @@ class EnergyNetworkMapper:
             for unit, energy_unit in zip(yaml_energy_network.units, energy_units[len(yaml_energy_network.sources) :])
             if (expression := self._get_consumer_expression(unit)) is not None
         }
-        return topology, energy_units, consumer_expressions
+        capacity_expressions = {
+            energy_unit.get_id(): TimeSeriesExpression(expression=expression, expression_evaluator=expression_evaluator)
+            for unit, energy_unit in zip(
+                [*yaml_energy_network.sources, *yaml_energy_network.units],
+                energy_units,
+                strict=True,
+            )
+            if (expression := self._get_capacity_expression(unit)) is not None
+        }
+        return topology, energy_units, consumer_expressions, capacity_expressions
 
     @staticmethod
     def _map_source(source: YamlEnergySource) -> EnergyUnit:
@@ -116,4 +131,10 @@ class EnergyNetworkMapper:
                 return unit.load
             case YamlFuelGasConsumer() | YamlDieselConsumer():
                 return unit.rate
+        return None
+
+    @staticmethod
+    def _get_capacity_expression(unit: YamlEnergySource | YamlComponent) -> ExpressionType | None:
+        if isinstance(unit, (YamlEnergySource, YamlConverterBase)):
+            return unit.capacity
         return None

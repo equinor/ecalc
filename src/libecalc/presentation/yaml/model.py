@@ -283,11 +283,16 @@ class YamlModel:
 
     def get_energy_network(
         self,
-    ) -> tuple[EnergyNetworkTopology | None, Sequence[EnergyUnit], dict[EnergyUnitId, TimeSeriesExpression]]:
+    ) -> tuple[
+        EnergyNetworkTopology | None,
+        Sequence[EnergyUnit],
+        dict[EnergyUnitId, TimeSeriesExpression],
+        dict[EnergyUnitId, TimeSeriesExpression],
+    ]:
         self.validate_for_run()
         yaml_energy_network = self._configuration.energy_network
         if yaml_energy_network is None:
-            return None, (), {}
+            return None, (), {}, {}
 
         time_series_resources, _ = self._resource_service.get_time_series_resources()
         time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}

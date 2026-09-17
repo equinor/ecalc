@@ -18,7 +18,7 @@ from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetwo
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
 
-def test_maps_sources_units_connections_and_consumer_expressions(expression_evaluator_factory, period):
+def test_maps_sources_units_connections_and_expressions(expression_evaluator_factory, period):
     yaml_network = YamlEnergyNetwork.model_validate(
         {
             "SOURCES": [
@@ -30,7 +30,7 @@ def test_maps_sources_units_connections_and_consumer_expressions(expression_eval
                 {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "CAPACITY": 10},
                 {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "CAPACITY": 15},
                 {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5},
-                {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid"},
+                {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4},
                 {"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["cable"]},
                 {"NAME": "manifold", "TYPE": "FUEL_GAS_MANIFOLD", "INPUT": ["fuel"]},
                 {"NAME": "electrical_load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "bus", "LOAD": 5},
@@ -42,7 +42,7 @@ def test_maps_sources_units_connections_and_consumer_expressions(expression_eval
     )
 
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
-    topology, energy_units, consumer_expressions = EnergyNetworkMapper().map_energy_network(
+    topology, energy_units, consumer_expressions, capacity_expressions = EnergyNetworkMapper().map_energy_network(
         yaml_network, expression_evaluator
     )
 
@@ -85,13 +85,25 @@ def test_maps_sources_units_connections_and_consumer_expressions(expression_eval
         "diesel_load",
     ]
     assert {energy_unit.get_id() for energy_unit in energy_units} == set(topology.get_nodes())
-    consumer_ids_by_name = {energy_unit.get_name(): energy_unit.get_id() for energy_unit in energy_units}
+    energy_unit_ids_by_name = {energy_unit.get_name(): energy_unit.get_id() for energy_unit in energy_units}
     assert {
-        consumer_ids_by_name["electrical_load"]: 5,
-        consumer_ids_by_name["mechanical_load"]: 2,
-        consumer_ids_by_name["fuel_load"]: 10,
-        consumer_ids_by_name["diesel_load"]: 20,
+        energy_unit_ids_by_name["electrical_load"]: 5,
+        energy_unit_ids_by_name["mechanical_load"]: 2,
+        energy_unit_ids_by_name["fuel_load"]: 10,
+        energy_unit_ids_by_name["diesel_load"]: 20,
     } == {
         energy_unit_id: expression.get_original_expression()
         for energy_unit_id, expression in consumer_expressions.items()
+    }
+    assert {
+        energy_unit_ids_by_name["fuel"]: 100,
+        energy_unit_ids_by_name["grid"]: 20,
+        energy_unit_ids_by_name["diesel"]: 500,
+        energy_unit_ids_by_name["genset"]: 10,
+        energy_unit_ids_by_name["turbine"]: 15,
+        energy_unit_ids_by_name["motor"]: 5,
+        energy_unit_ids_by_name["cable"]: 4,
+    } == {
+        energy_unit_id: expression.get_original_expression()
+        for energy_unit_id, expression in capacity_expressions.items()
     }
