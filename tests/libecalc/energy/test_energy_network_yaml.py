@@ -5,6 +5,9 @@ import yaml
 from pydantic import TypeAdapter, ValidationError
 
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    CONSUMER_TYPES,
+    INPUT_ENERGY_ALTERNATIVES,
+    EnergyType,
     YamlComponent,
     YamlElectricalBus,
     YamlElectricalCable,
@@ -15,7 +18,9 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasManifold,
     YamlGeneratorSet,
     YamlMechanicalConsumer,
+    YamlSampledCompressor,
 )
+from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 EXAMPLE_YAML = Path(__file__).parents[3] / "src" / "libecalc" / "examples" / "energy" / "energy_network.yaml"
 
@@ -259,4 +264,149 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="cannot specify both"):
             _component_adapter.validate_python(
                 {"NAME": "c", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "x", "LOAD": 5, "PROCESS_SIMULATION": "sim"}
+            )
+
+
+class TestSampledCompressor:
+    @pytest.mark.parametrize(
+        ("fields", "expected"),
+        [
+            ({"RATE": 50000}, {"rate": 50000, "suction_pressure": None, "discharge_pressure": None}),
+            (
+                {"SUCTION_PRESSURE": 20, "DISCHARGE_PRESSURE": 80},
+                {"rate": None, "suction_pressure": 20, "discharge_pressure": 80},
+            ),
+            (
+                {"RATE": 50000, "SUCTION_PRESSURE": 20, "DISCHARGE_PRESSURE": 80},
+                {"rate": 50000, "suction_pressure": 20, "discharge_pressure": 80},
+            ),
+        ],
+    )
+    def test_sampled_compressor_accepts_file_and_query_variables(self, fields, expected):
+        component = _component_adapter.validate_python(
+            {
+                "NAME": "gas_compressor_sampled",
+                "TYPE": "SAMPLED_COMPRESSOR",
+                "INPUT": "fuel_manifold",
+                "FILE": "compressor.csv",
+                **fields,
+            }
+        )
+        assert isinstance(component, YamlSampledCompressor)
+        assert component.file == "compressor.csv"
+        assert component.rate == expected["rate"]
+        assert component.suction_pressure == expected["suction_pressure"]
+        assert component.discharge_pressure == expected["discharge_pressure"]
+
+    def test_sampled_compressor_requires_file(self):
+        with pytest.raises(ValidationError, match="Field required") as exc_info:
+            _component_adapter.validate_python({"NAME": "c", "TYPE": "SAMPLED_COMPRESSOR", "INPUT": "x", "RATE": 50000})
+        assert [error["loc"][-1] for error in exc_info.value.errors()] == ["FILE"]
+
+    def test_sampled_compressor_requires_at_least_one_variable(self):
+        with pytest.raises(ValueError, match="at least one of RATE/SUCTION_PRESSURE/DISCHARGE_PRESSURE"):
+            _component_adapter.validate_python(
+                {"NAME": "c", "TYPE": "SAMPLED_COMPRESSOR", "INPUT": "x", "FILE": "compressor.csv"}
+            )
+
+    def test_sampled_compressor_file_must_be_a_known_resource(self):
+        """FILE is only checked against the model's actual resources when a validation
+        context is supplied (as YamlModel does); without one the validator is a no-op."""
+        component = {
+            "NAME": "c",
+            "TYPE": "SAMPLED_COMPRESSOR",
+            "INPUT": "x",
+            "FILE": "missing.csv",
+            "RATE": 50000,
+        }
+        context = {YamlModelValidationContextNames.resource_file_names: {"compressor.csv"}}
+
+        with pytest.raises(ValidationError, match="resource not found, got 'missing.csv'") as exc_info:
+            _component_adapter.validate_python(component, context=context)
+        assert [error["type"] for error in exc_info.value.errors()] == ["resource_not_found"]
+
+        known = _component_adapter.validate_python({**component, "FILE": "compressor.csv"}, context=context)
+        assert isinstance(known, YamlSampledCompressor)
+        assert known.file == "compressor.csv"
+
+    @pytest.mark.parametrize(
+        ("sources", "upstream_units", "input_name", "expected_error"),
+        [
+            ([{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}], [], "fuel", None),
+            ([{"NAME": "power", "TYPE": "ELECTRICAL_SOURCE"}], [], "power", None),
+            # A SAMPLED_COMPRESSOR may sit downstream of a real (physics-based)
+            # GAS_TURBINE, letting the turbine's own model - not FILE's columns -
+            # determine fuel usage.
+            (
+                [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                [{"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel"}],
+                "turbine",
+                None,
+            ),
+            (
+                [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
+                [],
+                "diesel",
+                r"'compressor' \(SAMPLED_COMPRESSOR\) expects one of .* input, but 'diesel' provides DIESEL",
+            ),
+        ],
+    )
+    def test_sampled_compressor_input_energy_types(self, sources, upstream_units, input_name, expected_error):
+        """Exactly the INPUT_ENERGY_ALTERNATIVES set is accepted: fuel gas, electrical,
+        and mechanical input, but not diesel."""
+        assert INPUT_ENERGY_ALTERNATIVES["SAMPLED_COMPRESSOR"] == {
+            EnergyType.FUEL_GAS,
+            EnergyType.ELECTRICAL,
+            EnergyType.MECHANICAL,
+        }
+        network_data = {
+            "SOURCES": sources,
+            "UNITS": [
+                *upstream_units,
+                {
+                    "NAME": "compressor",
+                    "TYPE": "SAMPLED_COMPRESSOR",
+                    "INPUT": input_name,
+                    "FILE": "compressor.csv",
+                    "RATE": 50000,
+                },
+            ],
+        }
+        if expected_error is not None:
+            with pytest.raises(ValueError, match=expected_error):
+                YamlEnergyNetwork.model_validate(network_data)
+            return
+
+        network = YamlEnergyNetwork.model_validate(network_data)
+        compressor = network.units[-1]
+        assert isinstance(compressor, YamlSampledCompressor)
+        assert compressor.input == input_name
+        assert compressor.rate == 50000
+
+    def test_sampled_compressor_cannot_be_another_units_input(self):
+        """SAMPLED_COMPRESSOR is a terminal consumer (it is in CONSUMER_TYPES), so nothing
+        downstream may draw energy from it."""
+        assert "SAMPLED_COMPRESSOR" in CONSUMER_TYPES
+        with pytest.raises(ValueError, match="'load' has INPUT 'compressor' which is not a known source or provider"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                    "UNITS": [
+                        {
+                            "NAME": "compressor",
+                            "TYPE": "SAMPLED_COMPRESSOR",
+                            "INPUT": "fuel",
+                            "FILE": "compressor.csv",
+                            "RATE": 50000,
+                        },
+                        {"NAME": "load", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "compressor", "LOAD": 1},
+                    ],
+                }
+            )
+
+    @pytest.mark.parametrize("field", ["RATE", "SUCTION_PRESSURE", "DISCHARGE_PRESSURE"])
+    def test_sampled_compressor_rejects_negative_values(self, field):
+        with pytest.raises(ValueError, match=f"{field} must be non-negative"):
+            _component_adapter.validate_python(
+                {"NAME": "c", "TYPE": "SAMPLED_COMPRESSOR", "INPUT": "x", "FILE": "compressor.csv", field: -1}
             )

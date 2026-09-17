@@ -16,11 +16,22 @@ read.
 from dataclasses import dataclass
 
 from libecalc.common.errors.ecalc_validation_error import ProcessHeaderValidationException
-from libecalc.common.errors.exceptions import InvalidColumnException
+from libecalc.common.errors.exceptions import IllegalStateException, InvalidColumnException
 from libecalc.domain.resource import Resource
 from libecalc.energy.models.sampled_compressor import SampledCompressor
 from libecalc.energy.models.sampled_compressor_factory import SampledCompressorFactory
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import EnergyType
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    OUTPUT_ENERGY,
+    SOURCE_OUTPUT_ENERGY,
+    EnergyType,
+    YamlComponent,
+    YamlEnergyNetwork,
+    YamlSampledCompressor,
+    _SampledElectricalConsumer,
+    _SampledFuelGasConsumer,
+    _SampledGasTurbine,
+    _SampledMechanicalConsumer,
+)
 
 RATE_HEADER = "RATE"
 SUCTION_PRESSURE_HEADER = "SUCTION_PRESSURE"
@@ -107,3 +118,94 @@ def validate_input_energy_type(unit_name: str, has_fuel: bool, input_energy_type
             f"{'FUEL' if has_fuel else 'POWER'} column, requiring "
             f"{' or '.join(sorted(allowed_energy_types))} input."
         )
+
+
+def expand_sampled_compressors(
+    yaml_energy_network: YamlEnergyNetwork, facility_resources: dict[str, Resource]
+) -> YamlEnergyNetwork:
+    """Resolves every SAMPLED_COMPRESSOR unit's FILE-dependent topology up front, cloning
+    it (same FILE/RATE/SUCTION_PRESSURE/DISCHARGE_PRESSURE) into:
+    - a single _SampledFuelGasConsumer, if only FUEL is present in FILE; or
+    - a single _SampledElectricalConsumer or _SampledMechanicalConsumer, if only POWER
+      is present in FILE, chosen by what INPUT itself provides (electrical or
+      mechanical, respectively); or
+    - a _SampledGasTurbine (fuel -> mechanical power) feeding a _SampledMechanicalConsumer
+      (mechanical power -> none), both sharing the same FILE and operating point, if
+      both FUEL and POWER are present.
+    The result never contains a plain (unresolved) YamlSampledCompressor.
+    """
+    output_type_by_name: dict[str, EnergyType] = {
+        source.name: SOURCE_OUTPUT_ENERGY[source.type] for source in yaml_energy_network.sources
+    }
+    output_type_by_name.update(
+        {unit.name: OUTPUT_ENERGY[unit.type] for unit in yaml_energy_network.units if unit.type in OUTPUT_ENERGY}
+    )
+    # Every name already in use in the network, regardless of unit type - the set a
+    # freshly generated turbine name must never collide with (unlike output_type_by_name
+    # above, which is deliberately narrower - it's only used to resolve what a
+    # SAMPLED_COMPRESSOR's INPUT itself provides).
+    all_names = {source.name for source in yaml_energy_network.sources} | {
+        unit.name for unit in yaml_energy_network.units
+    }
+
+    expanded_units: list[YamlComponent] = []
+    for unit in yaml_energy_network.units:
+        if not isinstance(unit, YamlSampledCompressor):
+            expanded_units.append(unit)
+            continue
+        expanded_units.extend(_expand_sampled_compressor(unit, facility_resources, output_type_by_name, all_names))
+    return yaml_energy_network.model_copy(update={"units": expanded_units})
+
+
+def _retag(unit: YamlSampledCompressor, cls: type[YamlSampledCompressor], **overrides: str) -> YamlSampledCompressor:
+    """Builds a cls instance carrying unit's already-validated field values (plus any
+    overrides), without re-running validation - cls is one of the internal
+    _Sampled*Consumer/_SampledGasTurbine subclasses, never user-constructible.
+
+    Copies by declared field name (not unit.__dict__ directly), so this stays correct
+    if YamlSampledCompressor ever gains extra fields or private attributes that aren't
+    plain __dict__ entries.
+    """
+    field_values = {name: getattr(unit, name) for name in type(unit).model_fields}
+    return cls.model_construct(_fields_set=unit.model_fields_set, **{**field_values, **overrides})
+
+
+def _expand_sampled_compressor(
+    unit: YamlSampledCompressor,
+    facility_resources: dict[str, Resource],
+    output_type_by_name: dict[str, EnergyType],
+    all_names: set[str],
+) -> list[YamlSampledCompressor]:
+    if unit.file not in facility_resources:
+        raise ValueError(f"'{unit.name}': cannot resolve FILE '{unit.file}' to determine its topology.")
+    resource = facility_resources[unit.file]
+    has_fuel, has_power = get_sampled_compressor_topology(resource)
+
+    # Cross-check against the actual predecessor's energy type, using YAML names —
+    # gives a precise error here rather than a generic type-mismatch error later,
+    # keyed by internal node ids, from EnergyNetwork.create.
+    provided = output_type_by_name.get(unit.input)
+    if provided is None:
+        raise IllegalStateException(
+            f"'{unit.name}': cannot determine the energy type provided by INPUT '{unit.input}'. "
+            "This should be unreachable: YamlEnergyNetwork validation only accepts an INPUT "
+            "naming a source or a unit with a known output energy type."
+        )
+    validate_input_energy_type(unit.name, has_fuel, provided)
+
+    if not has_fuel:
+        # POWER-only: INPUT decides whether that's electrical or mechanical power.
+        if provided == EnergyType.MECHANICAL:
+            return [_retag(unit, _SampledMechanicalConsumer)]
+        return [_retag(unit, _SampledElectricalConsumer)]
+    if not has_power:
+        return [_retag(unit, _SampledFuelGasConsumer)]
+
+    turbine_name = f"{unit.name}-turbine"
+    if turbine_name in all_names:
+        raise ValueError(
+            f"'{unit.name}': cannot generate a distinct turbine name - '{turbine_name}' is already in use."
+        )
+    turbine = _retag(unit, _SampledGasTurbine, name=turbine_name)
+    compressor = _retag(unit, _SampledMechanicalConsumer, input=turbine_name)
+    return [turbine, compressor]
