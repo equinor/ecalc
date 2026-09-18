@@ -6,6 +6,7 @@ from libecalc.energy.consumer import Consumer
 from libecalc.energy.converter import Converter
 from libecalc.energy.dispatch import Candidate, DispatchStrategy, PriorityDispatch
 from libecalc.energy.energy_failure import CapacityFailure, EnergyFailure, EnergyFailureStatus
+from libecalc.energy.energy_flow import EnergyFlow
 from libecalc.energy.energy_network import EnergyNetwork
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
@@ -20,6 +21,7 @@ __all__ = [
     "Energy",
     "EnergyFailure",
     "EnergyFailureStatus",
+    "EnergyFlow",
     "EnergyNetwork",
     "DieselRate",
     "ElectricalPower",

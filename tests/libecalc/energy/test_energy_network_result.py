@@ -1,4 +1,4 @@
-from libecalc.energy import ElectricalPower
+from libecalc.energy import ElectricalPower, EnergyFlow
 from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_units import ElectricalConsumer, ElectricalSource
@@ -28,7 +28,15 @@ def test_energy_network_contains_simulation_state():
     )
     assert network.topology is topology
     assert network.get_energy_units() == (source, consumer)
+    assert network.get_energy_unit(source.get_id()) is source
+    assert network.get_connections() == (
+        EnergyFlow(
+            connection=connection,
+            energy=ElectricalPower(5),
+        ),
+    )
     assert network.connection_demands[connection.id] == ElectricalPower(5)
     assert network.capacities[source.get_id()] == ElectricalPower(10)
-    assert network.connection_energy[connection.id] == ElectricalPower(5)
+    assert network.get_connection_energy(connection.id) == ElectricalPower(5)
+    assert not network.get_capacity_failures()
     assert network.is_feasible()

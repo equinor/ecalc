@@ -2,7 +2,6 @@ from collections.abc import Iterable
 
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
 from libecalc.energy.dispatch import Candidate
-from libecalc.energy.energy_failure import CapacityFailure, EnergyFailureStatus
 from libecalc.energy.energy_network import EnergyNetwork
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_units import Junction, Transporter
@@ -81,11 +80,6 @@ class EnergyNetworkSimulation:
                 connection = self._topology.get_connection(predecessor_id, node_id)
                 connection_energy[connection.id] = input_energy
 
-        capacity_failures = self._evaluate_capacities(
-            connection_energy=connection_energy,
-            capacities=capacities,
-        )
-
         energy_units = tuple(self._energy_units[node_id] for node_id in self._topology.get_topological_order())
 
         return EnergyNetwork(
@@ -94,25 +88,7 @@ class EnergyNetworkSimulation:
             connection_demands=connection_demands,
             capacities=capacities,
             connection_energy=connection_energy,
-            capacity_failures=capacity_failures,
         )
-
-    def _evaluate_capacities(
-        self,
-        connection_energy: dict[EnergyConnectionId, Energy],
-        capacities: dict[EnergyUnitId, Energy],
-    ) -> dict[EnergyUnitId, CapacityFailure]:
-        failures: dict[EnergyUnitId, CapacityFailure] = {}
-        for node_id, capacity in capacities.items():
-            output_energy = self._get_output_energy(node_id, connection_energy)
-            if output_energy.value > capacity.value:
-                failures[node_id] = CapacityFailure(
-                    status=EnergyFailureStatus.CAPACITY_EXCEEDED,
-                    required_energy=output_energy,
-                    capacity=capacity,
-                )
-
-        return failures
 
     def _allocate(
         self,
