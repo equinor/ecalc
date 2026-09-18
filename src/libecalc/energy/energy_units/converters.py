@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from libecalc.energy.converter import Converter
-from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
+from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
 
 
@@ -17,10 +17,12 @@ class GeneratorSet(Converter):
     def __init__(
         self,
         name: str,
+        output_energy: Energy,
         power_to_fuel: Callable[[float], float] = lambda power: power,
+        capacity: Energy | None = None,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
-        super().__init__(name, energy_unit_id)
+        super().__init__(name, output_energy=output_energy, capacity=capacity, energy_unit_id=energy_unit_id)
         self._power_to_fuel = power_to_fuel
 
     @classmethod
@@ -31,8 +33,8 @@ class GeneratorSet(Converter):
     def get_output_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
 
-    def get_input_energy(self, output_energy: ElectricalPower) -> FuelGasRate:
-        return FuelGasRate(self._power_to_fuel(output_energy.value))
+    def get_input_energy(self) -> FuelGasRate:
+        return FuelGasRate(self._power_to_fuel(self._output_energy.value))
 
 
 class GasTurbine(Converter):
@@ -41,10 +43,12 @@ class GasTurbine(Converter):
     def __init__(
         self,
         name: str,
+        output_energy: Energy,
         power_to_fuel: Callable[[float], float] = lambda power: power,
+        capacity: Energy | None = None,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
-        super().__init__(name, energy_unit_id)
+        super().__init__(name, output_energy=output_energy, capacity=capacity, energy_unit_id=energy_unit_id)
         self._power_to_fuel = power_to_fuel
 
     @classmethod
@@ -55,8 +59,8 @@ class GasTurbine(Converter):
     def get_output_energy_type(cls) -> type[MechanicalPower]:
         return MechanicalPower
 
-    def get_input_energy(self, output_energy: MechanicalPower) -> FuelGasRate:
-        return FuelGasRate(self._power_to_fuel(output_energy.value))
+    def get_input_energy(self) -> FuelGasRate:
+        return FuelGasRate(self._power_to_fuel(self._output_energy.value))
 
 
 class ElectricalMotor(Converter):
@@ -65,10 +69,12 @@ class ElectricalMotor(Converter):
     def __init__(
         self,
         name: str,
+        output_energy: Energy,
         efficiency: float | None = None,
+        capacity: Energy | None = None,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
-        super().__init__(name, energy_unit_id)
+        super().__init__(name, output_energy=output_energy, capacity=capacity, energy_unit_id=energy_unit_id)
         self._efficiency = efficiency if efficiency is not None else 0.95
 
     @classmethod
@@ -82,5 +88,5 @@ class ElectricalMotor(Converter):
     def get_efficiency(self) -> float:
         return self._efficiency
 
-    def get_input_energy(self, output_energy: MechanicalPower) -> ElectricalPower:
-        return ElectricalPower(output_energy.value / self._efficiency)
+    def get_input_energy(self) -> ElectricalPower:
+        return ElectricalPower(self._output_energy.value / self._efficiency)

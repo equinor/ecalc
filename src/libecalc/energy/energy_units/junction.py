@@ -1,6 +1,7 @@
 import abc
 
 from libecalc.energy.dispatch import DispatchStrategy
+from libecalc.energy.energy_failure import EnergyFailure
 from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate
 from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
 
@@ -25,6 +26,10 @@ class Junction(EnergyUnit):
     def get_dispatch_strategy(self) -> DispatchStrategy | None:
         return self._dispatch_strategy
 
+    def get_failures(self) -> list[EnergyFailure]:
+        # A junction is a lossless, unrated aggregation point: it has no capacity to exceed.
+        return []
+
     @classmethod
     @abc.abstractmethod
     def get_energy_type(cls) -> type[Energy]: ...
@@ -36,10 +41,6 @@ class Junction(EnergyUnit):
     @classmethod
     def get_output_energy_type(cls) -> type[Energy]:
         return cls.get_energy_type()
-
-    def get_input_energy(self, output_energy: Energy) -> Energy:
-        """A junction aggregates without converting, so it draws exactly what it delivers."""
-        return output_energy
 
 
 class ElectricalBus(Junction):

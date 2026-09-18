@@ -116,6 +116,9 @@ class EnergyNetworkTopology:
     def get_nodes(self) -> Sequence[EnergyUnitId]:
         return tuple(self._nodes)
 
+    def get_leaf_nodes(self) -> tuple[EnergyUnitId, ...]:
+        return tuple(node_id for node_id in self._nodes if not self._successors[node_id])
+
     def get_connections(self) -> tuple[EnergyConnection, ...]:
         return tuple(self._connections.values())
 
@@ -180,3 +183,6 @@ class EnergyNetworkTopology:
             return tuple(TopologicalSorter(self._predecessors).static_order())
         except CycleError as error:
             raise InvalidEnergyNetworkError("Energy network cannot be cyclic") from error
+
+    def get_outgoing_connections(self, node_id: EnergyUnitId) -> tuple[EnergyConnection, ...]:
+        return tuple(self._connections[node_id, successor_id] for successor_id in self._successors[node_id])

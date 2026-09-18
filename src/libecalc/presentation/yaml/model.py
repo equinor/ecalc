@@ -39,18 +39,21 @@ from libecalc.ecalc_model.ecalc_event import (
     EcalcEventService,
 )
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
-from libecalc.energy import EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.container_info import ContainerInfo
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
+from libecalc.presentation.yaml.domain.energy import (
+    TimeSeriesConsumer,
+    TimeSeriesEnergyUnitFactory,
+    TimeSeriesJunction,
+)
 from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.domain.strict_expression_evaluator import StrictExpressionEvaluator
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
-from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapper
@@ -285,14 +288,14 @@ class YamlModel:
         self,
     ) -> tuple[
         EnergyNetworkTopology | None,
-        Sequence[EnergyUnit],
-        dict[EnergyUnitId, TimeSeriesExpression],
-        dict[EnergyUnitId, TimeSeriesExpression],
+        Sequence[TimeSeriesEnergyUnitFactory],
+        Sequence[TimeSeriesConsumer],
+        Sequence[TimeSeriesJunction],
     ]:
         self.validate_for_run()
         yaml_energy_network = self._configuration.energy_network
         if yaml_energy_network is None:
-            return None, (), {}, {}
+            return None, (), (), ()
 
         time_series_resources, _ = self._resource_service.get_time_series_resources()
         time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}

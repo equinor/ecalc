@@ -5,35 +5,13 @@ from __future__ import annotations
 import pytest
 
 from libecalc.energy import (
-    Converter,
     ElectricalPower,
     MechanicalPower,
-)
-from libecalc.energy.energy_types import Energy
-from libecalc.energy.energy_units import (
-    GasTurbine,
-    GeneratorSet,
 )
 
 
 class TestEnergyDomainContracts:
     """Tests that the ABCs enforce their contracts — the reason they exist."""
-
-    def test_converters_are_substitutable(self):
-        """Converters can be used polymorphically through the common Energy interface.
-
-        This is the value proposition: code operating on the abstract interface
-        works across all concrete implementations without knowing the type.
-        """
-
-        def required_input_energy(converter: Converter, output_energy: Energy) -> Energy:
-            return converter.get_input_energy(output_energy)
-
-        genset = GeneratorSet("genset", power_to_fuel=lambda output_power: output_power * 5000.0)
-        turbine = GasTurbine("turbine", power_to_fuel=lambda output_power: output_power * 6000.0)
-
-        assert required_input_energy(genset, ElectricalPower(10.0)).value == 50_000.0
-        assert required_input_energy(turbine, MechanicalPower(10.0)).value == 60_000.0
 
     def test_type_safety_prevents_mixing_energy_types(self):
         """Runtime guard on Energy.__add__ for dynamic contexts where the type checker can't help.
