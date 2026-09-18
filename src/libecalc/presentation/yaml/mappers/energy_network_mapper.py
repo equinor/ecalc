@@ -1,28 +1,31 @@
 from collections.abc import Sequence
 
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.energy import EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
-from libecalc.energy.energy_units import (
-    DieselConsumer,
-    DieselSource,
-    ElectricalBus,
-    ElectricalCable,
-    ElectricalConsumer,
-    ElectricalMotor,
-    ElectricalSource,
-    FuelGasConsumer,
-    FuelGasManifold,
-    FuelGasSource,
-    GasTurbine,
-    GeneratorSet,
-    MechanicalConsumer,
-)
+from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.expression.expression import ExpressionType
+from libecalc.presentation.yaml.domain.energy import (
+    TimeSeriesConsumer,
+    TimeSeriesDieselConsumer,
+    TimeSeriesDieselSourceFactory,
+    TimeSeriesElectricalBus,
+    TimeSeriesElectricalCableFactory,
+    TimeSeriesElectricalConsumer,
+    TimeSeriesElectricalMotorFactory,
+    TimeSeriesElectricalSourceFactory,
+    TimeSeriesEnergyUnit,
+    TimeSeriesEnergyUnitFactory,
+    TimeSeriesFuelGasConsumer,
+    TimeSeriesFuelGasManifold,
+    TimeSeriesFuelGasSourceFactory,
+    TimeSeriesGasTurbineFactory,
+    TimeSeriesGeneratorSetFactory,
+    TimeSeriesJunction,
+    TimeSeriesMechanicalConsumer,
+)
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
-    YamlConverterBase,
     YamlDieselConsumer,
     YamlElectricalBus,
     YamlElectricalCable,
@@ -46,15 +49,15 @@ class EnergyNetworkMapper:
         expression_evaluator: ExpressionEvaluator,
     ) -> tuple[
         EnergyNetworkTopology,
-        Sequence[EnergyUnit],
-        dict[EnergyUnitId, TimeSeriesExpression],
-        dict[EnergyUnitId, TimeSeriesExpression],
+        Sequence[TimeSeriesEnergyUnitFactory],
+        Sequence[TimeSeriesConsumer],
+        Sequence[TimeSeriesJunction],
     ]:
-        energy_units = [
-            *(self._map_source(source) for source in yaml_energy_network.sources),
-            *(self._map_unit(unit) for unit in yaml_energy_network.units),
+        mapped_nodes = [
+            *(self._map_source(source, expression_evaluator) for source in yaml_energy_network.sources),
+            *(self._map_unit(unit, expression_evaluator) for unit in yaml_energy_network.units),
         ]
-        node_ids_by_name = {energy_unit.get_name(): energy_unit.get_id() for energy_unit in energy_units}
+        node_ids_by_name = {node.get_name(): node.get_id() for node, _, _ in mapped_nodes}
 
         connections = [
             (node_ids_by_name[input_name], node_ids_by_name[unit.name])
@@ -62,79 +65,86 @@ class EnergyNetworkMapper:
             for input_name in self._get_input_names(unit)
         ]
         topology = EnergyNetworkTopology.create(
-            node_input_types={
-                energy_unit.get_id(): energy_unit.get_input_energy_type() for energy_unit in energy_units
-            },
-            node_output_types={
-                energy_unit.get_id(): energy_unit.get_output_energy_type() for energy_unit in energy_units
-            },
+            node_input_types={node.get_id(): input_type for node, input_type, _ in mapped_nodes},
+            node_output_types={node.get_id(): output_type for node, _, output_type in mapped_nodes},
             connections=connections,
         )
-        consumer_expressions = {
-            energy_unit.get_id(): TimeSeriesExpression(expression=expression, expression_evaluator=expression_evaluator)
-            for unit, energy_unit in zip(yaml_energy_network.units, energy_units[len(yaml_energy_network.sources) :])
-            if (expression := self._get_consumer_expression(unit)) is not None
-        }
-        capacity_expressions = {
-            energy_unit.get_id(): TimeSeriesExpression(expression=expression, expression_evaluator=expression_evaluator)
-            for unit, energy_unit in zip(
-                [*yaml_energy_network.sources, *yaml_energy_network.units],
-                energy_units,
-                strict=True,
-            )
-            if (expression := self._get_capacity_expression(unit)) is not None
-        }
-        return topology, energy_units, consumer_expressions, capacity_expressions
+
+        energy_unit_factories = [node for node, _, _ in mapped_nodes if isinstance(node, TimeSeriesEnergyUnitFactory)]
+        consumers = [node for node, _, _ in mapped_nodes if isinstance(node, TimeSeriesConsumer)]
+        junctions = [node for node, _, _ in mapped_nodes if isinstance(node, TimeSeriesJunction)]
+        return topology, energy_unit_factories, consumers, junctions
 
     @staticmethod
-    def _map_source(source: YamlEnergySource) -> EnergyUnit:
+    def _time_series(
+        expression: ExpressionType | None,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> TimeSeriesExpression | None:
+        if expression is None:
+            return None
+        return TimeSeriesExpression(expression=expression, expression_evaluator=expression_evaluator)
+
+    def _map_source(
+        self,
+        source: YamlEnergySource,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
+        capacity = self._time_series(source.capacity, expression_evaluator)
         match source.type:
             case YamlEnergySourceType.FUEL_GAS_SOURCE:
-                return FuelGasSource(name=source.name)
+                return TimeSeriesFuelGasSourceFactory(name=source.name, capacity=capacity), None, FuelGasRate
             case YamlEnergySourceType.ELECTRICAL_SOURCE:
-                return ElectricalSource(name=source.name)
+                return TimeSeriesElectricalSourceFactory(name=source.name, capacity=capacity), None, ElectricalPower
             case YamlEnergySourceType.DIESEL_SOURCE:
-                return DieselSource(name=source.name)
+                return TimeSeriesDieselSourceFactory(name=source.name, capacity=capacity), None, DieselRate
 
-    @staticmethod
-    def _map_unit(unit: YamlComponent) -> EnergyUnit:
+    def _map_unit(
+        self,
+        unit: YamlComponent,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
             case YamlGeneratorSet():
-                return GeneratorSet(name=unit.name)
+                capacity = self._time_series(unit.capacity, expression_evaluator)
+                return TimeSeriesGeneratorSetFactory(name=unit.name, capacity=capacity), FuelGasRate, ElectricalPower
             case YamlGasTurbine():
-                return GasTurbine(name=unit.name)
+                capacity = self._time_series(unit.capacity, expression_evaluator)
+                return TimeSeriesGasTurbineFactory(name=unit.name, capacity=capacity), FuelGasRate, MechanicalPower
             case YamlElectricalMotor():
-                return ElectricalMotor(name=unit.name)
+                capacity = self._time_series(unit.capacity, expression_evaluator)
+                efficiency = self._time_series(unit.efficiency, expression_evaluator)
+                return (
+                    TimeSeriesElectricalMotorFactory(name=unit.name, capacity=capacity, efficiency=efficiency),
+                    ElectricalPower,
+                    MechanicalPower,
+                )
             case YamlElectricalCable():
-                return ElectricalCable(name=unit.name)
+                capacity = self._time_series(unit.capacity, expression_evaluator)
+                # YAML specifies transmission efficiency, but the domain models loss.
+                loss_expression = f"1 {{-}} ({unit.efficiency})" if unit.efficiency is not None else None
+                loss_fraction = self._time_series(loss_expression, expression_evaluator)
+                return (
+                    TimeSeriesElectricalCableFactory(name=unit.name, capacity=capacity, loss_fraction=loss_fraction),
+                    ElectricalPower,
+                    ElectricalPower,
+                )
             case YamlElectricalBus():
-                return ElectricalBus(name=unit.name)
+                return TimeSeriesElectricalBus(name=unit.name), ElectricalPower, ElectricalPower
             case YamlFuelGasManifold():
-                return FuelGasManifold(name=unit.name)
+                return TimeSeriesFuelGasManifold(name=unit.name), FuelGasRate, FuelGasRate
             case YamlElectricalConsumer():
-                return ElectricalConsumer(name=unit.name)
+                demand = self._time_series(unit.load, expression_evaluator)
+                return TimeSeriesElectricalConsumer(name=unit.name, demand=demand), ElectricalPower, None
             case YamlMechanicalConsumer():
-                return MechanicalConsumer(name=unit.name)
+                demand = self._time_series(unit.load, expression_evaluator)
+                return TimeSeriesMechanicalConsumer(name=unit.name, demand=demand), MechanicalPower, None
             case YamlFuelGasConsumer():
-                return FuelGasConsumer(name=unit.name)
+                demand = self._time_series(unit.rate, expression_evaluator)
+                return TimeSeriesFuelGasConsumer(name=unit.name, demand=demand), FuelGasRate, None
             case YamlDieselConsumer():
-                return DieselConsumer(name=unit.name)
+                demand = self._time_series(unit.rate, expression_evaluator)
+                return TimeSeriesDieselConsumer(name=unit.name, demand=demand), DieselRate, None
 
     @staticmethod
     def _get_input_names(unit: YamlComponent) -> list[str]:
         return unit.input if isinstance(unit.input, list) else [unit.input]
-
-    @staticmethod
-    def _get_consumer_expression(unit: YamlComponent) -> ExpressionType | None:
-        match unit:
-            case YamlElectricalConsumer() | YamlMechanicalConsumer():
-                return unit.load
-            case YamlFuelGasConsumer() | YamlDieselConsumer():
-                return unit.rate
-        return None
-
-    @staticmethod
-    def _get_capacity_expression(unit: YamlEnergySource | YamlComponent) -> ExpressionType | None:
-        if isinstance(unit, (YamlEnergySource, YamlConverterBase)):
-            return unit.capacity
-        return None

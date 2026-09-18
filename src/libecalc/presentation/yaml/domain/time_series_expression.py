@@ -81,3 +81,6 @@ class TimeSeriesExpression:
 
     def get_masked_items(self) -> dict[Period, float]:
         return dict(zip(self.get_periods(), self.get_masked_values(), strict=True))
+
+    def get_value(self, period: Period) -> float:
+        return self.get_masked_items()[period]

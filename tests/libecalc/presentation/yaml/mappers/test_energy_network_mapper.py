@@ -1,18 +1,18 @@
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
-from libecalc.energy.energy_units import (
-    DieselConsumer,
-    DieselSource,
-    ElectricalBus,
-    ElectricalCable,
-    ElectricalConsumer,
-    ElectricalMotor,
-    ElectricalSource,
-    FuelGasConsumer,
-    FuelGasManifold,
-    FuelGasSource,
-    GasTurbine,
-    GeneratorSet,
-    MechanicalConsumer,
+from libecalc.presentation.yaml.domain.energy import (
+    TimeSeriesDieselConsumer,
+    TimeSeriesDieselSourceFactory,
+    TimeSeriesElectricalBus,
+    TimeSeriesElectricalCableFactory,
+    TimeSeriesElectricalConsumer,
+    TimeSeriesElectricalMotorFactory,
+    TimeSeriesElectricalSourceFactory,
+    TimeSeriesFuelGasConsumer,
+    TimeSeriesFuelGasManifold,
+    TimeSeriesFuelGasSourceFactory,
+    TimeSeriesGasTurbineFactory,
+    TimeSeriesGeneratorSetFactory,
+    TimeSeriesMechanicalConsumer,
 )
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
@@ -29,8 +29,8 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
             "UNITS": [
                 {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "CAPACITY": 10},
                 {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "CAPACITY": 15},
-                {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5},
-                {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4},
+                {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5, "EFFICIENCY": 0.9},
+                {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4, "EFFICIENCY": 0.96},
                 {"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["cable"]},
                 {"NAME": "manifold", "TYPE": "FUEL_GAS_MANIFOLD", "INPUT": ["fuel"]},
                 {"NAME": "electrical_load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "bus", "LOAD": 5},
@@ -42,7 +42,7 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
     )
 
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
-    topology, energy_units, consumer_expressions, capacity_expressions = EnergyNetworkMapper().map_energy_network(
+    topology, energy_unit_factories, consumers, junctions = EnergyNetworkMapper().map_energy_network(
         yaml_network, expression_evaluator
     )
 
@@ -54,22 +54,18 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
     }
     assert len(topology.get_topological_order()) == 13
     assert len(topology.get_connections()) == 10
-    assert [type(energy_unit) for energy_unit in energy_units] == [
-        FuelGasSource,
-        ElectricalSource,
-        DieselSource,
-        GeneratorSet,
-        GasTurbine,
-        ElectricalMotor,
-        ElectricalCable,
-        ElectricalBus,
-        FuelGasManifold,
-        ElectricalConsumer,
-        MechanicalConsumer,
-        FuelGasConsumer,
-        DieselConsumer,
+
+    # Sources, converters and transporters are returned as factories.
+    assert [type(factory) for factory in energy_unit_factories] == [
+        TimeSeriesFuelGasSourceFactory,
+        TimeSeriesElectricalSourceFactory,
+        TimeSeriesDieselSourceFactory,
+        TimeSeriesGeneratorSetFactory,
+        TimeSeriesGasTurbineFactory,
+        TimeSeriesElectricalMotorFactory,
+        TimeSeriesElectricalCableFactory,
     ]
-    assert [energy_unit.get_name() for energy_unit in energy_units] == [
+    assert [factory.get_name() for factory in energy_unit_factories] == [
         "fuel",
         "grid",
         "diesel",
@@ -77,33 +73,49 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
         "turbine",
         "motor",
         "cable",
-        "bus",
-        "manifold",
+    ]
+
+    # Junctions are returned separately, not as factories.
+    assert [type(junction) for junction in junctions] == [TimeSeriesElectricalBus, TimeSeriesFuelGasManifold]
+    assert [junction.get_name() for junction in junctions] == ["bus", "manifold"]
+
+    # Consumers are returned separately, not as factories.
+    assert [type(consumer) for consumer in consumers] == [
+        TimeSeriesElectricalConsumer,
+        TimeSeriesMechanicalConsumer,
+        TimeSeriesFuelGasConsumer,
+        TimeSeriesDieselConsumer,
+    ]
+    assert [consumer.get_name() for consumer in consumers] == [
         "electrical_load",
         "mechanical_load",
         "fuel_load",
         "diesel_load",
     ]
-    assert {energy_unit.get_id() for energy_unit in energy_units} == set(topology.get_nodes())
-    energy_unit_ids_by_name = {energy_unit.get_name(): energy_unit.get_id() for energy_unit in energy_units}
-    assert {
-        energy_unit_ids_by_name["electrical_load"]: 5,
-        energy_unit_ids_by_name["mechanical_load"]: 2,
-        energy_unit_ids_by_name["fuel_load"]: 10,
-        energy_unit_ids_by_name["diesel_load"]: 20,
-    } == {
-        energy_unit_id: expression.get_original_expression()
-        for energy_unit_id, expression in consumer_expressions.items()
+
+    all_nodes = [*energy_unit_factories, *junctions, *consumers]
+    assert {node.get_id() for node in all_nodes} == set(topology.get_nodes())
+
+    factories_by_name = {factory.get_name(): factory for factory in energy_unit_factories}
+
+    # Capacities are kept on the factories as time series expressions when provided in YAML.
+    assert {name: factory.capacity.get_original_expression() for name, factory in factories_by_name.items()} == {
+        "fuel": 100,
+        "grid": 20,
+        "diesel": 500,
+        "genset": 10,
+        "turbine": 15,
+        "motor": 5,
+        "cable": 4,
     }
-    assert {
-        energy_unit_ids_by_name["fuel"]: 100,
-        energy_unit_ids_by_name["grid"]: 20,
-        energy_unit_ids_by_name["diesel"]: 500,
-        energy_unit_ids_by_name["genset"]: 10,
-        energy_unit_ids_by_name["turbine"]: 15,
-        energy_unit_ids_by_name["motor"]: 5,
-        energy_unit_ids_by_name["cable"]: 4,
-    } == {
-        energy_unit_id: expression.get_original_expression()
-        for energy_unit_id, expression in capacity_expressions.items()
-    }
+
+    # Consumer demand is kept on the consumer dataclasses.
+    consumers_by_name = {consumer.get_name(): consumer for consumer in consumers}
+    assert consumers_by_name["electrical_load"].demand.get_original_expression() == 5
+    assert consumers_by_name["mechanical_load"].demand.get_original_expression() == 2
+    assert consumers_by_name["fuel_load"].demand.get_original_expression() == 10
+    assert consumers_by_name["diesel_load"].demand.get_original_expression() == 20
+
+    # Efficiency and loss fraction are kept on the relevant factories.
+    assert factories_by_name["motor"].efficiency.get_original_expression() == 0.9
+    assert factories_by_name["cable"].loss_fraction.get_original_expression() == "1 {-} (0.96)"
