@@ -1,8 +1,5 @@
-from collections.abc import Mapping
-
 from libecalc.common.ddd import value_object
 from libecalc.energy.energy_failure import CapacityFailure, EnergyFailureStatus
-from libecalc.energy.energy_flow import EnergyFlow
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
@@ -13,9 +10,9 @@ from libecalc.energy.errors import InvalidEnergyNetworkError
 class EnergyNetwork:
     topology: EnergyNetworkTopology
     energy_units: tuple[EnergyUnit, ...]
-    connection_demands: Mapping[EnergyConnectionId, Energy]
-    capacities: Mapping[EnergyUnitId, Energy]
-    connection_energy: Mapping[EnergyConnectionId, Energy]
+    connection_demands: dict[EnergyConnectionId, Energy]
+    capacities: dict[EnergyUnitId, Energy]
+    connection_energy: dict[EnergyConnectionId, Energy]
 
     def get_energy_units(self) -> tuple[EnergyUnit, ...]:
         return self.energy_units
@@ -25,15 +22,6 @@ class EnergyNetwork:
             if energy_unit.get_id() == energy_unit_id:
                 return energy_unit
         raise KeyError(energy_unit_id)
-
-    def get_connections(self) -> tuple[EnergyFlow, ...]:
-        return tuple(
-            EnergyFlow(
-                connection=connection,
-                energy=self.get_connection_energy(connection.id),
-            )
-            for connection in self.topology.get_connections()
-        )
 
     def get_connection_energy(self, connection_id: EnergyConnectionId) -> Energy:
         return self.connection_energy[connection_id]
