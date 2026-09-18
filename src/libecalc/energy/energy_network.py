@@ -4,7 +4,7 @@ from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 
 
-class EnergyPropagation:
+class EnergyNetwork:
     def __init__(
         self,
         connection_energy: dict[EnergyConnectionId, Energy],

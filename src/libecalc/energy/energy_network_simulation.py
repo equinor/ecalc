@@ -3,8 +3,8 @@ from collections.abc import Iterable
 from libecalc.energy import Consumer, Converter, Energy, EnergyUnit, EnergyUnitId, Source
 from libecalc.energy.dispatch import Candidate
 from libecalc.energy.energy_failure import CapacityFailure, EnergyFailureStatus
+from libecalc.energy.energy_network import EnergyNetwork
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
-from libecalc.energy.energy_propagation import EnergyPropagation
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -43,7 +43,7 @@ class EnergyNetworkSimulation:
         self,
         connection_demands: dict[EnergyConnectionId, Energy],
         capacities: dict[EnergyUnitId, Energy] | None = None,
-    ) -> EnergyPropagation:
+    ) -> EnergyNetwork:
         """Calculate connection energy and capacity failures from demands on consumer-targeting connections.
 
         `capacities` is consulted where a junction dispatches demand across several candidates and when evaluating
@@ -86,7 +86,7 @@ class EnergyNetworkSimulation:
             capacities=capacities,
         )
 
-        return EnergyPropagation(
+        return EnergyNetwork(
             connection_energy=connection_energy,
             capacity_failures=capacity_failures,
         )
