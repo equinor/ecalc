@@ -15,7 +15,7 @@ from libecalc.energy.errors import (
 SupportsCapacity = Source | Converter | Transporter
 
 
-class EnergyNetwork:
+class EnergyNetworkSimulation:
     def __init__(
         self,
         topology: EnergyNetworkTopology,
