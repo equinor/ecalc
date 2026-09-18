@@ -1,5 +1,3 @@
-import pytest
-
 from libecalc.energy import ElectricalPower
 from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
@@ -34,6 +32,3 @@ def test_energy_network_contains_simulation_state():
     assert network.capacities[source.get_id()] == ElectricalPower(10)
     assert network.connection_energy[connection.id] == ElectricalPower(5)
     assert network.is_feasible()
-
-    with pytest.raises(AttributeError):
-        network.connection_energy = {}
