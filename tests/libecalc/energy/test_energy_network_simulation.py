@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.energy import CapacityFailure, ElectricalPower, EnergyFailureStatus, FuelGasRate, MechanicalPower
 from libecalc.energy.dispatch import PriorityDispatch
-from libecalc.energy.energy_network import EnergyNetwork
+from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_units import (
     ElectricalBus,
@@ -43,7 +43,7 @@ def create_electrical_topology():
     return topology, source, consumer
 
 
-class TestEnergyNetworkInputValidation:
+class TestEnergyNetworkSimulationInputValidation:
     def test_rejects_energy_units_with_different_energy_types_than_network(self):
         topology, source, consumer = create_electrical_topology()
         incompatible_consumer = MechanicalConsumer("consumer", energy_unit_id=consumer.get_id())
@@ -52,7 +52,7 @@ class TestEnergyNetworkInputValidation:
             InvalidEnergyNetworkInputError,
             match="energy types that do not match the network",
         ):
-            EnergyNetwork(
+            EnergyNetworkSimulation(
                 topology=topology,
                 energy_units=[source, incompatible_consumer],
             )
@@ -64,10 +64,10 @@ class TestEnergyNetworkInputValidation:
             InvalidEnergyNetworkInputError,
             match=r"Missing connection demands for connections: 'source'.*-> 'consumer'",
         ):
-            EnergyNetwork(
+            EnergyNetworkSimulation(
                 topology=topology,
                 energy_units=[source, consumer],
-            ).propagate_energy({})
+            ).run({})
 
     def test_rejects_consumer_demand_for_non_consumer(self):
         topology, source, consumer = create_electrical_topology()
@@ -76,10 +76,10 @@ class TestEnergyNetworkInputValidation:
             InvalidEnergyNetworkInputError,
             match="Unexpected connection demands for connections",
         ):
-            EnergyNetwork(
+            EnergyNetworkSimulation(
                 topology=topology,
                 energy_units=[source, consumer],
-            ).propagate_energy(
+            ).run(
                 {
                     topology.get_connection(source.get_id(), consumer.get_id()).id: ElectricalPower(5),
                     cast(EnergyConnectionId, ElectricalSource._create_id()): ElectricalPower(5),
@@ -93,17 +93,17 @@ class TestEnergyNetworkInputValidation:
             InvalidEnergyNetworkInputError,
             match=r"Consumer demand for connection 'source'.*-> 'consumer'.*requires ElectricalPower",
         ):
-            EnergyNetwork(
+            EnergyNetworkSimulation(
                 topology=topology,
                 energy_units=[source, consumer],
-            ).propagate_energy(
+            ).run(
                 {
                     topology.get_connection(source.get_id(), consumer.get_id()).id: FuelGasRate(5),
                 }
             )
 
 
-class TestEnergyNetworkEnergyCalculation:
+class TestEnergyNetworkSimulationEnergyCalculation:
     def test_calculates_input_and_output_energy_through_network(self):
         source = FuelGasSource("source")
         generator = GeneratorSet("generator", power_to_fuel=lambda output: output * 1_000)
@@ -122,38 +122,38 @@ class TestEnergyNetworkEnergyCalculation:
                 (bus.get_id(), base_load.get_id()),
             ],
         )
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[source, generator, bus, motor, pump, base_load],
         )
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {
                 topology.get_connection(motor.get_id(), pump.get_id()).id: MechanicalPower(4),
                 topology.get_connection(bus.get_id(), base_load.get_id()).id: ElectricalPower(5),
             }
         )
 
-        assert propagation.connection_energy == {
+        assert network.connection_energy == {
             topology.get_connection(source.get_id(), generator.get_id()).id: FuelGasRate(10_000),
             topology.get_connection(generator.get_id(), bus.get_id()).id: ElectricalPower(10),
             topology.get_connection(bus.get_id(), motor.get_id()).id: ElectricalPower(5),
             topology.get_connection(motor.get_id(), pump.get_id()).id: MechanicalPower(4),
             topology.get_connection(bus.get_id(), base_load.get_id()).id: ElectricalPower(5),
         }
-        assert not propagation.capacity_failures
+        assert not network.get_capacity_failures()
 
     def test_returns_no_connection_energy_for_source_without_successors(self):
         source = FuelGasSource("source")
         topology = create_topology(nodes=[source], connections=[])
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[source],
         )
 
-        propagation = network.propagate_energy({})
+        network = simulation.run({})
 
-        assert not propagation.connection_energy
-        assert not propagation.capacity_failures
+        assert not network.connection_energy
+        assert not network.get_capacity_failures()
 
     def test_calculates_input_energy_for_transporter(self):
         source = ElectricalSource("source")
@@ -168,23 +168,21 @@ class TestEnergyNetworkEnergyCalculation:
             ],
         )
 
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[source, cable, consumer],
         )
 
-        propagation = network.propagate_energy(
-            {topology.get_connection(cable.get_id(), consumer.get_id()).id: ElectricalPower(10)}
-        )
+        network = simulation.run({topology.get_connection(cable.get_id(), consumer.get_id()).id: ElectricalPower(10)})
 
-        assert propagation.connection_energy == {
+        assert network.connection_energy == {
             topology.get_connection(source.get_id(), cable.get_id()).id: ElectricalPower(10 / 0.96),
             topology.get_connection(cable.get_id(), consumer.get_id()).id: ElectricalPower(10),
         }
-        assert not propagation.capacity_failures
+        assert not network.get_capacity_failures()
 
 
-class TestEnergyNetworkCapacity:
+class TestEnergyNetworkSimulationCapacity:
     def test_reports_capacity_exceeded_without_capping_connection_energy(self):
         grid = ElectricalSource("grid")
         load = ElectricalConsumer("load")
@@ -192,23 +190,26 @@ class TestEnergyNetworkCapacity:
             nodes=[grid, load],
             connections=[(grid.get_id(), load.get_id())],
         )
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[grid, load],
         )
         connection = topology.get_connection(grid.get_id(), load.get_id())
         capacities = {grid.get_id(): ElectricalPower(5)}
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {connection.id: ElectricalPower(6)},
             capacities=capacities,
         )
 
-        assert propagation.connection_energy[connection.id] == ElectricalPower(6)
-        assert set(propagation.capacity_failures) == {grid.get_id()}
-        assert isinstance(propagation.capacity_failures[grid.get_id()], CapacityFailure)
-        assert propagation.capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
-        assert propagation.capacity_failures[grid.get_id()].required_energy == ElectricalPower(6)
-        assert propagation.capacity_failures[grid.get_id()].capacity == ElectricalPower(5)
+        assert network.connection_energy[connection.id] == ElectricalPower(6)
+        capacity_failures = network.get_capacity_failures()
+        assert set(capacity_failures) == {grid.get_id()}
+        assert isinstance(capacity_failures[grid.get_id()], CapacityFailure)
+        assert capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
+        assert capacity_failures[grid.get_id()].required_energy == ElectricalPower(6)
+        assert capacity_failures[grid.get_id()].capacity == ElectricalPower(5)
+        assert network.get_capacity_failure(grid.get_id()) is not None
+        assert not network.is_feasible()
 
     def test_capacity_equal_to_connection_energy_has_no_failure(self):
         grid = ElectricalSource("grid")
@@ -217,33 +218,33 @@ class TestEnergyNetworkCapacity:
             nodes=[grid, load],
             connections=[(grid.get_id(), load.get_id())],
         )
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[grid, load],
         )
         connection = topology.get_connection(grid.get_id(), load.get_id())
         capacities = {grid.get_id(): ElectricalPower(5)}
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {connection.id: ElectricalPower(5)},
             capacities=capacities,
         )
 
-        assert not propagation.capacity_failures
+        assert not network.get_capacity_failures()
 
     def test_missing_capacity_means_unlimited(self):
         topology, source, consumer = create_electrical_topology()
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[source, consumer],
         )
         connection = topology.get_connection(source.get_id(), consumer.get_id())
-        propagation = network.propagate_energy({connection.id: ElectricalPower(5)})
+        network = simulation.run({connection.id: ElectricalPower(5)})
 
-        assert not propagation.capacity_failures
+        assert not network.get_capacity_failures()
 
     def test_rejects_capacity_for_consumer(self):
         topology, source, consumer = create_electrical_topology()
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[source, consumer],
         )
@@ -253,14 +254,14 @@ class TestEnergyNetworkCapacity:
             InvalidEnergyNetworkInputError,
             match="Capacity provided for invalid node",
         ):
-            network.propagate_energy(
+            simulation.run(
                 {connection.id: ElectricalPower(5)},
                 capacities={consumer.get_id(): ElectricalPower(10)},
             )
 
     def test_rejects_wrong_capacity_energy_type(self):
         topology, source, consumer = create_electrical_topology()
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[source, consumer],
         )
@@ -270,7 +271,7 @@ class TestEnergyNetworkCapacity:
             InvalidEnergyNetworkInputError,
             match="must be ElectricalPower",
         ):
-            network.propagate_energy(
+            simulation.run(
                 {connection.id: ElectricalPower(5)},
                 capacities={source.get_id(): FuelGasRate(10)},
             )
@@ -286,25 +287,25 @@ class TestEnergyNetworkCapacity:
                 (grid.get_id(), second_load.get_id()),
             ],
         )
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[grid, first_load, second_load],
         )
         first_connection = topology.get_connection(grid.get_id(), first_load.get_id())
         second_connection = topology.get_connection(grid.get_id(), second_load.get_id())
         capacities = {grid.get_id(): ElectricalPower(6)}
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {
                 first_connection.id: ElectricalPower(3),
                 second_connection.id: ElectricalPower(4),
             },
             capacities=capacities,
         )
-        assert propagation.capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
+        assert network.get_capacity_failures()[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
 
     def test_validates_all_capacities_before_propagating_energy(self):
         topology, source, consumer = create_electrical_topology()
-        network = EnergyNetwork(
+        simulation = EnergyNetworkSimulation(
             topology=topology,
             energy_units=[source, consumer],
         )
@@ -314,7 +315,7 @@ class TestEnergyNetworkCapacity:
             InvalidEnergyNetworkInputError,
             match="Capacity provided for invalid node",
         ):
-            network.propagate_energy(
+            simulation.run(
                 {connection.id: ElectricalPower(5)},
                 capacities={
                     source.get_id(): ElectricalPower(4),
@@ -342,23 +343,21 @@ class TestJunctionDispatch:
                 (bus.get_id(), load.get_id()),
             ],
         )
-        network = EnergyNetwork(topology=topology, energy_units=units)
+        simulation = EnergyNetworkSimulation(topology=topology, energy_units=units)
 
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {topology.get_connection(bus.get_id(), load.get_id()).id: ElectricalPower(8)},
             capacities={grid.get_id(): ElectricalPower(5), genset.get_id(): ElectricalPower(10)},
         )
 
-        assert propagation.connection_energy[
-            topology.get_connection(grid.get_id(), bus.get_id()).id
-        ] == ElectricalPower(5)
-        assert propagation.connection_energy[
-            topology.get_connection(genset.get_id(), bus.get_id()).id
-        ] == ElectricalPower(3)
-        assert propagation.connection_energy[
+        assert network.connection_energy[topology.get_connection(grid.get_id(), bus.get_id()).id] == ElectricalPower(5)
+        assert network.connection_energy[topology.get_connection(genset.get_id(), bus.get_id()).id] == ElectricalPower(
+            3
+        )
+        assert network.connection_energy[
             topology.get_connection(fuel_source.get_id(), genset.get_id()).id
         ] == FuelGasRate(3_000)
-        assert not propagation.capacity_failures
+        assert not network.get_capacity_failures()
 
     def test_separate_genset_curves_reproduce_legacy_fuel_jump(self):
         """Per-generator curves replace the jumps encoded in a single legacy curve."""
@@ -379,26 +378,26 @@ class TestJunctionDispatch:
                 (bus.get_id(), load.get_id()),
             ],
         )
-        network = EnergyNetwork(topology=topology, energy_units=units)
+        simulation = EnergyNetworkSimulation(topology=topology, energy_units=units)
 
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {topology.get_connection(bus.get_id(), load.get_id()).id: ElectricalPower(12)},
             capacities={first.get_id(): ElectricalPower(10), second.get_id(): ElectricalPower(10)},
         )
 
-        assert propagation.connection_energy[
-            topology.get_connection(first.get_id(), bus.get_id()).id
-        ] == ElectricalPower(10)
-        assert propagation.connection_energy[
-            topology.get_connection(second.get_id(), bus.get_id()).id
-        ] == ElectricalPower(2)
-        assert propagation.connection_energy[
+        assert network.connection_energy[topology.get_connection(first.get_id(), bus.get_id()).id] == ElectricalPower(
+            10
+        )
+        assert network.connection_energy[topology.get_connection(second.get_id(), bus.get_id()).id] == ElectricalPower(
+            2
+        )
+        assert network.connection_energy[
             topology.get_connection(fuel_source.get_id(), first.get_id()).id
         ] == FuelGasRate(10_000)
-        assert propagation.connection_energy[
+        assert network.connection_energy[
             topology.get_connection(fuel_source.get_id(), second.get_id()).id
         ] == FuelGasRate(14_000)
-        assert not propagation.capacity_failures
+        assert not network.get_capacity_failures()
 
     def test_overflows_last_candidate_when_total_capacity_is_insufficient(self):
         """Demand beyond total capacity lands on the last candidate rather than raising."""
@@ -418,24 +417,25 @@ class TestJunctionDispatch:
                 (bus.get_id(), load.get_id()),
             ],
         )
-        network = EnergyNetwork(topology=topology, energy_units=units)
+        simulation = EnergyNetworkSimulation(topology=topology, energy_units=units)
 
         capacities = {first_grid.get_id(): ElectricalPower(5), second_grid.get_id(): ElectricalPower(5)}
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {topology.get_connection(bus.get_id(), load.get_id()).id: ElectricalPower(12)},
             capacities=capacities,
         )
 
-        assert propagation.connection_energy[
+        assert network.connection_energy[
             topology.get_connection(first_grid.get_id(), bus.get_id()).id
         ] == ElectricalPower(5)
-        assert propagation.connection_energy[
+        assert network.connection_energy[
             topology.get_connection(second_grid.get_id(), bus.get_id()).id
         ] == ElectricalPower(7)
 
         # The overflow is reported rather than raised: the second grid is over its rating.
-        assert set(propagation.capacity_failures) == {second_grid.get_id()}
-        assert propagation.capacity_failures[second_grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
+        capacity_failures = network.get_capacity_failures()
+        assert set(capacity_failures) == {second_grid.get_id()}
+        assert capacity_failures[second_grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
 
     def test_dispatch_uses_cable_capacity_not_upstream_grid_capacity(self):
         """Availability is a candidate's own capacity, not what the chain behind it can deliver."""
@@ -455,35 +455,34 @@ class TestJunctionDispatch:
                 (bus.get_id(), load.get_id()),
             ],
         )
-        network = EnergyNetwork(topology=topology, energy_units=units)
+        simulation = EnergyNetworkSimulation(topology=topology, energy_units=units)
 
         capacities = {
             grid.get_id(): ElectricalPower(20),
             cable.get_id(): ElectricalPower(30),
             wind.get_id(): ElectricalPower(10),
         }
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {topology.get_connection(bus.get_id(), load.get_id()).id: ElectricalPower(25)},
             capacities=capacities,
         )
 
         # The cable is filled to its own 30 MW rating, so the 20 MW grid behind it is over-drawn
         # and the 10 MW wind source is left idle.
-        assert propagation.connection_energy[
-            topology.get_connection(cable.get_id(), bus.get_id()).id
-        ] == ElectricalPower(25)
-        assert propagation.connection_energy[
-            topology.get_connection(grid.get_id(), cable.get_id()).id
-        ] == ElectricalPower(25)
-        assert propagation.connection_energy[
-            topology.get_connection(wind.get_id(), bus.get_id()).id
-        ] == ElectricalPower(0)
+        assert network.connection_energy[topology.get_connection(cable.get_id(), bus.get_id()).id] == ElectricalPower(
+            25
+        )
+        assert network.connection_energy[topology.get_connection(grid.get_id(), cable.get_id()).id] == ElectricalPower(
+            25
+        )
+        assert network.connection_energy[topology.get_connection(wind.get_id(), bus.get_id()).id] == ElectricalPower(0)
 
         # The consequence is a model reported infeasible even though 25 MW is within the combined
         # 30 MW the grid and wind can supply. Allocating on deliverable rather than nominal capacity
         # would give cable 20 and wind 5, and this assertion should then be inverted.
-        assert set(propagation.capacity_failures) == {grid.get_id()}
-        assert propagation.capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
+        capacity_failures = network.get_capacity_failures()
+        assert set(capacity_failures) == {grid.get_id()}
+        assert capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
 
     def test_requires_dispatch_strategy_for_junction_with_multiple_predecessors(self):
         first_grid = ElectricalSource("first_grid")
@@ -502,7 +501,7 @@ class TestJunctionDispatch:
         )
 
         with pytest.raises(EnergyAllocationRequiredError, match="requires a dispatch strategy"):
-            EnergyNetwork(topology=topology, energy_units=units)
+            EnergyNetworkSimulation(topology=topology, energy_units=units)
 
     def test_rejects_multiple_predecessors_for_consumer(self):
         """Two supplies feeding one load must go through a junction that says how to split the demand.
@@ -525,7 +524,7 @@ class TestJunctionDispatch:
         )
 
         with pytest.raises(InvalidEnergyNetworkError, match="only junctions support fan-in"):
-            EnergyNetwork(topology=topology, energy_units=units)
+            EnergyNetworkSimulation(topology=topology, energy_units=units)
 
     def test_rejects_multiple_predecessors_for_converter(self):
         """A converter cannot resolve fan-in either, and reaching _allocate would trip its assertion."""
@@ -545,7 +544,7 @@ class TestJunctionDispatch:
         )
 
         with pytest.raises(InvalidEnergyNetworkError, match="only junctions support fan-in"):
-            EnergyNetwork(topology=topology, energy_units=units)
+            EnergyNetworkSimulation(topology=topology, energy_units=units)
 
     def test_rejects_dispatch_strategy_candidate_ids_that_do_not_match_predecessors(self):
         first_grid = ElectricalSource("first_grid")
@@ -567,7 +566,7 @@ class TestJunctionDispatch:
         )
 
         with pytest.raises(InvalidEnergyNetworkError, match="must match its predecessors"):
-            EnergyNetwork(topology=topology, energy_units=units)
+            EnergyNetworkSimulation(topology=topology, energy_units=units)
 
     def test_rejects_dispatch_strategy_candidate_ids_for_junction_with_a_single_predecessor(self):
         """A single candidate leaves a strategy nothing to decide, but it must still name that candidate.
@@ -592,7 +591,7 @@ class TestJunctionDispatch:
         )
 
         with pytest.raises(InvalidEnergyNetworkError, match="must match its predecessors"):
-            EnergyNetwork(topology=topology, energy_units=units)
+            EnergyNetworkSimulation(topology=topology, energy_units=units)
 
     def test_accepts_dispatch_strategy_naming_the_only_predecessor(self):
         """A degenerate strategy is legal and behaves exactly like an undispatched single supply."""
@@ -610,19 +609,17 @@ class TestJunctionDispatch:
                 (bus.get_id(), second_load.get_id()),
             ],
         )
-        network = EnergyNetwork(topology=topology, energy_units=units)
+        simulation = EnergyNetworkSimulation(topology=topology, energy_units=units)
 
-        propagation = network.propagate_energy(
+        network = simulation.run(
             {
                 topology.get_connection(bus.get_id(), first_load.get_id()).id: ElectricalPower(3),
                 topology.get_connection(bus.get_id(), second_load.get_id()).id: ElectricalPower(7),
             }
         )
 
-        assert propagation.connection_energy[
-            topology.get_connection(grid.get_id(), bus.get_id()).id
-        ] == ElectricalPower(10)
-        assert not propagation.capacity_failures
+        assert network.connection_energy[topology.get_connection(grid.get_id(), bus.get_id()).id] == ElectricalPower(10)
+        assert not network.get_capacity_failures()
 
         first_grid = ElectricalSource("first_grid")
         second_grid = ElectricalSource("second_grid")
@@ -644,4 +641,4 @@ class TestJunctionDispatch:
         )
 
         with pytest.raises(InvalidEnergyNetworkError, match="must have exactly one successor"):
-            EnergyNetwork(topology=topology, energy_units=units)
+            EnergyNetworkSimulation(topology=topology, energy_units=units)

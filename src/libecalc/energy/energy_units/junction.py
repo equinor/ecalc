@@ -8,7 +8,7 @@ from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
 class Junction(EnergyUnit):
     """Aggregation point for energy of the same type.
 
-    Connections and energy calculations are managed by EnergyNetwork. A junction fed by more
+    Connections and energy calculations are managed by EnergyNetworkSimulation. A junction fed by more
     than one predecessor needs a dispatch strategy, which carries the candidate order explicitly
     because the connections a network is built from are unordered.
     """
