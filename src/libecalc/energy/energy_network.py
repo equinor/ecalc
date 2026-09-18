@@ -26,16 +26,36 @@ class EnergyNetwork:
     def get_connection_energy(self, connection_id: EnergyConnectionId) -> Energy:
         return self.connection_energy[connection_id]
 
+    def get_consumer_demand(self, consumer_id: EnergyUnitId) -> Energy:
+        for connection in self.topology.get_connections():
+            if connection.target_id == consumer_id and connection.id in self.connection_demands:
+                return self.connection_demands[connection.id]
+        raise KeyError(f"No consumer demand found for energy unit ID: {consumer_id}")
+
+    def get_capacity(self, energy_unit_id: EnergyUnitId) -> Energy | None:
+        return self.capacities.get(energy_unit_id)
+
+    def get_capacity_failure(self, energy_unit_id: EnergyUnitId) -> CapacityFailure | None:
+        capacity = self.get_capacity(energy_unit_id)
+        if capacity is None:
+            return None
+
+        required_energy = self._get_output_energy(energy_unit_id)
+        if required_energy <= capacity:
+            return None
+
+        return CapacityFailure(
+            status=EnergyFailureStatus.CAPACITY_EXCEEDED,
+            required_energy=required_energy,
+            capacity=capacity,
+        )
+
     def get_capacity_failures(self) -> dict[EnergyUnitId, CapacityFailure]:
         failures: dict[EnergyUnitId, CapacityFailure] = {}
-        for energy_unit_id, capacity in self.capacities.items():
-            required_energy = self._get_output_energy(energy_unit_id)
-            if required_energy > capacity:
-                failures[energy_unit_id] = CapacityFailure(
-                    status=EnergyFailureStatus.CAPACITY_EXCEEDED,
-                    required_energy=required_energy,
-                    capacity=capacity,
-                )
+        for energy_unit_id in self.capacities:
+            failure = self.get_capacity_failure(energy_unit_id)
+            if failure is not None:
+                failures[energy_unit_id] = failure
         return failures
 
     def is_feasible(self) -> bool:

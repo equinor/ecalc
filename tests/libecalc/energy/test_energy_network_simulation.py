@@ -208,6 +208,7 @@ class TestEnergyNetworkSimulationCapacity:
         assert capacity_failures[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
         assert capacity_failures[grid.get_id()].required_energy == ElectricalPower(6)
         assert capacity_failures[grid.get_id()].capacity == ElectricalPower(5)
+        assert network.get_capacity_failure(grid.get_id()) is not None
         assert not network.is_feasible()
 
     def test_capacity_equal_to_connection_energy_has_no_failure(self):
