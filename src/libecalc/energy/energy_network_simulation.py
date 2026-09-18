@@ -39,12 +39,12 @@ class EnergyNetworkSimulation:
         self._validate_fan_in()
         self._validate_dispatch()
 
-    def propagate_energy(
+    def run(
         self,
         connection_demands: dict[EnergyConnectionId, Energy],
         capacities: dict[EnergyUnitId, Energy] | None = None,
     ) -> EnergyNetwork:
-        """Calculate connection energy and capacity failures from demands on consumer-targeting connections.
+        """Build an energy network from demands on consumer-targeting connections.
 
         `capacities` is consulted where a junction dispatches demand across several candidates and when evaluating
         capacity failures; a candidate absent from it is treated as unlimited, as elsewhere.
@@ -86,7 +86,13 @@ class EnergyNetworkSimulation:
             capacities=capacities,
         )
 
+        energy_units = tuple(self._energy_units[node_id] for node_id in self._topology.get_topological_order())
+
         return EnergyNetwork(
+            topology=self._topology,
+            energy_units=energy_units,
+            connection_demands=connection_demands,
+            capacities=capacities,
             connection_energy=connection_energy,
             capacity_failures=capacity_failures,
         )
