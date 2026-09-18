@@ -1,5 +1,39 @@
 # Changelog
 
+## [14.1.0](https://github.com/equinor/ecalc/compare/v14.0.0...v14.1.0) (2026-09-18)
+
+
+### Features
+
+* add convex-hull-extrapolating sampled compressor energy model ([#1788](https://github.com/equinor/ecalc/issues/1788)) ([63761fc](https://github.com/equinor/ecalc/commit/63761fc7a8177bf242537903ddfc9f6edcd801f1))
+* energy capacity expressions ([#1794](https://github.com/equinor/ecalc/issues/1794)) ([0dd43c9](https://github.com/equinor/ecalc/commit/0dd43c90ff96a81472cf2f2eadb2ab18e777fdcf))
+* **libecalc:** allocate junction demand across multiple inputs ([#1772](https://github.com/equinor/ecalc/issues/1772)) ([d2659e1](https://github.com/equinor/ecalc/commit/d2659e19ecc023e4e6c36388a53bfdfc5557db38))
+* report energy capacity failures ([#1785](https://github.com/equinor/ecalc/issues/1785)) ([aa57377](https://github.com/equinor/ecalc/commit/aa57377ec00288546f74e8109efa0f9fa1611844))
+
+
+### Documentation
+
+* correct v14 chart validation changelog ([#1783](https://github.com/equinor/ecalc/issues/1783)) ([cff093e](https://github.com/equinor/ecalc/commit/cff093efa8b326f79f78c353f8e84c03d7c067bd))
+* energy reference ([#1787](https://github.com/equinor/ecalc/issues/1787)) ([03dd4ab](https://github.com/equinor/ecalc/commit/03dd4ab47e1bf41467a423d3016d61d308988330))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump astral-sh/setup-uv from 10.0.1 to 10.1.0 ([f3a040d](https://github.com/equinor/ecalc/commit/f3a040dab57292bc614a31c4bfc01daeedae14cd))
+* **deps:** bump zizmorcore/zizmor-action from 0.6.3 to 0.6.4 ([12d3d82](https://github.com/equinor/ecalc/commit/12d3d82a252a7f6680812dd0f2d66ab10e89dd1f))
+
+
+### Code Refactoring
+
+* energy network simulation ([44d6dc1](https://github.com/equinor/ecalc/commit/44d6dc16460fc8f55c4a4aabdde4161cc9180dd7))
+* move capacity and feasibility to network evaluation ([#1778](https://github.com/equinor/ecalc/issues/1778)) ([8706ca3](https://github.com/equinor/ecalc/commit/8706ca35cdd60e46c508f847cdb00736adfca2a9))
+* rename energy network topology ([#1784](https://github.com/equinor/ecalc/issues/1784)) ([a2e56bc](https://github.com/equinor/ecalc/commit/a2e56bc78c5094fe499088a7e88f07950d346c76))
+
+
+### Continuous Integration
+
+* correctly determine and set versioning strategy ([#1786](https://github.com/equinor/ecalc/issues/1786)) ([273dc03](https://github.com/equinor/ecalc/commit/273dc03bedd72da667ff04ebe4ccdd6fc37e79ba))
+
 ## [14.0.0](https://github.com/equinor/ecalc/compare/v13.12.1...v14.0.0) (2026-09-11)
 
 
