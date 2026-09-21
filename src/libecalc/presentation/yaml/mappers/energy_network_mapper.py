@@ -22,6 +22,7 @@ from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesGeneratorSetFactory,
     TimeSeriesJunction,
     TimeSeriesMechanicalConsumer,
+    expression_demand,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
@@ -133,16 +134,16 @@ class EnergyNetworkMapper:
             case YamlFuelGasManifold():
                 return TimeSeriesFuelGasManifold(name=unit.name), FuelGasRate, FuelGasRate
             case YamlElectricalConsumer():
-                demand = self._time_series(unit.load, expression_evaluator)
+                demand = expression_demand(self._time_series(unit.load, expression_evaluator), ElectricalPower)
                 return TimeSeriesElectricalConsumer(name=unit.name, demand=demand), ElectricalPower, None
             case YamlMechanicalConsumer():
-                demand = self._time_series(unit.load, expression_evaluator)
+                demand = expression_demand(self._time_series(unit.load, expression_evaluator), MechanicalPower)
                 return TimeSeriesMechanicalConsumer(name=unit.name, demand=demand), MechanicalPower, None
             case YamlFuelGasConsumer():
-                demand = self._time_series(unit.rate, expression_evaluator)
+                demand = expression_demand(self._time_series(unit.rate, expression_evaluator), FuelGasRate)
                 return TimeSeriesFuelGasConsumer(name=unit.name, demand=demand), FuelGasRate, None
             case YamlDieselConsumer():
-                demand = self._time_series(unit.rate, expression_evaluator)
+                demand = expression_demand(self._time_series(unit.rate, expression_evaluator), DieselRate)
                 return TimeSeriesDieselConsumer(name=unit.name, demand=demand), DieselRate, None
 
     @staticmethod

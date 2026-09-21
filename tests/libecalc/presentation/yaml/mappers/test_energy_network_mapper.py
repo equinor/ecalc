@@ -109,13 +109,31 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
         "cable": 4,
     }
 
-    # Consumer demand is kept on the consumer dataclasses.
+    # Consumer demand is resolved per period as typed energy.
     consumers_by_name = {consumer.get_name(): consumer for consumer in consumers}
-    assert consumers_by_name["electrical_load"].demand.get_original_expression() == 5
-    assert consumers_by_name["mechanical_load"].demand.get_original_expression() == 2
-    assert consumers_by_name["fuel_load"].demand.get_original_expression() == 10
-    assert consumers_by_name["diesel_load"].demand.get_original_expression() == 20
+    assert consumers_by_name["electrical_load"].get_demand(period) == ElectricalPower(5)
+    assert consumers_by_name["mechanical_load"].get_demand(period) == MechanicalPower(2)
+    assert consumers_by_name["fuel_load"].get_demand(period) == FuelGasRate(10)
+    assert consumers_by_name["diesel_load"].get_demand(period) == DieselRate(20)
 
     # Efficiency and loss fraction are kept on the relevant factories.
     assert factories_by_name["motor"].efficiency.get_original_expression() == 0.9
     assert factories_by_name["cable"].loss_fraction.get_original_expression() == "1 {-} (0.96)"
+
+
+def test_process_simulation_consumer_has_no_expression_demand(expression_evaluator_factory, period):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+            "UNITS": [
+                {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel"},
+                {"NAME": "train", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "turbine", "PROCESS_SIMULATION": "sim"},
+            ],
+        }
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+    _, _, consumers, _ = EnergyNetworkMapper().map_energy_network(yaml_network, expression_evaluator)
+
+    (train,) = consumers
+    assert isinstance(train, TimeSeriesMechanicalConsumer)
+    assert train.get_demand(period) is None
