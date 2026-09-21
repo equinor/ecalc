@@ -5,6 +5,7 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
 def _check_non_negative(v: YamlExpressionType | None, field_name: str) -> YamlExpressionType | None:
@@ -303,6 +304,66 @@ class YamlDieselConsumer(YamlConsumerBase):
     @classmethod
     def _rate_non_negative(cls, v: YamlExpressionType) -> YamlExpressionType:
         return _check_non_negative(v, "RATE")  # type: ignore[return-value]
+
+
+class YamlCompressorSampled(YamlConsumerBase):
+    model_config = ConfigDict(title="CompressorSampled")
+
+    type: Literal["COMPRESSOR_SAMPLED"]
+    file: Annotated[
+        str,
+        Field(
+            title="FILE",
+            description="Resource tabulating FUEL and/or POWER against RATE, SUCTION_PRESSURE and/or "
+            "DISCHARGE_PRESSURE.",
+        ),
+    ]
+    rate: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="RATE",
+            description="Rate through the compressor (Sm³/d), looked up in FILE.",
+        ),
+    ] = None
+    suction_pressure: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="SUCTION_PRESSURE",
+            description="Compressor inlet pressure (bara), looked up in FILE.",
+        ),
+    ] = None
+    discharge_pressure: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="DISCHARGE_PRESSURE",
+            description="Compressor outlet pressure (bara), looked up in FILE.",
+        ),
+    ] = None
+
+    validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
+
+    @field_validator("rate", mode="after")
+    @classmethod
+    def _rate_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
+        return _check_non_negative(v, "RATE")
+
+    @field_validator("suction_pressure", mode="after")
+    @classmethod
+    def _suction_pressure_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
+        return _check_non_negative(v, "SUCTION_PRESSURE")
+
+    @field_validator("discharge_pressure", mode="after")
+    @classmethod
+    def _discharge_pressure_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
+        return _check_non_negative(v, "DISCHARGE_PRESSURE")
+
+    @model_validator(mode="after")
+    def check_at_least_one_variable(self):
+        if self.rate is None and self.suction_pressure is None and self.discharge_pressure is None:
+            raise ValueError(
+                f"'{self.name}': at least one of RATE, SUCTION_PRESSURE or DISCHARGE_PRESSURE is required."
+            )
+        return self
 
 
 YamlComponent = Annotated[
