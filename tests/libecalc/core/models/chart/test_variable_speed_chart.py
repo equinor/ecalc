@@ -111,28 +111,28 @@ def test_properties(variable_speed_chart):
 def test_minimum_head_function(chart_curve_factory, pump_chart_factory):
     chart_curve_minimum_speed = chart_curve_factory(
         rate_actual_m3_hour=[500, 1000, 2000, 3000],
-        polytropic_head_joule_per_kg=[10, 20, 40, 60],
+        polytropic_head_joule_per_kg=[60, 40, 20, 10],
         efficiency_fraction=[1, 1, 1, 1],
         speed_rpm=10,
     )
     chart_curve_maximum_speed = chart_curve_factory(
         rate_actual_m3_hour=[300, 4000, 5000, 6000],
-        polytropic_head_joule_per_kg=[60, 80, 100, 120],
+        polytropic_head_joule_per_kg=[120, 100, 80, 60],
         efficiency_fraction=[1, 1, 1, 1],
         speed_rpm=100,
     )
 
     variable_speed_chart = pump_chart_factory(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed])
 
-    # Testing that a low rate should give minimum head of 10 and a high rate should give maximum of 120.
-    assert variable_speed_chart.minimum_head_as_function_of_rate(0) == 10
-    assert variable_speed_chart.minimum_head_as_function_of_rate(1000000) == 120
+    # Rates outside the boundary return the head value at the nearest endpoint.
+    assert variable_speed_chart.minimum_head_as_function_of_rate(0) == 60
+    assert variable_speed_chart.minimum_head_as_function_of_rate(1000000) == 60
 
-    # Testing that the function works within min and max rate given in input
-    assert variable_speed_chart.minimum_head_as_function_of_rate(500) == 10
-    assert variable_speed_chart.minimum_head_as_function_of_rate(750) == 15
-    assert variable_speed_chart.minimum_head_as_function_of_rate(2500) == 50
-    assert variable_speed_chart.minimum_head_as_function_of_rate(3000) == 60
+    # Within the rate range, the boundary follows the minimum-speed curve and then the stone wall.
+    assert variable_speed_chart.minimum_head_as_function_of_rate(500) == 60
+    assert variable_speed_chart.minimum_head_as_function_of_rate(750) == 50
+    assert variable_speed_chart.minimum_head_as_function_of_rate(2500) == 15
+    assert variable_speed_chart.minimum_head_as_function_of_rate(3000) == 10
 
 
 def test_minimum_head_function2(variable_speed_chart):
@@ -169,30 +169,28 @@ def test_minimum_head_function_with_ill_defined_curve(pump_chart_factory, chart_
 def test_max_flow_head_functions(chart_curve_factory, pump_chart_factory):
     chart_curve_minimum_speed = chart_curve_factory(
         rate_actual_m3_hour=[1000, 2000, 3000, 5000],
-        polytropic_head_joule_per_kg=[5, 10, 15, 20],
+        polytropic_head_joule_per_kg=[20, 15, 10, 5],
         efficiency_fraction=[1, 1, 1, 1],
         speed_rpm=10,
     )
     chart_curve_maximum_speed = chart_curve_factory(
         rate_actual_m3_hour=[1000, 2000, 3000, 5000],
-        polytropic_head_joule_per_kg=[5, 10, 15, 20],
+        polytropic_head_joule_per_kg=[20, 15, 10, 5],
         efficiency_fraction=[1, 1, 1, 1],
         speed_rpm=100,
     )
 
     variable_speed_chart = pump_chart_factory(curves=[chart_curve_minimum_speed, chart_curve_maximum_speed])
 
-    assert variable_speed_chart.maximum_head_as_function_of_rate(0) == 5
-    assert variable_speed_chart.maximum_head_as_function_of_rate(1000) == 5
+    assert variable_speed_chart.maximum_head_as_function_of_rate(0) == 20
+    assert variable_speed_chart.maximum_head_as_function_of_rate(1000) == 20
     assert variable_speed_chart.maximum_head_as_function_of_rate(2500) == 12.5
-    assert variable_speed_chart.maximum_head_as_function_of_rate(5000) == 20
-    assert variable_speed_chart.maximum_head_as_function_of_rate(10000) == 20
+    assert variable_speed_chart.maximum_head_as_function_of_rate(5000) == 5
+    assert variable_speed_chart.maximum_head_as_function_of_rate(10000) == 5
 
-    # assert max_flow_func(0) == 1000
-    assert variable_speed_chart.maximum_rate_as_function_of_head(5) == 1000
+    assert variable_speed_chart.maximum_rate_as_function_of_head(5) == 5000
     assert variable_speed_chart.maximum_rate_as_function_of_head(12.5) == 2500
-    assert variable_speed_chart.maximum_rate_as_function_of_head(20) == 5000
-    # assert max_flow_func(30) == 5000
+    assert variable_speed_chart.maximum_rate_as_function_of_head(20) == 1000
 
 
 def test_get_efficiency_variable_chart(chart_curve_factory, pump_chart_factory):
@@ -251,35 +249,6 @@ def test_get_efficiency_variable_chart(chart_curve_factory, pump_chart_factory):
         heads=np.asarray([4, 1.5, 2]),
     )
     np.testing.assert_almost_equal(efficiencies, [0.3253873, 0.4079482, 0.4251169])
-
-
-def test_efficiency_as_function_of_rate_and_head_zero_chart_data(chart_curve_factory, pump_chart_factory):
-    """Edge case when we create a chart based on generic from input where the design points are rate=0, head=0 and
-    a given efficiency such as 95%. For robustness and defencive programming we allow this to happen when asking
-    for efficiency interpolation.
-    """
-    first_curve = chart_curve_factory(
-        rate_actual_m3_hour=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        polytropic_head_joule_per_kg=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        efficiency_fraction=[0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
-        speed_rpm=75.0,
-    )
-    second_curve = chart_curve_factory(
-        rate_actual_m3_hour=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        polytropic_head_joule_per_kg=[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-        efficiency_fraction=[0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95, 0.95],
-        speed_rpm=105.0,
-    )
-    chart = pump_chart_factory(
-        curves=[
-            first_curve,
-            second_curve,
-        ]
-    )
-
-    efficiencies = chart.efficiency_as_function_of_rate_and_head(rates=np.array([1, 2, 3]), heads=np.array([3, 2, 1]))
-
-    assert efficiencies.tolist() == [0.95, 0.95, 0.95]
 
 
 def test_min_flow_function(pump_chart_factory, chart_curve_factory):
@@ -391,7 +360,7 @@ def test_is_100_percent_efficient(variable_speed_chart, pump_chart_factory, char
         curves=[
             chart_curve_factory(
                 rate_actual_m3_hour=[1, 2],
-                polytropic_head_joule_per_kg=[1, 2],
+                polytropic_head_joule_per_kg=[2, 1],
                 efficiency_fraction=[0.5, 0.5],
                 speed_rpm=1,
             )

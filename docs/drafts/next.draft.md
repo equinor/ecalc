@@ -20,6 +20,8 @@ STP: "flare" column has been added to STP Export - for `FIXED` installations onl
 
 ## Breaking changes
 
+- Chart curves must have strictly decreasing head as rate increases. Curves with increasing or equal head values, including all-zero curves, are rejected. Generic compressor charts also require design rate and design head greater than zero.
+
 ### Compressor calculations
 
 - Compressor calculations now validate PH flash results more strictly. Existing models that previously completed with invalid or non-physical PH flash states may now fail or report invalid compressor/capacity results instead.
