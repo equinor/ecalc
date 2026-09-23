@@ -63,11 +63,11 @@ class EnergyNetworkSimulation:
 
     def run(
         self,
-        consumer_demands: dict[EnergyUnitId, Energy],
+        connection_demands: dict[EnergyConnectionId, Energy],
         capacities: dict[EnergyUnitId, Energy] | None = None,
         extra: dict[EnergyUnitId, dict[str, Any]] | None = None,
     ) -> EnergyNetwork:
-        """Calculate connection energy and unit states from consumer demands.
+        """Calculate connection energy and unit states from demands on consumer-targeting connections.
 
         Demand is propagated upstream in reverse topological order, so every node is visited only after all of
         its outgoing connections are known. A node's output is the sum of the energy on those connections; from
@@ -77,15 +77,12 @@ class EnergyNetworkSimulation:
         `capacities` is consulted where a junction dispatches demand across several candidates and when evaluating
         capacity failures; a candidate absent from it is treated as unlimited, as elsewhere.
         """
-        self._validate_consumer_demands(consumer_demands)
+        self._validate_connection_demands(connection_demands)
         capacities = capacities or {}
         extra = extra or {}
 
         unit_states: dict[EnergyUnitId, EnergyUnitState] = {}
-        connection_energy = {
-            self._topology.get_incoming_connections(consumer_id)[0].id: demand
-            for consumer_id, demand in consumer_demands.items()
-        }
+        connection_energy: dict[EnergyConnectionId, Energy] = dict(connection_demands)
 
         for node_id in reversed(self._topology.get_topological_order()):
             outgoing_connections = self._topology.get_outgoing_connections(node_id)
@@ -231,49 +228,95 @@ class EnergyNetworkSimulation:
                         f"exactly one successor, got {successor_count}"
                     )
 
-    def _validate_consumer_demands(self, consumer_demands: dict[EnergyUnitId, Energy]) -> None:
-        leaf_node_ids = set(self._topology.get_leaf_nodes())
-        consumer_ids = {
-            connection.target_id
-            for connection in self._topology.get_connections()
-            if connection.target_id in leaf_node_ids
+    def _validate_connection_demands(self, connection_demands: dict[EnergyConnectionId, Energy]) -> None:
+        consumer_ids = self._topology.get_leaf_nodes()
+        consumer_connection_ids = {
+            connection.id for connection in self._topology.get_connections() if connection.target_id in consumer_ids
         }
-        self._validate_node_ids(
-            provided_ids=set(consumer_demands),
-            expected_ids=consumer_ids,
-            value_name="consumer demands",
+        self._validate_connection_ids(
+            provided_ids=set(connection_demands),
+            expected_ids=consumer_connection_ids,
+            value_name="connection demands",
         )
-        self._validate_consumer_demand_types(consumer_demands)
+        self._validate_energy_types(connection_demands)
 
     def _validate_node_ids(
         self,
         provided_ids: set[EnergyUnitId],
         expected_ids: set[EnergyUnitId],
         value_name: str,
+        nodes: dict[EnergyUnitId, EnergyUnitFactory],
     ) -> None:
         missing_ids = expected_ids - provided_ids
         if missing_ids:
-            node_references = self._format_node_references(missing_ids)
+            node_references = self._format_node_references(
+                node_ids=missing_ids,
+                nodes=nodes,
+            )
             raise InvalidEnergyNetworkInputError(f"Missing {value_name} for nodes: {node_references}")
 
         unexpected_ids = provided_ids - expected_ids
         if unexpected_ids:
-            node_references = self._format_node_references(unexpected_ids)
+            node_references = self._format_node_references(
+                node_ids=unexpected_ids,
+                nodes=nodes,
+            )
             raise InvalidEnergyNetworkInputError(f"Unexpected {value_name} for nodes: {node_references}")
 
-    def _validate_consumer_demand_types(self, consumer_demands: dict[EnergyUnitId, Energy]) -> None:
-        for consumer_id, demand in consumer_demands.items():
-            incoming_connection = self._topology.get_incoming_connections(consumer_id)[0]
-            expected_type = incoming_connection.energy_type
+    def _validate_connection_ids(
+        self,
+        provided_ids: set[EnergyConnectionId],
+        expected_ids: set[EnergyConnectionId],
+        value_name: str,
+    ) -> None:
+        missing_ids = expected_ids - provided_ids
+        if missing_ids:
+            raise InvalidEnergyNetworkInputError(
+                f"Missing {value_name} for connections: {self._format_connection_references(missing_ids)}"
+            )
+
+        unexpected_ids = provided_ids - expected_ids
+        if unexpected_ids:
+            raise InvalidEnergyNetworkInputError(
+                f"Unexpected {value_name} for connections: {self._format_connection_references(unexpected_ids)}"
+            )
+
+    def _validate_energy_types(self, connection_demands: dict[EnergyConnectionId, Energy]) -> None:
+        for connection_id, demand in connection_demands.items():
+            connection = self._topology.get_connection_by_id(connection_id)
+            expected_type = connection.energy_type
 
             if type(demand) is not expected_type:
                 raise InvalidEnergyNetworkInputError(
-                    f"Consumer demand for node {self._format_energy_unit_reference(consumer_id)} requires "
+                    f"Consumer demand for connection {self._format_connection_reference(connection_id)} requires "
                     f"{expected_type.__name__}, got {type(demand).__name__}"
                 )
 
-    def _format_node_references(self, node_ids: set[EnergyUnitId]) -> str:
-        return ", ".join(self._format_energy_unit_reference(node_id) for node_id in sorted(node_ids, key=str))
+    def _format_connection_references(self, connection_ids: set[EnergyConnectionId]) -> str:
+        return ", ".join(
+            self._format_connection_reference(connection_id) for connection_id in sorted(connection_ids, key=str)
+        )
+
+    def _format_connection_reference(self, connection_id: EnergyConnectionId) -> str:
+        try:
+            connection = self._topology.get_connection_by_id(connection_id)
+        except KeyError:
+            return str(connection_id)
+        return (
+            f"{self._format_energy_unit_reference(connection.source_id)} -> "
+            f"{self._format_energy_unit_reference(connection.target_id)} ({connection_id})"
+        )
+
+    def _format_node_references(
+        self,
+        node_ids: set[EnergyUnitId],
+        nodes: dict[EnergyUnitId, EnergyUnitFactory],
+    ) -> str:
+        refs = []
+        for node_id in sorted(node_ids, key=str):
+            node = nodes.get(node_id)
+            refs.append(self._format_energy_unit_reference(node_id, node.get_name() if node else None))
+        return ", ".join(refs)
 
     def _format_energy_unit_reference(self, node_id: EnergyUnitId, energy_unit_name: str | None = None) -> str:
         return f"'{energy_unit_name}' ({node_id})" if energy_unit_name is not None else str(node_id)
