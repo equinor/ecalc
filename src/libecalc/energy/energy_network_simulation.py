@@ -1,13 +1,12 @@
 import abc
-import operator
-from collections.abc import Iterable
-from functools import reduce
+from collections.abc import Iterable, Sequence
 from typing import Any
 
 from libecalc.energy import Converter, Energy, EnergyUnit, EnergyUnitId
 from libecalc.energy.dispatch import Candidate
 from libecalc.energy.energy_network import EnergyNetwork
-from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
+from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId, EnergyNetworkTopology
+from libecalc.energy.energy_unit_state import EnergyUnitState
 from libecalc.energy.energy_units import Junction, Transporter
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -26,6 +25,17 @@ class EnergyUnitFactory(abc.ABC):
 
     @abc.abstractmethod
     def create(self, demand: Energy, capacity: Energy | None, **extra: Any) -> EnergyUnit: ...
+
+
+def _sum_connection_energy(
+    *,
+    connections: Sequence[EnergyConnection],
+    connection_energy: dict[EnergyConnectionId, Energy],
+) -> Energy:
+    total = connection_energy[connections[0].id]
+    for connection in connections[1:]:
+        total += connection_energy[connection.id]
+    return total
 
 
 class EnergyNetworkSimulation:
@@ -57,7 +67,7 @@ class EnergyNetworkSimulation:
         capacities: dict[EnergyUnitId, Energy] | None = None,
         **extra: Any,
     ) -> EnergyNetwork:
-        """Calculate connection energy and capacity failures from demands on consumer-targeting connections.
+        """Calculate connection energy and unit states from demands on consumer-targeting connections.
 
         Demand is propagated upstream in reverse topological order, so every node is visited only after all of
         its outgoing connections are known. A node's output is the sum of the energy on those connections; from
@@ -71,30 +81,50 @@ class EnergyNetworkSimulation:
         capacities = capacities or {}
         extra = extra or {}
 
-        energy_units: dict[EnergyUnitId, EnergyUnit] = {}
+        unit_states: dict[EnergyUnitId, EnergyUnitState] = {}
         connection_energy: dict[EnergyConnectionId, Energy] = dict(connection_demands)
 
         for node_id in reversed(self._topology.get_topological_order()):
             outgoing_connections = self._topology.get_outgoing_connections(node_id)
+            incoming_connections = self._topology.get_incoming_connections(node_id)
+
             if not outgoing_connections:
-                # Leaf consumers have no outgoing energy to propagate upstream.
+                if not incoming_connections:
+                    continue
+
+                consumed = _sum_connection_energy(
+                    connections=incoming_connections,
+                    connection_energy=connection_energy,
+                )
+                unit_states[node_id] = EnergyUnitState(
+                    output_energy=None,
+                    input_energy=consumed,
+                    capacity=None,
+                )
                 continue
 
-            demand = reduce(operator.add, [connection_energy[connection.id] for connection in outgoing_connections])
-            predecessors = self._topology.get_predecessors(node_id)
+            demand = _sum_connection_energy(
+                connections=outgoing_connections,
+                connection_energy=connection_energy,
+            )
 
             # Junctions are nodes in the topology but are not created per operational point, so they are handled
             # here rather than through a factory: they are lossless and split their output across predecessors.
             if node_id in self._junctions:
-                if len(predecessors) <= 1:
-                    for predecessor_id in predecessors:
-                        connection_energy[self._topology.get_connection(predecessor_id, node_id).id] = demand
+                if len(incoming_connections) <= 1:
+                    for connection in incoming_connections:
+                        connection_energy[connection.id] = demand
                 else:
                     junction = self._junctions[node_id]
-                    for predecessor_id, share in self._allocate(
-                        junction=junction, demand=demand, capacities=capacities
-                    ).items():
-                        connection_energy[self._topology.get_connection(predecessor_id, node_id).id] = share
+                    allocations = self._allocate(junction=junction, demand=demand, capacities=capacities)
+                    for connection in incoming_connections:
+                        connection_energy[connection.id] = allocations[connection.source_id]
+
+                unit_states[node_id] = EnergyUnitState(
+                    output_energy=demand,
+                    input_energy=demand if incoming_connections else None,
+                    capacity=None,
+                )
             else:
                 energy_unit_factory = self._energy_unit_factories[node_id]
                 energy_unit = energy_unit_factory.create(
@@ -102,18 +132,25 @@ class EnergyNetworkSimulation:
                     capacity=capacities.get(node_id),
                     **extra,
                 )
-                energy_units[node_id] = energy_unit
 
-                if predecessors:
+                input_energy: Energy | None = None
+                if incoming_connections:
                     # Only converters and transporters draw input; sources have no predecessors.
                     assert isinstance(energy_unit, Converter | Transporter)
                     input_energy = energy_unit.get_input_energy()
-                    for predecessor_id in predecessors:
-                        connection_energy[self._topology.get_connection(predecessor_id, node_id).id] = input_energy
+                    for connection in incoming_connections:
+                        connection_energy[connection.id] = input_energy
+
+                unit_states[node_id] = EnergyUnitState(
+                    output_energy=demand,
+                    input_energy=input_energy,
+                    capacity=capacities.get(node_id),
+                    failures=tuple(energy_unit.get_failures()),
+                )
 
         return EnergyNetwork(
             topology=self._topology,
-            energy_units=energy_units,
+            unit_states=unit_states,
             connection_energy=connection_energy,
         )
 

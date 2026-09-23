@@ -65,9 +65,15 @@ class TestEnergyNetworkEnergyCalculation:
             junctions=[bus], energy_unit_factories=[source, generator, motor], topology=topology
         )
         energy_network = energy_network_simulation.run(
-            {
-                topology.get_connection(motor.get_id(), pump.get_id()).id: MechanicalPower(4),
-                topology.get_connection(bus.get_id(), base_load.get_id()).id: ElectricalPower(5),
+            connection_demands={
+                topology.get_connection(
+                    source_id=motor.get_id(),
+                    target_id=pump.get_id(),
+                ).id: MechanicalPower(4),
+                topology.get_connection(
+                    source_id=bus.get_id(),
+                    target_id=base_load.get_id(),
+                ).id: ElectricalPower(5),
             }
         )
 
@@ -89,10 +95,11 @@ class TestEnergyNetworkEnergyCalculation:
             junctions=[], energy_unit_factories=[source], topology=topology
         )
 
-        energy_network = energy_network_simulation.run({})
+        energy_network = energy_network_simulation.run(connection_demands={})
 
         assert not energy_network.get_energy()
         assert not energy_network.get_capacity_failures()
+        assert energy_network.get_unit_states() == {}
 
     def test_calculates_input_energy_for_transporter(
         self, energy_network_simulation_factory, energy_unit_factory_factory
@@ -115,7 +122,12 @@ class TestEnergyNetworkEnergyCalculation:
         )
 
         energy_network = energy_network_simulation.run(
-            {topology.get_connection(cable.get_id(), consumer.get_id()).id: ElectricalPower(10)}
+            connection_demands={
+                topology.get_connection(
+                    source_id=cable.get_id(),
+                    target_id=consumer.get_id(),
+                ).id: ElectricalPower(10)
+            }
         )
 
         assert energy_network.get_energy() == {
@@ -141,7 +153,7 @@ class TestEnergyNetworkCapacity:
         connection = topology.get_connection(grid.get_id(), load.get_id())
         capacities = {grid.get_id(): ElectricalPower(5)}
         energy_network = energy_network_simulation.run(
-            {connection.id: ElectricalPower(6)},
+            connection_demands={connection.id: ElectricalPower(6)},
             capacities=capacities,
         )
 
@@ -151,6 +163,7 @@ class TestEnergyNetworkCapacity:
         assert energy_network.get_capacity_failures()[grid.get_id()].status == EnergyFailureStatus.CAPACITY_EXCEEDED
         assert energy_network.get_capacity_failures()[grid.get_id()].required_energy == ElectricalPower(6)
         assert energy_network.get_capacity_failures()[grid.get_id()].capacity == ElectricalPower(5)
+        assert not energy_network.is_feasible()
 
     def test_capacity_equal_to_connection_energy_has_no_failure(
         self, energy_network_simulation_factory, energy_unit_factory_factory
@@ -164,22 +177,29 @@ class TestEnergyNetworkCapacity:
         energy_network_simulation = energy_network_simulation_factory(
             junctions=[], energy_unit_factories=[grid], topology=topology
         )
-        connection = topology.get_connection(grid.get_id(), load.get_id())
+        connection = topology.get_connection(
+            source_id=grid.get_id(),
+            target_id=load.get_id(),
+        )
         capacities = {grid.get_id(): ElectricalPower(5)}
         energy_network = energy_network_simulation.run(
-            {connection.id: ElectricalPower(5)},
+            connection_demands={connection.id: ElectricalPower(5)},
             capacities=capacities,
         )
 
         assert not energy_network.get_capacity_failures()
+        assert energy_network.is_feasible()
 
     def test_missing_capacity_means_unlimited(self, energy_network_simulation_factory, energy_unit_factory_factory):
         topology, grid, load = create_electrical_topology(energy_unit_factory_factory)
         energy_network_simulation = energy_network_simulation_factory(
             junctions=[], energy_unit_factories=[grid], topology=topology
         )
-        connection = topology.get_connection(grid.get_id(), load.get_id())
-        energy_network = energy_network_simulation.run({connection.id: ElectricalPower(5)})
+        connection = topology.get_connection(
+            source_id=grid.get_id(),
+            target_id=load.get_id(),
+        )
+        energy_network = energy_network_simulation.run(connection_demands={connection.id: ElectricalPower(5)})
 
         assert not energy_network.get_capacity_failures()
 
@@ -199,11 +219,17 @@ class TestEnergyNetworkCapacity:
         energy_network_simulation = energy_network_simulation_factory(
             junctions=[], energy_unit_factories=[grid], topology=topology
         )
-        first_connection = topology.get_connection(grid.get_id(), first_load.get_id())
-        second_connection = topology.get_connection(grid.get_id(), second_load.get_id())
+        first_connection = topology.get_connection(
+            source_id=grid.get_id(),
+            target_id=first_load.get_id(),
+        )
+        second_connection = topology.get_connection(
+            source_id=grid.get_id(),
+            target_id=second_load.get_id(),
+        )
         capacities = {grid.get_id(): ElectricalPower(6)}
         energy_network = energy_network_simulation.run(
-            {
+            connection_demands={
                 first_connection.id: ElectricalPower(3),
                 second_connection.id: ElectricalPower(4),
             },
@@ -236,7 +262,12 @@ class TestJunctionDispatch:
         )
 
         energy_network = energy_network_simulation.run(
-            {topology.get_connection(bus.get_id(), load.get_id()).id: ElectricalPower(8)},
+            connection_demands={
+                topology.get_connection(
+                    source_id=bus.get_id(),
+                    target_id=load.get_id(),
+                ).id: ElectricalPower(8)
+            },
             capacities={grid.get_id(): ElectricalPower(5), genset.get_id(): ElectricalPower(10)},
         )
 
@@ -279,7 +310,12 @@ class TestJunctionDispatch:
         )
 
         energy_network = energy_network_simulation.run(
-            {topology.get_connection(bus.get_id(), load.get_id()).id: ElectricalPower(12)},
+            connection_demands={
+                topology.get_connection(
+                    source_id=bus.get_id(),
+                    target_id=load.get_id(),
+                ).id: ElectricalPower(12)
+            },
             capacities={first.get_id(): ElectricalPower(10), second.get_id(): ElectricalPower(10)},
         )
 
@@ -323,7 +359,12 @@ class TestJunctionDispatch:
 
         capacities = {first_grid.get_id(): ElectricalPower(5), second_grid.get_id(): ElectricalPower(5)}
         energy_network = energy_network_simulation.run(
-            {topology.get_connection(bus.get_id(), load.get_id()).id: ElectricalPower(12)},
+            connection_demands={
+                topology.get_connection(
+                    source_id=bus.get_id(),
+                    target_id=load.get_id(),
+                ).id: ElectricalPower(12)
+            },
             capacities=capacities,
         )
 
@@ -370,7 +411,12 @@ class TestJunctionDispatch:
             wind.get_id(): ElectricalPower(10),
         }
         energy_network = energy_network_simulation.run(
-            {topology.get_connection(bus.get_id(), load.get_id()).id: ElectricalPower(25)},
+            connection_demands={
+                topology.get_connection(
+                    source_id=bus.get_id(),
+                    target_id=load.get_id(),
+                ).id: ElectricalPower(25)
+            },
             capacities=capacities,
         )
 
@@ -544,9 +590,15 @@ class TestJunctionDispatch:
         )
 
         energy_network = energy_network_simulation.run(
-            {
-                topology.get_connection(bus.get_id(), first_load.get_id()).id: ElectricalPower(3),
-                topology.get_connection(bus.get_id(), second_load.get_id()).id: ElectricalPower(7),
+            connection_demands={
+                topology.get_connection(
+                    source_id=bus.get_id(),
+                    target_id=first_load.get_id(),
+                ).id: ElectricalPower(3),
+                topology.get_connection(
+                    source_id=bus.get_id(),
+                    target_id=second_load.get_id(),
+                ).id: ElectricalPower(7),
             }
         )
 
@@ -578,3 +630,71 @@ class TestJunctionDispatch:
             energy_network_simulation_factory(
                 junctions=[bus], energy_unit_factories=[first_grid, second_grid], topology=topology
             )
+
+
+class TestEnergyNetworkState:
+    def test_records_state_for_every_connected_node(
+        self, energy_network_simulation_factory, energy_unit_factory_factory
+    ):
+        source = energy_unit_factory_factory(ElectricalSource, "source")
+        cable = energy_unit_factory_factory(ElectricalCable, "cable", loss_fraction=0.04)
+        consumer = ElectricalConsumer("consumer", output_energy=ElectricalPower(0))
+        topology = create_topology(
+            nodes=[source, cable, consumer],
+            connections=[
+                (source.get_id(), cable.get_id()),
+                (cable.get_id(), consumer.get_id()),
+            ],
+        )
+        energy_network_simulation = energy_network_simulation_factory(
+            junctions=[], energy_unit_factories=[source, cable], topology=topology
+        )
+
+        energy_network = energy_network_simulation.run(
+            connection_demands={
+                topology.get_connection(
+                    source_id=cable.get_id(),
+                    target_id=consumer.get_id(),
+                ).id: ElectricalPower(10)
+            }
+        )
+
+        assert set(energy_network.get_unit_states()) == {source.get_id(), cable.get_id(), consumer.get_id()}
+
+        source_state = energy_network.get_unit_state(source.get_id())
+        assert source_state.output_energy == ElectricalPower(10 / 0.96)
+        assert source_state.input_energy is None
+
+        cable_state = energy_network.get_unit_state(cable.get_id())
+        assert cable_state.output_energy == ElectricalPower(10)
+        assert cable_state.input_energy == ElectricalPower(10 / 0.96)
+
+        consumer_state = energy_network.get_unit_state(consumer.get_id())
+        assert consumer_state.output_energy is None
+        assert consumer_state.input_energy == ElectricalPower(10)
+
+    def test_records_state_for_junction(self, energy_network_simulation_factory, energy_unit_factory_factory):
+        grid = energy_unit_factory_factory(ElectricalSource, "grid")
+        bus = ElectricalBus("bus")
+        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        topology = create_topology(
+            nodes=[grid, bus, load],
+            connections=[(grid.get_id(), bus.get_id()), (bus.get_id(), load.get_id())],
+        )
+        energy_network_simulation = energy_network_simulation_factory(
+            junctions=[bus], energy_unit_factories=[grid], topology=topology
+        )
+
+        energy_network = energy_network_simulation.run(
+            connection_demands={
+                topology.get_connection(
+                    source_id=bus.get_id(),
+                    target_id=load.get_id(),
+                ).id: ElectricalPower(7)
+            }
+        )
+
+        bus_state = energy_network.get_unit_state(bus.get_id())
+        assert bus_state.output_energy == ElectricalPower(7)
+        assert bus_state.input_energy == ElectricalPower(7)
+        assert bus_state.capacity is None

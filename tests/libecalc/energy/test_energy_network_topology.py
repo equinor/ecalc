@@ -106,3 +106,23 @@ class TestEnergyNetworkTopology:
 
         assert topology.get_predecessors(bus.get_id()) == frozenset({grid.get_id(), wind.get_id()})
         assert topology.get_successors(bus.get_id()) == frozenset({load.get_id()})
+
+    def test_exposes_incoming_connections_per_node(self):
+        grid = ElectricalSource("grid", output_energy=ElectricalPower(0))
+        wind = ElectricalSource("wind", output_energy=ElectricalPower(0))
+        bus = ElectricalBus("bus")
+        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+
+        topology = create_topology([grid, wind, bus, load], [(grid, bus), (wind, bus), (bus, load)])
+
+        assert set(topology.get_incoming_connections(bus.get_id())) == {
+            topology.get_connection(
+                source_id=grid.get_id(),
+                target_id=bus.get_id(),
+            ),
+            topology.get_connection(
+                source_id=wind.get_id(),
+                target_id=bus.get_id(),
+            ),
+        }
+        assert topology.get_incoming_connections(grid.get_id()) == ()
