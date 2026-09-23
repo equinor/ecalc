@@ -1,5 +1,6 @@
 from enum import StrEnum
 
+from libecalc.common.ddd import value_object
 from libecalc.energy.energy_types import Energy
 
 
@@ -7,21 +8,15 @@ class EnergyFailureStatus(StrEnum):
     CAPACITY_EXCEEDED = "CAPACITY_EXCEEDED"
 
 
+@value_object
 class EnergyFailure:
-    def __init__(self, status: EnergyFailureStatus) -> None:
-        self.status = status
+    status: EnergyFailureStatus
 
 
+@value_object
 class CapacityFailure(EnergyFailure):
-    def __init__(
-        self,
-        status: EnergyFailureStatus,
-        required_energy: Energy,
-        capacity: Energy,
-    ) -> None:
-        super().__init__(status=status)
-        self.required_energy = required_energy
-        self.capacity = capacity
+    required_energy: Energy
+    capacity: Energy
 
 
 def capacity_failures(required_energy: Energy, capacity: Energy | None) -> list[EnergyFailure]:

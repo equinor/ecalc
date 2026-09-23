@@ -186,3 +186,6 @@ class EnergyNetworkTopology:
 
     def get_outgoing_connections(self, node_id: EnergyUnitId) -> tuple[EnergyConnection, ...]:
         return tuple(self._connections[node_id, successor_id] for successor_id in self._successors[node_id])
+
+    def get_incoming_connections(self, node_id: EnergyUnitId) -> tuple[EnergyConnection, ...]:
+        return tuple(self._connections[predecessor_id, node_id] for predecessor_id in self._predecessors[node_id])

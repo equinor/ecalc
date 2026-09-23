@@ -23,13 +23,13 @@ def create_topology(units, connections):
 class TestEnergyNetworkTopologyValidation:
     def test_rejects_incompatible_energy_types(self):
         source = FuelGasSource("source", output_energy=FuelGasRate(0))
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = ElectricalConsumer("load", demand=ElectricalPower(0))
 
         with pytest.raises(InvalidEnergyNetworkError, match="Incompatible energy types"):
             create_topology([source, load], [(source, load)])
 
     def test_rejects_unknown_source(self):
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = ElectricalConsumer("load", demand=ElectricalPower(0))
         source = FuelGasSource("source", output_energy=FuelGasRate(0))
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown source"):
@@ -41,7 +41,7 @@ class TestEnergyNetworkTopologyValidation:
 
     def test_rejects_unknown_target(self):
         source = FuelGasSource("source", output_energy=FuelGasRate(0))
-        target = ElectricalConsumer("target", output_energy=ElectricalPower(0))
+        target = ElectricalConsumer("target", demand=ElectricalPower(0))
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown target"):
             EnergyNetworkTopology.create(
@@ -51,7 +51,7 @@ class TestEnergyNetworkTopologyValidation:
             )
 
     def test_rejects_consumer_without_predecessor(self):
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = ElectricalConsumer("load", demand=ElectricalPower(0))
 
         with pytest.raises(InvalidEnergyNetworkError, match="requires input energy but has no predecessor"):
             create_topology([load], [])
@@ -65,14 +65,14 @@ class TestEnergyNetworkTopologyValidation:
 
     def test_rejects_duplicate_connection_pair(self):
         source = ElectricalSource("source", output_energy=ElectricalPower(0))
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = ElectricalConsumer("load", demand=ElectricalPower(0))
 
         with pytest.raises(InvalidEnergyNetworkError, match="Duplicate energy connection from"):
             create_topology([source, load], [(source, load), (source, load)])
 
     def test_rejects_duplicate_connection_id(self):
         source = ElectricalSource("source", output_energy=ElectricalPower(0))
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = ElectricalConsumer("load", demand=ElectricalPower(0))
         connection_id = EnergyConnectionId(ElectricalSource._create_id())
         connection = EnergyConnection(connection_id, source.get_id(), load.get_id(), ElectricalPower)
 
@@ -84,7 +84,7 @@ class TestEnergyNetworkTopology:
     def test_exposes_typed_connections_in_topological_order(self):
         source = ElectricalSource("source", output_energy=ElectricalPower(0))
         cable = ElectricalCable("cable", output_energy=ElectricalPower(0))
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = ElectricalConsumer("load", demand=ElectricalPower(0))
 
         topology = create_topology([source, cable, load], [(source, cable), (cable, load)])
 
@@ -100,9 +100,29 @@ class TestEnergyNetworkTopology:
         grid = ElectricalSource("grid", output_energy=ElectricalPower(0))
         wind = ElectricalSource("wind", output_energy=ElectricalPower(0))
         bus = ElectricalBus("bus")
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = ElectricalConsumer("load", demand=ElectricalPower(0))
 
         topology = create_topology([grid, wind, bus, load], [(grid, bus), (wind, bus), (bus, load)])
 
         assert topology.get_predecessors(bus.get_id()) == frozenset({grid.get_id(), wind.get_id()})
         assert topology.get_successors(bus.get_id()) == frozenset({load.get_id()})
+
+    def test_exposes_incoming_connections_per_node(self):
+        grid = ElectricalSource("grid", output_energy=ElectricalPower(0))
+        wind = ElectricalSource("wind", output_energy=ElectricalPower(0))
+        bus = ElectricalBus("bus")
+        load = ElectricalConsumer("load", demand=ElectricalPower(0))
+
+        topology = create_topology([grid, wind, bus, load], [(grid, bus), (wind, bus), (bus, load)])
+
+        assert set(topology.get_incoming_connections(bus.get_id())) == {
+            topology.get_connection(
+                source_id=grid.get_id(),
+                target_id=bus.get_id(),
+            ),
+            topology.get_connection(
+                source_id=wind.get_id(),
+                target_id=bus.get_id(),
+            ),
+        }
+        assert topology.get_incoming_connections(grid.get_id()) == ()
