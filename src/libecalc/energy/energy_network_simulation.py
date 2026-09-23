@@ -55,7 +55,7 @@ class EnergyNetworkSimulation:
         self,
         connection_demands: dict[EnergyConnectionId, Energy],
         capacities: dict[EnergyUnitId, Energy] | None = None,
-        extra: dict[EnergyUnitId, dict[str, Any]] | None = None,
+        **extra: Any,
     ) -> EnergyNetwork:
         """Calculate connection energy and capacity failures from demands on consumer-targeting connections.
 
@@ -100,7 +100,7 @@ class EnergyNetworkSimulation:
                 energy_unit = energy_unit_factory.create(
                     demand=demand,
                     capacity=capacities.get(node_id),
-                    **extra.get(node_id, {}),
+                    **extra,
                 )
                 energy_units[node_id] = energy_unit
 
