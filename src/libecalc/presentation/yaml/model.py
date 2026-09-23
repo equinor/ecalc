@@ -48,7 +48,6 @@ from libecalc.presentation.yaml.domain.default_process_service import DefaultPro
 from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesConsumer,
     TimeSeriesEnergyUnitFactory,
-    TimeSeriesJunction,
 )
 from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
@@ -290,12 +289,11 @@ class YamlModel:
         EnergyNetworkTopology | None,
         Sequence[TimeSeriesEnergyUnitFactory],
         Sequence[TimeSeriesConsumer],
-        Sequence[TimeSeriesJunction],
     ]:
         self.validate_for_run()
         yaml_energy_network = self._configuration.energy_network
         if yaml_energy_network is None:
-            return None, (), (), ()
+            return None, (), ()
 
         time_series_resources, _ = self._resource_service.get_time_series_resources()
         time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}

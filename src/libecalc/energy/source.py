@@ -4,7 +4,8 @@ import abc
 
 from libecalc.energy.energy_failure import EnergyFailure, capacity_failures
 from libecalc.energy.energy_types import Energy
-from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
+from libecalc.energy.energy_unit import EnergyUnit
+from libecalc.energy.ids import EnergyConnectionId, EnergyUnitId
 
 
 class Source(EnergyUnit, abc.ABC):
@@ -29,6 +30,10 @@ class Source(EnergyUnit, abc.ABC):
 
     def get_capacity(self) -> Energy | None:
         return self._capacity
+
+    def get_input_energies(self) -> dict[EnergyConnectionId, Energy]:
+        # Energy enters the network here, so nothing is drawn from a predecessor.
+        return {}
 
     def get_failures(self) -> list[EnergyFailure]:
         return capacity_failures(self._output_energy, self._capacity)

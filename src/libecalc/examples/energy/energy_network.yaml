@@ -9,7 +9,7 @@
 #       │
 #       ├──► export_turbine ──► export_train (process sim)
 #       │
-#       └──► fuel_manifold ──► gas_compressor_sampled (50000 Sm3/d)
+#       └──► gas_compressor_sampled (50000 Sm3/d)
 #
 #   flare_gas ──► flare (1200 Sm3/d)
 #
@@ -18,6 +18,13 @@
 #   power_from_shore ──► subsea_cable ──┐
 #                                       ├──► electrical_bus ──► heating (10 MW)
 #   wind_turbine ───────────────────────┘
+#
+# The bus dispatches with PRIORITY in INPUT order: the subsea cable first, then wind.
+# Each INPUT CAPACITY is a dispatch limit measured at the bus, after upstream losses:
+# 20 MW from shore through a 97 % efficient cable delivers 19.4 MW to the bus. The
+# limits guide the split but never clip demand. Demand beyond both limits is placed on
+# the last input, and a physical overload is reported by the supplying unit itself.
+# An input without CAPACITY is unlimited for dispatch, until a deliverability rule exists.
 
 ENERGY_NETWORK:
   SOURCES:
@@ -66,12 +73,12 @@ ENERGY_NETWORK:
     # --- Junctions ---
     - NAME: electrical_bus
       TYPE: ELECTRICAL_BUS
-      INPUT: [subsea_cable, wind_turbine]
+      INPUT:
+        - NAME: subsea_cable
+          CAPACITY: 19.4  # MW at the bus: 20 MW from shore at 97 % cable efficiency
+        - NAME: wind_turbine
+          CAPACITY: 4.4  # MW
       DISPATCH_STRATEGY: PRIORITY
-
-    - NAME: fuel_manifold
-      TYPE: FUEL_GAS_MANIFOLD
-      INPUT: [fuel_gas]
 
     # --- Consumers ---
     - NAME: base_load
@@ -101,7 +108,7 @@ ENERGY_NETWORK:
 
     - NAME: gas_compressor_sampled
       TYPE: FUEL_GAS_CONSUMER
-      INPUT: fuel_manifold
+      INPUT: fuel_gas
       RATE: 50000  # Sm3/d
 
     - NAME: diesel_consumers

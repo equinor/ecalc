@@ -1,11 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from libecalc.common.errors.exceptions import EcalcError
-
-if TYPE_CHECKING:
-    from libecalc.energy.energy_unit import EnergyUnitId
 
 
 class EnergyDomainError(EcalcError):
@@ -26,23 +21,6 @@ class NegativeEnergyError(EnergyDomainError):
 
 class InvalidEnergyNetworkError(EnergyDomainError):
     """Raised when an energy network violates a topology invariant."""
-
-
-class FanInNotSupportedError(InvalidEnergyNetworkError):
-    """Raised when a non-junction node is fed by more than one predecessor.
-
-    Carries ``node_id`` so a caller with access to the unit registry can resolve a name and enrich the
-    message; the simulation itself has no names and reports the identity only.
-    """
-
-    def __init__(self, node_id: EnergyUnitId, predecessor_count: int):
-        self.node_id = node_id
-        self.predecessor_count = predecessor_count
-        super().__init__(f"Energy unit {node_id} has {predecessor_count} predecessors; only junctions support fan-in")
-
-
-class EnergyAllocationRequiredError(EnergyDomainError):
-    """Raised when a junction with multiple predecessors has no dispatch strategy."""
 
 
 class InvalidDispatchError(EnergyDomainError):

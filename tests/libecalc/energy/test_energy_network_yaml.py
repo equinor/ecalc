@@ -31,7 +31,7 @@ class TestExampleYamlParsing:
     def test_parses_example_yaml(self):
         network = _load_network(EXAMPLE_YAML)
         assert len(network.sources) == 5
-        assert len(network.units) == 15
+        assert len(network.units) == 14
 
     def test_sources_have_no_input(self):
         network = _load_network(EXAMPLE_YAML)
@@ -46,7 +46,6 @@ class TestExampleYamlParsing:
 
         assert isinstance(by_name["genset_a"], YamlGeneratorSet)
         assert isinstance(by_name["electrical_bus"], YamlElectricalBus)
-        assert isinstance(by_name["fuel_manifold"], YamlFuelGasManifold)
         assert isinstance(by_name["subsea_cable"], YamlElectricalCable)
         assert isinstance(by_name["base_load"], YamlElectricalConsumer)
         assert isinstance(by_name["flare"], YamlFuelGasConsumer)
@@ -64,7 +63,12 @@ class TestExampleYamlParsing:
     def test_dispatch_strategy_on_junction(self):
         network = _load_network(EXAMPLE_YAML)
         bus = next(c for c in network.units if c.name == "electrical_bus")
+        assert isinstance(bus, YamlElectricalBus)
         assert bus.dispatch_strategy == "PRIORITY"
+        assert [(junction_input.name, junction_input.capacity) for junction_input in bus.get_inputs()] == [
+            ("subsea_cable", 19.4),
+            ("wind_turbine", 4.4),
+        ]
 
 
 class TestNumericBounds:
@@ -109,18 +113,123 @@ class TestNumericBounds:
 
 
 class TestJunctionValidation:
-    def test_dispatch_strategy_required_for_multi_input(self):
-        with pytest.raises(ValidationError, match="DISPATCH_STRATEGY is required"):
+    def test_dispatch_strategy_required(self):
+        with pytest.raises(ValidationError, match=r"DISPATCH_STRATEGY\n\s+Field required"):
             _component_adapter.validate_python({"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["a", "b"]})
 
-    def test_single_input_junction_ok_without_strategy(self):
-        comp = _component_adapter.validate_python({"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["a"]})
-        assert comp.dispatch_strategy is None
+    def test_single_input_junction_rejected(self):
+        with pytest.raises(ValidationError, match="at least 2 items"):
+            _component_adapter.validate_python(
+                {"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["a"], "DISPATCH_STRATEGY": "PRIORITY"}
+            )
 
     def test_duplicate_input_refs_rejected(self):
         with pytest.raises(ValidationError, match="duplicate INPUT"):
             _component_adapter.validate_python(
                 {"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["a", "a"], "DISPATCH_STRATEGY": "PRIORITY"}
+            )
+
+
+class TestJunctionInputs:
+    def test_mixed_entries_keep_declared_order(self):
+        manifold = _component_adapter.validate_python(
+            {
+                "NAME": "manifold",
+                "TYPE": "FUEL_GAS_MANIFOLD",
+                "INPUT": ["c", {"NAME": "a", "CAPACITY": "$var.limit"}, {"NAME": "b"}],
+                "DISPATCH_STRATEGY": "PRIORITY",
+            }
+        )
+        assert isinstance(manifold, YamlFuelGasManifold)
+        assert [(junction_input.name, junction_input.capacity) for junction_input in manifold.get_inputs()] == [
+            ("c", None),
+            ("a", "$var.limit"),
+            ("b", None),
+        ]
+
+    def test_equal_split_rejected_until_implemented(self):
+        with pytest.raises(ValidationError, match="EQUAL_SPLIT is not supported yet"):
+            _component_adapter.validate_python(
+                {"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["a", "b"], "DISPATCH_STRATEGY": "EQUAL_SPLIT"}
+            )
+
+    def test_negative_input_capacity_rejected(self):
+        with pytest.raises(ValidationError, match="CAPACITY must be non-negative"):
+            _component_adapter.validate_python(
+                {
+                    "NAME": "bus",
+                    "TYPE": "ELECTRICAL_BUS",
+                    "INPUT": [{"NAME": "a", "CAPACITY": -1}, "b"],
+                    "DISPATCH_STRATEGY": "PRIORITY",
+                }
+            )
+
+    def test_duplicate_across_name_and_object_entries_rejected(self):
+        with pytest.raises(ValidationError, match="duplicate INPUT"):
+            _component_adapter.validate_python(
+                {
+                    "NAME": "bus",
+                    "TYPE": "ELECTRICAL_BUS",
+                    "INPUT": ["a", {"NAME": "a", "CAPACITY": 5}],
+                    "DISPATCH_STRATEGY": "PRIORITY",
+                }
+            )
+
+    def test_unknown_object_input_rejected(self):
+        with pytest.raises(ValueError, match="not a known source or provider"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE"}],
+                    "UNITS": [
+                        {
+                            "NAME": "bus",
+                            "TYPE": "ELECTRICAL_BUS",
+                            "INPUT": ["grid", {"NAME": "missing", "CAPACITY": 5}],
+                            "DISPATCH_STRATEGY": "PRIORITY",
+                        },
+                    ],
+                }
+            )
+
+    def test_object_input_energy_type_mismatch_rejected(self):
+        with pytest.raises(ValueError, match="expects ELECTRICAL input.*provides FUEL_GAS"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [
+                        {"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE"},
+                        {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"},
+                    ],
+                    "UNITS": [
+                        {
+                            "NAME": "bus",
+                            "TYPE": "ELECTRICAL_BUS",
+                            "INPUT": ["grid", {"NAME": "fuel", "CAPACITY": 5}],
+                            "DISPATCH_STRATEGY": "PRIORITY",
+                        }
+                    ],
+                }
+            )
+
+    def test_object_input_cycle_rejected(self):
+        with pytest.raises(ValueError, match="Cycle detected"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE"}],
+                    "UNITS": [
+                        {
+                            "NAME": "first_bus",
+                            "TYPE": "ELECTRICAL_BUS",
+                            "INPUT": ["grid", {"NAME": "second_bus", "CAPACITY": 5}],
+                            "DISPATCH_STRATEGY": "PRIORITY",
+                        },
+                        {
+                            "NAME": "second_bus",
+                            "TYPE": "ELECTRICAL_BUS",
+                            "INPUT": ["grid", {"NAME": "first_bus"}],
+                            "DISPATCH_STRATEGY": "PRIORITY",
+                        },
+                    ],
+                }
             )
 
 

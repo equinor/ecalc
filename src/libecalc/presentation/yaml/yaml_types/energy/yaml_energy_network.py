@@ -152,6 +152,35 @@ class YamlDispatchStrategy(StrEnum):
     EQUAL_SPLIT = "EQUAL_SPLIT"
 
 
+class YamlJunctionInput(YamlBase):
+    model_config = ConfigDict(title="JunctionInput")
+
+    name: Annotated[
+        str,
+        Field(
+            title="NAME",
+            description="Source or unit feeding into this junction.",
+        ),
+    ]
+    capacity: Annotated[
+        YamlExpressionType | None,
+        Field(
+            title="CAPACITY",
+            description=(
+                "Dispatch limit for this input, measured at the junction after any upstream loss. It guides how "
+                "demand is split and does not cap it: demand beyond every limit is placed on the last input, and "
+                "exceeding a limit is not itself a capacity failure. Omit for unlimited, until a deliverability "
+                "rule exists."
+            ),
+        ),
+    ] = None
+
+    @field_validator("capacity", mode="after")
+    @classmethod
+    def _capacity_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
+        return _check_non_negative(v, "CAPACITY")
+
+
 class YamlJunctionBase(YamlBase):
     name: Annotated[
         str,
@@ -161,30 +190,41 @@ class YamlJunctionBase(YamlBase):
         ),
     ]
     input: Annotated[
-        list[str],
+        list[str | YamlJunctionInput],
         Field(
             title="INPUT",
-            description="Sources or units feeding into this junction.",
+            description=(
+                "At least two sources or units feeding into this junction, in dispatch priority order. An entry is "
+                "either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects "
+                "directly to its consumers instead."
+            ),
+            min_length=2,
         ),
     ]
     dispatch_strategy: Annotated[
-        YamlDispatchStrategy | None,
+        YamlDispatchStrategy,
         Field(
             title="DISPATCH_STRATEGY",
-            description="How to allocate demand across multiple inputs. Required when INPUT has more than one entry.",
+            description="How to allocate demand across the inputs.",
         ),
-    ] = None
+    ]
+
+    def get_inputs(self) -> list[YamlJunctionInput]:
+        """Normalize inputs to objects, preserving declared priority order."""
+        return [YamlJunctionInput(name=entry) if isinstance(entry, str) else entry for entry in self.input]
 
     @model_validator(mode="after")
-    def check_dispatch_strategy_required_for_fan_in(self):
-        if len(self.input) > 1 and self.dispatch_strategy is None:
-            raise ValueError(f"'{self.name}': DISPATCH_STRATEGY is required when INPUT has multiple entries.")
+    def check_dispatch_strategy_supported(self):
+        # EQUAL_SPLIT is reserved in the schema but has no domain implementation yet.
+        if self.dispatch_strategy == YamlDispatchStrategy.EQUAL_SPLIT:
+            raise ValueError(f"'{self.name}': DISPATCH_STRATEGY {self.dispatch_strategy} is not supported yet.")
         return self
 
     @model_validator(mode="after")
     def check_no_duplicate_inputs(self):
-        if len(self.input) != len(set(self.input)):
-            duplicates = [ref for ref in self.input if self.input.count(ref) > 1]
+        names = [junction_input.name for junction_input in self.get_inputs()]
+        if len(names) != len(set(names)):
+            duplicates = [ref for ref in names if names.count(ref) > 1]
             raise ValueError(f"'{self.name}': duplicate INPUT references: {set(duplicates)}")
         return self
 
@@ -360,9 +400,10 @@ SOURCE_OUTPUT_ENERGY: dict[YamlEnergySourceType, EnergyType] = {
 CONSUMER_TYPES = set(INPUT_ENERGY) - set(OUTPUT_ENERGY)
 
 
-def _get_input_names(component: YamlComponent) -> list[str]:
-    if isinstance(component.input, list):
-        return component.input
+def get_input_names(component: YamlComponent) -> list[str]:
+    """Return input names in declared order."""
+    if isinstance(component, YamlJunctionBase):
+        return [junction_input.name for junction_input in component.get_inputs()]
     return [component.input]
 
 
@@ -409,7 +450,7 @@ class YamlEnergyNetwork(YamlBase):
     def check_input_references(self):
         valid = self._valid_input_names()
         for c in self.units:
-            for ref in _get_input_names(c):
+            for ref in get_input_names(c):
                 if ref not in valid:
                     raise ValueError(f"'{c.name}' has INPUT '{ref}' which is not a known source or provider.")
         return self
@@ -418,7 +459,7 @@ class YamlEnergyNetwork(YamlBase):
     def check_no_cycles(self):
         from graphlib import CycleError, TopologicalSorter
 
-        graph: dict[str, set[str]] = {c.name: set(_get_input_names(c)) for c in self.units}
+        graph: dict[str, set[str]] = {c.name: set(get_input_names(c)) for c in self.units}
         try:
             tuple(TopologicalSorter(graph).static_order())
         except CycleError as e:
@@ -438,7 +479,7 @@ class YamlEnergyNetwork(YamlBase):
             if c.type not in INPUT_ENERGY:
                 raise ValueError(f"'{c.name}': unknown component type '{c.type}' — not in energy type map.")
             expected_input = INPUT_ENERGY[c.type]
-            for ref in _get_input_names(c):
+            for ref in get_input_names(c):
                 provided = output_types.get(ref)
                 if provided is not None and provided != expected_input:
                     raise ValueError(

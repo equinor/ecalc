@@ -86,9 +86,18 @@ Converters, junctions, and consumers forming the energy network.
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
-| `INPUT` | Sources or units feeding into this junction. | Required |
-| `DISPATCH_STRATEGY` | How to allocate demand across multiple inputs. Required when INPUT has more than one entry. | Optional |
+| [`INPUT`](#energy-network-units-electrical-bus-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
+| `DISPATCH_STRATEGY` | How to allocate demand across the inputs. | Required |
 | `TYPE` | `ELECTRICAL_BUS` | Required |
+
+##### INPUT {/* #energy-network-units-electrical-bus-input */}
+
+At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Source or unit feeding into this junction. | Required |
+| `CAPACITY` | Dispatch limit for this input, measured at the junction after any upstream loss. It guides how demand is split and does not cap it: demand beyond every limit is placed on the last input, and exceeding a limit is not itself a capacity failure. Omit for unlimited, until a deliverability rule exists. | Optional |
 
 </TabItem>
 
@@ -97,9 +106,18 @@ Converters, junctions, and consumers forming the energy network.
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
-| `INPUT` | Sources or units feeding into this junction. | Required |
-| `DISPATCH_STRATEGY` | How to allocate demand across multiple inputs. Required when INPUT has more than one entry. | Optional |
+| [`INPUT`](#energy-network-units-fuel-gas-manifold-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
+| `DISPATCH_STRATEGY` | How to allocate demand across the inputs. | Required |
 | `TYPE` | `FUEL_GAS_MANIFOLD` | Required |
+
+##### INPUT {/* #energy-network-units-fuel-gas-manifold-input */}
+
+At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Source or unit feeding into this junction. | Required |
+| `CAPACITY` | Dispatch limit for this input, measured at the junction after any upstream loss. It guides how demand is split and does not cap it: demand beyond every limit is placed on the last input, and exceeding a limit is not itself a capacity failure. Omit for unlimited, until a deliverability rule exists. | Optional |
 
 </TabItem>
 

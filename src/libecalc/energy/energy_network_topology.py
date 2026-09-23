@@ -1,16 +1,13 @@
 from collections.abc import Iterable, Sequence
 from graphlib import CycleError, TopologicalSorter
-from typing import NewType, Self
+from typing import Self
 from uuid import UUID
 
 from libecalc.common.ddd import value_object
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.energy.energy_types import Energy
-from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkError
-
-EnergyNetworkId = NewType("EnergyNetworkId", UUID)
-EnergyConnectionId = NewType("EnergyConnectionId", UUID)
+from libecalc.energy.ids import EnergyConnectionId, EnergyNetworkId, EnergyUnitId
 
 
 @value_object
@@ -186,3 +183,7 @@ class EnergyNetworkTopology:
 
     def get_outgoing_connections(self, node_id: EnergyUnitId) -> tuple[EnergyConnection, ...]:
         return tuple(self._connections[node_id, successor_id] for successor_id in self._successors[node_id])
+
+    def get_incoming_connections(self, node_id: EnergyUnitId) -> tuple[EnergyConnection, ...]:
+        """Return incoming connections with no implied dispatch priority."""
+        return tuple(self._connections[predecessor_id, node_id] for predecessor_id in self._predecessors[node_id])

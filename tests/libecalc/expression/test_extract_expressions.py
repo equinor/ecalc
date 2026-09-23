@@ -2,6 +2,7 @@ from pydantic import BaseModel
 
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidComposition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlPumpProcessInlet
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -113,6 +114,28 @@ class TestExtractExpressionReferences:
         model = ModelWithDict(expressions={"a": "SIM1;RATE", "b": "SIM2;PRESSURE"})
         refs = extract_expression_references(model)
         assert refs == {"SIM1;RATE", "SIM2;PRESSURE"}
+
+    def test_extracts_references_from_junction_input_capacities(self):
+        """A dispatch limit nested in a junction's INPUT entry must be found, or its time series is never loaded."""
+        network = YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [
+                    {"NAME": "shore", "TYPE": "ELECTRICAL_SOURCE", "CAPACITY": "SIM1;SHORE"},
+                    {"NAME": "wind", "TYPE": "ELECTRICAL_SOURCE"},
+                ],
+                "UNITS": [
+                    {
+                        "NAME": "bus",
+                        "TYPE": "ELECTRICAL_BUS",
+                        "INPUT": [{"NAME": "shore", "CAPACITY": "SIM1;SHORE_AT_BUS {*} 0.97"}, "wind"],
+                        "DISPATCH_STRATEGY": "PRIORITY",
+                    },
+                    {"NAME": "load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "bus", "LOAD": "SIM1;LOAD"},
+                ],
+            }
+        )
+
+        assert extract_expression_references(network) == {"SIM1;SHORE", "SIM1;SHORE_AT_BUS", "SIM1;LOAD"}
 
     def test_extracts_references_from_fluid_definitions(self):
         """Fluid composition expressions are included when extracting dependencies from definitions."""
