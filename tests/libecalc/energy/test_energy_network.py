@@ -105,7 +105,9 @@ class TestEnergyNetworkCapacity:
     def test_reports_capacity_exceeded_without_capping_connection_energy(
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
-        grid = energy_unit_factory_factory(Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5))
+        grid = energy_unit_factory_factory(
+            Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5)
+        )
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
         topology = create_topology(nodes=[grid, load], connections=[(grid, load)])
         energy_network_simulation = energy_network_simulation_factory(energy_unit_factories=[grid], topology=topology)
@@ -123,7 +125,9 @@ class TestEnergyNetworkCapacity:
     def test_capacity_equal_to_connection_energy_has_no_failure(
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
-        grid = energy_unit_factory_factory(Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5))
+        grid = energy_unit_factory_factory(
+            Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5)
+        )
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
         topology = create_topology(nodes=[grid, load], connections=[(grid, load)])
         energy_network_simulation = energy_network_simulation_factory(energy_unit_factories=[grid], topology=topology)
@@ -145,7 +149,9 @@ class TestEnergyNetworkCapacity:
     def test_zero_capacity_is_a_limit_not_unlimited(
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
-        grid = energy_unit_factory_factory(Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(0))
+        grid = energy_unit_factory_factory(
+            Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(0)
+        )
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
         topology = create_topology(nodes=[grid, load], connections=[(grid, load)])
         energy_network_simulation = energy_network_simulation_factory(energy_unit_factories=[grid], topology=topology)
@@ -157,7 +163,9 @@ class TestEnergyNetworkCapacity:
     def test_compares_capacity_with_total_outgoing_energy(
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
-        grid = energy_unit_factory_factory(Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(6))
+        grid = energy_unit_factory_factory(
+            Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(6)
+        )
         first_load = energy_unit_factory_factory(Consumer, "first_load", input_energy_type=ElectricalPower)
         second_load = energy_unit_factory_factory(Consumer, "second_load", input_energy_type=ElectricalPower)
         topology = create_topology(
@@ -185,7 +193,9 @@ class TestJunctionDispatch:
     ):
         """Power from shore is filled first, and the generator set covers only the shortfall."""
         fuel_source = energy_unit_factory_factory(Source, "fuel_source", output_energy_type=FuelGasRate)
-        grid = energy_unit_factory_factory(Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5))
+        grid = energy_unit_factory_factory(
+            Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5)
+        )
         genset = energy_unit_factory_factory(
             GeneratorSet, "genset", power_to_fuel=lambda power: power * 1_000, capacity=ElectricalPower(10)
         )
@@ -265,9 +275,12 @@ class TestJunctionDispatch:
         second_grid_capacity,
         expected_failures,
     ):
-        """Demand beyond total capacity lands on the last candidate rather than raising."""
-        first_grid = energy_unit_factory_factory(Source, "first_grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(10))
-        second_grid = energy_unit_factory_factory(Source, "second_grid", output_energy_type=ElectricalPower, capacity=second_grid_capacity)
+        first_grid = energy_unit_factory_factory(
+            Source, "first_grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(10)
+        )
+        second_grid = energy_unit_factory_factory(
+            Source, "second_grid", output_energy_type=ElectricalPower, capacity=second_grid_capacity
+        )
         bus = junction_factory_factory(
             ElectricalBus,
             "bus",
@@ -297,8 +310,9 @@ class TestJunctionDispatch:
     def test_omitted_input_limit_does_not_inherit_the_supplier_rating(
         self, energy_network_simulation_factory, energy_unit_factory_factory, junction_factory_factory
     ):
-        """Availability is a candidate's own capacity, not what the chain behind it can deliver."""
-        grid = energy_unit_factory_factory(Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5))
+        grid = energy_unit_factory_factory(
+            Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5)
+        )
         wind = energy_unit_factory_factory(Source, "wind", output_energy_type=ElectricalPower)
         bus = junction_factory_factory(
             ElectricalBus, "bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(), wind.get_id()))
@@ -319,9 +333,13 @@ class TestJunctionDispatch:
     def _shore_and_wind(
         self, energy_unit_factory_factory, junction_factory_factory, cable_limit_at_bus: ElectricalPower
     ):
-        shore = energy_unit_factory_factory(Source, "shore", output_energy_type=ElectricalPower, capacity=ElectricalPower(20))
+        shore = energy_unit_factory_factory(
+            Source, "shore", output_energy_type=ElectricalPower, capacity=ElectricalPower(20)
+        )
         cable = energy_unit_factory_factory(ElectricalCable, "cable", loss_fraction=0.03)
-        wind = energy_unit_factory_factory(Source, "wind", output_energy_type=ElectricalPower, capacity=ElectricalPower(4.4))
+        wind = energy_unit_factory_factory(
+            Source, "wind", output_energy_type=ElectricalPower, capacity=ElectricalPower(4.4)
+        )
         bus = junction_factory_factory(
             ElectricalBus,
             "bus",
@@ -414,8 +432,12 @@ class TestJunctionDispatch:
     def test_input_that_also_supplies_another_node_reports_its_total_overload(
         self, energy_network_simulation_factory, energy_unit_factory_factory, junction_factory_factory
     ):
-        wind = energy_unit_factory_factory(Source, "wind", output_energy_type=ElectricalPower, capacity=ElectricalPower(5))
-        grid = energy_unit_factory_factory(Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(10))
+        wind = energy_unit_factory_factory(
+            Source, "wind", output_energy_type=ElectricalPower, capacity=ElectricalPower(5)
+        )
+        grid = energy_unit_factory_factory(
+            Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(10)
+        )
         bus = junction_factory_factory(
             ElectricalBus,
             "bus",

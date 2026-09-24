@@ -16,9 +16,7 @@ from libecalc.presentation.yaml.domain.energy.demand import (
 )
 from libecalc.presentation.yaml.domain.energy.junction import TimeSeriesJunctionFactory
 from libecalc.presentation.yaml.domain.energy.sources import (
-    TimeSeriesDieselSourceFactory,
-    TimeSeriesElectricalSourceFactory,
-    TimeSeriesFuelGasSourceFactory,
+    TimeSeriesSourceFactory,
 )
 from libecalc.presentation.yaml.domain.energy.transport import (
     TimeSeriesElectricalCableFactory,
@@ -28,14 +26,12 @@ __all__ = [
     "ExpressionDemand",
     "TimeSeriesConsumer",
     "TimeSeriesDemand",
-    "TimeSeriesDieselSourceFactory",
     "TimeSeriesElectricalCableFactory",
     "TimeSeriesElectricalMotorFactory",
-    "TimeSeriesElectricalSourceFactory",
     "TimeSeriesEnergyUnit",
     "TimeSeriesEnergyUnitFactory",
-    "TimeSeriesFuelGasSourceFactory",
     "TimeSeriesGasTurbineFactory",
     "TimeSeriesGeneratorSetFactory",
     "TimeSeriesJunctionFactory",
+    "TimeSeriesSourceFactory",
 ]

@@ -5,7 +5,7 @@ import pytest
 from libecalc.common.time_utils import Period
 from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
-from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer
+from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSeriesSourceFactory
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
@@ -50,6 +50,13 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
         FuelGasRate,
         MechanicalPower,
     }
+
+    # Sources collapse into one factory class; the output energy type comes from the connection.
+    assert all(
+        isinstance(factory, TimeSeriesSourceFactory)
+        for factory in energy_unit_factories
+        if factory.get_name() in {"fuel", "grid", "diesel", "backup_fuel"}
+    )
 
     # Consumers are returned separately, not as factories.
     assert all(isinstance(consumer, TimeSeriesConsumer) for consumer in consumers)

@@ -11,14 +11,12 @@ from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import ElectricalBus, FuelGasManifold
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.presentation.yaml.domain.energy import (
-    TimeSeriesDieselSourceFactory,
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
-    TimeSeriesElectricalSourceFactory,
-    TimeSeriesFuelGasSourceFactory,
     TimeSeriesGasTurbineFactory,
     TimeSeriesGeneratorSetFactory,
     TimeSeriesJunctionFactory,
+    TimeSeriesSourceFactory,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
@@ -53,9 +51,9 @@ def incoming(target_id: EnergyUnitId, energy_type, *source_ids: EnergyUnitId) ->
 
 # Capacity is a rating on each unit's output, which for a converter differs from what it draws.
 RATED_FACTORIES = [
-    pytest.param(TimeSeriesFuelGasSourceFactory, FuelGasRate, None, id="fuel gas source"),
-    pytest.param(TimeSeriesElectricalSourceFactory, ElectricalPower, None, id="electrical source"),
-    pytest.param(TimeSeriesDieselSourceFactory, DieselRate, None, id="diesel source"),
+    pytest.param(TimeSeriesSourceFactory, FuelGasRate, None, id="fuel gas source"),
+    pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
+    pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
     pytest.param(TimeSeriesGeneratorSetFactory, ElectricalPower, FuelGasRate, id="generator set"),
     pytest.param(TimeSeriesGasTurbineFactory, MechanicalPower, FuelGasRate, id="gas turbine"),
     pytest.param(TimeSeriesElectricalMotorFactory, MechanicalPower, ElectricalPower, id="electrical motor"),
@@ -79,25 +77,25 @@ class TestRatedFactories:
         assert first.get_input_energies().keys() == {connection.id for connection in connections}
 
     def test_zero_capacity_is_a_limit(self, expression_factory):
-        factory = TimeSeriesElectricalSourceFactory(name="grid", capacity=expression_factory(0))
+        factory = TimeSeriesSourceFactory(name="grid", capacity=expression_factory(0))
 
         assert factory.create(ElectricalPower(1), incoming_connections=(), period=FIRST_PERIOD).get_capacity() == (
             ElectricalPower(0)
         )
 
     def test_unconfigured_source_needs_no_period(self):
-        factory = TimeSeriesFuelGasSourceFactory(name="fuel")
+        factory = TimeSeriesSourceFactory(name="fuel")
 
         assert factory.create(FuelGasRate(1), incoming_connections=()).get_capacity() is None
 
     def test_configured_capacity_requires_a_period(self, expression_factory):
-        factory = TimeSeriesElectricalSourceFactory(name="grid", capacity=expression_factory(5))
+        factory = TimeSeriesSourceFactory(name="grid", capacity=expression_factory(5))
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="needs a period"):
             factory.create(ElectricalPower(1), incoming_connections=())
 
     def test_rejects_period_without_a_value(self, expression_factory):
-        factory = TimeSeriesElectricalSourceFactory(name="grid", capacity=expression_factory(5))
+        factory = TimeSeriesSourceFactory(name="grid", capacity=expression_factory(5))
         unknown_period = Period(start=datetime(2030, 1, 1), end=datetime(2031, 1, 1))
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="has no value for period"):
@@ -105,7 +103,7 @@ class TestRatedFactories:
 
     @pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf")])
     def test_rejects_capacity_that_is_not_finite_and_non_negative(self, expression_factory, value):
-        factory = TimeSeriesElectricalSourceFactory(
+        factory = TimeSeriesSourceFactory(
             name="grid", capacity=expression_factory("SIM1;CAPACITY", {"SIM1;CAPACITY": [value, value]})
         )
 
