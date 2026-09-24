@@ -30,13 +30,11 @@ class EnergyUnit(Entity[EnergyUnitId], abc.ABC):
     def get_name(self) -> str:
         return self._name
 
-    @classmethod
     @abstractmethod
-    def get_input_energy_type(cls) -> type[Energy] | None: ...
+    def get_input_energy_type(self) -> type[Energy] | None: ...
 
-    @classmethod
     @abstractmethod
-    def get_output_energy_type(cls) -> type[Energy] | None: ...
+    def get_output_energy_type(self) -> type[Energy] | None: ...
 
     @abstractmethod
     def get_failures(self) -> list[EnergyFailure]:

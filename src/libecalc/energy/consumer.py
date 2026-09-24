@@ -29,6 +29,5 @@ class Consumer(EnergyUnit):
     def get_input_energy_type(self) -> type[Energy]:
         return type(self._demand)
 
-    @classmethod
-    def get_output_energy_type(cls) -> None:
+    def get_output_energy_type(self) -> None:
         return None
