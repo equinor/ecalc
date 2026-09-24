@@ -1,17 +1,22 @@
 import pytest
 
-from libecalc.energy import CapacityFailure, ElectricalPower, EnergyFailureStatus, FuelGasRate, MechanicalPower
+from libecalc.energy import (
+    CapacityFailure,
+    Consumer,
+    ElectricalPower,
+    EnergyFailureStatus,
+    FuelGasRate,
+    MechanicalPower,
+)
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_units import (
     ElectricalBus,
     ElectricalCable,
-    ElectricalConsumer,
     ElectricalMotor,
     ElectricalSource,
     FuelGasSource,
     GeneratorSet,
-    MechanicalConsumer,
 )
 from libecalc.energy.errors import (
     EnergyAllocationRequiredError,
@@ -29,7 +34,7 @@ def create_topology(nodes, connections):
 
 def create_electrical_topology(energy_unit_factory_factory):
     source = energy_unit_factory_factory(ElectricalSource, "source")
-    consumer = ElectricalConsumer("consumer", output_energy=ElectricalPower(0))
+    consumer = Consumer("consumer", demand=ElectricalPower(0))
     topology = create_topology(
         nodes=[source, consumer],
         connections=[
@@ -47,8 +52,8 @@ class TestEnergyNetworkEnergyCalculation:
         generator = energy_unit_factory_factory(GeneratorSet, "generator", power_to_fuel=lambda output: output * 1_000)
         bus = ElectricalBus("bus")
         motor = energy_unit_factory_factory(ElectricalMotor, "motor", efficiency=0.8)
-        pump = MechanicalConsumer("pump", output_energy=MechanicalPower(0))
-        base_load = ElectricalConsumer("base_load", output_energy=ElectricalPower(0))
+        pump = Consumer("pump", demand=MechanicalPower(0))
+        base_load = Consumer("base_load", demand=ElectricalPower(0))
 
         nodes = [source, generator, bus, motor, pump, base_load]
         topology = create_topology(
@@ -99,7 +104,7 @@ class TestEnergyNetworkEnergyCalculation:
     ):
         source = energy_unit_factory_factory(ElectricalSource, "source")
         cable = energy_unit_factory_factory(ElectricalCable, "cable", loss_fraction=0.04)
-        consumer = ElectricalConsumer("consumer", output_energy=ElectricalPower(0))
+        consumer = Consumer("consumer", demand=ElectricalPower(0))
 
         nodes = [source, cable, consumer]
         topology = create_topology(
@@ -130,7 +135,7 @@ class TestEnergyNetworkCapacity:
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
         grid = energy_unit_factory_factory(ElectricalSource, "grid")
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
         topology = create_topology(
             nodes=[grid, load],
             connections=[(grid.get_id(), load.get_id())],
@@ -156,7 +161,7 @@ class TestEnergyNetworkCapacity:
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
         grid = energy_unit_factory_factory(ElectricalSource, "grid")
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
         topology = create_topology(
             nodes=[grid, load],
             connections=[(grid.get_id(), load.get_id())],
@@ -187,8 +192,8 @@ class TestEnergyNetworkCapacity:
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
         grid = energy_unit_factory_factory(ElectricalSource, "grid")
-        first_load = ElectricalConsumer("first_load", output_energy=ElectricalPower(0))
-        second_load = ElectricalConsumer("second_load", output_energy=ElectricalPower(0))
+        first_load = Consumer("first_load", demand=ElectricalPower(0))
+        second_load = Consumer("second_load", demand=ElectricalPower(0))
         topology = create_topology(
             nodes=[grid, first_load, second_load],
             connections=[
@@ -219,7 +224,7 @@ class TestJunctionDispatch:
         grid = energy_unit_factory_factory(ElectricalSource, "grid")
         genset = energy_unit_factory_factory(GeneratorSet, "genset", power_to_fuel=lambda power: power * 1_000)
         bus = ElectricalBus("bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(), genset.get_id())))
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
 
         nodes = [fuel_source, grid, genset, bus, load]
         topology = create_topology(
@@ -261,7 +266,7 @@ class TestJunctionDispatch:
             GeneratorSet, "second_genset", power_to_fuel=lambda power: 10_000 + power * 2_000
         )
         bus = ElectricalBus("bus", dispatch_strategy=PriorityDispatch(order=(first.get_id(), second.get_id())))
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
 
         nodes = [fuel_source, first, second, bus, load]
         topology = create_topology(
@@ -306,7 +311,7 @@ class TestJunctionDispatch:
         bus = ElectricalBus(
             "bus", dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), second_grid.get_id()))
         )
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
 
         nodes = [first_grid, second_grid, bus, load]
         topology = create_topology(
@@ -348,7 +353,7 @@ class TestJunctionDispatch:
         cable = energy_unit_factory_factory(ElectricalCable, "cable")
         wind = energy_unit_factory_factory(ElectricalSource, "wind")
         bus = ElectricalBus("bus", dispatch_strategy=PriorityDispatch(order=(cable.get_id(), wind.get_id())))
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
 
         nodes = [grid, cable, wind, bus, load]
         topology = create_topology(
@@ -398,7 +403,7 @@ class TestJunctionDispatch:
         first_grid = energy_unit_factory_factory(ElectricalSource, "first_grid")
         second_grid = energy_unit_factory_factory(ElectricalSource, "second_grid")
         bus = ElectricalBus("bus")
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
 
         nodes = [first_grid, second_grid, bus, load]
         topology = create_topology(
@@ -426,7 +431,7 @@ class TestJunctionDispatch:
         """
         first_grid = energy_unit_factory_factory(ElectricalSource, "first_grid")
         second_grid = energy_unit_factory_factory(ElectricalSource, "second_grid")
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
 
         nodes = [first_grid, second_grid, load]
         topology = create_topology(
@@ -449,7 +454,7 @@ class TestJunctionDispatch:
         first_source = energy_unit_factory_factory(FuelGasSource, "first_source")
         second_source = energy_unit_factory_factory(FuelGasSource, "second_source")
         generator = energy_unit_factory_factory(GeneratorSet, "generator", power_to_fuel=lambda output: output * 1_000)
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
 
         nodes = [first_source, second_source, generator, load]
         topology = create_topology(
@@ -475,7 +480,7 @@ class TestJunctionDispatch:
         bus = ElectricalBus(
             "bus", dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), missing_grid.get_id()))
         )
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
 
         nodes = [first_grid, second_grid, bus, load]
         topology = create_topology(
@@ -503,8 +508,8 @@ class TestJunctionDispatch:
         grid = energy_unit_factory_factory(ElectricalSource, "grid")
         other_grid = energy_unit_factory_factory(ElectricalSource, "other_grid")
         bus = ElectricalBus("bus", dispatch_strategy=PriorityDispatch(order=(other_grid.get_id(),)))
-        load = ElectricalConsumer("load", output_energy=ElectricalPower(0))
-        other_load = ElectricalConsumer("other_load", output_energy=ElectricalPower(0))
+        load = Consumer("load", demand=ElectricalPower(0))
+        other_load = Consumer("other_load", demand=ElectricalPower(0))
 
         nodes = [grid, other_grid, bus, load, other_load]
         topology = create_topology(
@@ -527,8 +532,8 @@ class TestJunctionDispatch:
         """A degenerate strategy is legal and behaves exactly like an undispatched single supply."""
         grid = energy_unit_factory_factory(ElectricalSource, "grid")
         bus = ElectricalBus("bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(),)))
-        first_load = ElectricalConsumer("first_load", output_energy=ElectricalPower(0))
-        second_load = ElectricalConsumer("second_load", output_energy=ElectricalPower(0))
+        first_load = Consumer("first_load", demand=ElectricalPower(0))
+        second_load = Consumer("second_load", demand=ElectricalPower(0))
 
         nodes = [grid, bus, first_load, second_load]
         topology = create_topology(
@@ -560,8 +565,8 @@ class TestJunctionDispatch:
         bus = ElectricalBus(
             "bus", dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), second_grid.get_id()))
         )
-        bus_load = ElectricalConsumer("bus_load", output_energy=ElectricalPower(0))
-        direct_load = ElectricalConsumer("direct_load", output_energy=ElectricalPower(0))
+        bus_load = Consumer("bus_load", demand=ElectricalPower(0))
+        direct_load = Consumer("direct_load", demand=ElectricalPower(0))
 
         nodes = [first_grid, second_grid, bus, bus_load, direct_load]
         topology = create_topology(

@@ -13,17 +13,13 @@ from libecalc.energy.energy_types import (
     MechanicalPower,
 )
 from libecalc.energy.energy_units import (
-    DieselConsumer,
     DieselSource,
     ElectricalCable,
-    ElectricalConsumer,
     ElectricalMotor,
     ElectricalSource,
-    FuelGasConsumer,
     FuelGasSource,
     GasTurbine,
     GeneratorSet,
-    MechanicalConsumer,
 )
 
 
@@ -73,10 +69,10 @@ class TestConsumers:
     @pytest.mark.parametrize(
         ("consumer", "expected_input_type"),
         [
-            (ElectricalConsumer("electrical_consumer", output_energy=ElectricalPower(0)), ElectricalPower),
-            (MechanicalConsumer("compressor", output_energy=MechanicalPower(0)), MechanicalPower),
-            (DieselConsumer("diesel_consumer", output_energy=DieselRate(0)), DieselRate),
-            (FuelGasConsumer("fuel_consumer", output_energy=FuelGasRate(0)), FuelGasRate),
+            (Consumer("electrical_consumer", demand=ElectricalPower(0)), ElectricalPower),
+            (Consumer("compressor", demand=MechanicalPower(0)), MechanicalPower),
+            (Consumer("diesel_consumer", demand=DieselRate(0)), DieselRate),
+            (Consumer("fuel_consumer", demand=FuelGasRate(0)), FuelGasRate),
         ],
     )
     def test_consumer_energy_contract(
