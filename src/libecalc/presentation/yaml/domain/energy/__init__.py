@@ -4,10 +4,6 @@ from libecalc.presentation.yaml.domain.energy.base import (
 )
 from libecalc.presentation.yaml.domain.energy.consumers import (
     TimeSeriesConsumer,
-    TimeSeriesDieselConsumer,
-    TimeSeriesElectricalConsumer,
-    TimeSeriesFuelGasConsumer,
-    TimeSeriesMechanicalConsumer,
 )
 from libecalc.presentation.yaml.domain.energy.converters import (
     TimeSeriesElectricalMotorFactory,
@@ -30,20 +26,16 @@ from libecalc.presentation.yaml.domain.energy.transport import (
 
 __all__ = [
     "TimeSeriesConsumer",
-    "TimeSeriesDieselConsumer",
     "TimeSeriesDieselSourceFactory",
     "TimeSeriesElectricalBus",
     "TimeSeriesElectricalCableFactory",
-    "TimeSeriesElectricalConsumer",
     "TimeSeriesElectricalMotorFactory",
     "TimeSeriesElectricalSourceFactory",
     "TimeSeriesEnergyUnit",
     "TimeSeriesEnergyUnitFactory",
-    "TimeSeriesFuelGasConsumer",
     "TimeSeriesFuelGasManifold",
     "TimeSeriesFuelGasSourceFactory",
     "TimeSeriesGasTurbineFactory",
     "TimeSeriesGeneratorSetFactory",
     "TimeSeriesJunction",
-    "TimeSeriesMechanicalConsumer",
 ]

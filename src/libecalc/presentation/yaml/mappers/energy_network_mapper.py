@@ -6,22 +6,18 @@ from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, Fu
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesConsumer,
-    TimeSeriesDieselConsumer,
     TimeSeriesDieselSourceFactory,
     TimeSeriesElectricalBus,
     TimeSeriesElectricalCableFactory,
-    TimeSeriesElectricalConsumer,
     TimeSeriesElectricalMotorFactory,
     TimeSeriesElectricalSourceFactory,
     TimeSeriesEnergyUnit,
     TimeSeriesEnergyUnitFactory,
-    TimeSeriesFuelGasConsumer,
     TimeSeriesFuelGasManifold,
     TimeSeriesFuelGasSourceFactory,
     TimeSeriesGasTurbineFactory,
     TimeSeriesGeneratorSetFactory,
     TimeSeriesJunction,
-    TimeSeriesMechanicalConsumer,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
@@ -133,17 +129,36 @@ class EnergyNetworkMapper:
             case YamlFuelGasManifold():
                 return TimeSeriesFuelGasManifold(name=unit.name), FuelGasRate, FuelGasRate
             case YamlElectricalConsumer():
-                demand = self._time_series(unit.load, expression_evaluator)
-                return TimeSeriesElectricalConsumer(name=unit.name, demand=demand), ElectricalPower, None
+                energy_type = ElectricalPower
+                expression = self._time_series(unit.load, expression_evaluator)
+                consumer = TimeSeriesConsumer.from_expression(
+                    name=unit.name, expression=expression, energy_type=energy_type
+                )
+                return consumer, energy_type, None
             case YamlMechanicalConsumer():
-                demand = self._time_series(unit.load, expression_evaluator)
-                return TimeSeriesMechanicalConsumer(name=unit.name, demand=demand), MechanicalPower, None
+                energy_type = MechanicalPower
+                if unit.process_simulation is not None:
+                    consumer = TimeSeriesConsumer.from_process_simulation(name=unit.name, energy_type=energy_type)
+                else:
+                    expression = self._time_series(unit.load, expression_evaluator)
+                    consumer = TimeSeriesConsumer.from_expression(
+                        name=unit.name, expression=expression, energy_type=energy_type
+                    )
+                return consumer, energy_type, None
             case YamlFuelGasConsumer():
-                demand = self._time_series(unit.rate, expression_evaluator)
-                return TimeSeriesFuelGasConsumer(name=unit.name, demand=demand), FuelGasRate, None
+                energy_type = FuelGasRate
+                expression = self._time_series(unit.rate, expression_evaluator)
+                consumer = TimeSeriesConsumer.from_expression(
+                    name=unit.name, expression=expression, energy_type=energy_type
+                )
+                return consumer, energy_type, None
             case YamlDieselConsumer():
-                demand = self._time_series(unit.rate, expression_evaluator)
-                return TimeSeriesDieselConsumer(name=unit.name, demand=demand), DieselRate, None
+                energy_type = DieselRate
+                expression = self._time_series(unit.rate, expression_evaluator)
+                consumer = TimeSeriesConsumer.from_expression(
+                    name=unit.name, expression=expression, energy_type=energy_type
+                )
+                return consumer, energy_type, None
 
     @staticmethod
     def _get_input_names(unit: YamlComponent) -> list[str]:
