@@ -1,17 +1,17 @@
 from __future__ import annotations
 
-import abc
-
 from libecalc.energy.energy_failure import EnergyFailure, capacity_failures
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnit
 from libecalc.energy.ids import EnergyConnectionId, EnergyUnitId
 
 
-class Source(EnergyUnit, abc.ABC):
+class Source(EnergyUnit):
     """Energy enters the system from an external source.
 
-    Examples: power from shore (ElectricalPower), fuel gas supply (FuelGasRate).
+    A single concrete class covers every energy type (electrical, fuel gas, diesel,
+    ...): the type is carried by the `output_energy` instance itself, so no per-type
+    subclass is needed.
     """
 
     def __init__(
@@ -42,6 +42,5 @@ class Source(EnergyUnit, abc.ABC):
     def get_input_energy_type(cls) -> None:
         return None
 
-    @classmethod
-    @abc.abstractmethod
-    def get_output_energy_type(cls) -> type[Energy]: ...
+    def get_output_energy_type(self) -> type[Energy]:
+        return type(self._output_energy)
