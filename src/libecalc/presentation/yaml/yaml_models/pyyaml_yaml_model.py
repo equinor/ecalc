@@ -330,7 +330,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         if isinstance(definitions, dict):
             for section in ("PROCESS_UNITS",):
                 resource_names.extend(_find_file_references(definitions.get(section)))
-        for section in ("PROCESS_PIPELINES",):
+        for section in ("PROCESS_PIPELINES", "ENERGY_NETWORK"):
             resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
 
         # Dedup while preserving order — the same CSV may be referenced by multiple charts.
