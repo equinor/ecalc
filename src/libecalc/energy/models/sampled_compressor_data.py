@@ -12,7 +12,6 @@ from typing import Literal, cast
 
 import numpy as np
 from numpy.typing import NDArray
-from scipy.interpolate import interp1d
 
 from libecalc.common.errors.ecalc_validation_error import (
     ProcessEqualLengthValidationException,
@@ -21,6 +20,7 @@ from libecalc.common.errors.ecalc_validation_error import (
 )
 from libecalc.common.errors.exceptions import IllegalStateException, InvalidColumnException
 from libecalc.energy.models.convex_hull import FloatArray
+from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 
 VariableName = Literal["RATE", "SUCTION_PRESSURE", "DISCHARGE_PRESSURE"]
 
@@ -110,7 +110,7 @@ class SampledCompressorData:
     """Validated, derived state built once from a SampledCompressor's raw sample-table
     inputs: each variable's raw values (unfiltered - degenerate or not), which of those
     variables turned out non-degenerate ("active"), each degenerate variable's clamp
-    limit, and the optional fuel->power interpolator. from_raw_lists() runs all
+    limit, and the optional fuel/power curve. from_raw_lists() runs all
     validation up front, so every leaf class and SampledCompressorFactory can build one
     and treat it as already-valid.
 
@@ -129,8 +129,7 @@ class SampledCompressorData:
     degenerated_rate: float
     degenerated_ps: float
     degenerated_pd: float
-    power_function: interp1d | None
-    fuel_power_samples: tuple[FloatArray, FloatArray] | None
+    fuel_power_curve: FuelPowerCurve | None
 
     @classmethod
     def from_raw_lists(
@@ -148,14 +147,12 @@ class SampledCompressorData:
             discharge_pressure_values,
             power_interpolation_values,
         )
-        power_function: interp1d | None = None
-        fuel_power_samples: tuple[FloatArray, FloatArray] | None = None
+        fuel_power_curve: FuelPowerCurve | None = None
         if power_interpolation_values is not None:
             fuel_values = _as_float_array(energy_usage_values)
             power_values_array = _as_float_array(power_interpolation_values)
             sorted_fuel, sorted_power = _require_strictly_monotonic_fuel_power_samples(fuel_values, power_values_array)
-            fuel_power_samples = (sorted_fuel, sorted_power)
-            power_function = interp1d(sorted_fuel, sorted_power, fill_value=(0, np.nan), bounds_error=False)
+            fuel_power_curve = FuelPowerCurve(sorted_fuel=sorted_fuel, sorted_power=sorted_power)
         provided_variables: dict[VariableName, FloatArray] = {
             name: _as_float_array(values)
             for name, values in cast(
@@ -199,8 +196,7 @@ class SampledCompressorData:
             degenerated_rate=degenerated_rate,
             degenerated_ps=degenerated_ps,
             degenerated_pd=degenerated_pd,
-            power_function=power_function,
-            fuel_power_samples=fuel_power_samples,
+            fuel_power_curve=fuel_power_curve,
         )
 
 

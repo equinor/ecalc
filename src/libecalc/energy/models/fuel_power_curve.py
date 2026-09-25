@@ -3,9 +3,7 @@ from __future__ import annotations
 import numpy as np
 from scipy.interpolate import interp1d
 
-from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.energy.models.convex_hull import FloatArray
-from libecalc.energy.models.sampled_compressor import SampledCompressor
 
 
 class FuelPowerCurve:
@@ -30,15 +28,6 @@ class FuelPowerCurve:
         return float(np.asarray(self._fuel_to_power(np.asarray([fuel], dtype=np.float64)), dtype=np.float64)[0])
 
 
-def get_fuel_power_curve(model: SampledCompressor) -> FuelPowerCurve:
-    samples = model._get_fuel_power_samples()
-    if samples is None:
-        raise IllegalStateException("Sampled compressor has no fuel/power samples to build a turbine from.")
-    sorted_fuel, sorted_power = samples
-    return FuelPowerCurve(sorted_fuel=sorted_fuel, sorted_power=sorted_power)
-
-
 __all__ = [
     "FuelPowerCurve",
-    "get_fuel_power_curve",
 ]

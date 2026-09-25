@@ -3,9 +3,7 @@ import math
 import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
-from libecalc.energy.models.turbine_from_compressor_sampled import get_fuel_power_curve
 from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion import (
     DemandSource,
     expand,
@@ -131,7 +129,8 @@ class TestExpandVariables:
 class TestFuelPowerCurve:
     def test_inverts_samples_and_handles_bounds(self, make_resource, rates, fuel, power):
         model, _ = load_model(make_resource(RATE=rates, FUEL=fuel, POWER=power))
-        curve = get_fuel_power_curve(model)
+        curve = model.get_fuel_power_curve()
+        assert curve is not None
 
         assert curve.fuel_for_power(0) == 0.0
         assert curve.fuel_for_power(2.0) == pytest.approx(10000)
@@ -140,15 +139,15 @@ class TestFuelPowerCurve:
 
     def test_power_for_fuel_is_the_inverse(self, make_resource, rates, fuel, power):
         model, _ = load_model(make_resource(RATE=rates, FUEL=fuel, POWER=power))
-        curve = get_fuel_power_curve(model)
+        curve = model.get_fuel_power_curve()
+        assert curve is not None
 
         assert curve.power_for_fuel(0) == 0.0
         assert curve.power_for_fuel(15000) == pytest.approx(7.5)
 
     def test_requires_power_samples(self, make_resource, rates, fuel):
         model, _ = load_model(make_resource(RATE=rates, FUEL=fuel))
-        with pytest.raises(IllegalStateException, match="no fuel/power samples"):
-            get_fuel_power_curve(model)
+        assert model.get_fuel_power_curve() is None
 
 
 class TestYamlCompressorSampled:

@@ -41,6 +41,7 @@ from libecalc.energy.models.convex_hull import (
     get_lower_upper_qhull,
     sort_ndarray_by_column,
 )
+from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 from libecalc.energy.models.sampled_compressor_data import (
     PD_NAME,
     PS_NAME,
@@ -293,8 +294,8 @@ class SampledCompressor(ABC):
     ) -> float: ...
 
     @abstractmethod
-    def _get_fuel_power_samples(self) -> tuple[FloatArray, FloatArray] | None:
-        """Sorted (fuel, power) samples this model's power function uses."""
+    def get_fuel_power_curve(self) -> FuelPowerCurve | None:
+        """This model's fuel/power relation, if it has one."""
 
 
 class SampledCompressorBase(SampledCompressor):
@@ -348,12 +349,8 @@ class SampledCompressorBase(SampledCompressor):
     def _degenerated_pd(self) -> float:
         return self._table.degenerated_pd
 
-    @property
-    def _power_function(self) -> interp1d | None:
-        return self._table.power_function
-
-    def _get_fuel_power_samples(self) -> tuple[FloatArray, FloatArray] | None:
-        return self._table.fuel_power_samples
+    def get_fuel_power_curve(self) -> FuelPowerCurve | None:
+        return self._table.fuel_power_curve
 
     def evaluate(
         self,
@@ -376,7 +373,8 @@ class SampledCompressorBase(SampledCompressor):
         pd_ok = discharge_pressure_value is None or discharge_pressure_value <= self._degenerated_pd
         if math.isnan(energy_usage) and rate_ok and ps_ok and pd_ok:
             energy_usage = self._evaluate_active(rate_value, suction_pressure_value, discharge_pressure_value)
-        power = None if self._power_function is None else _evaluate_interp1d(self._power_function, energy_usage)
+        curve = self.get_fuel_power_curve()
+        power = None if curve is None else curve.power_for_fuel(energy_usage)
         return SampledCompressorResult(energy_usage=energy_usage, power=power)
 
     @abstractmethod

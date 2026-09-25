@@ -4,12 +4,12 @@ import enum
 from dataclasses import dataclass
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.common.errors.exceptions import EcalcError
+from libecalc.common.errors.exceptions import EcalcError, IllegalStateException
 from libecalc.domain.resource import Resource
 from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate, MechanicalPower
+from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 from libecalc.energy.models.sampled_compressor import SampledCompressor
 from libecalc.energy.models.sampled_compressor_factory import SampledCompressorFactory
-from libecalc.energy.models.turbine_from_compressor_sampled import FuelPowerCurve, get_fuel_power_curve
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled
 
@@ -149,10 +149,13 @@ def expand(unit: YamlCompressorSampled, resource: Resource, upstream_output_type
 
     if columns.has_fuel and columns.has_power:
         _require_upstream(unit, upstream_output_type, FuelGasRate, "a fuel-driven compressor with a generated turbine")
+        fuel_power_curve = model.get_fuel_power_curve()
+        if fuel_power_curve is None:
+            raise IllegalStateException("Sampled compressor has no fuel/power samples to build a turbine from.")
         turbine = TurbineSpec(
             key=turbine_key(unit.name),
             name=f"{unit.name} turbine",
-            fuel_power_curve=get_fuel_power_curve(model),
+            fuel_power_curve=fuel_power_curve,
         )
         consumer = ConsumerSpec(
             key=unit_key(unit.name),
