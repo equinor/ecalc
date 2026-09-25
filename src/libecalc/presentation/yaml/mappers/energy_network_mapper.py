@@ -1,5 +1,6 @@
 from collections.abc import Sequence
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.energy.dispatch import DispatchStrategy, PriorityDispatch
@@ -10,21 +11,18 @@ from libecalc.energy.energy_units import ElectricalBus, FuelGasManifold
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.energy import (
+    ExpressionDemand,
     TimeSeriesConsumer,
-    TimeSeriesDieselConsumer,
     TimeSeriesDieselSourceFactory,
     TimeSeriesElectricalCableFactory,
-    TimeSeriesElectricalConsumer,
     TimeSeriesElectricalMotorFactory,
     TimeSeriesElectricalSourceFactory,
     TimeSeriesEnergyUnit,
     TimeSeriesEnergyUnitFactory,
-    TimeSeriesFuelGasConsumer,
     TimeSeriesFuelGasSourceFactory,
     TimeSeriesGasTurbineFactory,
     TimeSeriesGeneratorSetFactory,
     TimeSeriesJunctionFactory,
-    TimeSeriesMechanicalConsumer,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
@@ -206,33 +204,41 @@ class EnergyNetworkMapper:
                     FuelGasRate,
                 )
             case YamlElectricalConsumer():
-                demand = self._time_series(unit.load, expression_evaluator)
-                return (
-                    TimeSeriesElectricalConsumer(name=unit.name, energy_unit_id=energy_unit_id, demand=demand),
-                    ElectricalPower,
-                    None,
+                expression = self._time_series(unit.load, expression_evaluator)
+                consumer = TimeSeriesConsumer(
+                    name=unit.name,
+                    energy_unit_id=energy_unit_id,
+                    demand=ExpressionDemand(energy_type=ElectricalPower, expression=expression),
                 )
+                return consumer, consumer.get_input_energy_type(), None
             case YamlMechanicalConsumer():
-                demand = self._time_series(unit.load, expression_evaluator)
-                return (
-                    TimeSeriesMechanicalConsumer(name=unit.name, energy_unit_id=energy_unit_id, demand=demand),
-                    MechanicalPower,
-                    None,
+                if unit.process_simulation is not None:
+                    raise EcalcValidationException(
+                        f"'{unit.name}': PROCESS_SIMULATION-driven demand is not supported yet."
+                    )
+                expression = self._time_series(unit.load, expression_evaluator)
+                consumer = TimeSeriesConsumer(
+                    name=unit.name,
+                    energy_unit_id=energy_unit_id,
+                    demand=ExpressionDemand(energy_type=MechanicalPower, expression=expression),
                 )
+                return consumer, consumer.get_input_energy_type(), None
             case YamlFuelGasConsumer():
-                demand = self._time_series(unit.rate, expression_evaluator)
-                return (
-                    TimeSeriesFuelGasConsumer(name=unit.name, energy_unit_id=energy_unit_id, demand=demand),
-                    FuelGasRate,
-                    None,
+                expression = self._time_series(unit.rate, expression_evaluator)
+                consumer = TimeSeriesConsumer(
+                    name=unit.name,
+                    energy_unit_id=energy_unit_id,
+                    demand=ExpressionDemand(energy_type=FuelGasRate, expression=expression),
                 )
+                return consumer, consumer.get_input_energy_type(), None
             case YamlDieselConsumer():
-                demand = self._time_series(unit.rate, expression_evaluator)
-                return (
-                    TimeSeriesDieselConsumer(name=unit.name, energy_unit_id=energy_unit_id, demand=demand),
-                    DieselRate,
-                    None,
+                expression = self._time_series(unit.rate, expression_evaluator)
+                consumer = TimeSeriesConsumer(
+                    name=unit.name,
+                    energy_unit_id=energy_unit_id,
+                    demand=ExpressionDemand(energy_type=DieselRate, expression=expression),
                 )
+                return consumer, consumer.get_input_energy_type(), None
 
     def _map_junction_inputs(
         self,

@@ -1,12 +1,11 @@
 import pytest
 
-from libecalc.energy import ElectricalPower, FuelGasRate
+from libecalc.energy import Consumer, ElectricalPower, FuelGasRate
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_units import (
     ElectricalBus,
     ElectricalCable,
-    ElectricalConsumer,
     ElectricalSource,
     FuelGasSource,
 )
@@ -27,13 +26,13 @@ def create_topology(units, connections):
 class TestEnergyNetworkTopologyValidation:
     def test_rejects_incompatible_energy_types(self, energy_unit_factory_factory):
         source = FuelGasSource("source", output_energy=FuelGasRate(0))
-        load = energy_unit_factory_factory(ElectricalConsumer, "load")
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 
         with pytest.raises(InvalidEnergyNetworkError, match="Incompatible energy types"):
             create_topology([source, load], [(source, load)])
 
     def test_rejects_unknown_source(self, energy_unit_factory_factory):
-        load = energy_unit_factory_factory(ElectricalConsumer, "load")
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
         source = FuelGasSource("source", output_energy=FuelGasRate(0))
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown source"):
@@ -45,7 +44,7 @@ class TestEnergyNetworkTopologyValidation:
 
     def test_rejects_unknown_target(self, energy_unit_factory_factory):
         source = FuelGasSource("source", output_energy=FuelGasRate(0))
-        target = energy_unit_factory_factory(ElectricalConsumer, "target")
+        target = energy_unit_factory_factory(Consumer, "target", input_energy_type=ElectricalPower)
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown target"):
             EnergyNetworkTopology.create(
@@ -55,7 +54,7 @@ class TestEnergyNetworkTopologyValidation:
             )
 
     def test_rejects_consumer_without_predecessor(self, energy_unit_factory_factory):
-        load = energy_unit_factory_factory(ElectricalConsumer, "load")
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 
         with pytest.raises(InvalidEnergyNetworkError, match="requires input energy but has no predecessor"):
             create_topology([load], [])
@@ -69,14 +68,14 @@ class TestEnergyNetworkTopologyValidation:
 
     def test_rejects_duplicate_connection_pair(self, energy_unit_factory_factory):
         source = ElectricalSource("source", output_energy=ElectricalPower(0))
-        load = energy_unit_factory_factory(ElectricalConsumer, "load")
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 
         with pytest.raises(InvalidEnergyNetworkError, match="Duplicate energy connection from"):
             create_topology([source, load], [(source, load), (source, load)])
 
     def test_rejects_duplicate_connection_id(self, energy_unit_factory_factory):
         source = ElectricalSource("source", output_energy=ElectricalPower(0))
-        load = energy_unit_factory_factory(ElectricalConsumer, "load")
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
         connection_id = EnergyConnectionId(ElectricalSource._create_id())
         connection = EnergyConnection(connection_id, source.get_id(), load.get_id(), ElectricalPower)
 
@@ -88,7 +87,7 @@ class TestEnergyNetworkTopology:
     def test_exposes_typed_connections_in_topological_order(self, energy_unit_factory_factory):
         source = ElectricalSource("source", output_energy=ElectricalPower(0))
         cable = energy_unit_factory_factory(ElectricalCable, "cable")
-        load = energy_unit_factory_factory(ElectricalConsumer, "load")
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 
         topology = create_topology([source, cable, load], [(source, cable), (cable, load)])
 
@@ -106,7 +105,7 @@ class TestEnergyNetworkTopology:
         bus = junction_factory_factory(
             ElectricalBus, "bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(), wind.get_id()))
         )
-        load = energy_unit_factory_factory(ElectricalConsumer, "load")
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 
         topology = create_topology([grid, wind, bus, load], [(grid, bus), (wind, bus), (bus, load)])
 
