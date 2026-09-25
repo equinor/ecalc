@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import abc
 from abc import abstractmethod
-from typing import Final, NewType, Self
-from uuid import UUID
+from typing import Final, Self
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.energy.energy_failure import EnergyFailure
 from libecalc.energy.energy_types import Energy
-
-EnergyUnitId = NewType("EnergyUnitId", UUID)
+from libecalc.energy.ids import EnergyConnectionId, EnergyUnitId
 
 
 class EnergyUnit(Entity[EnergyUnitId], abc.ABC):
@@ -37,6 +35,11 @@ class EnergyUnit(Entity[EnergyUnitId], abc.ABC):
     @classmethod
     @abstractmethod
     def get_output_energy_type(cls) -> type[Energy] | None: ...
+
+    @abstractmethod
+    def get_input_energies(self) -> dict[EnergyConnectionId, Energy]:
+        """Return energy for every incoming connection, including zero flows; sources return an empty mapping."""
+        ...
 
     @abstractmethod
     def get_failures(self) -> list[EnergyFailure]:
