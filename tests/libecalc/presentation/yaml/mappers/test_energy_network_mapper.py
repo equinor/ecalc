@@ -5,6 +5,7 @@ import pytest
 from libecalc.common.time_utils import Period
 from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
+from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
@@ -50,6 +51,25 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
         MechanicalPower,
     }
 
+    # Consumers are returned separately, not as factories.
+    assert all(isinstance(consumer, TimeSeriesConsumer) for consumer in consumers)
+
+    # Each consumer's input energy type is derived from its connection, per YAML consumer type.
+    consumer_energy_types = {
+        consumer.get_name(): next(
+            connection.energy_type
+            for connection in topology.get_connections()
+            if connection.target_id == consumer.get_id()
+        )
+        for consumer in consumers
+    }
+    assert consumer_energy_types == {
+        "electrical_load": ElectricalPower,
+        "mechanical_load": MechanicalPower,
+        "fuel_load": FuelGasRate,
+        "diesel_load": DieselRate,
+    }
+
     all_nodes = [*energy_unit_factories, *consumers]
     assert {node.get_id() for node in all_nodes} == set(topology.get_nodes())
 
@@ -68,12 +88,12 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
     for name, capacity in expected_capacities.items():
         assert factories_by_name[name].capacity.get_original_expression() == capacity
 
-    # Consumer demand is kept on the consumer dataclasses.
+    # Consumer demand is a callable producing the appropriate Energy type per period.
     consumers_by_name = {consumer.get_name(): consumer for consumer in consumers}
-    assert consumers_by_name["electrical_load"].demand.get_original_expression() == 5
-    assert consumers_by_name["mechanical_load"].demand.get_original_expression() == 2
-    assert consumers_by_name["fuel_load"].demand.get_original_expression() == 10
-    assert consumers_by_name["diesel_load"].demand.get_original_expression() == 20
+    assert consumers_by_name["electrical_load"].get_demand(period) == ElectricalPower(5)
+    assert consumers_by_name["mechanical_load"].get_demand(period) == MechanicalPower(2)
+    assert consumers_by_name["fuel_load"].get_demand(period) == FuelGasRate(10)
+    assert consumers_by_name["diesel_load"].get_demand(period) == DieselRate(20)
 
     # Efficiency and loss fraction are kept on the relevant factories.
     assert factories_by_name["motor"].efficiency.get_original_expression() == 0.9
@@ -117,8 +137,9 @@ class TestMappedNetworkSimulation:
             connection_demands = {}
             for consumer in consumers:
                 (connection,) = topology.get_incoming_connections(consumer.get_id())
-                assert consumer.demand is not None
-                connection_demands[connection.id] = ElectricalPower(consumer.demand.get_value(period))
+                demand = consumer.get_demand(period)
+                assert demand is not None
+                connection_demands[connection.id] = demand
             return simulation.run(connection_demands, period=period)
 
         def energy(network, source: str, target: str) -> float:

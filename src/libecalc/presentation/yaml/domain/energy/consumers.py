@@ -1,45 +1,19 @@
 from __future__ import annotations
 
-import abc
 from dataclasses import dataclass
 
-from libecalc.energy import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
+from libecalc.common.time_utils import Period
+from libecalc.energy import Energy
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnit
-from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.domain.energy.demand import TimeSeriesDemand
 
 
 @dataclass(kw_only=True)
-class TimeSeriesConsumer(TimeSeriesEnergyUnit, abc.ABC):
-    demand: TimeSeriesExpression | None = None
+class TimeSeriesConsumer(TimeSeriesEnergyUnit):
+    demand: TimeSeriesDemand[Energy]
 
-    @classmethod
-    @abc.abstractmethod
-    def get_input_energy_type(cls) -> type[Energy]: ...
+    def get_demand(self, period: Period) -> Energy | None:
+        return self.demand.get_demand(period)
 
-
-@dataclass(kw_only=True)
-class TimeSeriesElectricalConsumer(TimeSeriesConsumer):
-    @classmethod
-    def get_input_energy_type(cls) -> type[Energy]:
-        return ElectricalPower
-
-
-@dataclass(kw_only=True)
-class TimeSeriesMechanicalConsumer(TimeSeriesConsumer):
-    @classmethod
-    def get_input_energy_type(cls) -> type[Energy]:
-        return MechanicalPower
-
-
-@dataclass(kw_only=True)
-class TimeSeriesFuelGasConsumer(TimeSeriesConsumer):
-    @classmethod
-    def get_input_energy_type(cls) -> type[Energy]:
-        return FuelGasRate
-
-
-@dataclass(kw_only=True)
-class TimeSeriesDieselConsumer(TimeSeriesConsumer):
-    @classmethod
-    def get_input_energy_type(cls) -> type[Energy]:
-        return DieselRate
+    def get_input_energy_type(self) -> type[Energy]:
+        return self.demand.energy_type

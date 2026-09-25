@@ -16,18 +16,14 @@ from libecalc.energy.energy_types import (
 )
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import (
-    DieselConsumer,
     DieselSource,
     ElectricalBus,
     ElectricalCable,
-    ElectricalConsumer,
     ElectricalMotor,
     ElectricalSource,
-    FuelGasConsumer,
     FuelGasSource,
     GasTurbine,
     GeneratorSet,
-    MechanicalConsumer,
 )
 
 INPUT = EnergyConnectionId(UUID(int=100))
@@ -96,15 +92,15 @@ class TestConsumers:
         ("consumer", "expected_input_type"),
         [
             (
-                ElectricalConsumer("electrical_consumer", output_energy=ElectricalPower(3), input_connection_id=INPUT),
+                Consumer("electrical_consumer", demand=ElectricalPower(3), input_connection_id=INPUT),
                 ElectricalPower,
             ),
             (
-                MechanicalConsumer("compressor", output_energy=MechanicalPower(3), input_connection_id=INPUT),
+                Consumer("compressor", demand=MechanicalPower(3), input_connection_id=INPUT),
                 MechanicalPower,
             ),
-            (DieselConsumer("diesel_consumer", output_energy=DieselRate(3), input_connection_id=INPUT), DieselRate),
-            (FuelGasConsumer("fuel_consumer", output_energy=FuelGasRate(3), input_connection_id=INPUT), FuelGasRate),
+            (Consumer("diesel_consumer", demand=DieselRate(3), input_connection_id=INPUT), DieselRate),
+            (Consumer("fuel_consumer", demand=FuelGasRate(3), input_connection_id=INPUT), FuelGasRate),
         ],
     )
     def test_consumer_energy_contract(
