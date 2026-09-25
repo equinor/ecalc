@@ -347,6 +347,20 @@ class YamlDieselConsumer(YamlConsumerBase):
 
 
 class YamlCompressorSampled(YamlConsumerBase):
+    """
+    A compressor whose energy usage is tabulated in `FILE` against `RATE`, `SUCTION_PRESSURE` and/or
+    `DISCHARGE_PRESSURE`. Which energy columns `FILE` has decides what the unit consumes:
+
+    - Only `FUEL`: a fuel gas consumer. `INPUT` must provide fuel gas.
+    - Only `POWER`: a power consumer, electrical or mechanical after what `INPUT` provides.
+    - Both `FUEL` and `POWER`: a gas turbine named `<NAME> turbine` is generated and wired between `INPUT`
+      (which must provide fuel gas) and the compressor. The compressor demands the tabulated `POWER` as
+      shaft power and the turbine converts it back to the tabulated `FUEL`.
+
+    Every variable tabulated in `FILE` must be given as an expression, and every given expression must be
+    tabulated.
+    """
+
     model_config = ConfigDict(title="CompressorSampled")
 
     type: Literal["COMPRESSOR_SAMPLED"]
@@ -418,6 +432,7 @@ YamlComponent = Annotated[
         YamlMechanicalConsumer,
         YamlFuelGasConsumer,
         YamlDieselConsumer,
+        YamlCompressorSampled,
     ],
     Field(discriminator="type"),
 ]
@@ -458,7 +473,9 @@ SOURCE_OUTPUT_ENERGY: dict[YamlEnergySourceType, EnergyType] = {
     YamlEnergySourceType.ELECTRICAL_SOURCE: EnergyType.ELECTRICAL,
 }
 
-CONSUMER_TYPES = set(INPUT_ENERGY) - set(OUTPUT_ENERGY)
+FILE_DEFINED_INPUT_TYPES = {"COMPRESSOR_SAMPLED"}
+
+CONSUMER_TYPES = (set(INPUT_ENERGY) - set(OUTPUT_ENERGY)) | FILE_DEFINED_INPUT_TYPES
 
 
 def get_input_names(component: YamlComponent) -> list[str]:
@@ -537,6 +554,8 @@ class YamlEnergyNetwork(YamlBase):
                 output_types[c.name] = OUTPUT_ENERGY[c.type]
 
         for c in self.units:
+            if c.type in FILE_DEFINED_INPUT_TYPES:
+                continue
             if c.type not in INPUT_ENERGY:
                 raise ValueError(f"'{c.name}': unknown component type '{c.type}' — not in energy type map.")
             expected_input = INPUT_ENERGY[c.type]

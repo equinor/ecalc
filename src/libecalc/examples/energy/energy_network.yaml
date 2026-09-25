@@ -9,7 +9,7 @@
 #       │
 #       ├──► export_turbine ──► export_train (process sim)
 #       │
-#       └──► gas_compressor_sampled (50000 Sm3/d)
+#       └──► [gas_compressor_sampled turbine] ──► gas_compressor_sampled (FILE)
 #
 #   flare_gas ──► flare (1200 Sm3/d)
 #
@@ -106,10 +106,14 @@ ENERGY_NETWORK:
       INPUT: flare_gas
       RATE: 1200  # Sm3/d
 
+    # Sampled from a FUEL+POWER table: a turbine feeding the compressor is generated automatically
     - NAME: gas_compressor_sampled
-      TYPE: FUEL_GAS_CONSUMER
+      TYPE: COMPRESSOR_SAMPLED
       INPUT: fuel_gas
-      RATE: 50000  # Sm3/d
+      FILE: gas_compressor_sampled.csv
+      RATE: 2500000  # Sm3/d
+      SUCTION_PRESSURE: 40  # bara
+      DISCHARGE_PRESSURE: 120  # bara
 
     - NAME: diesel_consumers
       TYPE: DIESEL_CONSUMER

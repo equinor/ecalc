@@ -24,6 +24,7 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
@@ -200,6 +201,27 @@ EXAMPLES: list[Example] = [
     Example(
         "PROCESS_SIMULATIONS.STREAM_DISTRIBUTION.INDIVIDUAL_STREAMS",
         lambda: YamlIndividualStreamDistributionBuilder().with_test_data().validate(),
+    ),
+]
+
+# ---------------------------------------------------------------------------
+# Energy network examples, rendered by generate_energy_markdown().
+# ---------------------------------------------------------------------------
+
+ENERGY_EXAMPLES: list[Example] = [
+    Example(
+        "ENERGY_NETWORK.UNITS.COMPRESSOR_SAMPLED",
+        lambda: YamlCompressorSampled.model_validate(
+            {
+                "NAME": "gas_compressor_sampled",
+                "TYPE": "COMPRESSOR_SAMPLED",
+                "INPUT": "fuel_manifold",
+                "FILE": "gas_compressor_sampled.csv",
+                "RATE": 2500000,
+                "SUCTION_PRESSURE": 40,
+                "DISCHARGE_PRESSURE": 120,
+            }
+        ),
     ),
 ]
 
@@ -896,7 +918,7 @@ def generate_energy_markdown() -> str:
 This page documents the [ENERGY_NETWORK](#energy_network) YAML configuration key for the eCalc Asset model.
 
 """,
-        examples=[],
+        examples=ENERGY_EXAMPLES,
     )
 
 

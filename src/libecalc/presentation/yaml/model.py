@@ -309,7 +309,22 @@ class YamlModel:
             start=self._configuration.start,
             end=end,
         )
-        return EnergyNetworkMapper().map_energy_network(yaml_energy_network, expression_evaluator)
+        facility_resources, _ = self._resource_service.get_facility_resources()
+        try:
+            return EnergyNetworkMapper().map_energy_network(
+                yaml_energy_network, expression_evaluator, resources=facility_resources
+            )
+        except EcalcValidationException as e:
+            yaml_keys = ("ENERGY_NETWORK",)
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        location=Location(keys=yaml_keys),
+                        message=str(e),
+                        file_context=self._configuration.get_file_context(yaml_keys),
+                    )
+                ]
+            ) from e
 
     def get_events(self) -> list[EcalcEvent]:
         return EcalcEventMapper().map_events(
