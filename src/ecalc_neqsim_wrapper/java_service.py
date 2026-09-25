@@ -1,17 +1,22 @@
+import json
 import logging
 import os
 import re
 from abc import ABC, abstractmethod
 from contextlib import AbstractContextManager
 from dataclasses import dataclass
-from os import path
-from typing import ClassVar, Optional, Self
+from pathlib import Path
+from typing import TYPE_CHECKING, ClassVar, Optional, Self
 
 from ecalc_neqsim_wrapper.cache_service import CacheService
+from ecalc_neqsim_wrapper.dependency_manager import NeqSimDependencyManager
 from ecalc_neqsim_wrapper.exceptions import NeqsimError
 from libecalc.common.errors.exceptions import ProgrammingError
 
 _logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from py4j.java_gateway import JavaGateway  # pyright: ignore[reportMissingTypeStubs]
 
 
 @dataclass(frozen=True)
@@ -35,6 +40,8 @@ class Py4JConfig:
 
     maximum_memory: str = "2G"
     shutdown_on_exit: bool = True
+    download_jar: bool = True
+    cache_dir: Path = Path.home() / ".cache" / "neqsim"
 
     def __post_init__(self):
         if not self._MEMORY_PATTERN.match(self.maximum_memory):
@@ -62,19 +69,20 @@ if _local_os_name == "nt":
 class NeqsimGatewayError(NeqsimError): ...
 
 
+resources_dir = Path(__file__).parent / "lib"
+
+
 def _create_classpath(jars):
     """Create path to NeqSim .jar file"""
-    resources_dir = path.dirname(__file__) + "/lib"
-    return _colon.join([path.join(resources_dir, jar) for jar in jars])
+    return _colon.join([str(jar) for jar in jars])
 
 
-def _start_server(maximum_memory: str = "2G") -> "JavaGateway":  #  type: ignore # noqa: F821
+def _start_server(jars, maximum_memory: str = "2G") -> "JavaGateway":
     """
     Start JVM for NeqSim Wrapper
     Returns: (int, Popen) port, process
 
     """
-    jars = ["NeqSim.jar"]
     classpath = _create_classpath(jars)
 
     logging.getLogger("py4j").setLevel(logging.ERROR)
@@ -86,6 +94,10 @@ def _start_server(maximum_memory: str = "2G") -> "JavaGateway":  #  type: ignore
         msg = f"Could not launch java gateway: {str(e)}"
         _logger.error(msg)
         raise NeqsimGatewayError(msg) from e
+
+
+neqsim_config_path = resources_dir / "neqsim.json"
+neqsim_config = json.loads(neqsim_config_path.read_bytes())
 
 
 class NeqsimService(AbstractContextManager, ABC):
@@ -117,6 +129,7 @@ class NeqsimService(AbstractContextManager, ABC):
                 "NeqsimService.configure_py4j() must be called before initialize(). "
                 "The service has already been initialized."
             )
+
         cls._py4j_config = config
         _logger.info(
             f"Py4J configured: maximum_memory={config.maximum_memory}, shutdown_on_exit={config.shutdown_on_exit}"
@@ -238,11 +251,19 @@ class NeqsimPy4JService(NeqsimService):
         instance = super().__new__(cls)
         config = NeqsimService._py4j_config or Py4JConfig.default()
         instance._config = config
+
+        if config.download_jar:
+            neqsim_dependency_manager = NeqSimDependencyManager(config=neqsim_config, cache_dir=config.cache_dir)
+            jars = [neqsim_dependency_manager.resolve_dependency()]
+        else:
+            jars = [resources_dir / "NeqSim.jar"]
+
         # Note: the explicit -Xmx flag passed here will override any heap setting in JAVA_TOOL_OPTIONS.
-        instance._gateway = _start_server(maximum_memory=config.maximum_memory)
+        gateway = _start_server(jars, maximum_memory=config.maximum_memory)
+        instance._gateway = gateway
+        assert gateway.java_process is not None and gateway.gateway_parameters is not None
         _logger.info(
-            f"Started neqsim process with PID '{instance._gateway.java_process.pid}' "
-            f"on port '{instance._gateway.gateway_parameters.port}'"
+            f"Started neqsim process with PID '{gateway.java_process.pid}' on port '{gateway.gateway_parameters.port}'"
         )
         return instance
 
