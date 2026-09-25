@@ -2,6 +2,7 @@ from libecalc.presentation.yaml.domain.energy.base import (
     TimeSeriesEnergyUnit,
     TimeSeriesEnergyUnitFactory,
 )
+from libecalc.presentation.yaml.domain.energy.compressor_sampled import CompressorSampledDemand
 from libecalc.presentation.yaml.domain.energy.consumers import (
     TimeSeriesConsumer,
 )
@@ -25,6 +26,7 @@ from libecalc.presentation.yaml.domain.energy.transport import (
 )
 
 __all__ = [
+    "CompressorSampledDemand",
     "ExpressionDemand",
     "TimeSeriesConsumer",
     "TimeSeriesDemand",
