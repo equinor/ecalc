@@ -16,12 +16,9 @@ from libecalc.energy.energy_types import (
 )
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import (
-    DieselSource,
     ElectricalBus,
     ElectricalCable,
     ElectricalMotor,
-    ElectricalSource,
-    FuelGasSource,
     GasTurbine,
     GeneratorSet,
 )
@@ -36,9 +33,9 @@ class TestSources:
     @pytest.mark.parametrize(
         ("source", "expected_output_type"),
         [
-            (FuelGasSource("fuel", output_energy=FuelGasRate(0)), FuelGasRate),
-            (DieselSource("diesel", output_energy=DieselRate(0)), DieselRate),
-            (ElectricalSource("electricity", output_energy=ElectricalPower(0)), ElectricalPower),
+            (Source("fuel", output_energy=FuelGasRate(0)), FuelGasRate),
+            (Source("diesel", output_energy=DieselRate(0)), DieselRate),
+            (Source("electricity", output_energy=ElectricalPower(0)), ElectricalPower),
         ],
     )
     def test_source_energy_contract(

@@ -13,16 +13,14 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.energy import (
     ExpressionDemand,
     TimeSeriesConsumer,
-    TimeSeriesDieselSourceFactory,
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
-    TimeSeriesElectricalSourceFactory,
     TimeSeriesEnergyUnit,
     TimeSeriesEnergyUnitFactory,
-    TimeSeriesFuelGasSourceFactory,
     TimeSeriesGasTurbineFactory,
     TimeSeriesGeneratorSetFactory,
     TimeSeriesJunctionFactory,
+    TimeSeriesSourceFactory,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
@@ -109,25 +107,16 @@ class EnergyNetworkMapper:
         energy_unit_id = node_ids_by_name[source.name]
         match source.type:
             case YamlEnergySourceType.FUEL_GAS_SOURCE:
-                return (
-                    TimeSeriesFuelGasSourceFactory(name=source.name, energy_unit_id=energy_unit_id, capacity=capacity),
-                    None,
-                    FuelGasRate,
-                )
+                energy_type = FuelGasRate
             case YamlEnergySourceType.ELECTRICAL_SOURCE:
-                return (
-                    TimeSeriesElectricalSourceFactory(
-                        name=source.name, energy_unit_id=energy_unit_id, capacity=capacity
-                    ),
-                    None,
-                    ElectricalPower,
-                )
+                energy_type = ElectricalPower
             case YamlEnergySourceType.DIESEL_SOURCE:
-                return (
-                    TimeSeriesDieselSourceFactory(name=source.name, energy_unit_id=energy_unit_id, capacity=capacity),
-                    None,
-                    DieselRate,
-                )
+                energy_type = DieselRate
+        return (
+            TimeSeriesSourceFactory(name=source.name, energy_unit_id=energy_unit_id, capacity=capacity),
+            None,
+            energy_type,
+        )
 
     def _map_unit(
         self,

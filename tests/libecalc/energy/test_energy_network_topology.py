@@ -1,13 +1,11 @@
 import pytest
 
-from libecalc.energy import Consumer, ElectricalPower, FuelGasRate
+from libecalc.energy import Consumer, ElectricalPower, FuelGasRate, Source
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_units import (
     ElectricalBus,
     ElectricalCable,
-    ElectricalSource,
-    FuelGasSource,
 )
 
 # Units that draw energy need an incoming connection, which only exists once the topology does, so topology tests
@@ -25,7 +23,7 @@ def create_topology(units, connections):
 
 class TestEnergyNetworkTopologyValidation:
     def test_rejects_incompatible_energy_types(self, energy_unit_factory_factory):
-        source = FuelGasSource("source", output_energy=FuelGasRate(0))
+        source = Source("source", output_energy=FuelGasRate(0))
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 
         with pytest.raises(InvalidEnergyNetworkError, match="Incompatible energy types"):
@@ -33,7 +31,7 @@ class TestEnergyNetworkTopologyValidation:
 
     def test_rejects_unknown_source(self, energy_unit_factory_factory):
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
-        source = FuelGasSource("source", output_energy=FuelGasRate(0))
+        source = Source("source", output_energy=FuelGasRate(0))
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown source"):
             EnergyNetworkTopology.create(
@@ -43,7 +41,7 @@ class TestEnergyNetworkTopologyValidation:
             )
 
     def test_rejects_unknown_target(self, energy_unit_factory_factory):
-        source = FuelGasSource("source", output_energy=FuelGasRate(0))
+        source = Source("source", output_energy=FuelGasRate(0))
         target = energy_unit_factory_factory(Consumer, "target", input_energy_type=ElectricalPower)
 
         with pytest.raises(InvalidEnergyNetworkError, match="Unknown target"):
@@ -67,16 +65,16 @@ class TestEnergyNetworkTopologyValidation:
             create_topology([first, second], [(first, second), (second, first)])
 
     def test_rejects_duplicate_connection_pair(self, energy_unit_factory_factory):
-        source = ElectricalSource("source", output_energy=ElectricalPower(0))
+        source = Source("source", output_energy=ElectricalPower(0))
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 
         with pytest.raises(InvalidEnergyNetworkError, match="Duplicate energy connection from"):
             create_topology([source, load], [(source, load), (source, load)])
 
     def test_rejects_duplicate_connection_id(self, energy_unit_factory_factory):
-        source = ElectricalSource("source", output_energy=ElectricalPower(0))
+        source = Source("source", output_energy=ElectricalPower(0))
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
-        connection_id = EnergyConnectionId(ElectricalSource._create_id())
+        connection_id = EnergyConnectionId(Source._create_id())
         connection = EnergyConnection(connection_id, source.get_id(), load.get_id(), ElectricalPower)
 
         with pytest.raises(InvalidEnergyNetworkError, match="Duplicate energy connection ID"):
@@ -85,7 +83,7 @@ class TestEnergyNetworkTopologyValidation:
 
 class TestEnergyNetworkTopology:
     def test_exposes_typed_connections_in_topological_order(self, energy_unit_factory_factory):
-        source = ElectricalSource("source", output_energy=ElectricalPower(0))
+        source = Source("source", output_energy=ElectricalPower(0))
         cable = energy_unit_factory_factory(ElectricalCable, "cable")
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 
@@ -100,8 +98,8 @@ class TestEnergyNetworkTopology:
         assert all(connection.energy_type is ElectricalPower for connection in topology.get_connections())
 
     def test_connects_multiple_providers_to_junction(self, energy_unit_factory_factory, junction_factory_factory):
-        grid = ElectricalSource("grid", output_energy=ElectricalPower(0))
-        wind = ElectricalSource("wind", output_energy=ElectricalPower(0))
+        grid = Source("grid", output_energy=ElectricalPower(0))
+        wind = Source("wind", output_energy=ElectricalPower(0))
         bus = junction_factory_factory(
             ElectricalBus, "bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(), wind.get_id()))
         )
