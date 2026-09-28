@@ -1,4 +1,4 @@
-from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.float_constraint import AbsoluteTolerance, FloatConstraint
 from libecalc.process.process_solver.pressure_control.downstream_choke import (
     DownstreamChokePressureControlStrategy,
 )
@@ -25,7 +25,7 @@ def test_downstream_choke_strategy_baseline_below_target_does_not_choke(
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=50)
-    target = FloatConstraint(70.0, abs_tol=1e-12)
+    target = FloatConstraint(70.0, AbsoluteTolerance(1e-12))
 
     solution = strategy.apply(target_pressure=target, inlet_stream=inlet_stream)
 
@@ -61,7 +61,7 @@ def test_downstream_choke_strategy_baseline_above_target_chokes_to_target(
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=1000, pressure_bara=100)
-    target = FloatConstraint(70.0, abs_tol=1e-12)
+    target = FloatConstraint(70.0, AbsoluteTolerance(1e-12))
 
     solution = strategy.apply(target_pressure=target, inlet_stream=inlet_stream)
     assert solution.success is True

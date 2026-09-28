@@ -17,7 +17,7 @@ from libecalc.process.process_solver.configuration import (
     RecirculationConfiguration,
     SpeedConfiguration,
 )
-from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.float_constraint import AbsoluteTolerance, FloatConstraint
 from libecalc.process.process_units.compressor import Compressor
 
 from ..utils import Xfail, make_xfail_param, outcome_from_process_solution
@@ -83,7 +83,7 @@ def test_process_solver_path(
     system, inlet_stream = process_solver_case_factory(chart_data=variable_speed_compressor_chart_data, case=case)
 
     solution = system.solver.find_solution(
-        pressure_targets=[FloatConstraint(case.region.discharge_pressure_bara, abs_tol=PRESSURE_TOLERANCE)],
+        pressure_targets=[FloatConstraint(case.region.discharge_pressure_bara, AbsoluteTolerance(PRESSURE_TOLERANCE))],
         inlet_stream=inlet_stream,
     )
     system.runner.apply_configurations(solution.configuration)

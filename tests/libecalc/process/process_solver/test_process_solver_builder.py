@@ -8,10 +8,8 @@ import pytest
 from libecalc.ecalc_model.process_simulation import PressureControlType
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
-from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
-from libecalc.process.process_solver.anti_surge.individual_asv import IndividualASVAntiSurgeStrategy
 from libecalc.process.process_solver.configuration import RecirculationConfiguration
-from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.float_constraint import AbsoluteTolerance, FloatConstraint
 from libecalc.process.process_solver.pressure_control.common_asv import CommonASVPressureControlStrategy
 from libecalc.process.process_solver.pressure_control.downstream_choke import DownstreamChokePressureControlStrategy
 from libecalc.process.process_solver.pressure_control.individual_asv import (
@@ -65,7 +63,7 @@ def inlet_stream(stream_factory) -> FluidStream:
 
 
 def _run_solver(system: ProcessSolverSystem, inlet_stream: FluidStream) -> SolverRunResult:
-    target_pressure = FloatConstraint(75.0, abs_tol=1e-3)
+    target_pressure = FloatConstraint(75.0, AbsoluteTolerance(1e-3))
     solution = system.solver.find_solution(pressure_targets=[target_pressure], inlet_stream=inlet_stream)
     system.runner.apply_configurations(solution.configuration)
     outlet_stream = system.runner.run(inlet_stream=inlet_stream)

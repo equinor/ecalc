@@ -1,7 +1,7 @@
 import pytest
 
 from libecalc.domain.process.value_objects.chart import ChartCurve
-from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.float_constraint import AbsoluteTolerance, FloatConstraint
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.testing.chart_data_factory import ChartDataFactory
@@ -80,7 +80,7 @@ def test_pipeline_section_solver_applies_upstream_choke_when_speed_solution_is_a
     # The compressor (single speed) produces outlet pressure well above 28 bara.
     # ShaftSpeedFinder cannot lower it further, so it returns min speed with success=False.
     # The upstream choke reduces inlet pressure, which lowers outlet pressure to the target.
-    target_pressure = FloatConstraint(28.0, abs_tol=1e-4)
+    target_pressure = FloatConstraint(28.0, AbsoluteTolerance(1e-4))
 
     solution = solver.find_solution(
         pressure_targets=[target_pressure],

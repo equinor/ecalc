@@ -27,7 +27,6 @@ class MultiShaftEqualRatioSolver(PipelineSolver):
         pressure_targets: list[FloatConstraint],
         inlet_stream: FluidStream,
     ) -> Solution[Sequence[Configuration]]:
-
         assert len(pressure_targets) == 1
         pressure_target: FloatConstraint = pressure_targets[0]
 
@@ -44,7 +43,7 @@ class MultiShaftEqualRatioSolver(PipelineSolver):
         targets: list[FloatConstraint] = []
         for _i in range(n):
             current_p *= pressure_ratio
-            targets.append(FloatConstraint(current_p, abs_tol=pressure_target.abs_tol))
+            targets.append(pressure_target.with_value(current_p))
         targets[-1] = pressure_target
 
         return self._solver.find_solution(targets, inlet_stream)

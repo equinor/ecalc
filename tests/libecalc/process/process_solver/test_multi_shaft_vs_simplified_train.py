@@ -7,7 +7,7 @@ import pytest
 
 from libecalc.domain.process.compressor.core.train.simplified_train.simplified_train import CompressorTrainSimplified
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.float_constraint import AbsoluteTolerance, FloatConstraint
 from libecalc.process.process_solver.multi_shaft_equal_ratio_solver import MultiShaftEqualRatioSolver
 
 _RATE_SM3_DAY = 1_500_000.0
@@ -63,7 +63,7 @@ def test_multi_shaft_outlet_pressure_matches_simplified_train(
         for _ in range(_N_STAGES)
     ]
     solver = MultiShaftEqualRatioSolver(pipeline_sections=solver_pipelines)
-    solution = solver.find_solution([FloatConstraint(_P_OUT_BARA, abs_tol=1.0)], inlet_stream)
+    solution = solver.find_solution([FloatConstraint(_P_OUT_BARA, AbsoluteTolerance(1.0))], inlet_stream)
 
     assert solution.success, f"Solver failed: {solution.failure}"
 
