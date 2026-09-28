@@ -3,7 +3,7 @@
 import pytest
 
 from libecalc.process.process_solver.configuration import SpeedConfiguration
-from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.float_constraint import AbsoluteTolerance, FloatConstraint
 from libecalc.process.process_solver.multi_shaft_equal_ratio_solver import MultiShaftEqualRatioSolver
 
 
@@ -27,7 +27,7 @@ def test_three_shaft_train_hits_target_pressure(
     solver = MultiShaftEqualRatioSolver(pipeline_sections=pipelines)
     inlet = stream_factory(standard_rate_m3_per_day=1_500_000.0, pressure_bara=30.0, temperature_kelvin=303.15)
 
-    solution = solver.find_solution([FloatConstraint(270.0, abs_tol=5.0)], inlet)
+    solution = solver.find_solution([FloatConstraint(270.0, AbsoluteTolerance(5.0))], inlet)
 
     assert solution.success, f"Expected success; failure: {solution.failure}"
 
@@ -44,7 +44,7 @@ def test_each_shaft_runs_at_different_speed(
     solver = MultiShaftEqualRatioSolver(pipeline_sections=pipelines)
     inlet = stream_factory(standard_rate_m3_per_day=1_500_000.0, pressure_bara=30.0, temperature_kelvin=303.15)
 
-    solution = solver.find_solution([FloatConstraint(270.0, abs_tol=5.0)], inlet)
+    solution = solver.find_solution([FloatConstraint(270.0, AbsoluteTolerance(5.0))], inlet)
 
     speeds = [c.value.speed for c in solution.configuration if isinstance(c.value, SpeedConfiguration)]
     assert len(speeds) == 3
@@ -66,7 +66,7 @@ def test_intercooler_changes_stage_speed(
     warm = [single_compressor_pipeline_section_factory(**common, inlet_temperature_kelvin=360.0) for _ in range(3)]
 
     inlet = stream_factory(standard_rate_m3_per_day=1_500_000.0, pressure_bara=30.0, temperature_kelvin=303.15)
-    constraint = FloatConstraint(270.0, abs_tol=5.0)
+    constraint = FloatConstraint(270.0, AbsoluteTolerance(5.0))
 
     sol_cool = MultiShaftEqualRatioSolver(pipeline_sections=cool).find_solution([constraint], inlet)
     sol_warm = MultiShaftEqualRatioSolver(pipeline_sections=warm).find_solution([constraint], inlet)
@@ -84,7 +84,7 @@ def test_empty_pipelines(stream_factory):
     solver = MultiShaftEqualRatioSolver(pipeline_sections=[])
     inlet = stream_factory(standard_rate_m3_per_day=1_500_000.0, pressure_bara=30.0, temperature_kelvin=303.15)
 
-    solution = solver.find_solution([FloatConstraint(270.0, abs_tol=5.0)], inlet)
+    solution = solver.find_solution([FloatConstraint(270.0, AbsoluteTolerance(5.0))], inlet)
 
     assert solution.success
     assert solution.configuration == []
@@ -97,7 +97,7 @@ def test_single_pipeline_hits_exact_target(stream_factory, pipeline_kwargs, sing
     solver = MultiShaftEqualRatioSolver(pipeline_sections=[pipeline])
     inlet = stream_factory(standard_rate_m3_per_day=1_500_000.0, pressure_bara=30.0, temperature_kelvin=303.15)
 
-    solution = solver.find_solution([FloatConstraint(60.0, abs_tol=0.5)], inlet)
+    solution = solver.find_solution([FloatConstraint(60.0, AbsoluteTolerance(0.5))], inlet)
 
     assert solution.success
     pipeline.get_runner().apply_configurations(solution.configuration)
@@ -116,7 +116,7 @@ def test_two_pipeline_intermediate_target_is_geometric_mean(
     solver = MultiShaftEqualRatioSolver(pipeline_sections=pipelines)
     inlet = stream_factory(standard_rate_m3_per_day=1_500_000.0, pressure_bara=30.0, temperature_kelvin=303.15)
 
-    solution = solver.find_solution([FloatConstraint(120.0, abs_tol=1.0)], inlet)
+    solution = solver.find_solution([FloatConstraint(120.0, AbsoluteTolerance(1.0))], inlet)
 
     assert solution.success
     # First pipeline should target sqrt(30 * 120) ≈ 60 bara
