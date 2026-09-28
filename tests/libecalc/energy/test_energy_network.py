@@ -10,12 +10,11 @@ from libecalc.energy import (
     MechanicalPower,
     Source,
 )
+from libecalc.energy.converter import Converter, EfficiencyConversion, SampledConversion
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_units import (
     ElectricalCable,
-    ElectricalMotor,
-    GeneratorSet,
 )
 
 
@@ -40,8 +39,20 @@ class TestEnergyNetworkEnergyCalculation:
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
         source = energy_unit_factory_factory(Source, "source", output_energy_type=FuelGasRate)
-        generator = energy_unit_factory_factory(GeneratorSet, "generator", power_to_fuel=lambda output: output * 1_000)
-        motor = energy_unit_factory_factory(ElectricalMotor, "motor", efficiency=0.8)
+        generator = energy_unit_factory_factory(
+            Converter,
+            "generator",
+            input_energy_type=FuelGasRate,
+            output_energy_type=ElectricalPower,
+            conversion=SampledConversion(lambda output: output * 1_000),
+        )
+        motor = energy_unit_factory_factory(
+            Converter,
+            "motor",
+            input_energy_type=ElectricalPower,
+            output_energy_type=MechanicalPower,
+            conversion=EfficiencyConversion(0.8),
+        )
         pump = energy_unit_factory_factory(Consumer, "pump", input_energy_type=MechanicalPower)
         base_load = energy_unit_factory_factory(Consumer, "base_load", input_energy_type=ElectricalPower)
 
@@ -196,7 +207,12 @@ class TestJunctionDispatch:
             Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5)
         )
         genset = energy_unit_factory_factory(
-            GeneratorSet, "genset", power_to_fuel=lambda power: power * 1_000, capacity=ElectricalPower(10)
+            Converter,
+            "genset",
+            input_energy_type=FuelGasRate,
+            output_energy_type=ElectricalPower,
+            conversion=SampledConversion(lambda power: power * 1_000),
+            capacity=ElectricalPower(10),
         )
         bus = junction_factory_factory(
             ElectricalPower,
@@ -226,9 +242,19 @@ class TestJunctionDispatch:
     ):
         """Per-generator curves replace the jumps encoded in a single legacy curve."""
         fuel_source = energy_unit_factory_factory(Source, "fuel_source", output_energy_type=FuelGasRate)
-        first = energy_unit_factory_factory(GeneratorSet, "first_genset", power_to_fuel=lambda power: power * 1_000)
+        first = energy_unit_factory_factory(
+            Converter,
+            "first_genset",
+            input_energy_type=FuelGasRate,
+            output_energy_type=ElectricalPower,
+            conversion=SampledConversion(lambda power: power * 1_000),
+        )
         second = energy_unit_factory_factory(
-            GeneratorSet, "second_genset", power_to_fuel=lambda power: 10_000 + power * 2_000
+            Converter,
+            "second_genset",
+            input_energy_type=FuelGasRate,
+            output_energy_type=ElectricalPower,
+            conversion=SampledConversion(lambda power: 10_000 + power * 2_000),
         )
         bus = junction_factory_factory(
             ElectricalPower,

@@ -15,13 +15,12 @@ from libecalc.presentation.yaml.domain.energy import (
     CompressorSampledDemand,
     ExpressionDemand,
     TimeSeriesConsumer,
+    TimeSeriesEfficiencyConverterFactory,
     TimeSeriesElectricalCableFactory,
-    TimeSeriesElectricalMotorFactory,
     TimeSeriesEnergyUnit,
     TimeSeriesEnergyUnitFactory,
-    TimeSeriesGasTurbineFactory,
-    TimeSeriesGeneratorSetFactory,
     TimeSeriesJunctionFactory,
+    TimeSeriesSampledConverterFactory,
     TimeSeriesSourceFactory,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -258,8 +257,12 @@ class EnergyNetworkMapper:
     def _map_turbine_spec(
         spec: TurbineSpec, energy_unit_id: EnergyUnitId
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
-        turbine = TimeSeriesGasTurbineFactory(
-            name=spec.name, energy_unit_id=energy_unit_id, power_to_fuel=spec.fuel_power_curve.fuel_for_power
+        turbine = TimeSeriesSampledConverterFactory(
+            name=spec.name,
+            energy_unit_id=energy_unit_id,
+            input_energy_type=FuelGasRate,
+            output_energy_type=MechanicalPower,
+            curve=spec.fuel_power_curve.fuel_for_power,
         )
         return turbine, FuelGasRate, MechanicalPower
 
@@ -274,23 +277,40 @@ class EnergyNetworkMapper:
             case YamlGeneratorSet():
                 capacity = self._time_series(unit.capacity, expression_evaluator)
                 return (
-                    TimeSeriesGeneratorSetFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
+                    TimeSeriesSampledConverterFactory(
+                        name=unit.name,
+                        energy_unit_id=energy_unit_id,
+                        capacity=capacity,
+                        input_energy_type=FuelGasRate,
+                        output_energy_type=ElectricalPower,
+                    ),
                     FuelGasRate,
                     ElectricalPower,
                 )
             case YamlGasTurbine():
                 capacity = self._time_series(unit.capacity, expression_evaluator)
                 return (
-                    TimeSeriesGasTurbineFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
+                    TimeSeriesSampledConverterFactory(
+                        name=unit.name,
+                        energy_unit_id=energy_unit_id,
+                        capacity=capacity,
+                        input_energy_type=FuelGasRate,
+                        output_energy_type=MechanicalPower,
+                    ),
                     FuelGasRate,
                     MechanicalPower,
                 )
             case YamlElectricalMotor():
                 capacity = self._time_series(unit.capacity, expression_evaluator)
-                efficiency = self._time_series(unit.efficiency, expression_evaluator)
+                efficiency = TimeSeriesExpression(expression=unit.efficiency, expression_evaluator=expression_evaluator)
                 return (
-                    TimeSeriesElectricalMotorFactory(
-                        name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity, efficiency=efficiency
+                    TimeSeriesEfficiencyConverterFactory(
+                        name=unit.name,
+                        energy_unit_id=energy_unit_id,
+                        capacity=capacity,
+                        input_energy_type=ElectricalPower,
+                        output_energy_type=MechanicalPower,
+                        efficiency=efficiency,
                     ),
                     ElectricalPower,
                     MechanicalPower,

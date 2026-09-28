@@ -5,6 +5,7 @@ from uuid import UUID
 import pytest
 
 from libecalc.energy import Consumer, Source
+from libecalc.energy.converter import Converter, EfficiencyConversion, SampledConversion
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnectionId
 from libecalc.energy.energy_types import (
@@ -17,9 +18,6 @@ from libecalc.energy.energy_types import (
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import (
     ElectricalCable,
-    ElectricalMotor,
-    GasTurbine,
-    GeneratorSet,
     Junction,
 )
 from libecalc.energy.errors import InvalidCapacityTypeError
@@ -60,25 +58,36 @@ class TestConverters:
         assert result[INPUT].value == pytest.approx(10.0 / 0.96)
 
     def test_generator_set_applies_fuel_curve(self):
-        genset = GeneratorSet(
+        genset = Converter(
             "gs1",
             output_energy=ElectricalPower(10.0),
             input_connection_id=INPUT,
-            power_to_fuel=lambda mw: 5000 + mw * 4500,
+            input_energy_type=FuelGasRate,
+            output_energy_type=ElectricalPower,
+            conversion=SampledConversion(lambda mw: 5000 + mw * 4500),
         )
         assert genset.get_input_energies() == {INPUT: FuelGasRate(5000 + 10 * 4500)}
 
     def test_gas_turbine_applies_fuel_curve(self):
-        turbine = GasTurbine(
+        turbine = Converter(
             "t1",
             output_energy=MechanicalPower(15.0),
             input_connection_id=INPUT,
-            power_to_fuel=lambda mw: 3000 + mw * 3500,
+            input_energy_type=FuelGasRate,
+            output_energy_type=MechanicalPower,
+            conversion=SampledConversion(lambda mw: 3000 + mw * 3500),
         )
         assert turbine.get_input_energies() == {INPUT: FuelGasRate(3000 + 15 * 3500)}
 
     def test_electrical_motor_divides_by_efficiency(self):
-        motor = ElectricalMotor("m1", output_energy=MechanicalPower(7.0), input_connection_id=INPUT, efficiency=0.93)
+        motor = Converter(
+            "m1",
+            output_energy=MechanicalPower(7.0),
+            input_connection_id=INPUT,
+            input_energy_type=ElectricalPower,
+            output_energy_type=MechanicalPower,
+            conversion=EfficiencyConversion(0.93),
+        )
         result = motor.get_input_energies()
         assert result.keys() == {INPUT}
         assert result[INPUT].value == pytest.approx(7.0 / 0.93)
@@ -127,19 +136,29 @@ class TestJunctions:
         assert bus.get_failures() == []
 
 
+def _converter(output_energy, input_energy_type, capacity):
+    return Converter(
+        "converter",
+        output_energy=output_energy,
+        input_connection_id=INPUT,
+        input_energy_type=input_energy_type,
+        output_energy_type=type(output_energy),
+        conversion=EfficiencyConversion(0.9),
+        capacity=capacity,
+    )
+
+
 class TestCapacityType:
     @pytest.mark.parametrize(
         ("create", "capacity"),
         [
             (lambda capacity: Source("fuel", output_energy=FuelGasRate(0), capacity=capacity), MechanicalPower(1)),
             (
-                lambda capacity: GeneratorSet("gen", ElectricalPower(0), input_connection_id=INPUT, capacity=capacity),
+                lambda capacity: _converter(ElectricalPower(0), FuelGasRate, capacity),
                 MechanicalPower(1),
             ),
             (
-                lambda capacity: GasTurbine(
-                    "turbine", MechanicalPower(0), input_connection_id=INPUT, capacity=capacity
-                ),
+                lambda capacity: _converter(MechanicalPower(0), FuelGasRate, capacity),
                 ElectricalPower(1),
             ),
             (
@@ -155,5 +174,5 @@ class TestCapacityType:
             create(capacity)
 
     def test_capacity_of_matching_energy_type_is_accepted(self):
-        turbine = GasTurbine("turbine", MechanicalPower(0), input_connection_id=INPUT, capacity=MechanicalPower(1))
+        turbine = _converter(MechanicalPower(0), FuelGasRate, MechanicalPower(1))
         assert turbine.get_capacity() == MechanicalPower(1)

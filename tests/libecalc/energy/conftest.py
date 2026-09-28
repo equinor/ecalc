@@ -47,12 +47,12 @@ class NoOpEnergyUnitFactory[T: EnergyUnit](EnergyUnitFactory):
         return self._unit_class.get_input_energy_type()  # pyright: ignore[reportCallIssue]
 
     def get_output_energy_type(self) -> type[Energy] | None:
+        if self._output_energy_type is not None:
+            return self._output_energy_type
         if self._input_energy_type is not None:
             # Only Consumer (a terminal/leaf node) needs an explicit input-type override, and it never has an
             # output energy type since it doesn't feed anything downstream.
             return None
-        if self._output_energy_type is not None:
-            return self._output_energy_type
         return self._unit_class.get_output_energy_type()  # pyright: ignore[reportCallIssue]
 
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: object) -> T:
@@ -62,7 +62,11 @@ class NoOpEnergyUnitFactory[T: EnergyUnit](EnergyUnitFactory):
             connection_kwargs["input_connection_id"] = incoming_connection.id
         # Consumer names its value "demand" (it has no downstream output); every other EnergyUnit subclass
         # names it "output_energy".
-        value_kwarg = "demand" if self._input_energy_type is not None else "output_energy"
+        is_consumer = self._input_energy_type is not None and self._output_energy_type is None
+        value_kwarg = "demand" if is_consumer else "output_energy"
+        if not is_consumer and self._input_energy_type is not None:
+            connection_kwargs["input_energy_type"] = self._input_energy_type
+            connection_kwargs["output_energy_type"] = self._output_energy_type
         return self._unit_class(
             name=self.get_name(),
             energy_unit_id=self._id,
