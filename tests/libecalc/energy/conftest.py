@@ -19,6 +19,7 @@ class NoOpEnergyUnitFactory[T: EnergyUnit](EnergyUnitFactory):
         name: str,
         *,
         input_energy_type: type[Energy] | None = None,
+        output_energy_type: type[Energy] | None = None,
         **kwargs,
     ) -> None:
         self._unit_class = unit_class
@@ -28,6 +29,8 @@ class NoOpEnergyUnitFactory[T: EnergyUnit](EnergyUnitFactory):
         # can't be read off the class the way the other (per-type) EnergyUnit subclasses allow; callers wrapping a
         # Consumer must state the type explicitly.
         self._input_energy_type = input_energy_type
+        # Source's output type is likewise derived from its output_energy instance, unknown before create().
+        self._output_energy_type = output_energy_type
         self._kwargs = kwargs
 
     def get_id(self) -> EnergyUnitId:
@@ -48,6 +51,8 @@ class NoOpEnergyUnitFactory[T: EnergyUnit](EnergyUnitFactory):
             # Only Consumer (a terminal/leaf node) needs an explicit input-type override, and it never has an
             # output energy type since it doesn't feed anything downstream.
             return None
+        if self._output_energy_type is not None:
+            return self._output_energy_type
         return self._unit_class.get_output_energy_type()  # pyright: ignore[reportCallIssue]
 
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: object) -> T:
