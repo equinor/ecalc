@@ -101,8 +101,11 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
     assert consumers_by_name["fuel_load"].get_demand(period) == FuelGasRate(10)
     assert consumers_by_name["diesel_load"].get_demand(period) == DieselRate(20)
 
-    # Efficiency and loss fraction are kept on the relevant factories.
-    assert factories_by_name["motor"].efficiency.get_original_expression() == 0.9
+    motor_connection = next(c for c in topology.get_connections() if c.target_id == factories_by_name["motor"].get_id())
+    motor = factories_by_name["motor"].create(
+        MechanicalPower(9), incoming_connections=(motor_connection,), period=period
+    )
+    assert motor.get_input_energies()[motor_connection.id] == ElectricalPower(9 / 0.9)
     assert factories_by_name["cable"].loss_fraction.get_original_expression() == "1 {-} (0.96)"
 
 
