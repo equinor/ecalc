@@ -10,6 +10,7 @@ from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate, M
 from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 from libecalc.energy.models.sampled_compressor import SampledCompressor
 from libecalc.energy.models.sampled_compressor_factory import SampledCompressorFactory
+from libecalc.presentation.yaml.domain.energy.compressor_sampled import DemandSource
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled
 
@@ -17,11 +18,6 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import Yam
 class NodeRole(enum.Enum):
     UNIT = "unit"
     TURBINE = "turbine"
-
-
-class DemandSource(enum.Enum):
-    ENERGY_USAGE = "energy_usage"
-    POWER = "power"
 
 
 @dataclass(frozen=True)

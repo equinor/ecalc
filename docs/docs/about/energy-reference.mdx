@@ -166,4 +166,40 @@ At least two sources or units feeding into this junction, in dispatch priority o
 
 </TabItem>
 
+<TabItem value="COMPRESSOR_SAMPLED" label="COMPRESSOR_SAMPLED">
+
+A compressor whose energy usage is tabulated in `FILE` against `RATE`, `SUCTION_PRESSURE` and/or
+`DISCHARGE_PRESSURE`. Which energy columns `FILE` has decides what the unit consumes:
+
+- Only `FUEL`: a fuel gas consumer. `INPUT` must provide fuel gas.
+- Only `POWER`: a power consumer, electrical or mechanical after what `INPUT` provides.
+- Both `FUEL` and `POWER`: a gas turbine named `<NAME> turbine` is generated and wired between `INPUT`
+  (which must provide fuel gas) and the compressor. The compressor demands the tabulated `POWER` as
+  shaft power and the turbine converts it back to the tabulated `FUEL`.
+
+Every variable tabulated in `FILE` must be given as an expression, and every given expression must be
+tabulated.
+
+```yaml
+NAME: gas_compressor_sampled
+INPUT: fuel_manifold
+TYPE: COMPRESSOR_SAMPLED
+FILE: gas_compressor_sampled.csv
+RATE: 2500000
+SUCTION_PRESSURE: 40
+DISCHARGE_PRESSURE: 120
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `TYPE` | `COMPRESSOR_SAMPLED` | Required |
+| `FILE` | Resource tabulating FUEL and/or POWER against RATE, SUCTION_PRESSURE and/or DISCHARGE_PRESSURE. | Required |
+| `RATE` | Rate through the compressor (Sm³/d), looked up in FILE. | Optional |
+| `SUCTION_PRESSURE` | Compressor inlet pressure (bara), looked up in FILE. | Optional |
+| `DISCHARGE_PRESSURE` | Compressor outlet pressure (bara), looked up in FILE. | Optional |
+
+</TabItem>
+
 </Tabs>

@@ -6,6 +6,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
+    YamlCompressorSampled,
     YamlElectricalBus,
     YamlElectricalCable,
     YamlElectricalConsumer,
@@ -50,6 +51,7 @@ class TestExampleYamlParsing:
         assert isinstance(by_name["base_load"], YamlElectricalConsumer)
         assert isinstance(by_name["flare"], YamlFuelGasConsumer)
         assert isinstance(by_name["export_train"], YamlMechanicalConsumer)
+        assert isinstance(by_name["gas_compressor_sampled"], YamlCompressorSampled)
 
     def test_consumers_use_load_and_rate(self):
         network = _load_network(EXAMPLE_YAML)
@@ -368,4 +370,37 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="cannot specify both"):
             _component_adapter.validate_python(
                 {"NAME": "c", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "x", "LOAD": 5, "PROCESS_SIMULATION": "sim"}
+            )
+
+
+class TestSampledCompressor:
+    def test_parses_with_file_and_lookup_variables(self):
+        comp = _component_adapter.validate_python(
+            {"NAME": "c", "TYPE": "COMPRESSOR_SAMPLED", "INPUT": "fuel", "FILE": "c.csv", "RATE": 1000}
+        )
+        assert isinstance(comp, YamlCompressorSampled)
+        assert comp.file == "c.csv"
+        assert comp.rate == 1000
+
+    def test_input_energy_type_is_not_checked_by_schema(self):
+        for source_type in ("FUEL_GAS_SOURCE", "ELECTRICAL_SOURCE"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "src", "TYPE": source_type}],
+                    "UNITS": [
+                        {"NAME": "c", "TYPE": "COMPRESSOR_SAMPLED", "INPUT": "src", "FILE": "c.csv", "RATE": 1000}
+                    ],
+                }
+            )
+
+    def test_cannot_be_an_input(self):
+        with pytest.raises(ValueError, match="not a known source or provider"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                    "UNITS": [
+                        {"NAME": "c", "TYPE": "COMPRESSOR_SAMPLED", "INPUT": "fuel", "FILE": "c.csv", "RATE": 1000},
+                        {"NAME": "load", "TYPE": "FUEL_GAS_CONSUMER", "INPUT": "c", "RATE": 5},
+                    ],
+                }
             )

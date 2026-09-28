@@ -4,8 +4,8 @@ import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
+from libecalc.presentation.yaml.domain.energy.compressor_sampled import DemandSource
 from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion import (
-    DemandSource,
     expand,
     load_model,
     turbine_key,
