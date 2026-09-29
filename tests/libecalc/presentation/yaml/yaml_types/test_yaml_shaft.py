@@ -45,7 +45,7 @@ def test_shafts_default_to_empty():
 
 
 def test_rejects_duplicate_shaft_names():
-    with pytest.raises(ValidationError, match="SHAFTS names must be unique.*export_shaft"):
+    with pytest.raises(ValidationError, match="SHAFTS names must be unique. Duplicated names are: export_shaft"):
         (
             YamlAssetBuilder()
             .with_end("2025-01-01")
