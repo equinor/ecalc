@@ -16,11 +16,11 @@ from libecalc.energy.energy_types import (
 )
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import (
-    ElectricalBus,
     ElectricalCable,
     ElectricalMotor,
     GasTurbine,
     GeneratorSet,
+    Junction,
 )
 
 INPUT = EnergyConnectionId(UUID(int=100))
@@ -113,9 +113,10 @@ class TestConsumers:
 
 class TestJunctions:
     def test_places_demand_beyond_every_limit_on_the_last_input(self):
-        bus = ElectricalBus(
+        bus = Junction(
             "bus",
             output_energy=ElectricalPower(10),
+            energy_type=ElectricalPower,
             input_connection_ids={FIRST_CANDIDATE: INPUT, SECOND_CANDIDATE: SECOND_INPUT},
             dispatch_strategy=PriorityDispatch(order=(FIRST_CANDIDATE, SECOND_CANDIDATE)),
             input_capacities={FIRST_CANDIDATE: ElectricalPower(4), SECOND_CANDIDATE: ElectricalPower(3)},

@@ -4,7 +4,6 @@ from libecalc.energy import Consumer, ElectricalPower, FuelGasRate, Source
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_units import (
-    ElectricalBus,
     ElectricalCable,
 )
 
@@ -101,7 +100,7 @@ class TestEnergyNetworkTopology:
         grid = Source("grid", output_energy=ElectricalPower(0))
         wind = Source("wind", output_energy=ElectricalPower(0))
         bus = junction_factory_factory(
-            ElectricalBus, "bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(), wind.get_id()))
+            ElectricalPower, "bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(), wind.get_id()))
         )
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
 

@@ -72,17 +72,17 @@ class NoOpEnergyUnitFactory[T: EnergyUnit](EnergyUnitFactory):
         )
 
 
-class NoOpJunctionFactory[T: Junction](EnergyUnitFactory):
+class NoOpJunctionFactory(EnergyUnitFactory):
     """Creates a junction with fixed dispatch configuration for any operating point."""
 
     def __init__(
         self,
-        junction_class: type[T],
+        energy_type: type[Energy],
         name: str,
         dispatch_strategy: DispatchStrategy,
         input_capacities: Mapping[EnergyUnitId, Energy] | None = None,
     ) -> None:
-        self._junction_class = junction_class
+        self._energy_type = energy_type
         self._id = EnergyUnitId(ecalc_id_generator())
         self._name = name
         self._dispatch_strategy = dispatch_strategy
@@ -95,15 +95,16 @@ class NoOpJunctionFactory[T: Junction](EnergyUnitFactory):
         return self._name
 
     def get_input_energy_type(self) -> type[Energy]:
-        return self._junction_class.get_input_energy_type()
+        return self._energy_type
 
     def get_output_energy_type(self) -> type[Energy]:
-        return self._junction_class.get_output_energy_type()
+        return self._energy_type
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: object) -> T:
-        return self._junction_class(
+    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: object) -> Junction:
+        return Junction(
             name=self._name,
             output_energy=demand,
+            energy_type=self._energy_type,
             input_connection_ids={connection.source_id: connection.id for connection in incoming_connections},
             dispatch_strategy=self._dispatch_strategy,
             input_capacities=self._input_capacities,
@@ -121,13 +122,15 @@ def energy_unit_factory_factory():
 
 @pytest.fixture
 def junction_factory_factory():
-    def build[T: Junction](
-        c: type[T],
+    def build(
+        energy_type: type[Energy],
         name: str,
         dispatch_strategy: DispatchStrategy,
         input_capacities: Mapping[EnergyUnitId, Energy] | None = None,
     ):
-        return NoOpJunctionFactory[T](c, name, dispatch_strategy=dispatch_strategy, input_capacities=input_capacities)
+        return NoOpJunctionFactory(
+            energy_type, name, dispatch_strategy=dispatch_strategy, input_capacities=input_capacities
+        )
 
     return build
 
