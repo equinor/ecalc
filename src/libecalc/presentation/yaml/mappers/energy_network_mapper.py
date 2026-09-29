@@ -1,4 +1,5 @@
 from collections.abc import Mapping, Sequence
+from typing import overload
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
@@ -190,6 +191,20 @@ class EnergyNetworkMapper:
         return expand(unit, resource, output_types[unit.input])
 
     @staticmethod
+    @overload
+    def _time_series(
+        expression: ExpressionType,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> TimeSeriesExpression: ...
+
+    @staticmethod
+    @overload
+    def _time_series(
+        expression: None,
+        expression_evaluator: ExpressionEvaluator,
+    ) -> None: ...
+
+    @staticmethod
     def _time_series(
         expression: ExpressionType | None,
         expression_evaluator: ExpressionEvaluator,
@@ -331,7 +346,7 @@ class EnergyNetworkMapper:
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlMechanicalConsumer():
-                if unit.process_simulation is not None:
+                if unit.load is None:
                     raise EcalcValidationException(
                         f"'{unit.name}': PROCESS_SIMULATION-driven demand is not supported yet."
                     )

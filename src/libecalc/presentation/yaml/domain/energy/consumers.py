@@ -18,7 +18,7 @@ class TimeSeriesConsumer(TimeSeriesEnergyUnit):
         super().__init__(name=name, energy_unit_id=energy_unit_id)
         self.demand = demand
 
-    def get_demand(self, period: Period) -> Energy | None:
+    def get_demand(self, period: Period) -> Energy:
         return self.demand.get_demand(period)
 
     def get_input_energy_type(self) -> type[Energy]:

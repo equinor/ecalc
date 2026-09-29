@@ -11,7 +11,7 @@ from libecalc.testing.yaml_builder import YamlTimeSeriesBuilder
 def test_returns_nothing_without_an_energy_network(minimal_model_yaml_factory, yaml_model_factory):
     model = yaml_model_factory(configuration=minimal_model_yaml_factory().get_configuration(), resources={})
 
-    assert model.get_energy_network() == (None, (), ())
+    assert model.get_energy_network() == (None, (), (), [])
 
 
 def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
@@ -54,7 +54,7 @@ def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
         },
     )
 
-    topology, energy_unit_factories, consumers = model.get_energy_network()
+    topology, energy_unit_factories, consumers, _periods = model.get_energy_network()
 
     assert topology is not None
     simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=energy_unit_factories)

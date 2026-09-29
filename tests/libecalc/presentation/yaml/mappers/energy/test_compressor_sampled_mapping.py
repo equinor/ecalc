@@ -187,7 +187,7 @@ def _yaml_model(yaml_model_factory, resources: dict[str, MemoryResource], file: 
 class TestEndToEnd:
     def test_fuel_and_power(self, yaml_model_factory, make_resource, rates, fuel, power):
         model = _yaml_model(yaml_model_factory, {"compressor.csv": make_resource(RATE=rates, FUEL=fuel, POWER=power)})
-        topology, factories, consumers = model.get_energy_network()
+        topology, factories, consumers, _periods = model.get_energy_network()
 
         assert topology is not None
         assert len(topology.get_nodes()) == 3

@@ -30,7 +30,7 @@ class CompressorSampledDemand[E: Energy](TimeSeriesDemand[E]):
     suction_pressure: TimeSeriesExpression | None = None
     discharge_pressure: TimeSeriesExpression | None = None
 
-    def get_demand(self, period: Period) -> E | None:
+    def get_demand(self, period: Period) -> E:
         result = self.model.evaluate(
             rate=_value_at(self.rate, period),
             suction_pressure=_value_at(self.suction_pressure, period),

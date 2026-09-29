@@ -12,15 +12,13 @@ class TimeSeriesDemand[E: Energy](abc.ABC):
     energy_type: type[E]
 
     @abc.abstractmethod
-    def get_demand(self, period: Period) -> E | None: ...
+    def get_demand(self, period: Period) -> E: ...
 
 
 @value_object
 class ExpressionDemand[E: Energy](TimeSeriesDemand[E]):
     energy_type: type[E]
-    expression: TimeSeriesExpression | None
+    expression: TimeSeriesExpression
 
-    def get_demand(self, period: Period) -> E | None:
-        if self.expression is None:
-            return None
+    def get_demand(self, period: Period) -> E:
         return self.energy_type(value=self.expression.get_value(period))
