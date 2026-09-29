@@ -13,7 +13,6 @@ from libecalc.energy import (
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnectionId, EnergyNetworkTopology
 from libecalc.energy.energy_units import (
-    ElectricalBus,
     ElectricalCable,
     ElectricalMotor,
     GeneratorSet,
@@ -200,7 +199,7 @@ class TestJunctionDispatch:
             GeneratorSet, "genset", power_to_fuel=lambda power: power * 1_000, capacity=ElectricalPower(10)
         )
         bus = junction_factory_factory(
-            ElectricalBus,
+            ElectricalPower,
             "bus",
             dispatch_strategy=PriorityDispatch(order=(grid.get_id(), genset.get_id())),
             input_capacities={grid.get_id(): ElectricalPower(5), genset.get_id(): ElectricalPower(10)},
@@ -232,7 +231,7 @@ class TestJunctionDispatch:
             GeneratorSet, "second_genset", power_to_fuel=lambda power: 10_000 + power * 2_000
         )
         bus = junction_factory_factory(
-            ElectricalBus,
+            ElectricalPower,
             "bus",
             dispatch_strategy=PriorityDispatch(order=(first.get_id(), second.get_id())),
             input_capacities={first.get_id(): ElectricalPower(10), second.get_id(): ElectricalPower(10)},
@@ -282,7 +281,7 @@ class TestJunctionDispatch:
             Source, "second_grid", output_energy_type=ElectricalPower, capacity=second_grid_capacity
         )
         bus = junction_factory_factory(
-            ElectricalBus,
+            ElectricalPower,
             "bus",
             dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), second_grid.get_id())),
             input_capacities={first_grid.get_id(): ElectricalPower(5), second_grid.get_id(): ElectricalPower(5)},
@@ -315,7 +314,7 @@ class TestJunctionDispatch:
         )
         wind = energy_unit_factory_factory(Source, "wind", output_energy_type=ElectricalPower)
         bus = junction_factory_factory(
-            ElectricalBus, "bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(), wind.get_id()))
+            ElectricalPower, "bus", dispatch_strategy=PriorityDispatch(order=(grid.get_id(), wind.get_id()))
         )
         load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
         topology = create_topology(nodes=[grid, wind, bus, load], connections=[(grid, bus), (wind, bus), (bus, load)])
@@ -341,7 +340,7 @@ class TestJunctionDispatch:
             Source, "wind", output_energy_type=ElectricalPower, capacity=ElectricalPower(4.4)
         )
         bus = junction_factory_factory(
-            ElectricalBus,
+            ElectricalPower,
             "bus",
             dispatch_strategy=PriorityDispatch(order=(cable.get_id(), wind.get_id())),
             input_capacities={cable.get_id(): cable_limit_at_bus, wind.get_id(): ElectricalPower(4.4)},
@@ -396,13 +395,13 @@ class TestJunctionDispatch:
         second_grid = energy_unit_factory_factory(Source, "second_grid", output_energy_type=ElectricalPower)
         backup = energy_unit_factory_factory(Source, "backup", output_energy_type=ElectricalPower)
         inner_bus = junction_factory_factory(
-            ElectricalBus,
+            ElectricalPower,
             "inner_bus",
             dispatch_strategy=PriorityDispatch(order=(first_grid.get_id(), second_grid.get_id())),
             input_capacities={first_grid.get_id(): ElectricalPower(4)},
         )
         outer_bus = junction_factory_factory(
-            ElectricalBus,
+            ElectricalPower,
             "outer_bus",
             dispatch_strategy=PriorityDispatch(order=(inner_bus.get_id(), backup.get_id())),
             input_capacities={inner_bus.get_id(): ElectricalPower(14)},
@@ -439,7 +438,7 @@ class TestJunctionDispatch:
             Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(10)
         )
         bus = junction_factory_factory(
-            ElectricalBus,
+            ElectricalPower,
             "bus",
             dispatch_strategy=PriorityDispatch(order=(wind.get_id(), grid.get_id())),
             input_capacities={wind.get_id(): ElectricalPower(5)},

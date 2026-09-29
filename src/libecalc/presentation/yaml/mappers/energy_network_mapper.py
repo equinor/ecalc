@@ -8,7 +8,6 @@ from libecalc.energy.dispatch import DispatchStrategy, PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.energy_units import ElectricalBus, FuelGasManifold
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.energy import (
@@ -301,7 +300,7 @@ class EnergyNetworkMapper:
                     TimeSeriesJunctionFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
-                        junction_class=ElectricalBus,
+                        energy_type=ElectricalPower,
                         dispatch_strategy=dispatch_strategy,
                         input_capacities=input_capacities,
                     ),
@@ -316,7 +315,7 @@ class EnergyNetworkMapper:
                     TimeSeriesJunctionFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
-                        junction_class=FuelGasManifold,
+                        energy_type=FuelGasRate,
                         dispatch_strategy=dispatch_strategy,
                         input_capacities=input_capacities,
                     ),

@@ -1,9 +1,8 @@
-import abc
 from collections.abc import Mapping
 
 from libecalc.energy.dispatch import Candidate, DispatchStrategy
 from libecalc.energy.energy_failure import EnergyFailure
-from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate
+from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnit
 from libecalc.energy.ids import EnergyConnectionId, EnergyUnitId
 
@@ -20,12 +19,14 @@ class Junction(EnergyUnit):
         name: str,
         output_energy: Energy,
         *,
+        energy_type: type[Energy],
         input_connection_ids: Mapping[EnergyUnitId, EnergyConnectionId],
         dispatch_strategy: DispatchStrategy,
         input_capacities: Mapping[EnergyUnitId, Energy],
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
         super().__init__(name, energy_unit_id)
+        self._energy_type = energy_type
         self._output_energy = output_energy
         self._input_connection_ids = dict(input_connection_ids)
         self._dispatch_strategy = dispatch_strategy
@@ -33,7 +34,7 @@ class Junction(EnergyUnit):
         assert len(self._input_connection_ids) >= 2, "A junction requires at least two inputs"
         assert dispatch_strategy.get_candidate_ids() == self._input_connection_ids.keys()
         assert self._input_capacities.keys() <= self._input_connection_ids.keys()
-        assert all(type(capacity) is self.get_energy_type() for capacity in self._input_capacities.values())
+        assert all(type(capacity) is self._energy_type for capacity in self._input_capacities.values())
 
     def get_output_energy(self) -> Energy:
         return self._output_energy
@@ -51,30 +52,8 @@ class Junction(EnergyUnit):
         # Input capacities are dispatch limits, not ratings; a physical limit is reported by the supplying unit.
         return []
 
-    @classmethod
-    @abc.abstractmethod
-    def get_energy_type(cls) -> type[Energy]: ...
+    def get_input_energy_type(self) -> type[Energy]:
+        return self._energy_type
 
-    @classmethod
-    def get_input_energy_type(cls) -> type[Energy]:
-        return cls.get_energy_type()
-
-    @classmethod
-    def get_output_energy_type(cls) -> type[Energy]:
-        return cls.get_energy_type()
-
-
-class ElectricalBus(Junction):
-    """Electrical power distribution bus (busbar)."""
-
-    @classmethod
-    def get_energy_type(cls) -> type[ElectricalPower]:
-        return ElectricalPower
-
-
-class FuelGasManifold(Junction):
-    """Fuel gas distribution manifold (header)."""
-
-    @classmethod
-    def get_energy_type(cls) -> type[FuelGasRate]:
-        return FuelGasRate
+    def get_output_energy_type(self) -> type[Energy]:
+        return self._energy_type

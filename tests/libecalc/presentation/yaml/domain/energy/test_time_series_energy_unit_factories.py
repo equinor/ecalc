@@ -8,7 +8,6 @@ from libecalc.energy import DieselRate, ElectricalPower, FuelGasRate, Mechanical
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.energy_units import ElectricalBus, FuelGasManifold
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesElectricalCableFactory,
@@ -115,7 +114,7 @@ class TestJunctionFactories:
     def test_resolves_input_capacities_per_period(self, expression_factory):
         bus = TimeSeriesJunctionFactory(
             name="bus",
-            junction_class=ElectricalBus,
+            energy_type=ElectricalPower,
             dispatch_strategy=PriorityDispatch(order=(FIRST_CANDIDATE, SECOND_CANDIDATE)),
             input_capacities={FIRST_CANDIDATE: expression_factory("SIM1;LIMIT", {"SIM1;LIMIT": [4, 7]})},
         )
@@ -131,7 +130,7 @@ class TestJunctionFactories:
     def test_omitted_input_capacity_leaves_the_candidate_unlimited(self):
         manifold = TimeSeriesJunctionFactory(
             name="manifold",
-            junction_class=FuelGasManifold,
+            energy_type=FuelGasRate,
             dispatch_strategy=PriorityDispatch(order=(FIRST_CANDIDATE, SECOND_CANDIDATE)),
         )
         connections = incoming(manifold.get_id(), FuelGasRate, FIRST_CANDIDATE, SECOND_CANDIDATE)
@@ -145,7 +144,7 @@ class TestJunctionFactories:
         """NaN would otherwise pass through, since only negative values are rejected by the energy types."""
         bus = TimeSeriesJunctionFactory(
             name="bus",
-            junction_class=ElectricalBus,
+            energy_type=ElectricalPower,
             dispatch_strategy=PriorityDispatch(order=(FIRST_CANDIDATE, SECOND_CANDIDATE)),
             input_capacities={FIRST_CANDIDATE: expression_factory("SIM1;LIMIT", {"SIM1;LIMIT": [float("nan")] * 2})},
         )
