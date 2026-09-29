@@ -16,7 +16,8 @@ module.exports = {
         'libecalc.output',
         'cli',
         'docs',
-        'ecalc-neqsim-wrapper'
+        'ecalc-neqsim-wrapper',
+        'tools.devcalc'
       ],
     ],
   },
