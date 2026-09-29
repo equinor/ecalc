@@ -2,7 +2,6 @@ import abc
 import operator
 from collections.abc import Iterable, Sequence
 from functools import reduce
-from typing import Any
 
 from libecalc.energy import Energy, EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_network import EnergyNetwork
@@ -25,9 +24,8 @@ class EnergyUnitFactory(abc.ABC):
         demand: Energy,
         *,
         incoming_connections: Sequence[EnergyConnection],
-        **extra: Any,
     ) -> EnergyUnit:
-        """Create a unit for the required output `demand`, using context such as the period from `extra`."""
+        """Create a unit for the required output `demand`."""
         ...
 
 
@@ -54,12 +52,8 @@ class EnergyNetworkSimulation:
     def run(
         self,
         connection_demands: dict[EnergyConnectionId, Energy],
-        **extra: Any,
     ) -> EnergyNetwork:
-        """Calculate connection energies and capacity failures from demands on consumer-targeting connections.
-
-        `extra` is forwarded to every factory, for example to select the evaluation period.
-        """
+        """Calculate connection energies and capacity failures from demands on consumer-targeting connections."""
         self._validate_connection_demands(connection_demands)
 
         energy_units: dict[EnergyUnitId, EnergyUnit] = {}
@@ -77,7 +71,6 @@ class EnergyNetworkSimulation:
             energy_unit = self._energy_unit_factories[node_id].create(
                 demand,
                 incoming_connections=incoming_connections,
-                **extra,
             )
             input_energies = energy_unit.get_input_energies()
             # An extra key would silently overwrite another node's connection energy.
