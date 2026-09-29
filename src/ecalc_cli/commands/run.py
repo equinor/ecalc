@@ -18,7 +18,7 @@ from ecalc_cli.io.output import (
 )
 from ecalc_cli.logger import logger
 from ecalc_cli.types import DateFormat, Frequency
-from ecalc_neqsim_wrapper import CacheConfig, NeqSimFluidService, NeqsimService
+from ecalc_neqsim_wrapper import CacheConfig, NeqSimFluidService, NeqsimService, Py4JConfig
 from libecalc.common.datetime.utils import DateTimeFormats
 from libecalc.common.math.numbers import Numbers
 from libecalc.common.run_info import RunInfo
@@ -115,6 +115,9 @@ def run(
         help="An improved implementation of Neqsim is available, but still experimental. After a short testing period "
         "this will be made default and not possible to change.",
     ),
+    download_jar: bool = typer.Option(
+        False, "--download-jar", help="Download the neqsim jar file instead of using the bundled one."
+    ),
 ):
     """CLI command to run a ecalc model."""
     if output_folder is None:
@@ -137,6 +140,12 @@ def run(
             flash_max_size=flash_cache_size or defaults.flash_max_size,
         )
         NeqSimFluidService.configure(config)
+
+    NeqsimService.configure_py4j(
+        config=Py4JConfig(
+            download_jar=download_jar,
+        )
+    )
 
     with NeqsimService.factory(use_jpype=use_experimental_neqsim).initialize():
         configuration_service = FileConfigurationService(configuration_path=model_file)
