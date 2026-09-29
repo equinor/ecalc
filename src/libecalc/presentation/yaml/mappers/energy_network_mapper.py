@@ -228,7 +228,9 @@ class EnergyNetworkMapper:
             case YamlEnergySourceType.DIESEL_SOURCE:
                 energy_type = DieselRate
         return (
-            TimeSeriesSourceFactory(name=source.name, energy_unit_id=energy_unit_id, capacity=capacity),
+            TimeSeriesSourceFactory(
+                name=source.name, energy_type=energy_type, energy_unit_id=energy_unit_id, capacity=capacity
+            ),
             None,
             energy_type,
         )
