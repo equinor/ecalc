@@ -289,11 +289,12 @@ class YamlModel:
         EnergyNetworkTopology | None,
         Sequence[TimeSeriesEnergyUnitFactory],
         Sequence[TimeSeriesConsumer],
+        list[Period],
     ]:
         self.validate_for_run()
         yaml_energy_network = self._configuration.energy_network
         if yaml_energy_network is None:
-            return None, (), ()
+            return None, (), (), []
 
         time_series_resources, _ = self._resource_service.get_time_series_resources()
         time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}
@@ -311,9 +312,10 @@ class YamlModel:
         )
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
-            return EnergyNetworkMapper().map_energy_network(
+            topology, energy_unit_factories, consumers = EnergyNetworkMapper().map_energy_network(
                 yaml_energy_network, expression_evaluator, resources=facility_resources
             )
+            return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
         except EcalcValidationException as e:
             yaml_keys = ("ENERGY_NETWORK",)
             raise ModelValidationException(

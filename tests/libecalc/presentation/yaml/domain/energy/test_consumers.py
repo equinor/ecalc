@@ -20,9 +20,14 @@ class TestTimeSeriesConsumer:
 
         assert consumer.get_demand(period) == ElectricalPower(5)
 
-    def test_get_input_energy_type_delegates_to_the_demand(self):
+    def test_get_input_energy_type_delegates_to_the_demand(self, expression_evaluator_factory, period):
+        expression_evaluator = expression_evaluator_factory.from_periods(
+            periods=[period],
+            variables={"TSA;RATE": [5]},
+        )
+        expression = TimeSeriesExpression(expression="TSA;RATE", expression_evaluator=expression_evaluator)
         consumer = TimeSeriesConsumer(
-            name="load", demand=ExpressionDemand(energy_type=ElectricalPower, expression=None)
+            name="load", demand=ExpressionDemand(energy_type=ElectricalPower, expression=expression)
         )
 
         assert consumer.get_input_energy_type() is ElectricalPower
@@ -41,8 +46,3 @@ class TestExpressionDemand:
 
         assert demand.get_demand(period_a) == ElectricalPower(5)
         assert demand.get_demand(period_b) == ElectricalPower(9)
-
-    def test_returns_none_when_expression_is_none(self, period):
-        demand = ExpressionDemand(energy_type=ElectricalPower, expression=None)
-
-        assert demand.get_demand(period) is None
