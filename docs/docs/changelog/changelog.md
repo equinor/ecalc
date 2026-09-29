@@ -1,5 +1,12 @@
 # Changelog
 
+## [15.0.1](https://github.com/equinor/ecalc/compare/v15.0.0...v15.0.1) (2026-09-29)
+
+
+### Miscellaneous Chores
+
+* require demand and return periods for energy ([7ea5e9c](https://github.com/equinor/ecalc/commit/7ea5e9cb8ec156650a512fde98b796c38129d651))
+
 ## [15.0.0](https://github.com/equinor/ecalc/compare/v14.0.0...v15.0.0) (2026-09-29)
 
 
