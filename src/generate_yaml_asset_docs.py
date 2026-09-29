@@ -24,7 +24,7 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled, YamlTabularConsumer
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
@@ -220,6 +220,18 @@ ENERGY_EXAMPLES: list[Example] = [
                 "RATE": 2500000,
                 "SUCTION_PRESSURE": 40,
                 "DISCHARGE_PRESSURE": 120,
+            }
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.TABULAR_CONSUMER",
+        lambda: YamlTabularConsumer.model_validate(
+            {
+                "NAME": "seawater_pump",
+                "TYPE": "TABULAR_CONSUMER",
+                "INPUT": "main_bus",
+                "FILE": "seawater_pump.csv",
+                "VARIABLES": {"RATE": "SIM1;WATER_RATE", "PRESSURE": "SIM1;DISCHARGE_PRESSURE"},
             }
         ),
     ),

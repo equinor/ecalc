@@ -14,6 +14,7 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.energy import (
     CompressorSampledDemand,
     ExpressionDemand,
+    TabularDemand,
     TimeSeriesConsumer,
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
@@ -33,6 +34,7 @@ from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion impo
     expand,
     unit_key,
 )
+from libecalc.presentation.yaml.mappers.energy.tabular_consumer import load_tabular_consumer
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
@@ -54,6 +56,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlGeneratorSet,
     YamlJunctionBase,
     YamlMechanicalConsumer,
+    YamlTabularConsumer,
     get_input_names,
 )
 
@@ -125,7 +128,7 @@ class EnergyNetworkMapper:
             else:
                 key = unit_key(unit.name)
                 node, input_type, output_type = self._map_unit(
-                    unit, node_ids_by_key[key], node_ids_by_key, expression_evaluator
+                    unit, node_ids_by_key[key], node_ids_by_key, expression_evaluator, resources, output_types
                 )
                 mapped_nodes.append((key, node, input_type, output_type))
                 connections.extend(
@@ -269,6 +272,8 @@ class EnergyNetworkMapper:
         energy_unit_id: EnergyUnitId,
         node_ids_by_key: Mapping[NodeKey, EnergyUnitId],
         expression_evaluator: ExpressionEvaluator,
+        resources: Mapping[str, Resource],
+        output_types: Mapping[str, type[Energy]],
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
             case YamlGeneratorSet():
@@ -371,6 +376,24 @@ class EnergyNetworkMapper:
                     name=unit.name,
                     energy_unit_id=energy_unit_id,
                     demand=ExpressionDemand(energy_type=DieselRate, expression=expression),
+                )
+                return consumer, consumer.get_input_energy_type(), None
+            case YamlTabularConsumer():
+                resource = resources.get(unit.file)
+                if resource is None:
+                    raise EcalcValidationException(f"'{unit.name}': FILE '{unit.file}' not found.")
+                model, input_energy_type = load_tabular_consumer(unit, resource, output_types[unit.input])
+                consumer = TimeSeriesConsumer(
+                    name=unit.name,
+                    energy_unit_id=energy_unit_id,
+                    demand=TabularDemand(
+                        energy_type=input_energy_type,
+                        model=model,
+                        variables={
+                            name: TimeSeriesExpression(expression=expression, expression_evaluator=expression_evaluator)
+                            for name, expression in unit.variables.items()
+                        },
+                    ),
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlCompressorSampled():

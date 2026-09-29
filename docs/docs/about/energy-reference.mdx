@@ -202,4 +202,37 @@ DISCHARGE_PRESSURE: 120
 
 </TabItem>
 
+<TabItem value="TABULAR_CONSUMER" label="TABULAR_CONSUMER">
+
+A consumer whose energy usage is interpolated from `FILE` against arbitrary named variables. The energy
+column decides what the unit consumes:
+
+- `FUEL`: a fuel consumer, gas or diesel after what `INPUT` provides.
+- `POWER`: a power consumer, electrical or mechanical after what `INPUT` provides.
+
+`FILE` must have exactly one of them.
+
+Every other column in `FILE` is a variable, and must be given in `VARIABLES`. Outside the tabulated
+range there is no extrapolation.
+
+```yaml
+NAME: seawater_pump
+INPUT: main_bus
+TYPE: TABULAR_CONSUMER
+FILE: seawater_pump.csv
+VARIABLES:
+  RATE: SIM1;WATER_RATE
+  PRESSURE: SIM1;DISCHARGE_PRESSURE
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `TYPE` | `TABULAR_CONSUMER` | Required |
+| `FILE` | Resource tabulating FUEL or POWER against the variables. | Required |
+| `VARIABLES` | Variable name (a column header in FILE) to its value. | Required |
+
+</TabItem>
+
 </Tabs>
