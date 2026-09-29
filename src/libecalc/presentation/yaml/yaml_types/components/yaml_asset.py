@@ -9,7 +9,10 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlProcessPipeline,
+    YamlShaftDrivenProcessUnitInstance,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlEcalcEvent,
     YamlProcessEvent,
@@ -20,6 +23,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import Yam
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
@@ -95,6 +99,11 @@ class YamlAsset(YamlBase):
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
+    )
+    shafts: list[YamlShaft] = Field(
+        default_factory=list,
+        title="SHAFTS",
+        description="Defines named shafts representing mechanical connections between drivers and driven equipment.",
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
@@ -196,6 +205,18 @@ class YamlAsset(YamlBase):
             )
         return collection
 
+    @field_validator("shafts", mode="after")
+    @classmethod
+    def validate_unique_shaft_names(cls, shafts: list[YamlShaft], info: ValidationInfo) -> list[YamlShaft]:
+        duplicated_names = get_duplicates(shaft.name for shaft in shafts)
+        if duplicated_names:
+            field_name = info.field_name
+            alias = cls.model_fields[field_name].alias if field_name is not None else "SHAFTS"
+            raise ValueError(
+                f"{alias} names must be unique. Duplicated names are: {', '.join(sorted(duplicated_names))}"
+            )
+        return shafts
+
     @model_validator(mode="after")
     def validate_unique_references(self):
         references = []
@@ -233,4 +254,22 @@ class YamlAsset(YamlBase):
                 f"References/names must be unique across {YamlAsset.model_fields['facility_inputs'].alias}, {YamlAsset.model_fields['models'].alias} and {YamlAsset.model_fields['fuel_types'].alias}."
                 f" Duplicated references are: {', '.join(duplicated_references)}"
             )
+        return self
+
+    @model_validator(mode="after")
+    def validate_shaft_references(self):
+        available_shaft_names = {shaft.name for shaft in self.shafts}
+
+        for pipeline_name, pipeline in self.process_pipelines.items():
+            for process_unit in pipeline.process_units:
+                if not isinstance(process_unit, YamlShaftDrivenProcessUnitInstance):
+                    continue
+
+                shaft_reference = process_unit.shaft
+                if shaft_reference not in available_shaft_names:
+                    raise ValueError(
+                        f"Process unit '{process_unit.name or process_unit.target}' in process pipeline "
+                        f"'{pipeline_name}' references unknown shaft '{shaft_reference}'."
+                    )
+
         return self

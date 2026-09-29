@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Annotated, TypeVar
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
@@ -12,6 +12,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressorDefinition,
     YamlProcessUnitDefinition,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 
 TTarget = TypeVar("TTarget")
 
@@ -19,6 +20,14 @@ TTarget = TypeVar("TTarget")
 class YamlProcessUnitInstance[TTarget](YamlBase):
     target: TTarget | DefinitionReference
     name: str | None = None
+
+
+class YamlShaftDrivenProcessUnitInstance(YamlProcessUnitInstance[YamlCompressorDefinition]):
+    shaft: ShaftReference = Field(
+        ...,
+        title="SHAFT",
+        description="Reference to a shaft defined in SHAFTS.",
+    )
 
 
 class PipelineEventAction(StrEnum):
@@ -78,7 +87,7 @@ class YamlPipelineEvent(YamlBase):
 
 class YamlProcessPipeline(YamlBase):
     name: str
-    process_units: list[YamlProcessUnitInstance[YamlProcessUnitDefinition]]
+    process_units: list[YamlShaftDrivenProcessUnitInstance | YamlProcessUnitInstance[YamlProcessUnitDefinition]]
     events: Annotated[
         list[YamlPipelineEvent],
         Field(
@@ -86,3 +95,17 @@ class YamlProcessPipeline(YamlBase):
             description="Events that modify the pipeline over time, such as rebundling a compressor.",
         ),
     ] = []
+
+    @model_validator(mode="after")
+    def validate_single_shaft(self):
+        shaft_names = {
+            process_unit.shaft
+            for process_unit in self.process_units
+            if isinstance(process_unit, YamlShaftDrivenProcessUnitInstance)
+        }
+        if len(shaft_names) > 1:
+            raise ValueError(
+                f"Process pipeline '{self.name}' references multiple shafts: "
+                f"{', '.join(sorted(shaft_names))}. Multiple shafts per process target are not supported."
+            )
+        return self

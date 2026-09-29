@@ -56,6 +56,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlDefaultTimeSeriesCollection,
     YamlTimeSeriesCollection,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
     YamlEmissionRateUnits,
@@ -738,6 +739,7 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.models = []
         self.fuel_types = []
         self.variables = None
+        self.shafts: list[YamlShaft] | None = None
         self.installations = []
         self.definitions: YamlDefinitions | None = None
         self.inlet_streams: dict[str, YamlInletStream] | None = None
@@ -788,6 +790,10 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
     def with_variables(self, variables: YamlVariables):
         self.variables = variables
+        return self
+
+    def with_shafts(self, shafts: list[YamlShaft]) -> Self:
+        self.shafts = shafts
         return self
 
     def with_installations(self, installations: list[YamlInstallation]):
