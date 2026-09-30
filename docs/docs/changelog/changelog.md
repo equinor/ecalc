@@ -1,5 +1,12 @@
 # Changelog
 
+## [15.0.2](https://github.com/equinor/ecalc/compare/v15.0.1...v15.0.2) (2026-09-30)
+
+
+### Miscellaneous Chores
+
+* signature change to covariant sequence instead of list ([#1825](https://github.com/equinor/ecalc/issues/1825)) ([26067a7](https://github.com/equinor/ecalc/commit/26067a70caf61b65dc77310d838e3a99822b16b6))
+
 ## [15.0.1](https://github.com/equinor/ecalc/compare/v15.0.0...v15.0.1) (2026-09-29)
 
 
