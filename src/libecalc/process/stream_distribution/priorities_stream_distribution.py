@@ -10,7 +10,9 @@ class HasValidity(abc.ABC):
     def is_valid(self, inlet_stream: FluidStream) -> bool: ...
 
 
-def find_first_valid(stream_distributions: list[StreamDistribution], items: Sequence[HasValidity]) -> list[FluidStream]:
+def find_first_valid(
+    stream_distributions: Sequence[StreamDistribution], items: Sequence[HasValidity]
+) -> list[FluidStream]:
     assert len(stream_distributions) > 0
     for stream_distribution in stream_distributions:
         streams = stream_distribution.get_streams()
@@ -21,7 +23,7 @@ def find_first_valid(stream_distributions: list[StreamDistribution], items: Sequ
 
 
 class PrioritiesStreamDistribution(StreamDistribution):
-    def __init__(self, stream_distributions: list[StreamDistribution], items: Sequence[HasValidity]):
+    def __init__(self, stream_distributions: Sequence[StreamDistribution], items: Sequence[HasValidity]):
         self._stream_distributions = stream_distributions
         self._items = items
 
