@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 
 from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -9,7 +9,11 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
     DefinitionReference,
     InstanceReference,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlStreamDistribution
+from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
+    YamlCommonStreamDistribution,
+    YamlIndividualStreamDistribution,
+    YamlStreamDistribution,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
@@ -122,6 +126,31 @@ class YamlProcessSimulation(YamlBase):
             description="Constraints per target. Key is pipeline name, value is list of constraints.",
         ),
     ]
+
+    @model_validator(mode="after")
+    def validate_stream_distribution(self):
+        number_of_targets = len(self.targets)
+
+        match self.stream_distribution:
+            case YamlCommonStreamDistribution():
+                for setting_number, setting in enumerate(self.stream_distribution.settings, start=1):
+                    number_of_rate_fractions = len(setting.rate_fractions)
+                    if number_of_rate_fractions != number_of_targets:
+                        raise ValueError(
+                            f"Expected {number_of_targets} RATE_FRACTIONS in common stream setting "
+                            f"{setting_number}, got {number_of_rate_fractions}. "
+                            "Each setting must specify one rate fraction per process simulation target."
+                        )
+            case YamlIndividualStreamDistribution():
+                number_of_inlet_streams = len(self.stream_distribution.inlet_streams)
+                if number_of_inlet_streams != number_of_targets:
+                    raise ValueError(
+                        f"Expected {number_of_targets} INLET_STREAMS for the process simulation targets, "
+                        f"got {number_of_inlet_streams}. "
+                        "Specify one inlet stream per target."
+                    )
+
+        return self
 
 
 class YamlPumpProcessModel(YamlBase):

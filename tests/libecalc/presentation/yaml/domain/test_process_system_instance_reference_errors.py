@@ -70,7 +70,9 @@ class TestTargetReferencesNonexistentPipeline:
             .with_name("my_sim")
             .with_target("nonexistent_pipeline")
             .with_pipeline(pipeline)
-            .with_stream_distribution(YamlCommonStreamDistributionBuilder().with_test_data().validate())
+            .with_stream_distribution(
+                YamlCommonStreamDistributionBuilder().with_test_data().with_rate_fractions([0.5, 0.5]).validate()
+            )
         ).validate()
 
         asset = (
@@ -152,7 +154,9 @@ Validation error
             .with_name("my_sim")
             .with_pipeline(pipeline_1)
             .with_target("train_2")  # add target but no constraint for train_2
-            .with_stream_distribution(YamlCommonStreamDistributionBuilder().with_test_data().validate())
+            .with_stream_distribution(
+                YamlCommonStreamDistributionBuilder().with_test_data().with_rate_fractions([0.5, 0.5]).validate()
+            )
         ).validate()
 
         asset = (
