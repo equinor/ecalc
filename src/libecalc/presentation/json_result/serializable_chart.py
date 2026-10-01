@@ -10,8 +10,8 @@ from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.generic_from_design_point_chart_data import (
     GenericFromDesignPointChartData,
 )
+from libecalc.domain.process.value_objects.chart.user_defined_chart_data import UserDefinedChartData
 from libecalc.presentation.yaml.mappers.charts.generic_from_input_chart_data import GenericFromInputChartData
-from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
 
 
 class EcalcBaseModel(BaseModel):

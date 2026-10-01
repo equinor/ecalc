@@ -10,7 +10,9 @@ from libecalc.presentation.yaml.domain.expression_time_series_fluid_density impo
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_mapper import (
+    user_defined_chart_from_resource,
+)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlPumpChartSingleSpeed,
 )
@@ -155,7 +157,7 @@ class PumpProcessSimulationMapper:
         if resource is None:
             raise EcalcValidationException(f"Pump chart resource '{model.file}' was not found.")
         try:
-            return UserDefinedChartData.from_resource(
+            return user_defined_chart_from_resource(
                 resource,
                 units=model.units,
                 is_single_speed=isinstance(model, YamlPumpChartSingleSpeed),

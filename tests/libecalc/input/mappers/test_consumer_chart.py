@@ -2,7 +2,10 @@ import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidColumnException, InvalidResourceException, ResourceFileMark
-from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_mapper import (
+    user_defined_chart_from_resource,
+    user_defined_chart_from_yaml_curves,
+)
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_model_single_speed_dto_model_data,
 )
@@ -88,7 +91,7 @@ def pump_chart():
 class TestSingleSpeedChart:
     def test_valid_with_speed(self, pump_chart, chart_resource_with_speed):
         """Test that speed can be specified. Note: 1.0 and 1 is considered equal."""
-        chart = UserDefinedChartData.from_resource(
+        chart = user_defined_chart_from_resource(
             chart_resource_with_speed,
             units=pump_chart.units,
             is_single_speed=True,
@@ -97,7 +100,7 @@ class TestSingleSpeedChart:
         assert chart.get_original_curves()[0].speed == 5.0
 
     def test_valid_without_speed(self, pump_chart, chart_resource_without_speed):
-        chart = UserDefinedChartData.from_resource(
+        chart = user_defined_chart_from_resource(
             chart_resource_without_speed,
             units=pump_chart.units,
             is_single_speed=True,
@@ -182,7 +185,7 @@ def test_head_error_reports_values_and_unit_from_file():
         ],
     )
     with pytest.raises(InvalidResourceException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(head="KJ_PER_KG"), is_single_speed=True)
+        user_defined_chart_from_resource(resource, units=YamlUnits(head="KJ_PER_KG"), is_single_speed=True)
 
     message = str(exc_info.value)
     assert (
@@ -208,7 +211,7 @@ def test_variable_speed_head_error_names_the_failing_speed():
         ],
     )
     with pytest.raises(InvalidResourceException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(head="KJ_PER_KG"), is_single_speed=False)
+        user_defined_chart_from_resource(resource, units=YamlUnits(head="KJ_PER_KG"), is_single_speed=False)
 
     message = str(exc_info.value)
     assert "at speed 2000.0" in message
@@ -232,7 +235,7 @@ def test_efficiency_error_reports_values_in_file_units(unit, efficiency, expecte
         ],
     )
     with pytest.raises(InvalidResourceException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(efficiency=unit), is_single_speed=True)
+        user_defined_chart_from_resource(resource, units=YamlUnits(efficiency=unit), is_single_speed=True)
 
     assert expected in str(exc_info.value)
 
@@ -247,7 +250,7 @@ def test_efficiency_error_marks_the_file_row():
         ],
     )
     with pytest.raises(InvalidResourceException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(), is_single_speed=True)
+        user_defined_chart_from_resource(resource, units=YamlUnits(), is_single_speed=True)
 
     assert exc_info.value.file_mark == ResourceFileMark(row=2, column=EcalcYamlKeywords.consumer_chart_efficiency)
     assert "Row 2 has 120.0" in str(exc_info.value)
@@ -269,7 +272,7 @@ def test_variable_speed_head_error_marks_the_row_in_the_file():
         ],
     )
     with pytest.raises(InvalidResourceException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(head="KJ_PER_KG"), is_single_speed=False)
+        user_defined_chart_from_resource(resource, units=YamlUnits(head="KJ_PER_KG"), is_single_speed=False)
 
     assert exc_info.value.file_mark == ResourceFileMark(row=4, column=EcalcYamlKeywords.consumer_chart_head)
     assert "Row 4 (rate 200.0 AM3_PER_HOUR, head 70.0 KJ_PER_KG) does not have a lower head than row 2" in str(
@@ -287,7 +290,7 @@ def test_head_error_with_nan_is_a_validation_error():
         ],
     )
     with pytest.raises(InvalidResourceException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(), is_single_speed=True)
+        user_defined_chart_from_resource(resource, units=YamlUnits(), is_single_speed=True)
 
     assert exc_info.value.file_mark == ResourceFileMark(row=2, column=EcalcYamlKeywords.consumer_chart_head)
 
@@ -302,7 +305,7 @@ def test_unequal_column_lengths_is_a_validation_error():
         ],
     )
     with pytest.raises(InvalidResourceException, match="equal number of points"):
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(), is_single_speed=True)
+        user_defined_chart_from_resource(resource, units=YamlUnits(), is_single_speed=True)
 
 
 def test_head_error_with_nan_in_first_point_marks_that_row():
@@ -315,7 +318,7 @@ def test_head_error_with_nan_in_first_point_marks_that_row():
         ],
     )
     with pytest.raises(InvalidResourceException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(), is_single_speed=True)
+        user_defined_chart_from_resource(resource, units=YamlUnits(), is_single_speed=True)
 
     assert exc_info.value.file_mark == ResourceFileMark(row=1, column=EcalcYamlKeywords.consumer_chart_head)
 
@@ -336,7 +339,7 @@ def test_variable_speed_head_error_with_unsorted_rates_and_mixed_speeds():
         ],
     )
     with pytest.raises(InvalidResourceException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(head="KJ_PER_KG"), is_single_speed=False)
+        user_defined_chart_from_resource(resource, units=YamlUnits(head="KJ_PER_KG"), is_single_speed=False)
 
     assert exc_info.value.file_mark == ResourceFileMark(row=5, column=EcalcYamlKeywords.consumer_chart_head)
     assert "at speed 1000.0" in str(exc_info.value)
@@ -356,7 +359,7 @@ def test_missing_speed_marks_the_row():
         ],
     )
     with pytest.raises(InvalidColumnException) as exc_info:
-        UserDefinedChartData.from_resource(resource, units=YamlUnits(), is_single_speed=False)
+        user_defined_chart_from_resource(resource, units=YamlUnits(), is_single_speed=False)
 
     assert exc_info.value.file_mark == ResourceFileMark(row=2, column=EcalcYamlKeywords.consumer_chart_speed)
 
@@ -368,7 +371,7 @@ def test_inline_yaml_head_error_names_the_point(curve_count, speed_text):
         for i in range(curve_count)
     ]
     with pytest.raises(EcalcValidationException) as exc_info:
-        UserDefinedChartData.from_yaml_curves(curves, units=YamlUnits())
+        user_defined_chart_from_yaml_curves(curves, units=YamlUnits())
 
     message = str(exc_info.value)
     assert not isinstance(exc_info.value, InvalidResourceException)
