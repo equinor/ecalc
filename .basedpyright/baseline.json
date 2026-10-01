@@ -1732,24 +1732,6 @@
                 }
             }
         ],
-        "./src/libecalc/domain/process/value_objects/chart/generic_from_design_point_chart_data.py": [
-            {
-                "code": "reportArgumentType",
-                "range": {
-                    "startColumn": 29,
-                    "endColumn": 33,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportArgumentType",
-                "range": {
-                    "startColumn": 29,
-                    "endColumn": 33,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/libecalc/domain/tabular/tabular.py": [
             {
                 "code": "reportInvalidTypeVarUse",
