@@ -7,8 +7,8 @@ class GenericFromDesignPointChartData(ChartData):
     def __init__(
         self,
         curves: list[ChartCurve],
-        design_head: float = None,
-        design_rate: float = None,
+        design_head: float | None = None,
+        design_rate: float | None = None,
         origin_of_chart_data: ChartType = ChartType.GENERIC_FROM_DESIGN_POINT,
     ):
         self._curves = curves

@@ -7,7 +7,7 @@ from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
 from libecalc.domain.process.value_objects.chart.base import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.presentation.yaml.mappers.charts.generic_from_design_point_chart_data import (
+from libecalc.domain.process.value_objects.chart.generic_from_design_point_chart_data import (
     GenericFromDesignPointChartData,
 )
 from libecalc.presentation.yaml.mappers.charts.generic_from_input_chart_data import GenericFromInputChartData

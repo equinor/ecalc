@@ -14,7 +14,7 @@ from libecalc.domain.process.value_objects.chart.compressor.generic_chart_data i
     UNIFIED_GENERIC_CHART_CURVE_MINIMUM_SPEED_RATES,
 )
 from libecalc.domain.process.value_objects.chart.compressor.types import CompressorChartResult
-from libecalc.presentation.yaml.mappers.charts.generic_from_design_point_chart_data import (
+from libecalc.domain.process.value_objects.chart.generic_from_design_point_chart_data import (
     GenericFromDesignPointChartData,
 )
 
