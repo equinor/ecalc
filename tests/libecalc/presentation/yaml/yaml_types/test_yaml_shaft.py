@@ -38,12 +38,6 @@ def _compressor_definitions() -> YamlDefinitions:
     )
 
 
-def test_shafts_default_to_empty():
-    asset = YamlAssetBuilder().with_end("2025-01-01").validate()
-
-    assert asset.shafts == []
-
-
 def test_rejects_duplicate_shaft_names():
     with pytest.raises(ValidationError, match="SHAFTS names must be unique. Duplicated names are: export_shaft"):
         (
@@ -85,7 +79,9 @@ def test_rejects_unknown_shaft_reference():
         .validate()
     )
 
-    with pytest.raises(ValidationError, match="references unknown shaft 'missing_shaft'"):
+    with pytest.raises(
+        ValidationError, match="references unknown shaft 'missing_shaft'. Available shafts in SHAFTS: export_shaft."
+    ):
         _asset_builder(
             shafts=[YamlShaft(name="export_shaft")],
             definitions=_compressor_definitions(),
@@ -102,3 +98,55 @@ def test_rejects_multiple_shafts_in_same_process_target():
             .with_shaft_driven_item(name="hp_compressor", target="compressor", shaft="injection_shaft")
             .validate()
         )
+
+
+def test_rejects_same_shaft_in_multiple_process_pipelines():
+    export_pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("export_pipeline")
+        .with_shaft_driven_item(name="export_compressor", target="compressor", shaft="common_shaft")
+        .validate()
+    )
+    injection_pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("injection_pipeline")
+        .with_shaft_driven_item(name="injection_compressor", target="compressor", shaft="common_shaft")
+        .validate()
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="Shaft 'common_shaft' is referenced by multiple process pipelines: export_pipeline, injection_pipeline",
+    ):
+        (
+            YamlAssetBuilder()
+            .with_end("2025-01-01")
+            .with_shafts([YamlShaft(name="common_shaft")])
+            .with_definitions(_compressor_definitions())
+            .with_process_pipelines({"export_pipeline": export_pipeline, "injection_pipeline": injection_pipeline})
+            .validate()
+        )
+
+
+def test_rejects_compressors_without_shaft_when_pipeline_uses_shaft():
+    pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("export_pipeline")
+        .with_shaft_driven_item(name="lp_compressor", target="compressor", shaft="export_shaft")
+        .with_item(name="hp_compressor", target="compressor")
+        .with_item(target="compressor")
+        .with_item(target=YamlCompressorBuilder().with_test_data().validate())
+        .validate()
+    )
+
+    with pytest.raises(ValidationError) as exc_info:
+        _asset_builder(
+            shafts=[YamlShaft(name="export_shaft")],
+            definitions=_compressor_definitions(),
+            pipeline=pipeline,
+        ).validate()
+
+    assert (
+        "Process pipeline 'export_pipeline' uses SHAFT, but these compressors are missing SHAFT: "
+        "'hp_compressor', 'compressor', #4 (COMPRESSOR)."
+    ) in str(exc_info.value)

@@ -30,6 +30,14 @@ class YamlShaftDrivenProcessUnitInstance(YamlProcessUnitInstance[YamlCompressorD
     )
 
 
+def describe_process_unit(process_unit: YamlProcessUnitInstance, position: int) -> str:
+    if process_unit.name is not None:
+        return f"'{process_unit.name}'"
+    if isinstance(process_unit.target, str):
+        return f"'{process_unit.target}'"
+    return f"#{position} ({process_unit.target.type})"
+
+
 class PipelineEventAction(StrEnum):
     CHANGE = "CHANGE"
     ADD = "ADD"
@@ -105,7 +113,7 @@ class YamlProcessPipeline(YamlBase):
         }
         if len(shaft_names) > 1:
             raise ValueError(
-                f"Process pipeline '{self.name}' references multiple shafts: "
-                f"{', '.join(sorted(shaft_names))}. Multiple shafts per process target are not supported."
+                f"Process pipeline '{self.name}' references multiple shafts: {', '.join(sorted(shaft_names))}. "
+                f"Multiple shafts in one process pipeline are not supported yet."
             )
         return self

@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
@@ -12,18 +14,23 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlProcessPipeline,
     YamlShaftDrivenProcessUnitInstance,
+    describe_process_unit,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlEcalcEvent,
     YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
+    YamlCompressorDefinition,
+    YamlProcessUnitDefinition,
+)
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
-from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
@@ -261,15 +268,53 @@ class YamlAsset(YamlBase):
         available_shaft_names = {shaft.name for shaft in self.shafts}
 
         for pipeline_name, pipeline in self.process_pipelines.items():
-            for process_unit in pipeline.process_units:
+            for position, process_unit in enumerate(pipeline.process_units, start=1):
                 if not isinstance(process_unit, YamlShaftDrivenProcessUnitInstance):
                     continue
-
-                shaft_reference = process_unit.shaft
-                if shaft_reference not in available_shaft_names:
+                if process_unit.shaft not in available_shaft_names:
+                    available = ", ".join(sorted(available_shaft_names)) or "none"
                     raise ValueError(
-                        f"Process unit '{process_unit.name or process_unit.target}' in process pipeline "
-                        f"'{pipeline_name}' references unknown shaft '{shaft_reference}'."
+                        f"Process unit {describe_process_unit(process_unit, position)} in process pipeline "
+                        f"'{pipeline_name}' references unknown shaft '{process_unit.shaft}'. "
+                        f"Available shafts in SHAFTS: {available}."
                     )
-
         return self
+
+    @model_validator(mode="after")
+    def validate_shaft_used_by_single_pipeline(self):
+        pipelines_by_shaft: dict[ShaftReference, set[str]] = defaultdict(set)
+        for pipeline_name, pipeline in self.process_pipelines.items():
+            for process_unit in pipeline.process_units:
+                if isinstance(process_unit, YamlShaftDrivenProcessUnitInstance):
+                    pipelines_by_shaft[process_unit.shaft].add(pipeline_name)
+
+        for shaft_name, pipeline_names in pipelines_by_shaft.items():
+            if len(pipeline_names) > 1:
+                raise ValueError(
+                    f"Shaft '{shaft_name}' is referenced by multiple process pipelines: "
+                    f"{', '.join(sorted(pipeline_names))}. A shaft can only be used in one process pipeline."
+                )
+        return self
+
+    @model_validator(mode="after")
+    def validate_all_compressors_shaft_driven(self):
+        for pipeline_name, pipeline in self.process_pipelines.items():
+            if not any(isinstance(unit, YamlShaftDrivenProcessUnitInstance) for unit in pipeline.process_units):
+                continue
+
+            compressors_without_shaft = [
+                describe_process_unit(process_unit, position)
+                for position, process_unit in enumerate(pipeline.process_units, start=1)
+                if not isinstance(process_unit, YamlShaftDrivenProcessUnitInstance)
+                and self._is_compressor(process_unit.target)
+            ]
+            if compressors_without_shaft:
+                raise ValueError(
+                    f"Process pipeline '{pipeline_name}' uses SHAFT, but these compressors are missing SHAFT: "
+                    f"{', '.join(compressors_without_shaft)}. All compressors in a process pipeline must reference a shaft."
+                )
+        return self
+
+    def _is_compressor(self, target: YamlProcessUnitDefinition | DefinitionReference) -> bool:
+        resolved_target = self.definitions.process_units.get(target) if isinstance(target, str) else target
+        return isinstance(resolved_target, YamlCompressorDefinition)
