@@ -3170,24 +3170,6 @@
                 }
             }
         ],
-        "./src/libecalc/presentation/yaml/mappers/charts/generic_from_input_chart_data.py": [
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
-                    "startColumn": 27,
-                    "endColumn": 38,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
-                    "startColumn": 27,
-                    "endColumn": 38,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/libecalc/presentation/yaml/mappers/component_mapper.py": [
             {
                 "code": "reportAssignmentType",

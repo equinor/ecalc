@@ -1,14 +1,15 @@
 from functools import cached_property
 
-import numpy as np
-
 from libecalc.common.chart_type import ChartType
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
-    calculate_enthalpy_change_head_iteration,
-)
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
+from libecalc.domain.process.value_objects.chart.compressor.operating_point_conversion import (
+    rates_and_heads_from_operating_points,
+)
+from libecalc.domain.process.value_objects.chart.generic_from_design_point_chart_data import (
+    GenericFromDesignPointChartData,
+)
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 
@@ -33,43 +34,19 @@ class GenericFromInputChartData(ChartData):
         self._outlet_pressure = outlet_pressure
 
     @cached_property
-    def _chart(self) -> ChartData:
-        inlet_streams = [
-            self._fluid_service.create_stream_from_standard_rate(
-                fluid_model=self._fluid_model,
-                pressure_bara=inlet_pressure,
-                temperature_kelvin=self._inlet_temperature,
-                standard_rate_m3_per_day=inlet_rate,
-            )
-            for inlet_rate, inlet_pressure in zip(self._standard_rates, self._inlet_pressure)
-        ]
-
-        # Static efficiency regardless of rate and head
-        def efficiency_as_function_of_rate_and_head(rates, heads):
-            return np.full_like(rates, fill_value=self._polytropic_efficiency, dtype=float)
-
-        polytropic_enthalpy_change_joule_per_kg, polytropic_efficiency = calculate_enthalpy_change_head_iteration(
-            inlet_streams=inlet_streams,
-            outlet_pressure=np.asarray(self._outlet_pressure),
-            polytropic_efficiency_vs_rate_and_head_function=efficiency_as_function_of_rate_and_head,
+    def _chart(self) -> GenericFromDesignPointChartData:
+        rates, heads = rates_and_heads_from_operating_points(
+            fluid_model=self._fluid_model,
             fluid_service=self._fluid_service,
+            standard_rates=self._standard_rates,
+            inlet_temperature=self._inlet_temperature,
+            inlet_pressure=self._inlet_pressure,
+            outlet_pressure=self._outlet_pressure,
+            polytropic_efficiency=self._polytropic_efficiency,
         )
-
-        head_joule_per_kg = polytropic_enthalpy_change_joule_per_kg * polytropic_efficiency
-        inlet_actual_rate_m3_per_hour = np.asarray([stream.volumetric_rate_m3_per_hour for stream in inlet_streams])
-
-        # Convert numpy arrays to lists for proper type annotation
-        actual_rates_list: list[float] = inlet_actual_rate_m3_per_hour.astype(float).tolist()
-
-        # Handle union type for head_joule_per_kg
-        if isinstance(head_joule_per_kg, np.ndarray):
-            heads_list: list[float] = head_joule_per_kg.astype(float).tolist()
-        else:
-            heads_list = [float(head_joule_per_kg)]
-
         return CompressorChartCreator.from_rate_and_head_values(
-            actual_volume_rates_m3_per_hour=actual_rates_list,
-            heads_joule_per_kg=heads_list,
+            actual_volume_rates_m3_per_hour=rates,
+            heads_joule_per_kg=heads,
             polytropic_efficiency=self._polytropic_efficiency,
         )
 
