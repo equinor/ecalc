@@ -12,6 +12,18 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 logger = logging.getLogger(__name__)
 
 
+class ChartCurveHeadNotDecreasingError(EcalcValidationException):
+    def __init__(self, message: str, pairs: list[tuple[int, int]]):
+        super().__init__(message)
+        self.pairs = pairs  # (lower-rate index, higher-rate index) in input order
+
+
+class ChartCurveEfficiencyOutOfRangeError(EcalcValidationException):
+    def __init__(self, message: str, indices: list[int]):
+        super().__init__(message)
+        self.indices = indices  # input order
+
+
 class ChartCurve:
     """Compressor or pump chart curve at a given speed. Multiple chart curves results in a complete map for a variable
     speed chart. A single speed chart has only a single curve.
@@ -34,11 +46,14 @@ class ChartCurve:
     ):
         self.speed_rpm = speed_rpm
 
-        if not all(0 <= efficiency <= 1 for efficiency in efficiency_fraction):
-            raise EcalcValidationException("Efficiency fraction should be between 0 and 1")
-
         if not len(rate_actual_m3_hour) == len(polytropic_head_joule_per_kg) == len(efficiency_fraction):
             raise EcalcValidationException("All chart curve data must have equal number of points")
+
+        invalid_efficiencies = [i for i, efficiency in enumerate(efficiency_fraction) if not 0 <= efficiency <= 1]
+        if invalid_efficiencies:
+            raise ChartCurveEfficiencyOutOfRangeError(
+                "Efficiency fraction should be between 0 and 1", invalid_efficiencies
+            )
 
         if len(rate_actual_m3_hour) < 2:
             raise EcalcValidationException(
@@ -47,7 +62,8 @@ class ChartCurve:
 
             # Sort all values by rate
         array = np.asarray([rate_actual_m3_hour, polytropic_head_joule_per_kg, efficiency_fraction]).T
-        array_sorted = array[array[:, 0].argsort()]
+        order = array[:, 0].argsort()
+        array_sorted = array[order]
 
         self.rate_actual_m3_hour = array_sorted[:, 0].tolist()
         self.polytropic_head_joule_per_kg = array_sorted[:, 1].tolist()
@@ -63,10 +79,15 @@ class ChartCurve:
         head_differences = np.diff(np.asarray(self.polytropic_head_joule_per_kg))
 
         if not np.all(head_differences < 0):
-            raise EcalcValidationException(
+            sorted_indices = order.tolist()
+            pairs = [
+                (sorted_indices[i], sorted_indices[i + 1]) for i, diff in enumerate(head_differences) if not diff < 0
+            ]
+            raise ChartCurveHeadNotDecreasingError(
                 "Head must be strictly decreasing with increasing rate in a ChartCurve. "
                 f"Given head values: {heads}. "
-                f"Given rate values: {rates}."
+                f"Given rate values: {rates}.",
+                pairs,
             )
 
     @property
