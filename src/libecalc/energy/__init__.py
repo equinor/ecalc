@@ -3,7 +3,7 @@
 ABCs model a single operational point."""
 
 from libecalc.energy.consumer import Consumer
-from libecalc.energy.converter import Converter
+from libecalc.energy.converter import Conversion, Converter, EfficiencyConversion, SampledConversion
 from libecalc.energy.dispatch import Candidate, DispatchStrategy, PriorityDispatch
 from libecalc.energy.energy_failure import CapacityFailure, EnergyFailure, EnergyFailureStatus
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
@@ -14,8 +14,10 @@ __all__ = [
     "Candidate",
     "CapacityFailure",
     "Consumer",
+    "Conversion",
     "Converter",
     "DispatchStrategy",
+    "EfficiencyConversion",
     "Energy",
     "EnergyFailure",
     "EnergyFailureStatus",
@@ -26,5 +28,6 @@ __all__ = [
     "FuelGasRate",
     "MechanicalPower",
     "PriorityDispatch",
+    "SampledConversion",
     "Source",
 ]

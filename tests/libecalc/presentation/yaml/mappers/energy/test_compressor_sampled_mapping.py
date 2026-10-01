@@ -5,7 +5,7 @@ import pytest
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
-from libecalc.presentation.yaml.domain.energy import TimeSeriesGasTurbineFactory
+from libecalc.presentation.yaml.domain.energy import TimeSeriesSampledConverterFactory
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
@@ -86,8 +86,8 @@ class TestMapperExpansion:
         assert compressor.get_demand(period) == MechanicalPower(12.5)
 
         turbine = next(f for f in factories if f.get_name() == "compressor turbine")
-        assert isinstance(turbine, TimeSeriesGasTurbineFactory)
-        assert turbine.power_to_fuel(12.5) == pytest.approx(25000)
+        assert isinstance(turbine, TimeSeriesSampledConverterFactory)
+        assert turbine.curve(12.5) == pytest.approx(25000)
 
         assert len(topology.get_nodes()) == 4
         connections = _connections_by_name(topology, [*factories, *consumers])

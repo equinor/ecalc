@@ -4,100 +4,86 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 from libecalc.common.time_utils import Period
+from libecalc.energy import Converter, EfficiencyConversion, SampledConversion
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, GeneratorSet
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
-class TimeSeriesGeneratorSetFactory(TimeSeriesEnergyUnitFactory):
+class TimeSeriesSampledConverterFactory(TimeSeriesEnergyUnitFactory):
     def __init__(
         self,
         *,
         name: str,
+        input_energy_type: type[Energy],
+        output_energy_type: type[Energy],
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
-        power_to_fuel: Callable[[float], float] = lambda power: power,
+        curve: Callable[[float], float] = lambda value: value,
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
-        self.power_to_fuel = power_to_fuel
+        self._input_energy_type = input_energy_type
+        self._output_energy_type = output_energy_type
+        self._curve = curve
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> GeneratorSet:
+    @property
+    def curve(self) -> Callable[[float], float]:
+        return self._curve
+
+    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Converter:
         (incoming_connection,) = incoming_connections
-        return GeneratorSet(
+        period: Period | None = extra.get("period")
+        return Converter(
             name=self.get_name(),
-            power_to_fuel=self.power_to_fuel,
-            energy_unit_id=self.get_id(),
             output_energy=demand,
             input_connection_id=incoming_connection.id,
+            input_energy_type=self._input_energy_type,
+            output_energy_type=self._output_energy_type,
+            conversion=SampledConversion(self._curve),
+            energy_unit_id=self.get_id(),
             capacity=resolve_optional_energy(
                 self.capacity,
-                GeneratorSet.get_output_energy_type(),
-                period=extra.get("period"),
+                self._output_energy_type,
+                period=period,
                 description=f"Capacity for '{self.get_name()}'",
             ),
         )
 
 
-class TimeSeriesGasTurbineFactory(TimeSeriesEnergyUnitFactory):
+class TimeSeriesEfficiencyConverterFactory(TimeSeriesEnergyUnitFactory):
     def __init__(
         self,
         *,
         name: str,
+        input_energy_type: type[Energy],
+        output_energy_type: type[Energy],
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
-        power_to_fuel: Callable[[float], float] = lambda power: power,
+        efficiency: TimeSeriesExpression,
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
-        self.power_to_fuel = power_to_fuel
+        self._input_energy_type = input_energy_type
+        self._output_energy_type = output_energy_type
+        self._efficiency = efficiency
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> GasTurbine:
-        (incoming_connection,) = incoming_connections
-        return GasTurbine(
-            name=self.get_name(),
-            power_to_fuel=self.power_to_fuel,
-            energy_unit_id=self.get_id(),
-            output_energy=demand,
-            input_connection_id=incoming_connection.id,
-            capacity=resolve_optional_energy(
-                self.capacity,
-                GasTurbine.get_output_energy_type(),
-                period=extra.get("period"),
-                description=f"Capacity for '{self.get_name()}'",
-            ),
-        )
-
-
-class TimeSeriesElectricalMotorFactory(TimeSeriesEnergyUnitFactory):
-    def __init__(
-        self,
-        *,
-        name: str,
-        energy_unit_id: EnergyUnitId | None = None,
-        capacity: TimeSeriesExpression | None = None,
-        efficiency: TimeSeriesExpression | None = None,
-    ) -> None:
-        super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
-        self.efficiency = efficiency
-
-    def create(
-        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any
-    ) -> ElectricalMotor:
+    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Converter:
         (incoming_connection,) = incoming_connections
         period: Period = extra["period"]
-        return ElectricalMotor(
+        return Converter(
             name=self.get_name(),
-            efficiency=self.efficiency.get_value(period) if self.efficiency is not None else None,
-            energy_unit_id=self.get_id(),
             output_energy=demand,
             input_connection_id=incoming_connection.id,
+            input_energy_type=self._input_energy_type,
+            output_energy_type=self._output_energy_type,
+            conversion=EfficiencyConversion(self._efficiency.get_value(period)),
+            energy_unit_id=self.get_id(),
             capacity=resolve_optional_energy(
                 self.capacity,
-                ElectricalMotor.get_output_energy_type(),
-                period=extra.get("period"),
+                self._output_energy_type,
+                period=period,
                 description=f"Capacity for '{self.get_name()}'",
             ),
         )

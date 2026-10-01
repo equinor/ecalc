@@ -117,17 +117,18 @@ class YamlElectricalMotor(YamlConverterBase):
 
     type: Literal["ELECTRICAL_MOTOR"]
     efficiency: Annotated[
-        YamlExpressionType | None,
+        YamlExpressionType,
         Field(
             title="EFFICIENCY",
             description="Conversion efficiency (0–1]. Defaults to 0.95 if omitted.",
         ),
-    ] = None
+    ] = 0.95
 
     @field_validator("efficiency", mode="after")
     @classmethod
-    def _efficiency_in_range(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
-        return _check_efficiency(v)
+    def _efficiency_in_range(cls, v: YamlExpressionType) -> YamlExpressionType:
+        _check_efficiency(v)
+        return v
 
 
 class YamlElectricalCable(YamlConverterBase):

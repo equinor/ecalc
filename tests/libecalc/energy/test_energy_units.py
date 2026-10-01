@@ -5,6 +5,7 @@ from uuid import UUID
 import pytest
 
 from libecalc.energy import Consumer, Source
+from libecalc.energy.converter import Converter, EfficiencyConversion, SampledConversion
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnectionId
 from libecalc.energy.energy_types import (
@@ -17,9 +18,6 @@ from libecalc.energy.energy_types import (
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import (
     ElectricalCable,
-    ElectricalMotor,
-    GasTurbine,
-    GeneratorSet,
     Junction,
 )
 
@@ -59,25 +57,36 @@ class TestConverters:
         assert result[INPUT].value == pytest.approx(10.0 / 0.96)
 
     def test_generator_set_applies_fuel_curve(self):
-        genset = GeneratorSet(
+        genset = Converter(
             "gs1",
             output_energy=ElectricalPower(10.0),
             input_connection_id=INPUT,
-            power_to_fuel=lambda mw: 5000 + mw * 4500,
+            input_energy_type=FuelGasRate,
+            output_energy_type=ElectricalPower,
+            conversion=SampledConversion(lambda mw: 5000 + mw * 4500),
         )
         assert genset.get_input_energies() == {INPUT: FuelGasRate(5000 + 10 * 4500)}
 
     def test_gas_turbine_applies_fuel_curve(self):
-        turbine = GasTurbine(
+        turbine = Converter(
             "t1",
             output_energy=MechanicalPower(15.0),
             input_connection_id=INPUT,
-            power_to_fuel=lambda mw: 3000 + mw * 3500,
+            input_energy_type=FuelGasRate,
+            output_energy_type=MechanicalPower,
+            conversion=SampledConversion(lambda mw: 3000 + mw * 3500),
         )
         assert turbine.get_input_energies() == {INPUT: FuelGasRate(3000 + 15 * 3500)}
 
     def test_electrical_motor_divides_by_efficiency(self):
-        motor = ElectricalMotor("m1", output_energy=MechanicalPower(7.0), input_connection_id=INPUT, efficiency=0.93)
+        motor = Converter(
+            "m1",
+            output_energy=MechanicalPower(7.0),
+            input_connection_id=INPUT,
+            input_energy_type=ElectricalPower,
+            output_energy_type=MechanicalPower,
+            conversion=EfficiencyConversion(0.93),
+        )
         result = motor.get_input_energies()
         assert result.keys() == {INPUT}
         assert result[INPUT].value == pytest.approx(7.0 / 0.93)
