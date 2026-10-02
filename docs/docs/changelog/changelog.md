@@ -1,5 +1,23 @@
 # Changelog
 
+## [15.1.0](https://github.com/equinor/ecalc/compare/v15.0.2...v15.1.0) (2026-10-02)
+
+
+### Bug Fixes
+
+* match stream distribution inputs to process targets ([#1827](https://github.com/equinor/ecalc/issues/1827)) ([2a4cd37](https://github.com/equinor/ecalc/commit/2a4cd3757b5efae5a1ae372594825d9f690f02d2))
+* report chart error values in the units given in the file and mark the row ([#1830](https://github.com/equinor/ecalc/issues/1830)) ([fd3468a](https://github.com/equinor/ecalc/commit/fd3468aba385adf59862b1bf79d983af29a94277))
+
+
+### Miscellaneous Chores
+
+* attempt to fix release-please versioning ([#1833](https://github.com/equinor/ecalc/issues/1833)) ([975bf7f](https://github.com/equinor/ecalc/commit/975bf7f8818e857af77cdaabcc515ac1de453973))
+
+
+### Code Refactoring
+
+* move GenericFromDesignPointChartData to the domain ([#1832](https://github.com/equinor/ecalc/issues/1832)) ([4617fff](https://github.com/equinor/ecalc/commit/4617fff2ea21622c4ec16ffa0841765b9f4d43a7))
+
 ## [15.0.2](https://github.com/equinor/ecalc/compare/v15.0.1...v15.0.2) (2026-09-30)
 
 
