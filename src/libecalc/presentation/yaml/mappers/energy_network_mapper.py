@@ -346,7 +346,7 @@ class EnergyNetworkMapper:
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlMechanicalConsumer():
-                if unit.shaft is not None:
+                if unit.load is None:
                     raise EcalcValidationException(f"'{unit.name}': SHAFT-driven demand is not supported yet.")
                 expression = self._time_series(unit.load, expression_evaluator)
                 consumer = TimeSeriesConsumer(
