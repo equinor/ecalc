@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Annotated, TypeVar
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
@@ -18,11 +18,15 @@ TTarget = TypeVar("TTarget")
 
 
 class YamlProcessUnitInstance[TTarget](YamlBase):
+    model_config = ConfigDict(title="PROCESS_UNIT")
+
     target: TTarget | DefinitionReference
     name: str | None = None
 
 
 class YamlShaftDrivenProcessUnitInstance(YamlProcessUnitInstance[YamlCompressorDefinition]):
+    model_config = ConfigDict(title="SHAFT_DRIVEN_COMPRESSOR")
+
     shaft: ShaftReference = Field(
         ...,
         title="SHAFT",

@@ -6,7 +6,10 @@ from pydantic_core.core_schema import ValidationInfo
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    YamlEnergyNetwork,
+    YamlMechanicalConsumer,
+)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
@@ -318,3 +321,20 @@ class YamlAsset(YamlBase):
     def _is_compressor(self, target: YamlProcessUnitDefinition | DefinitionReference) -> bool:
         resolved_target = self.definitions.process_units.get(target) if isinstance(target, str) else target
         return isinstance(resolved_target, YamlCompressorDefinition)
+
+    @model_validator(mode="after")
+    def validate_mechanical_consumer_shaft_references(self):
+        if self.energy_network is None:
+            return self
+
+        available_shaft_names = {shaft.name for shaft in self.shafts}
+        for unit in self.energy_network.units:
+            if not isinstance(unit, YamlMechanicalConsumer) or unit.shaft is None:
+                continue
+            if unit.shaft not in available_shaft_names:
+                available = ", ".join(sorted(available_shaft_names)) or "none"
+                raise ValueError(
+                    f"Mechanical consumer '{unit.name}' references unknown shaft '{unit.shaft}'. "
+                    f"Available shafts in SHAFTS: {available}."
+                )
+        return self

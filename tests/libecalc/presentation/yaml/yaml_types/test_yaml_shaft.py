@@ -2,6 +2,7 @@ import pytest
 from pydantic import ValidationError
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlProcessPipeline,
     YamlShaftDrivenProcessUnitInstance,
@@ -150,3 +151,33 @@ def test_rejects_compressors_without_shaft_when_pipeline_uses_shaft():
         "Process pipeline 'export_pipeline' uses SHAFT, but these compressors are missing SHAFT: "
         "'hp_compressor', 'compressor', #4 (COMPRESSOR)."
     ) in str(exc_info.value)
+
+
+def test_rejects_unknown_shaft_reference_from_mechanical_consumer():
+    energy_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel_gas", "TYPE": "FUEL_GAS_SOURCE"}],
+            "UNITS": [
+                {"NAME": "export_turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel_gas"},
+                {
+                    "NAME": "export_load",
+                    "TYPE": "MECHANICAL_CONSUMER",
+                    "INPUT": "export_turbine",
+                    "SHAFT": "missing_shaft",
+                },
+            ],
+        }
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="Mechanical consumer 'export_load' references unknown shaft 'missing_shaft'. "
+        "Available shafts in SHAFTS: export_shaft.",
+    ):
+        (
+            YamlAssetBuilder()
+            .with_end("2025-01-01")
+            .with_shafts([YamlShaft(name="export_shaft")])
+            .with_energy_network(energy_network)
+            .validate()
+        )

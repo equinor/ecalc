@@ -35,6 +35,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingVolume,
     YamlVentingVolumeEmission,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlFacilityModel,
@@ -745,6 +746,7 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.inlet_streams: dict[str, YamlInletStream] | None = None
         self.process_pipelines = None
         self.process_simulations = None
+        self.energy_network: YamlEnergyNetwork | None = None
         self.start = None
         self.end = None
 
@@ -825,6 +827,10 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
     def with_process_simulations(self, process_simulations: list[YamlProcessSimulation]) -> Self:
         self.process_simulations = process_simulations
+        return self
+
+    def with_energy_network(self, energy_network: YamlEnergyNetwork) -> Self:
+        self.energy_network = energy_network
         return self
 
     def with_start(self, start: str):

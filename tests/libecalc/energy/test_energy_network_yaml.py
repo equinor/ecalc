@@ -60,7 +60,7 @@ class TestExampleYamlParsing:
         assert by_name["base_load"].load == 5
         assert by_name["flare"].rate == 1200
         assert by_name["diesel_consumers"].rate == 500
-        assert by_name["export_train"].process_simulation == "export_compressor_sim"
+        assert by_name["export_train"].shaft == "export_shaft"
 
     def test_dispatch_strategy_on_junction(self):
         network = _load_network(EXAMPLE_YAML)
@@ -347,15 +347,15 @@ class TestNetworkValidation:
                         "NAME": "compressor",
                         "TYPE": "MECHANICAL_CONSUMER",
                         "INPUT": "motor",
-                        "PROCESS_SIMULATION": "sim",
+                        "SHAFT": "shaft",
                     },
                 ],
             }
         )
         assert len(network.units) == 3
 
-    def test_mechanical_consumer_needs_load_or_sim(self):
-        with pytest.raises(ValueError, match="either LOAD or PROCESS_SIMULATION"):
+    def test_mechanical_consumer_needs_load_or_shaft(self):
+        with pytest.raises(ValueError, match="either LOAD or SHAFT must be specified"):
             YamlEnergyNetwork.model_validate(
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
@@ -366,10 +366,13 @@ class TestNetworkValidation:
                 }
             )
 
-    def test_mechanical_consumer_rejects_both_load_and_sim(self):
-        with pytest.raises(ValueError, match="cannot specify both"):
+    def test_mechanical_consumer_rejects_both_load_and_shaft(self):
+        with pytest.raises(
+            ValueError,
+            match="cannot specify both LOAD and SHAFT",
+        ):
             _component_adapter.validate_python(
-                {"NAME": "c", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "x", "LOAD": 5, "PROCESS_SIMULATION": "sim"}
+                {"NAME": "c", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "x", "LOAD": 5, "SHAFT": "shaft"}
             )
 
 
