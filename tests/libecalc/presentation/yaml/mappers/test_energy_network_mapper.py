@@ -3,9 +3,12 @@ from datetime import datetime
 import pytest
 
 from libecalc.common.time_utils import Period
-from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
-from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSeriesSourceFactory
+from libecalc.presentation.yaml.domain.energy import (
+    TimeSeriesConsumer,
+    TimeSeriesSourceFactory,
+    create_simulation_for_period,
+)
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
@@ -136,17 +139,17 @@ class TestMappedNetworkSimulation:
         topology, energy_unit_factories, consumers = EnergyNetworkMapper().map_energy_network(
             YamlEnergyNetwork.model_validate(SHORE_AND_WIND), expression_evaluator
         )
-        simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=energy_unit_factories)
         ids_by_name = {node.get_name(): node.get_id() for node in [*energy_unit_factories, *consumers]}
 
         def run(period: Period):
+            simulation = create_simulation_for_period(topology, energy_unit_factories, period)
             connection_demands = {}
             for consumer in consumers:
                 (connection,) = topology.get_incoming_connections(consumer.get_id())
                 demand = consumer.get_demand(period)
                 assert demand is not None
                 connection_demands[connection.id] = demand
-            return simulation.run(connection_demands, period=period)
+            return simulation.run(connection_demands)
 
         def energy(network, source: str, target: str) -> float:
             return network.get_energy()[topology.get_connection(ids_by_name[source], ids_by_name[target]).id].value

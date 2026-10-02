@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Sequence
-from typing import Any, Final, Self
+from typing import Final, Protocol, Self
 
 from libecalc.common.ddd.entity import Entity
+from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.energy.energy_network_simulation import EnergyUnitFactory
 from libecalc.energy.energy_network_topology import EnergyConnection
@@ -29,8 +30,36 @@ class TimeSeriesEnergyUnit(Entity[EnergyUnitId]):
         return EnergyUnitId(ecalc_id_generator())
 
 
-class TimeSeriesEnergyUnitFactory(TimeSeriesEnergyUnit, EnergyUnitFactory, abc.ABC):
-    """Creates energy units from time series configuration, resolved for the period of each operating point."""
+class CreateEnergyUnit(Protocol):
+    def __call__(self, demand: Energy, incoming_connections: Sequence[EnergyConnection]) -> EnergyUnit: ...
+
+
+class ResolvedEnergyUnitFactory(EnergyUnitFactory):
+    """A factory whose configuration is already resolved for a single period."""
+
+    def __init__(
+        self,
+        *,
+        energy_unit_id: EnergyUnitId,
+        name: str,
+        create: CreateEnergyUnit,
+    ) -> None:
+        self._id = energy_unit_id
+        self._name = name
+        self._create = create
+
+    def get_id(self) -> EnergyUnitId:
+        return self._id
+
+    def get_name(self) -> str:
+        return self._name
+
+    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection]) -> EnergyUnit:
+        return self._create(demand, incoming_connections)
+
+
+class TimeSeriesEnergyUnitFactory(TimeSeriesEnergyUnit, abc.ABC):
+    """Holds time series configuration and resolves it into a period-agnostic factory."""
 
     def __init__(
         self,
@@ -43,10 +72,4 @@ class TimeSeriesEnergyUnitFactory(TimeSeriesEnergyUnit, EnergyUnitFactory, abc.A
         self.capacity = capacity
 
     @abc.abstractmethod
-    def create(
-        self,
-        demand: Energy,
-        *,
-        incoming_connections: Sequence[EnergyConnection],
-        **extra: Any,
-    ) -> EnergyUnit: ...
+    def resolve(self, period: Period) -> EnergyUnitFactory: ...
