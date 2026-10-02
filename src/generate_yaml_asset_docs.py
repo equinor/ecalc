@@ -26,6 +26,7 @@ from pydantic_core import PydanticUndefined
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompositionFluidDefinitionBuilder,
@@ -47,7 +48,7 @@ from libecalc.testing.process_builders import (
 )
 
 # Top-level YamlAsset fields to document (by python attribute name)
-PROCESS_INCLUDE_FIELDS = {"definitions", "process_pipelines", "inlet_streams", "process_simulations"}
+PROCESS_INCLUDE_FIELDS = {"definitions", "shafts", "process_pipelines", "inlet_streams", "process_simulations"}
 ENERGY_INCLUDE_FIELDS = {"energy_network"}
 
 # Maximum recursion depth to prevent infinite loops on circular references
@@ -184,10 +185,29 @@ EXAMPLES: list[Example] = [
         "INLET_STREAMS.RATE",
         lambda: YamlInletStreamRateBuilder().with_test_data().validate(),
     ),
+    # --- SHAFTS ---
+    Example(
+        "SHAFTS",
+        lambda: YamlShaft(name="default_shaft"),
+    ),
     # --- PROCESS_PIPELINES ---
     Example(
         "PROCESS_PIPELINES",
-        lambda: YamlProcessPipelineBuilder().with_test_data().validate(),
+        lambda: (
+            YamlProcessPipelineBuilder()
+            .with_name("DefaultPipeline")
+            .with_item(name="default_pressure_dropper", target=YamlPressureDropperBuilder().with_test_data().validate())
+            .with_item(
+                name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
+            )
+            .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
+            .with_shaft_driven_item(
+                name="default_compressor",
+                target=YamlCompressorBuilder().with_test_data().validate(),
+                shaft="default_shaft",
+            )
+            .validate()
+        ),
     ),
     # --- PROCESS_SIMULATIONS ---
     Example(
@@ -454,7 +474,11 @@ def build_tree(
             if _is_discriminated_union(annotation):
                 # Create child nodes for each variant
                 for variant_model in inner_models:
-                    variant_name = _get_discriminator_value(variant_model) or variant_model.__name__
+                    variant_name = (
+                        _get_discriminator_value(variant_model)
+                        or variant_model.model_config.get("title")
+                        or variant_model.__name__
+                    )
                     variant_node = DocNode(
                         name=variant_name,
                         field_info=None,
@@ -486,6 +510,7 @@ def build_yaml_asset_tree(include_fields: set[str]) -> list[DocNode]:
 SIDEBAR_DEPTH: dict[str, int] = {
     "definitions": 4,  # DEFINITIONS > PROCESS_UNITS > COMPRESSOR (h2, h3, h4)
     "inlet_streams": 2,  # INLET_STREAMS only (h2)
+    "shafts": 2,  # SHAFTS only (h2)
     "process_pipelines": 2,  # PROCESS_PIPELINES only (h2)
     "process_simulations": 2,  # PROCESS_SIMULATIONS only (h2)
     "energy_network": 3,  # ENERGY_NETWORK only (h2)
@@ -897,6 +922,7 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 
 - [DEFINITIONS](#definitions)
 - [INLET_STREAMS](#inlet_streams)
+- [SHAFTS](#shafts)
 - [PROCESS_PIPELINES](#process_pipelines)
 - [PROCESS_SIMULATIONS](#process_simulations)
 

@@ -139,8 +139,8 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `MECHANICAL_CONSUMER` | Required |
-| `LOAD` | Shaft power demand (MW). Mutually exclusive with PROCESS_SIMULATION. | Optional |
-| `PROCESS_SIMULATION` | Reference to a process simulation that determines shaft power demand. Mutually exclusive with LOAD. | Optional |
+| `LOAD` | Shaft power demand (MW). Mutually exclusive with SHAFT. | Optional |
+| `SHAFT` | Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand. Mutually exclusive with LOAD. | Optional |
 
 </TabItem>
 
