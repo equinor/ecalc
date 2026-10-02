@@ -3,7 +3,7 @@
   "include-component-in-tag": false,
   "packages": {
     ".": {
-      "versioning-strategy": "always-bump-patch",
+      "versioning": "always-bump-patch",
       "extra-files": [
         {
           "path": "uv.lock",
