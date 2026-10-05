@@ -35,7 +35,7 @@ class GenericFromInputChartData(ChartData):
 
     @cached_property
     def _chart(self) -> GenericFromDesignPointChartData:
-        rates, heads = rates_and_heads_from_operating_points(
+        converted = rates_and_heads_from_operating_points(
             fluid_model=self._fluid_model,
             fluid_service=self._fluid_service,
             standard_rates=self._standard_rates,
@@ -45,8 +45,8 @@ class GenericFromInputChartData(ChartData):
             polytropic_efficiency=self._polytropic_efficiency,
         )
         return CompressorChartCreator.from_rate_and_head_values(
-            actual_volume_rates_m3_per_hour=rates,
-            heads_joule_per_kg=heads,
+            actual_volume_rates_m3_per_hour=converted.rates_m3_per_hour,
+            heads_joule_per_kg=converted.heads_joule_per_kg,
             polytropic_efficiency=self._polytropic_efficiency,
         )
 
