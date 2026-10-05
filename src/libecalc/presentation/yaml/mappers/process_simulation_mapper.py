@@ -30,7 +30,10 @@ from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_mapper import (
+    user_defined_chart_from_resource,
+    user_defined_chart_from_yaml_curves,
+)
 from libecalc.presentation.yaml.mappers.consumer_function_mapper import handle_condition_list
 from libecalc.presentation.yaml.mappers.fluid_mapper import fluid_definition_mapper
 from libecalc.presentation.yaml.mappers.model import InvalidChartResourceException
@@ -161,7 +164,7 @@ class ProcessSimulationMapper:
                     f"For single-speed charts, use the same speed value for all rows."
                 )
             try:
-                return UserDefinedChartData.from_resource(
+                return user_defined_chart_from_resource(
                     resource,
                     units=yaml_chart.units,
                     is_single_speed=False,
@@ -172,7 +175,7 @@ class ProcessSimulationMapper:
                     message=str(e), file_mark=e.file_mark, resource_name=resource_name
                 ) from e
         else:
-            return UserDefinedChartData.from_yaml_curves(
+            return user_defined_chart_from_yaml_curves(
                 yaml_curves, units=yaml_chart.units, control_margin=control_margin_fraction
             )
 

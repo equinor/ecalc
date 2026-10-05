@@ -1,7 +1,7 @@
 from libecalc.domain.process.value_objects.chart import ChartCurve
 from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
+from libecalc.domain.process.value_objects.chart.user_defined_chart_data import UserDefinedChartData
 
 
 class ChartDataFactory:

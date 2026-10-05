@@ -56,6 +56,7 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.domain.process.value_objects.chart.generic_from_input_chart_data import GenericFromInputChartData
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
@@ -77,7 +78,6 @@ from libecalc.presentation.yaml.domain.expression_time_series_pressure import Ex
 from libecalc.presentation.yaml.domain.expression_time_series_variable import ExpressionTimeSeriesVariable
 from libecalc.presentation.yaml.domain.reference_service import ReferenceService
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.mappers.charts.generic_from_input_chart_data import GenericFromInputChartData
 from libecalc.presentation.yaml.mappers.facility_input import (
     _create_pump_chart_variable_speed_dto_model_data,
     _create_pump_model_single_speed_dto_model_data,

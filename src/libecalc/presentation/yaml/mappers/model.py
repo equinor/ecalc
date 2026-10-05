@@ -5,7 +5,10 @@ from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
-from libecalc.presentation.yaml.mappers.charts.user_defined_chart_data import UserDefinedChartData
+from libecalc.presentation.yaml.mappers.charts.user_defined_chart_mapper import (
+    user_defined_chart_from_resource,
+    user_defined_chart_from_yaml_curves,
+)
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
     convert_efficiency_to_fraction,
@@ -82,7 +85,7 @@ def single_speed_compressor_chart_mapper(
             raise ValueError(f"Resource '{resource_name}' not found for single speed chart.")
 
         try:
-            chart_data = UserDefinedChartData.from_resource(
+            chart_data = user_defined_chart_from_resource(
                 resource,
                 units=model_config.units,
                 is_single_speed=True,
@@ -93,7 +96,7 @@ def single_speed_compressor_chart_mapper(
                 message=str(e), file_mark=e.file_mark, resource_name=resource_name
             ) from e
     else:
-        chart_data = UserDefinedChartData.from_yaml_curves(
+        chart_data = user_defined_chart_from_yaml_curves(
             [curve_config], units=model_config.units, control_margin=control_margin
         )
 
@@ -113,7 +116,7 @@ def variable_speed_compressor_chart_mapper(
         if resource is None:
             raise EcalcValidationException(f"Resource '{resource_name}' not found for variable speed chart.")
         try:
-            chart_data = UserDefinedChartData.from_resource(
+            chart_data = user_defined_chart_from_resource(
                 resource, units=model_config.units, is_single_speed=False, control_margin=control_margin
             )
         except InvalidResourceException as e:
@@ -121,7 +124,7 @@ def variable_speed_compressor_chart_mapper(
                 message=str(e), file_mark=e.file_mark, resource_name=resource_name
             ) from e
     else:
-        chart_data = UserDefinedChartData.from_yaml_curves(
+        chart_data = user_defined_chart_from_yaml_curves(
             curve_config, units=model_config.units, control_margin=control_margin
         )
 
