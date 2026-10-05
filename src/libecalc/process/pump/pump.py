@@ -37,8 +37,8 @@ from libecalc.common.ddd.entity import Entity
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.domain.process.value_objects.chart import Chart
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart import Chart
+from libecalc.process.chart.chart import ChartData
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.pump.exceptions import NonPositivePressureException
 from libecalc.process.pump.liquid_stream import LiquidStream

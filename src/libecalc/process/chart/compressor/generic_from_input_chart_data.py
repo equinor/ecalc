@@ -1,14 +1,14 @@
 from functools import cached_property
 
 from libecalc.common.chart_type import ChartType
-from libecalc.domain.process.value_objects.chart import ChartCurve
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
-from libecalc.domain.process.value_objects.chart.compressor.operating_point_conversion import (
-    rates_and_heads_from_operating_points,
-)
-from libecalc.domain.process.value_objects.chart.generic_from_design_point_chart_data import (
+from libecalc.process.chart import ChartCurve
+from libecalc.process.chart.chart import ChartData
+from libecalc.process.chart.compressor.chart_creator import CompressorChartCreator
+from libecalc.process.chart.compressor.generic_from_design_point_chart_data import (
     GenericFromDesignPointChartData,
+)
+from libecalc.process.chart.compressor.operating_point_conversion import (
+    rates_and_heads_from_operating_points,
 )
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService

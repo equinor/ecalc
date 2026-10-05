@@ -1,12 +1,8 @@
 from typing import Final
 
 from libecalc.common.ddd import value_object
-from libecalc.domain.process.compressor.core.train.utils.common import (
-    RECIRCULATION_BOUNDARY_TOLERANCE,
-    calculate_outlet_pressure_and_stream,
-)
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.process.chart.chart import ChartData
+from libecalc.process.chart.compressor import CompressorChart
 from libecalc.process.fluid_stream.constants import ThermodynamicConstants
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
@@ -17,6 +13,8 @@ from libecalc.process.process_pipeline.process_error import (
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.boundary import Boundary
+from libecalc.process.thermodynamics.polytropic_outlet_stream import calculate_outlet_pressure_and_stream
+from libecalc.process.tolerances import RECIRCULATION_BOUNDARY_TOLERANCE
 
 
 @value_object

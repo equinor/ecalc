@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from math import isclose, isfinite
 
-from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
+from libecalc.process.tolerances import PRESSURE_CALCULATION_TOLERANCE
 
 
 def _validate_tolerance(value: float) -> None:

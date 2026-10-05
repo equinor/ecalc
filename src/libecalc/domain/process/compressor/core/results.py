@@ -9,8 +9,8 @@ from libecalc.domain.process.core.results.compressor import (
     CompressorTrainCommonShaftFailureStatus,
     TargetPressureStatus,
 )
-from libecalc.domain.process.value_objects.chart import Chart
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart import Chart
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.process.fluid_stream.fluid_model import FluidComposition
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 

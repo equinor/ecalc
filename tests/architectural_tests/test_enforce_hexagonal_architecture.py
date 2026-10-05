@@ -23,7 +23,6 @@ def test_process_to_import_process_or_common_only(libecalc_architecture):
     allowed_process_dependencies = [
         "libecalc.common",
         "libecalc.process",
-        "libecalc.domain",  # TODO due to train utils and charts
     ]
     rule = (
         Rule()
@@ -71,18 +70,5 @@ def test_ecalc_model_to_import_ecalc_model_or_common_only(libecalc_architecture)
         .should_only()
         .import_modules_that()
         .are_named(allowed_process_dependencies)
-    )
-    rule.assert_applies(libecalc_architecture())
-
-
-@pytest.mark.arch
-def test_chart_data_to_not_import_presentation(libecalc_architecture):
-    rule = (
-        Rule()
-        .modules_that()
-        .are_sub_modules_of("libecalc.domain.process.value_objects.chart")
-        .should_not()
-        .import_modules_that()
-        .are_sub_modules_of("libecalc.presentation")
     )
     rule.assert_applies(libecalc_architecture())

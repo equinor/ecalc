@@ -6,7 +6,7 @@ from math import isnan
 
 import pytest
 
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart.chart import ChartData
 
 from ..utils import (
     POWER_TOLERANCE,

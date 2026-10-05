@@ -13,7 +13,7 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.shaft import VariableSpeedShaft
 from tests.libecalc.process.helpers import ProcessSolverSystem, StageConfig

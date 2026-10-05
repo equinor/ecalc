@@ -8,8 +8,7 @@ from uuid import uuid4
 
 import pytest
 
-from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
-from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.chart import ChartCurve
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.process_pipeline.process_error import CompressorStonewallError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
@@ -19,6 +18,7 @@ from libecalc.process.process_solver.finders.shaft_speed_finder import ShaftSpee
 from libecalc.process.process_solver.solver import ThermodynamicCalculationFailure
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
+from libecalc.process.thermodynamics.exceptions import CompressorThermodynamicCalculationError
 from libecalc.testing.chart_data_factory import ChartDataFactory
 
 

@@ -1,6 +1,5 @@
 from collections.abc import Callable
 
-from libecalc.domain.process.compressor.core.train.utils.common import PRESSURE_CALCULATION_TOLERANCE
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import CompressorStonewallError, InsufficientInletPressureError
 from libecalc.process.process_solver.boundary import Boundary
@@ -13,6 +12,7 @@ from libecalc.process.process_solver.solver import (
     TargetDirection,
     TargetPressureUnreachableFailure,
 )
+from libecalc.process.tolerances import PRESSURE_CALCULATION_TOLERANCE
 
 
 class UpstreamChokeDeltaPressureFinder(Finder):

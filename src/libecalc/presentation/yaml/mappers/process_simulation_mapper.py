@@ -4,7 +4,6 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.common.errors.exceptions import InvalidResourceException, ProgrammingError
 from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
 from libecalc.ecalc_model.ecalc_event import EcalcEvent, EcalcEventService
@@ -68,6 +67,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution impo
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
+from libecalc.process.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_pipeline import (

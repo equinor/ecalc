@@ -6,9 +6,9 @@ from scipy.interpolate import interp1d
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.domain.process.value_objects.chart import Chart
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.chart.compressor.types import (
+from libecalc.process.chart import Chart
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart.compressor.types import (
     CompressorChartHeadEfficiencyResultSinglePoint,
     CompressorChartResult,
 )

@@ -3,21 +3,21 @@ import numpy as np
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.domain.process.compressor.core.results import (
     CompressorTrainResultSingleTimeStep,
 )
 from libecalc.domain.process.compressor.core.train.base import CompressorTrainModel
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.compressor.core.train.utils.common import flash_ph_for_compressor_calculation
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
-    calculate_polytropic_head_campbell,
-)
-from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.process.chart.compressor import CompressorChart
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.thermodynamics.enthalpy_calculations import (
+    calculate_polytropic_head_campbell,
+)
+from libecalc.process.thermodynamics.exceptions import CompressorThermodynamicCalculationError
+from libecalc.process.thermodynamics.polytropic_outlet_stream import flash_ph_for_compressor_calculation
 
 
 class CompressorTrainSimplified(CompressorTrainModel):

@@ -3,8 +3,8 @@ import pytest
 from pytest import approx
 
 from libecalc.common.errors.exceptions import IllegalStateException
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart.compressor import CompressorChart
 
 
 @pytest.fixture

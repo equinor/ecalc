@@ -55,8 +55,6 @@ from libecalc.domain.process.evaluation_input import (
     PumpEvaluationInput,
 )
 from libecalc.domain.process.pump.pump import PumpModel
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.generic_from_input_chart_data import GenericFromInputChartData
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource, Resources
 from libecalc.domain.time_series_flow_rate import TimeSeriesFlowRate
@@ -149,6 +147,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import YamlCompositionFluidModel, YamlPredefinedFluidModel
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
+from libecalc.process.chart.chart import ChartData
+from libecalc.process.chart.compressor.generic_from_input_chart_data import GenericFromInputChartData
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.process_units.choke import Choke

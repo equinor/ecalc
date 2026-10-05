@@ -1,7 +1,6 @@
 import logging
 from collections.abc import Callable
 
-from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import (
     CompressorStonewallError,
@@ -20,6 +19,7 @@ from libecalc.process.process_solver.solver import (
     TargetPressureUnreachableFailure,
     ThermodynamicCalculationFailure,
 )
+from libecalc.process.thermodynamics.exceptions import CompressorThermodynamicCalculationError
 
 logger = logging.getLogger(__name__)
 

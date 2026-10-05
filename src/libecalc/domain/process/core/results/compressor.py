@@ -10,8 +10,8 @@ from libecalc.common.list.list_utils import elementwise_sum
 from libecalc.common.units import Unit
 from libecalc.domain.process.core.results.base import EnergyFunctionResult, EnergyResult, Quantity
 from libecalc.domain.process.core.results.turbine import TurbineResult
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart.chart import ChartData
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
 
 
 class CompressorTrainCommonShaftFailureStatus(StrEnum):

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from libecalc.domain.process.value_objects.chart import Chart, ChartCurve
+from libecalc.process.chart import Chart, ChartCurve
 
 
 @pytest.fixture

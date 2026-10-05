@@ -2,7 +2,7 @@ from typing import Final
 
 import pytest
 
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_properties import FluidProperties

@@ -4,7 +4,7 @@ import pytest
 
 from libecalc.domain.process.core.results.pump import PumpFailureStatus
 from libecalc.domain.process.pump.pump import PumpModel, _adjust_heads_for_head_margin
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart.chart import ChartData
 
 
 def test_adjust_for_head_margin():

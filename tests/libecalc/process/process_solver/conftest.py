@@ -3,9 +3,9 @@ from collections.abc import Sequence
 import pytest
 
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.domain.process.value_objects.chart import ChartCurve
-from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.ecalc_model.process_simulation import PressureControlType
+from libecalc.process.chart import ChartCurve
+from libecalc.process.chart.chart import ChartData
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessPipelineSectionId
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy

@@ -17,12 +17,13 @@ from libecalc.domain.process.compressor.core.results import (
 from libecalc.domain.process.compressor.core.train.stage import CompressorTrainStage
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.domain.process.compressor.core.train.types import StreamPort
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON, PRESSURE_CALCULATION_TOLERANCE
+from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.domain.process.core.results import CompressorTrainResult
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
+from libecalc.process.tolerances import PRESSURE_CALCULATION_TOLERANCE
 
 INVALID_MAX_RATE = np.nan
 

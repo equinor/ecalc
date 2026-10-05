@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.chart import ChartCurve
 from libecalc.process.shaft import VariableSpeedShaft
 
 

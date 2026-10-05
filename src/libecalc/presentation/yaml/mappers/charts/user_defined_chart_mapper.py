@@ -10,12 +10,6 @@ from libecalc.common.errors.exceptions import (
     InvalidResourceException,
     ResourceFileMark,
 )
-from libecalc.domain.process.value_objects.chart import ChartCurve
-from libecalc.domain.process.value_objects.chart.base import (
-    ChartCurveEfficiencyOutOfRangeError,
-    ChartCurveHeadNotDecreasingError,
-)
-from libecalc.domain.process.value_objects.chart.user_defined_chart_data import UserDefinedChartData
 from libecalc.domain.resource import Resource
 from libecalc.presentation.yaml.mappers.utils import (
     YAML_UNIT_MAPPING,
@@ -25,6 +19,12 @@ from libecalc.presentation.yaml.mappers.utils import (
 )
 from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import YamlCurve, YamlEfficiencyUnits, YamlUnits
+from libecalc.process.chart import ChartCurve
+from libecalc.process.chart.base import (
+    ChartCurveEfficiencyOutOfRangeError,
+    ChartCurveHeadNotDecreasingError,
+)
+from libecalc.process.chart.user_defined_chart_data import UserDefinedChartData
 
 logger = logging.getLogger(__name__)
 

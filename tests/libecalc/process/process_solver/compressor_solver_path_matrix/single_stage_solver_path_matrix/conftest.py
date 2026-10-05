@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from tests.libecalc.process.helpers import ProcessSolverSystem
 
