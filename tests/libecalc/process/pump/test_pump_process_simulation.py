@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.domain.process.value_objects.chart.chart import ChartCurve
+from libecalc.process.chart.chart import ChartCurve
 from libecalc.process.pump.liquid_stream import LiquidStream
 from libecalc.process.pump.pump import Pump
 from libecalc.process.pump.pump_process_simulation import (

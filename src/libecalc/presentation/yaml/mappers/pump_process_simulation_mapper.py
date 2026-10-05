@@ -2,7 +2,6 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.common.errors.exceptions import InvalidResourceException
 from libecalc.common.time_utils import Period
 from libecalc.common.variables import ExpressionEvaluator
-from libecalc.domain.process.value_objects.chart.chart import ChartData
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
@@ -17,6 +16,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
     YamlPumpChartSingleSpeed,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlPumpProcessSimulation
+from libecalc.process.chart.chart import ChartData
 from libecalc.process.pump.liquid_stream import LiquidStream
 from libecalc.process.pump.pump import Pump
 from libecalc.process.pump.pump_process_simulation import (

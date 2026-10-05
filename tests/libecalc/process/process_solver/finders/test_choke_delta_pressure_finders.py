@@ -1,5 +1,4 @@
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.domain.process.compressor.core.train.utils.common import EPSILON
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import CompressorStonewallError
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
@@ -11,6 +10,7 @@ from libecalc.process.process_solver.finders.choke_delta_pressure_finders import
 )
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.process.process_solver.solver import CompressorStonewallFailure
+from libecalc.process.process_solver.stream_constraint import EPSILON
 
 
 def test_upstream_choke_solver(

@@ -5,11 +5,11 @@ from pytest import approx
 from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from ecalc_neqsim_wrapper.thermo import STANDARD_PRESSURE_BARA, STANDARD_TEMPERATURE_KELVIN
 from libecalc.common.units import Unit
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
-    calculate_enthalpy_change_head_iteration,
-)
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
+from libecalc.process.thermodynamics.enthalpy_calculations import (
+    calculate_enthalpy_change_head_iteration,
+)
 
 
 @pytest.fixture

@@ -6,7 +6,7 @@ from math import isnan
 
 import pytest
 
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart.chart import ChartData
 
 # Shared tolerances/vocabulary live in the common parent package.
 from ..utils import (  # noqa: F401  (POWER_TOLERANCE/PRESSURE_TOLERANCE re-exported for tests importing from this module)

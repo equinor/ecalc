@@ -5,13 +5,13 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from libecalc.common.logger import logger
 from libecalc.common.string.string_utils import to_camel_case
-from libecalc.domain.process.value_objects.chart.base import ChartCurve
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.generic_from_design_point_chart_data import (
+from libecalc.process.chart.base import ChartCurve
+from libecalc.process.chart.chart import ChartData
+from libecalc.process.chart.compressor.generic_from_design_point_chart_data import (
     GenericFromDesignPointChartData,
 )
-from libecalc.domain.process.value_objects.chart.generic_from_input_chart_data import GenericFromInputChartData
-from libecalc.domain.process.value_objects.chart.user_defined_chart_data import UserDefinedChartData
+from libecalc.process.chart.compressor.generic_from_input_chart_data import GenericFromInputChartData
+from libecalc.process.chart.user_defined_chart_data import UserDefinedChartData
 
 
 class EcalcBaseModel(BaseModel):

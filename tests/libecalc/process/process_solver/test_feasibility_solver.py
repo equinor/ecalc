@@ -2,7 +2,7 @@ import pytest
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.chart import ChartCurve
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint

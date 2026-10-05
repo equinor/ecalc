@@ -3,11 +3,11 @@ from typing import NamedTuple
 import numpy as np
 from numpy.typing import NDArray
 
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
-    calculate_enthalpy_change_head_iteration,
-)
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.thermodynamics.enthalpy_calculations import (
+    calculate_enthalpy_change_head_iteration,
+)
 
 
 class RatesAndHeads(NamedTuple):

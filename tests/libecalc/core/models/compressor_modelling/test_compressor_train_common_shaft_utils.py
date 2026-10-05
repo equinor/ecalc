@@ -2,27 +2,27 @@ import pytest
 
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.units import UnitConstants
-from libecalc.domain.process.compressor.core.exceptions import CompressorOutletCalculationError
 from libecalc.domain.process.compressor.core.train.utils.common import (
     calculate_asv_corrected_rate,
-    calculate_outlet_pressure_and_stream,
     calculate_power_in_megawatt,
-)
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
-    _calculate_polytropic_exponent_expression_n_minus_1_over_n,
-    calculate_outlet_pressure_campbell,
 )
 from libecalc.domain.process.entities.process_units.legacy_compressor import legacy_compressor
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import (
     LegacyCompressor,
     OperationalPoint,
 )
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_properties import FluidProperties
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.shaft import SingleSpeedShaft
+from libecalc.process.thermodynamics.enthalpy_calculations import (
+    _calculate_polytropic_exponent_expression_n_minus_1_over_n,
+    calculate_outlet_pressure_campbell,
+)
+from libecalc.process.thermodynamics.exceptions import CompressorOutletCalculationError
+from libecalc.process.thermodynamics.polytropic_outlet_stream import calculate_outlet_pressure_and_stream
 
 
 def test_calculate_polytropic_exponent_expression(

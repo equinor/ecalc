@@ -9,22 +9,22 @@ from libecalc.domain.process.compressor.core.train.utils.common import (
     EPSILON,
     calculate_power_in_megawatt,
 )
-from libecalc.domain.process.compressor.core.train.utils.enthalpy_calculations import (
-    calculate_enthalpy_change_head_iteration,
-)
 from libecalc.domain.process.entities.process_units.legacy_compressor.legacy_compressor import LegacyCompressor
 from libecalc.domain.process.entities.process_units.legacy_mixer.legacy_mixer import LegacyMixer
 from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_splitter import (
     LegacySplitter,
 )
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
+from libecalc.process.thermodynamics.enthalpy_calculations import (
+    calculate_enthalpy_change_head_iteration,
+)
 
 
 class CompressorTrainStage:

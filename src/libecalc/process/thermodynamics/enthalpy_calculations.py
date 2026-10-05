@@ -27,9 +27,7 @@ def calculate_enthalpy_change_head_iteration(
     fluid_service: FluidService,
 ) -> tuple[NDArray[np.float64], NDArray[np.float64]] | tuple[float, float]:
     """
-    Simplified method of finding enthalpy change in compressors.
-
-    Only used in Simplified Compressor train
+    Finds the enthalpy change in compressors by iterating polytropic head until it converges.
 
     Args:
         outlet_pressure: Outlet pressure array [bara] or scalar.
@@ -88,13 +86,15 @@ def calculate_enthalpy_change_head_iteration(
         polytropic_efficiency = polytropic_efficiency_vs_rate_and_head_function(
             inlet_actual_rate_m3_per_hour, polytropic_heads
         )
-        polytropic_heads = calculate_polytropic_head_campbell(
-            polytropic_efficiency=polytropic_efficiency,
-            kappa=kappa,
-            z=z,
-            molar_mass=molar_mass,
-            pressure_ratios=pressure_ratios,
-            temperatures_kelvin=inlet_temperature_kelvin,
+        polytropic_heads = np.asarray(
+            calculate_polytropic_head_campbell(
+                polytropic_efficiency=polytropic_efficiency,
+                kappa=kappa,
+                z=z,
+                molar_mass=molar_mass,
+                pressure_ratios=pressure_ratios,
+                temperatures_kelvin=inlet_temperature_kelvin,
+            )
         )
         enthalpy_change_joule_per_kg = polytropic_heads / polytropic_efficiency
 

@@ -14,8 +14,8 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
 from libecalc.domain.process.compressor.core.results import CompressorTrainStageResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart.chart import ChartData
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
 
 from ..utils import LEGACY_FAILURE_TO_OUTCOME, project_matrix
 from .assertions import (

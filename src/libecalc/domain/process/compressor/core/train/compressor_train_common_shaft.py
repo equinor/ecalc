@@ -23,14 +23,14 @@ from libecalc.domain.process.compressor.core.train.train_evaluation_input import
 from libecalc.domain.process.compressor.core.train.utils.common import (
     EPSILON,
     POWER_CALCULATION_TOLERANCE,
-    PRESSURE_CALCULATION_TOLERANCE,
     RATE_CALCULATION_TOLERANCE,
 )
 from libecalc.domain.process.core.results.compressor import TargetPressureStatus
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.shaft import Shaft, SingleSpeedShaft, VariableSpeedShaft
+from libecalc.process.tolerances import PRESSURE_CALCULATION_TOLERANCE
 
 
 class CompressorTrainCommonShaft(CompressorTrainModel):

@@ -7,7 +7,6 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Self, TypeVar
 
-from libecalc.domain.process.compressor.core.exceptions import CompressorThermodynamicCalculationError
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_error import (
     CompressorStonewallError,
@@ -26,6 +25,7 @@ from libecalc.process.process_solver.configuration import (
     merge_configurations,
 )
 from libecalc.process.process_solver.search_strategies import DidNotConvergeError
+from libecalc.process.thermodynamics.exceptions import CompressorThermodynamicCalculationError
 
 TConfiguration = TypeVar("TConfiguration", covariant=True)
 

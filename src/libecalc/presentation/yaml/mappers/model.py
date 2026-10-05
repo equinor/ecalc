@@ -1,8 +1,6 @@
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException, ResourceFileMark
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
 from libecalc.domain.resource import Resources
 from libecalc.presentation.yaml.file_context import FileContext, FileMark
 from libecalc.presentation.yaml.mappers.charts.user_defined_chart_mapper import (
@@ -30,6 +28,8 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_trains import 
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlPressureControl
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
+from libecalc.process.chart.chart import ChartData
+from libecalc.process.chart.compressor.chart_creator import CompressorChartCreator
 
 
 def _pressure_control_mapper(

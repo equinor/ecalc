@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 from libecalc.common.chart_type import ChartType
 from libecalc.common.errors.ecalc_validation_error import ProcessChartTypeValidationException
 from libecalc.common.list.list_utils import array_to_list
-from libecalc.domain.process.value_objects.chart.base import ChartCurve
+from libecalc.process.chart.base import ChartCurve
 
 
 class ChartData(abc.ABC):
@@ -151,7 +151,7 @@ class Chart:
 
         Note: Only used to avoid interpolating efficiency if all values are 100%. Could probably be removed.
         """
-        return np.all([x.is_100_percent_efficient for x in self.curves])
+        return bool(np.all([x.is_100_percent_efficient for x in self.curves]))
 
     @property
     def minimum_head_as_function_of_rate(self) -> Callable[[Any], Any]:

@@ -7,8 +7,8 @@ from libecalc.common.logger import logger
 from libecalc.common.units import Unit, UnitConstants
 from libecalc.domain.process.core.results import PumpModelResult
 from libecalc.domain.process.core.results.pump import PumpFailureStatus
-from libecalc.domain.process.value_objects.chart import Chart
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart import Chart
+from libecalc.process.chart.chart import ChartData
 
 EPSILON = 1e-15
 

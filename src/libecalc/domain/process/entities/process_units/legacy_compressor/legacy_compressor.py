@@ -3,14 +3,14 @@ from dataclasses import dataclass
 from libecalc.common.errors.ecalc_validation_error import ProcessCompressorEfficiencyValidationException
 from libecalc.common.errors.exceptions import IllegalStateException
 from libecalc.common.logger import logger
-from libecalc.domain.process.compressor.core.exceptions import CompressorOutletCalculationError
-from libecalc.domain.process.compressor.core.train.utils.common import calculate_outlet_pressure_and_stream
-from libecalc.domain.process.value_objects.chart.chart import ChartData
-from libecalc.domain.process.value_objects.chart.chart_area_flag import ChartAreaFlag
-from libecalc.domain.process.value_objects.chart.compressor import CompressorChart
+from libecalc.process.chart.chart import ChartData
+from libecalc.process.chart.chart_area_flag import ChartAreaFlag
+from libecalc.process.chart.compressor import CompressorChart
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.shaft import Shaft
+from libecalc.process.thermodynamics.exceptions import CompressorOutletCalculationError
+from libecalc.process.thermodynamics.polytropic_outlet_stream import calculate_outlet_pressure_and_stream
 
 
 @dataclass

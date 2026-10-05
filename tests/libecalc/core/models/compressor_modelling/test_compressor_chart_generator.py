@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
 
-from libecalc.domain.process.value_objects.chart.compressor import (
+from libecalc.process.chart.compressor import (
     CompressorChart,
 )
-from libecalc.domain.process.value_objects.chart.compressor.chart_creator import CompressorChartCreator
+from libecalc.process.chart.compressor.chart_creator import CompressorChartCreator
 
 
 @pytest.fixture

@@ -25,7 +25,7 @@ from uuid import UUID
 from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.domain.process.value_objects.chart.chart import Chart
+from libecalc.process.chart.chart import Chart
 from libecalc.process.process_pipeline.process_pipeline import (
     ProcessUnitConnection,
     ProcessUnitConnectionId,

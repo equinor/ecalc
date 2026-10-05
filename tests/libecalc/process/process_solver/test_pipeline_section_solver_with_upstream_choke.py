@@ -1,6 +1,6 @@
 import pytest
 
-from libecalc.domain.process.value_objects.chart import ChartCurve
+from libecalc.process.chart import ChartCurve
 from libecalc.process.process_solver.float_constraint import AbsoluteTolerance, FloatConstraint
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft

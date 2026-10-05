@@ -1,8 +1,8 @@
 from functools import cached_property
 
 from libecalc.common.chart_type import ChartType
-from libecalc.domain.process.value_objects.chart import ChartCurve
-from libecalc.domain.process.value_objects.chart.chart import ChartData
+from libecalc.process.chart import ChartCurve
+from libecalc.process.chart.chart import ChartData
 
 
 class UserDefinedChartData(ChartData):

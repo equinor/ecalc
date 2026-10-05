@@ -1562,16 +1562,6 @@
                 }
             }
         ],
-        "./src/libecalc/domain/process/compressor/core/train/utils/enthalpy_calculations.py": [
-            {
-                "code": "reportAttributeAccessIssue",
-                "range": {
-                    "startColumn": 53,
-                    "endColumn": 57,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/libecalc/domain/process/core/results/compressor.py": [
             {
                 "code": "reportReturnType",
@@ -1682,52 +1672,6 @@
                 "range": {
                     "startColumn": 52,
                     "endColumn": 67,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./src/libecalc/domain/process/value_objects/chart/base.py": [
-            {
-                "code": "reportReturnType",
-                "range": {
-                    "startColumn": 15,
-                    "endColumn": 50,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportReturnType",
-                "range": {
-                    "startColumn": 19,
-                    "endColumn": 13,
-                    "lineCount": 3
-                }
-            }
-        ],
-        "./src/libecalc/domain/process/value_objects/chart/chart.py": [
-            {
-                "code": "reportReturnType",
-                "range": {
-                    "startColumn": 15,
-                    "endColumn": 72,
-                    "lineCount": 1
-                }
-            }
-        ],
-        "./src/libecalc/domain/process/value_objects/chart/compressor/compressor_chart.py": [
-            {
-                "code": "reportArgumentType",
-                "range": {
-                    "startColumn": 55,
-                    "endColumn": 59,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportReturnType",
-                "range": {
-                    "startColumn": 15,
-                    "endColumn": 53,
                     "lineCount": 1
                 }
             }
