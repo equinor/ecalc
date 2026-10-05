@@ -121,7 +121,7 @@ class ChartCurve:
     @property
     def is_100_percent_efficient(self) -> bool:
         """Check if all efficiencies are 100%."""
-        return np.all(self.efficiency_values == 1)
+        return bool(np.all(self.efficiency_values == 1))
 
     @property
     def minimum_rate(self) -> float:
@@ -219,8 +219,10 @@ class ChartCurve:
 
         def _get_new_point(x: list[float], y: list[float], new_x_value) -> float:
             """Set up simple interpolation and get a point estimate on y based on the new x point."""
-            return interp1d(x=x, y=y, fill_value=(np.min(y), np.max(y)), bounds_error=False, assume_sorted=False)(
-                new_x_value
+            return float(
+                interp1d(x=x, y=y, fill_value=(np.min(y), np.max(y)), bounds_error=False, assume_sorted=False)(
+                    new_x_value
+                )
             )
 
         adjust_minimum_rate_by = (np.max(self.rate) - np.min(self.rate)) * control_margin

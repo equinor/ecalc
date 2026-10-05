@@ -151,7 +151,7 @@ class Chart:
 
         Note: Only used to avoid interpolating efficiency if all values are 100%. Could probably be removed.
         """
-        return np.all([x.is_100_percent_efficient for x in self.curves])
+        return bool(np.all([x.is_100_percent_efficient for x in self.curves]))
 
     @property
     def minimum_head_as_function_of_rate(self) -> Callable[[Any], Any]:

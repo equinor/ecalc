@@ -175,7 +175,7 @@ class CompressorChart(Chart):
         self,
         speed: float,
         actual_rate_m3_per_hour: float,
-        actual_rate_m3_per_hour_including_asv: float = None,
+        actual_rate_m3_per_hour_including_asv: float | None = None,
         increase_speed_below_assuming_choke: bool = False,
         increase_rate_left_of_minimum_flow_assuming_asv: bool = True,
     ) -> CompressorChartHeadEfficiencyResultSinglePoint:
@@ -434,14 +434,18 @@ class CompressorChart(Chart):
             ChartAreaFlag.ABOVE_MAXIMUM_FLOW_RATE,
             ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_ABOVE_MAXIMUM_FLOW_RATE,
         ):
-            polytropic_head = self.head_as_function_of_speed_for_rates_above_maximum_extrapolation(speed)
-            polytropic_efficiency = self.efficiency_as_function_of_speed_for_rates_above_maximum_extrapolation(speed)
+            polytropic_head = float(self.head_as_function_of_speed_for_rates_above_maximum_extrapolation(speed))
+            polytropic_efficiency = float(
+                self.efficiency_as_function_of_speed_for_rates_above_maximum_extrapolation(speed)
+            )
         elif chart_area_flag in (
             ChartAreaFlag.BELOW_MINIMUM_FLOW_RATE,
             ChartAreaFlag.BELOW_MINIMUM_SPEED_AND_BELOW_MINIMUM_FLOW_RATE,
         ):
-            polytropic_head = self.head_as_function_of_speed_for_rates_below_minimum_extrapolation(speed)
-            polytropic_efficiency = self.efficiency_as_function_of_speed_for_rates_below_minimum_extrapolation(speed)
+            polytropic_head = float(self.head_as_function_of_speed_for_rates_below_minimum_extrapolation(speed))
+            polytropic_efficiency = float(
+                self.efficiency_as_function_of_speed_for_rates_below_minimum_extrapolation(speed)
+            )
         else:
             msg = (
                 f"You should not enter here, please contact support. (Dead end for variable speed compressor "
