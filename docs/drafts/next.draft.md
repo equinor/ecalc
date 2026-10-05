@@ -3,27 +3,15 @@ slug: "{{ version_slug }}"
 title: "{{ version_title }}"
 authors: ecalc-team
 tags: [release, eCalc]
-sidebar_position: -61
+sidebar_position: -72
 ---
 
 # eCalc {{ version }}
 
 ## Features
-STP: "flare" column has been added to STP Export - for `FIXED` installations only.
 
 ## Bug Fixes
 
-- Hardened compressor PH flash handling so invalid thermodynamic states are no longer used in compressor outlet calculations.
-- `LiquidRemover` now scales the outlet mass rate by the gas mass fraction when liquid is dropped, so the removed liquid mass is no longer carried by the gas stream downstream.
-- Compressor stage rate fields (`inlet_actual_rate`, `mass_rate`, `standard_rate`, etc.) now report `0.0` instead of `NaN` for zero-rate timesteps, so yearly resampling no longer forward-fills stale positive values into idle periods.
-- Common-shaft compressor train under COMMON_ASV control now uses speed-aware stonewall bounds (at the locked shaft speed) instead of the chart-wide maximum rate. Previously this could mis-classify a target-pressure-unreachable case as above-max-flow and report a nonsensical power figure.
-
 ## Breaking changes
-
-- Chart curves must have strictly decreasing head as rate increases. Curves with increasing or equal head values, including all-zero curves, are rejected. Generic compressor charts also require design rate and design head greater than zero.
-
-### Compressor calculations
-
-- Compressor calculations now validate PH flash results more strictly. Existing models that previously completed with invalid or non-physical PH flash states may now fail or report invalid compressor/capacity results instead.
 
 ### CLI
