@@ -44,9 +44,7 @@ _TURBINE_LABELS = CurveLabels(subject="turbine", x="load", y="efficiency")
 
 def validate_turbine_curve(loads: Sequence[float], efficiencies: Sequence[float], lower_heating_value: float) -> None:
     validate_curve(loads, efficiencies, _TURBINE_LABELS)
-    if any(not 0 <= efficiency <= 1 for efficiency in efficiencies):
-        raise EcalcValidationException("Turbine efficiencies must be fractions between 0 and 1.")
-    if any(efficiency == 0 and load > 0 for load, efficiency in zip(loads, efficiencies)):
-        raise EcalcValidationException("Turbine efficiency must be greater than 0 for loads above 0.")
+    if any(not 0 < efficiency <= 1 for efficiency in efficiencies):
+        raise EcalcValidationException("Turbine efficiencies must be fractions above 0 and up to 1.")
     if not math.isfinite(lower_heating_value) or lower_heating_value <= 0:
         raise EcalcValidationException("Turbine lower heating value must be finite and greater than 0.")

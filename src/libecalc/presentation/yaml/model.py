@@ -56,7 +56,7 @@ from libecalc.presentation.yaml.domain.time_series_collections import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapper
-from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
+from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper, EnergyNetworkValidationError
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
@@ -313,11 +313,14 @@ class YamlModel:
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
             topology, energy_unit_factories, consumers = EnergyNetworkMapper().map_energy_network(
-                yaml_energy_network, expression_evaluator, resources=facility_resources
+                yaml_energy_network,
+                expression_evaluator,
+                resources=facility_resources,
+                turbine_definitions=self._configuration.definitions.turbines,
             )
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
         except EcalcValidationException as e:
-            yaml_keys = ("ENERGY_NETWORK",)
+            yaml_keys = e.yaml_keys if isinstance(e, EnergyNetworkValidationError) else ("ENERGY_NETWORK",)
             raise ModelValidationException(
                 errors=[
                     ModelValidationError(

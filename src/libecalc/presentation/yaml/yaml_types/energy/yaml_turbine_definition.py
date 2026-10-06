@@ -22,8 +22,8 @@ class YamlTurbineCurve(YamlBase):
         list[float],
         Field(
             title="EFFICIENCY",
-            description="Turbine efficiency [fraction between 0 and 1] for each load, above 0 wherever the load is "
-            "above 0. In a FILE, this is the EFFICIENCY column.",
+            description="Turbine efficiency [fraction above 0 and up to 1] for each load. In a FILE, this is the "
+            "EFFICIENCY column.",
         ),
     ]
 
@@ -36,8 +36,8 @@ class YamlTurbineDefinition(YamlBase):
                 {
                     "LOWER_HEATING_VALUE": 38,
                     "CURVE": {
-                        "LOAD": [0, 2.352, 4.589, 6.853],
-                        "EFFICIENCY": [0, 0.138, 0.210, 0.255],
+                        "LOAD": [2.352, 4.589, 6.853],
+                        "EFFICIENCY": [0.138, 0.210, 0.255],
                     },
                 },
                 {

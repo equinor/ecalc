@@ -1,3 +1,4 @@
+import math
 from collections.abc import Mapping, Sequence
 from typing import overload
 
@@ -10,6 +11,7 @@ from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
+from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.energy import (
     CompressorSampledDemand,
@@ -33,6 +35,7 @@ from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion impo
     expand,
     unit_key,
 )
+from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
@@ -56,6 +59,18 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlMechanicalConsumer,
     get_input_names,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
+
+YamlKeys = tuple[str | int, ...]
+
+
+class EnergyNetworkValidationError(EcalcValidationException):
+    """Invalid energy network input, located at `yaml_keys` in the model YAML."""
+
+    def __init__(self, message: str, yaml_keys: YamlKeys):
+        super().__init__(message)
+        self.yaml_keys = yaml_keys
+
 
 _ENERGY_CLASSES: dict[EnergyType, type[Energy]] = {
     EnergyType.FUEL_GAS: FuelGasRate,
@@ -71,6 +86,7 @@ class EnergyNetworkMapper:
         yaml_energy_network: YamlEnergyNetwork,
         expression_evaluator: ExpressionEvaluator,
         resources: Mapping[str, Resource] | None = None,
+        turbine_definitions: Mapping[str, YamlTurbineDefinition] | None = None,
     ) -> tuple[
         EnergyNetworkTopology,
         Sequence[TimeSeriesEnergyUnitFactory],
@@ -81,6 +97,10 @@ class EnergyNetworkMapper:
         References may point to units declared later.
         """
         resources = resources or {}
+        turbine_models = {
+            name: self._map_turbine_definition(name, definition, resources, ("DEFINITIONS", "TURBINES", name))
+            for name, definition in (turbine_definitions or {}).items()
+        }
         output_types = self._yaml_output_types(yaml_energy_network)
 
         expansions: dict[str, Expansion] = {
@@ -106,7 +126,7 @@ class EnergyNetworkMapper:
             node, input_type, output_type = self._map_source(source, node_ids_by_key[key], expression_evaluator)
             mapped_nodes.append((key, node, input_type, output_type))
 
-        for unit in yaml_energy_network.units:
+        for index, unit in enumerate(yaml_energy_network.units):
             expansion = expansions.get(unit.name)
             if expansion is not None:
                 assert isinstance(unit, YamlCompressorSampled)
@@ -124,9 +144,19 @@ class EnergyNetworkMapper:
                 )
             else:
                 key = unit_key(unit.name)
-                node, input_type, output_type = self._map_unit(
-                    unit, node_ids_by_key[key], node_ids_by_key, expression_evaluator
-                )
+                if isinstance(unit, YamlGasTurbine):
+                    node, input_type, output_type = self._map_gas_turbine(
+                        unit,
+                        node_ids_by_key[key],
+                        ("ENERGY_NETWORK", "UNITS", index),
+                        turbine_models,
+                        resources,
+                        expression_evaluator,
+                    )
+                else:
+                    node, input_type, output_type = self._map_unit(
+                        unit, node_ids_by_key[key], node_ids_by_key, expression_evaluator
+                    )
                 mapped_nodes.append((key, node, input_type, output_type))
                 connections.extend(
                     (node_ids_by_key[unit_key(input_name)], node_ids_by_key[key])
@@ -263,6 +293,62 @@ class EnergyNetworkMapper:
         )
         return turbine, FuelGasRate, MechanicalPower
 
+    @staticmethod
+    def _map_turbine_definition(
+        name: str, definition: YamlTurbineDefinition, resources: Mapping[str, Resource], yaml_keys: YamlKeys
+    ) -> TurbineFuelModel:
+        try:
+            return map_turbine_fuel_model(name, definition, resources)
+        except EcalcValidationException as e:
+            raise EnergyNetworkValidationError(str(e), yaml_keys) from e
+
+    def _map_gas_turbine(
+        self,
+        unit: YamlGasTurbine,
+        energy_unit_id: EnergyUnitId,
+        yaml_keys: YamlKeys,
+        turbine_models: Mapping[str, TurbineFuelModel],
+        resources: Mapping[str, Resource],
+        expression_evaluator: ExpressionEvaluator,
+    ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
+        if isinstance(unit.model, YamlTurbineDefinition):
+            fuel_model = self._map_turbine_definition(unit.name, unit.model, resources, (*yaml_keys, "MODEL"))
+        elif unit.model in turbine_models:
+            fuel_model = turbine_models[unit.model]
+        else:
+            raise EnergyNetworkValidationError(
+                f"'{unit.name}': MODEL '{unit.model}' is not a turbine in DEFINITIONS.TURBINES. "
+                f"Available turbines: {sorted(turbine_models)}",
+                (*yaml_keys, "MODEL"),
+            )
+        capacity = self._time_series(
+            fuel_model.max_power if unit.capacity is None else unit.capacity, expression_evaluator
+        )
+        if unit.capacity is not None:
+            self._check_capacity_within_curve(unit.name, capacity, fuel_model.max_power, (*yaml_keys, "CAPACITY"))
+        return (
+            TimeSeriesGasTurbineFactory(
+                name=unit.name,
+                energy_unit_id=energy_unit_id,
+                capacity=capacity,
+                power_to_fuel=fuel_model.fuel_for_power,
+            ),
+            FuelGasRate,
+            MechanicalPower,
+        )
+
+    @staticmethod
+    def _check_capacity_within_curve(
+        unit_name: str, capacity: TimeSeriesExpression, curve_max_power: float, yaml_keys: YamlKeys
+    ) -> None:
+        for period, value in capacity.get_masked_items().items():
+            if value > curve_max_power and not math.isclose(value, curve_max_power, rel_tol=1e-9):
+                raise EnergyNetworkValidationError(
+                    f"'{unit_name}': CAPACITY {value} for period {period} exceeds the turbine curve maximum "
+                    f"of {curve_max_power}.",
+                    yaml_keys,
+                )
+
     def _map_unit(
         self,
         unit: YamlComponent,
@@ -279,12 +365,7 @@ class EnergyNetworkMapper:
                     ElectricalPower,
                 )
             case YamlGasTurbine():
-                capacity = self._time_series(unit.capacity, expression_evaluator)
-                return (
-                    TimeSeriesGasTurbineFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
-                    FuelGasRate,
-                    MechanicalPower,
-                )
+                raise AssertionError("GAS_TURBINE units need their YAML location, map them with _map_gas_turbine.")
             case YamlElectricalMotor():
                 capacity = self._time_series(unit.capacity, expression_evaluator)
                 efficiency = self._time_series(unit.efficiency, expression_evaluator)
