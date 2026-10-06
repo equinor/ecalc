@@ -49,4 +49,4 @@ def validate_turbine_curve(loads: Sequence[float], efficiencies: Sequence[float]
     if any(efficiency == 0 and load > 0 for load, efficiency in zip(loads, efficiencies)):
         raise EcalcValidationException("Turbine efficiency must be greater than 0 for loads above 0.")
     if not math.isfinite(lower_heating_value) or lower_heating_value <= 0:
-        raise EcalcValidationException("Turbine lower heating value must be greater than 0.")
+        raise EcalcValidationException("Turbine lower heating value must be finite and greater than 0.")
