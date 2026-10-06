@@ -25,6 +25,7 @@ from pydantic_core import PydanticUndefined
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
@@ -48,7 +49,10 @@ from libecalc.testing.process_builders import (
 
 # Top-level YamlAsset fields to document (by python attribute name)
 PROCESS_INCLUDE_FIELDS = {"definitions", "process_pipelines", "inlet_streams", "process_simulations"}
-ENERGY_INCLUDE_FIELDS = {"energy_network"}
+ENERGY_INCLUDE_FIELDS = {"definitions", "energy_network"}
+
+# DEFINITIONS subsections documented on the energy page, the rest are documented on the process page
+ENERGY_DEFINITIONS_SECTIONS = {"TURBINES"}
 
 # Maximum recursion depth to prevent infinite loops on circular references
 MAX_DEPTH = 8
@@ -209,6 +213,18 @@ EXAMPLES: list[Example] = [
 # ---------------------------------------------------------------------------
 
 ENERGY_EXAMPLES: list[Example] = [
+    Example(
+        "DEFINITIONS.TURBINES",
+        lambda: YamlTurbineDefinition.model_validate(
+            {
+                "LOWER_HEATING_VALUE": 38,
+                "CURVE": {
+                    "LOAD": [7.5, 15, 22.5, 30],
+                    "EFFICIENCY": [0.22, 0.31, 0.35, 0.37],
+                },
+            }
+        ),
+    ),
     Example(
         "ENERGY_NETWORK.UNITS.COMPRESSOR_SAMPLED",
         lambda: YamlCompressorSampled.model_validate(
@@ -847,6 +863,7 @@ def _get_model_docstring(model: Any) -> str | None:
 def _generate_markdown(
     *,
     include_fields: set[str],
+    definitions_sections: Callable[[str], bool],
     title: str,
     sidebar_position: int,
     description: str,
@@ -855,6 +872,9 @@ def _generate_markdown(
 ) -> str:
     """Generate a reference document for selected YamlAsset sections."""
     tree = build_yaml_asset_tree(include_fields)
+    for node in tree:
+        if node.name == "definitions":
+            node.children = [child for child in node.children if definitions_sections(child.title)]
 
     frontmatter = f"""\
 ---
@@ -887,6 +907,7 @@ def generate_process_markdown() -> str:
     """Generate the process reference document."""
     return _generate_markdown(
         include_fields=PROCESS_INCLUDE_FIELDS,
+        definitions_sections=lambda section: section not in ENERGY_DEFINITIONS_SECTIONS,
         title="Process Reference",
         sidebar_position=6,
         description="Complete reference for the process configuration.",
@@ -909,13 +930,14 @@ def generate_energy_markdown() -> str:
     """Generate the energy network reference document."""
     return _generate_markdown(
         include_fields=ENERGY_INCLUDE_FIELDS,
+        definitions_sections=lambda section: section in ENERGY_DEFINITIONS_SECTIONS,
         title="Energy Reference",
         sidebar_position=7,
         description="Complete reference for the energy network configuration.",
         intro="""\
 # Energy Reference
 
-This page documents the [ENERGY_NETWORK](#energy_network) YAML configuration key for the eCalc Asset model.
+This page documents the [DEFINITIONS](#definitions) and [ENERGY_NETWORK](#energy_network) YAML configuration keys for the eCalc Asset model.
 
 """,
         examples=ENERGY_EXAMPLES,

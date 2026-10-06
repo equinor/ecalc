@@ -17,6 +17,7 @@ These are not available in legacy models, so they are not part of the release ch
 - `ENERGY_NETWORK`: capacities can be expressions, and capacity shortfalls are reported.
 - `ENERGY_NETWORK`: junctions allocate demand across multiple inputs, with per-input dispatch limits.
 - `ENERGY_NETWORK`: added `COMPRESSOR_SAMPLED` units. Sampled compressor tables extrapolate using the convex hull of the sampled data.
+- `ENERGY_NETWORK`: `GAS_TURBINE` requires a `MODEL`, a turbine defined under `DEFINITIONS.TURBINES` or in place, with load/efficiency data given directly or in a `FILE`. Fuel is calculated from the turbine curve, and the curve limits the turbine capacity. Demand below the lowest load in the curve burns the fuel of the lowest load, and zero demand burns no fuel. `MODEL` no longer accepts a facility model name (`MODELS: TURBINE`); it was previously ignored.
 
 ## v14.0 {/* #v14-0 */}
 
