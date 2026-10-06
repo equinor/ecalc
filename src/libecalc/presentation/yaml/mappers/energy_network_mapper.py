@@ -1,5 +1,5 @@
 import math
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from typing import overload
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
@@ -11,6 +11,7 @@ from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
+from libecalc.energy.models.generator_set_fuel_model import GeneratorSetFuelModel
 from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.energy import (
@@ -35,6 +36,7 @@ from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion impo
     expand,
     unit_key,
 )
+from libecalc.presentation.yaml.mappers.energy.generator_set_fuel_model_mapper import map_generator_set_fuel_model
 from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
@@ -59,9 +61,12 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlMechanicalConsumer,
     get_input_names,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_set_definition import YamlGeneratorSetDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 
 YamlKeys = tuple[str | int, ...]
+
+_FuelModel = TurbineFuelModel | GeneratorSetFuelModel
 
 
 class EnergyNetworkValidationError(EcalcValidationException):
@@ -87,6 +92,7 @@ class EnergyNetworkMapper:
         expression_evaluator: ExpressionEvaluator,
         resources: Mapping[str, Resource] | None = None,
         turbine_definitions: Mapping[str, YamlTurbineDefinition] | None = None,
+        generator_set_definitions: Mapping[str, YamlGeneratorSetDefinition] | None = None,
     ) -> tuple[
         EnergyNetworkTopology,
         Sequence[TimeSeriesEnergyUnitFactory],
@@ -97,9 +103,17 @@ class EnergyNetworkMapper:
         References may point to units declared later.
         """
         resources = resources or {}
-        turbine_models = {
-            name: self._map_turbine_definition(name, definition, resources, ("DEFINITIONS", "TURBINES", name))
+        turbine_models: dict[str, _FuelModel] = {
+            name: self._map_definition(
+                map_turbine_fuel_model, name, definition, resources, ("DEFINITIONS", "TURBINES", name)
+            )
             for name, definition in (turbine_definitions or {}).items()
+        }
+        generator_set_models: dict[str, _FuelModel] = {
+            name: self._map_definition(
+                map_generator_set_fuel_model, name, definition, resources, ("DEFINITIONS", "GENERATOR_SETS", name)
+            )
+            for name, definition in (generator_set_definitions or {}).items()
         }
         output_types = self._yaml_output_types(yaml_energy_network)
 
@@ -144,14 +158,14 @@ class EnergyNetworkMapper:
                 )
             else:
                 key = unit_key(unit.name)
+                yaml_keys = ("ENERGY_NETWORK", "UNITS", index)
                 if isinstance(unit, YamlGasTurbine):
                     node, input_type, output_type = self._map_gas_turbine(
-                        unit,
-                        node_ids_by_key[key],
-                        ("ENERGY_NETWORK", "UNITS", index),
-                        turbine_models,
-                        resources,
-                        expression_evaluator,
+                        unit, node_ids_by_key[key], yaml_keys, turbine_models, resources, expression_evaluator
+                    )
+                elif isinstance(unit, YamlGeneratorSet):
+                    node, input_type, output_type = self._map_generator_set(
+                        unit, node_ids_by_key[key], yaml_keys, generator_set_models, resources, expression_evaluator
                     )
                 else:
                     node, input_type, output_type = self._map_unit(
@@ -294,11 +308,15 @@ class EnergyNetworkMapper:
         return turbine, FuelGasRate, MechanicalPower
 
     @staticmethod
-    def _map_turbine_definition(
-        name: str, definition: YamlTurbineDefinition, resources: Mapping[str, Resource], yaml_keys: YamlKeys
-    ) -> TurbineFuelModel:
+    def _map_definition[D](
+        mapper: Callable[[str, D, Mapping[str, Resource]], _FuelModel],
+        name: str,
+        definition: D,
+        resources: Mapping[str, Resource],
+        yaml_keys: YamlKeys,
+    ) -> _FuelModel:
         try:
-            return map_turbine_fuel_model(name, definition, resources)
+            return mapper(name, definition, resources)
         except EcalcValidationException as e:
             raise EnergyNetworkValidationError(str(e), yaml_keys) from e
 
@@ -307,25 +325,20 @@ class EnergyNetworkMapper:
         unit: YamlGasTurbine,
         energy_unit_id: EnergyUnitId,
         yaml_keys: YamlKeys,
-        turbine_models: Mapping[str, TurbineFuelModel],
+        turbine_models: Mapping[str, _FuelModel],
         resources: Mapping[str, Resource],
         expression_evaluator: ExpressionEvaluator,
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
-        if isinstance(unit.model, YamlTurbineDefinition):
-            fuel_model = self._map_turbine_definition(unit.name, unit.model, resources, (*yaml_keys, "MODEL"))
-        elif unit.model in turbine_models:
-            fuel_model = turbine_models[unit.model]
-        else:
-            raise EnergyNetworkValidationError(
-                f"'{unit.name}': MODEL '{unit.model}' is not a turbine in DEFINITIONS.TURBINES. "
-                f"Available turbines: {sorted(turbine_models)}",
-                (*yaml_keys, "MODEL"),
-            )
-        capacity = self._time_series(
-            fuel_model.max_power if unit.capacity is None else unit.capacity, expression_evaluator
+        fuel_model, capacity = self._resolve_fuel_model_and_capacity(
+            unit,
+            yaml_keys,
+            turbine_models,
+            map_turbine_fuel_model,
+            "TURBINES",
+            "turbine",
+            resources,
+            expression_evaluator,
         )
-        if unit.capacity is not None:
-            self._check_capacity_within_curve(unit.name, capacity, fuel_model.max_power, (*yaml_keys, "CAPACITY"))
         return (
             TimeSeriesGasTurbineFactory(
                 name=unit.name,
@@ -337,14 +350,75 @@ class EnergyNetworkMapper:
             MechanicalPower,
         )
 
+    def _map_generator_set(
+        self,
+        unit: YamlGeneratorSet,
+        energy_unit_id: EnergyUnitId,
+        yaml_keys: YamlKeys,
+        generator_set_models: Mapping[str, _FuelModel],
+        resources: Mapping[str, Resource],
+        expression_evaluator: ExpressionEvaluator,
+    ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
+        fuel_model, capacity = self._resolve_fuel_model_and_capacity(
+            unit,
+            yaml_keys,
+            generator_set_models,
+            map_generator_set_fuel_model,
+            "GENERATOR_SETS",
+            "generator set",
+            resources,
+            expression_evaluator,
+        )
+        return (
+            TimeSeriesGeneratorSetFactory(
+                name=unit.name,
+                energy_unit_id=energy_unit_id,
+                capacity=capacity,
+                power_to_fuel=fuel_model.fuel_for_power,
+            ),
+            FuelGasRate,
+            ElectricalPower,
+        )
+
+    def _resolve_fuel_model_and_capacity(
+        self,
+        unit: YamlGasTurbine | YamlGeneratorSet,
+        yaml_keys: YamlKeys,
+        models: Mapping[str, _FuelModel],
+        mapper: Callable[..., _FuelModel],
+        section: str,
+        description: str,
+        resources: Mapping[str, Resource],
+        expression_evaluator: ExpressionEvaluator,
+    ) -> tuple[_FuelModel, TimeSeriesExpression]:
+        model_keys = (*yaml_keys, "MODEL")
+        if isinstance(unit.model, str):
+            if unit.model not in models:
+                raise EnergyNetworkValidationError(
+                    f"'{unit.name}': MODEL '{unit.model}' is not a {description} in DEFINITIONS.{section}. "
+                    f"Available {description}s: {sorted(models)}",
+                    model_keys,
+                )
+            fuel_model = models[unit.model]
+        else:
+            fuel_model = self._map_definition(mapper, unit.name, unit.model, resources, model_keys)
+        capacity = self._time_series(
+            fuel_model.max_power if unit.capacity is None else unit.capacity, expression_evaluator
+        )
+        if unit.capacity is not None:
+            self._check_capacity_within_curve(
+                unit.name, capacity, fuel_model.max_power, description, (*yaml_keys, "CAPACITY")
+            )
+        return fuel_model, capacity
+
     @staticmethod
     def _check_capacity_within_curve(
-        unit_name: str, capacity: TimeSeriesExpression, curve_max_power: float, yaml_keys: YamlKeys
+        unit_name: str, capacity: TimeSeriesExpression, curve_max_power: float, curve_name: str, yaml_keys: YamlKeys
     ) -> None:
         for period, value in capacity.get_masked_items().items():
             if value > curve_max_power and not math.isclose(value, curve_max_power, rel_tol=1e-9):
                 raise EnergyNetworkValidationError(
-                    f"'{unit_name}': CAPACITY {value} for period {period} exceeds the turbine curve maximum "
+                    f"'{unit_name}': CAPACITY {value} for period {period} exceeds the {curve_name} curve maximum "
                     f"of {curve_max_power}.",
                     yaml_keys,
                 )
@@ -357,15 +431,8 @@ class EnergyNetworkMapper:
         expression_evaluator: ExpressionEvaluator,
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
-            case YamlGeneratorSet():
-                capacity = self._time_series(unit.capacity, expression_evaluator)
-                return (
-                    TimeSeriesGeneratorSetFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
-                    FuelGasRate,
-                    ElectricalPower,
-                )
-            case YamlGasTurbine():
-                raise AssertionError("GAS_TURBINE units need their YAML location, map them with _map_gas_turbine.")
+            case YamlGeneratorSet() | YamlGasTurbine():
+                raise AssertionError("GAS_TURBINE and GENERATOR_SET units are mapped with their YAML location.")
             case YamlElectricalMotor():
                 capacity = self._time_series(unit.capacity, expression_evaluator)
                 efficiency = self._time_series(unit.efficiency, expression_evaluator)

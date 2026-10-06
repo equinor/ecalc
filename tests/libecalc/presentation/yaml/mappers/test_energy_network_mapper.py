@@ -11,6 +11,7 @@ from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetwo
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
 TURBINE = {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}}
+GENERATOR_SET = {"CURVE": {"POWER": [0, 20], "FUEL": [0, 100000]}}
 
 
 @pytest.mark.parametrize(
@@ -51,6 +52,60 @@ def test_gas_turbine_capacity_defaults_to_the_curve_maximum(expression_evaluator
     assert turbine.capacity.get_evaluated_expression() == [20]
 
 
+@pytest.mark.parametrize("capacity", [20, 20 * (1 + 1e-12)])
+def test_generator_set_constant_capacity_up_to_the_curve_limit_is_accepted(
+    capacity, expression_evaluator_factory, period
+):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+            "UNITS": [
+                {
+                    "NAME": "genset",
+                    "TYPE": "GENERATOR_SET",
+                    "INPUT": "fuel",
+                    "CAPACITY": capacity,
+                    "MODEL": GENERATOR_SET,
+                }
+            ],
+        }
+    )
+
+    EnergyNetworkMapper().map_energy_network(yaml_network, expression_evaluator_factory.from_periods(periods=[period]))
+
+
+def test_generator_set_capacity_defaults_to_the_curve_maximum(expression_evaluator_factory, period):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+            "UNITS": [{"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET}],
+        }
+    )
+
+    _, factories, _ = EnergyNetworkMapper().map_energy_network(
+        yaml_network, expression_evaluator_factory.from_periods(periods=[period])
+    )
+
+    (genset,) = (factory for factory in factories if factory.get_name() == "genset")
+    assert genset.capacity.get_evaluated_expression() == [20]
+
+
+def test_generator_set_constant_capacity_above_the_curve_limit_is_rejected(expression_evaluator_factory, period):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+            "UNITS": [
+                {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "CAPACITY": 20.5, "MODEL": GENERATOR_SET}
+            ],
+        }
+    )
+
+    with pytest.raises(EcalcValidationException, match="'genset': CAPACITY 20.5 .* exceeds the generator set curve"):
+        EnergyNetworkMapper().map_energy_network(
+            yaml_network, expression_evaluator_factory.from_periods(periods=[period])
+        )
+
+
 def test_maps_sources_units_connections_and_expressions(expression_evaluator_factory, period):
     yaml_network = YamlEnergyNetwork.model_validate(
         {
@@ -61,7 +116,7 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
                 {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": 50},
             ],
             "UNITS": [
-                {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "CAPACITY": 10},
+                {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "CAPACITY": 10, "MODEL": GENERATOR_SET},
                 {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "CAPACITY": 15, "MODEL": TURBINE},
                 {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5, "EFFICIENCY": 0.9},
                 {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4, "EFFICIENCY": 0.96},
