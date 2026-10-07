@@ -1,5 +1,27 @@
 # Changelog
 
+## [15.2.0](https://github.com/equinor/ecalc/compare/v15.1.0...v15.2.0) (2026-10-07)
+
+
+### Features
+
+* add turbine fuel model ([#1839](https://github.com/equinor/ecalc/issues/1839)) ([f3af21d](https://github.com/equinor/ecalc/commit/f3af21d78acfe7ebb7c1e69846c6e00ecb30347c))
+
+
+### Bug Fixes
+
+* reject non-finite energy values ([#1845](https://github.com/equinor/ecalc/issues/1845)) ([217cb00](https://github.com/equinor/ecalc/commit/217cb002fbf2a15e10d73c2b4e8e134973f525f0))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the npm_and_yarn group across 1 directory with 2 updates ([#1840](https://github.com/equinor/ecalc/issues/1840)) ([bc72f97](https://github.com/equinor/ecalc/commit/bc72f97fa5e6aab37d83cbf407060acbcfcee2a3))
+
+
+### Continuous Integration
+
+* fix release please target branch ([#1846](https://github.com/equinor/ecalc/issues/1846)) ([a19789b](https://github.com/equinor/ecalc/commit/a19789bc085ce94801b74e6381b2df1778c796d9))
+
 ## [15.1.0](https://github.com/equinor/ecalc/compare/v15.0.2...v15.1.0) (2026-10-05)
 
 
