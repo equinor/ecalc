@@ -317,6 +317,7 @@ class YamlModel:
                 expression_evaluator,
                 resources=facility_resources,
                 turbine_definitions=self._configuration.definitions.turbines,
+                generator_set_definitions=self._configuration.definitions.generator_sets,
             )
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
         except EcalcValidationException as e:

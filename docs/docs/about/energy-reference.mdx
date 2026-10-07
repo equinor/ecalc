@@ -65,6 +65,50 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 
 </Tabs>
 
+### GENERATOR_SETS
+
+Defines generator sets that can be referenced from GENERATOR_SET units in the ENERGY_NETWORK. Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a GENERATOR_SET unit unless its CAPACITY is set lower.
+
+```yaml
+CURVE:
+  POWER:
+  - 0.0
+  - 5.0
+  - 10.0
+  - 15.0
+  FUEL:
+  - 0.0
+  - 25000.0
+  - 48000.0
+  - 70000.0
+```
+
+#### CURVE
+
+Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
+
+##### CURVE {/* #definitions-generator-sets-curve */}
+
+<Tabs>
+<TabItem value="YAMLGENERATORSETCURVE" label="YAMLGENERATORSETCURVE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `POWER` | Electrical power [MW], strictly increasing. In a FILE, this is the POWER column. | Required |
+| `FUEL` | Fuel gas rate [Sm3/day] for each power. In a FILE, this is the FUEL column. | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
+
 ## ENERGY_NETWORK
 
 Defines the energy network configuration.
@@ -92,9 +136,9 @@ Converters, junctions, and consumers forming the energy network.
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
-| `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
+| `CAPACITY` | Maximum output capacity. Must not exceed the limit given by the generator set curve. Omit to use the curve limit. | Optional |
 | `TYPE` | `GENERATOR_SET` | Required |
-| `MODEL` | Reference to a facility model defining the power-to-fuel curve. | Optional |
+| `MODEL` | Generator set model, given as a name defined in DEFINITIONS.GENERATOR_SETS or directly in place. Inline definition or reference. See [DEFINITIONS.GENERATOR_SETS](#generator_sets). | Required |
 
 </TabItem>
 

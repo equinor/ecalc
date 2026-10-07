@@ -27,6 +27,11 @@
 # An input without CAPACITY is unlimited for dispatch, until a deliverability rule exists.
 
 DEFINITIONS:
+  GENERATOR_SETS:
+    genset_17mw:
+      CURVE:
+        POWER: [0, 4, 8, 12, 17]  # MW
+        FUEL: [0, 20000, 38000, 55000, 76000]  # Sm3/day
   TURBINES:
     turbine_30mw:
       LOWER_HEATING_VALUE: 38  # MJ/Sm3

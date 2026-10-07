@@ -5,6 +5,7 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_set_definition import YamlGeneratorSetDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
@@ -92,13 +93,22 @@ class YamlGeneratorSet(YamlConverterBase):
     model_config = ConfigDict(title="GeneratorSet")
 
     type: Literal["GENERATOR_SET"]
-    model: Annotated[
-        str | None,
+    capacity: Annotated[
+        YamlExpressionType | None,
         Field(
-            title="MODEL",
-            description="Reference to a facility model defining the power-to-fuel curve.",
+            title="CAPACITY",
+            description="Maximum output capacity. Must not exceed the limit given by the generator set curve. "
+            "Omit to use the curve limit.",
         ),
     ] = None
+    model: Annotated[
+        YamlGeneratorSetDefinition | DefinitionReference,
+        Field(
+            title="MODEL",
+            description="Generator set model, given as a name defined in DEFINITIONS.GENERATOR_SETS or directly "
+            "in place.",
+        ),
+    ]
 
 
 class YamlGasTurbine(YamlConverterBase):

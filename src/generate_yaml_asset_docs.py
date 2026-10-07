@@ -25,6 +25,7 @@ from pydantic_core import PydanticUndefined
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled
+from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_set_definition import YamlGeneratorSetDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.testing.process_builders import (
@@ -52,7 +53,7 @@ PROCESS_INCLUDE_FIELDS = {"definitions", "process_pipelines", "inlet_streams", "
 ENERGY_INCLUDE_FIELDS = {"definitions", "energy_network"}
 
 # DEFINITIONS subsections documented on the energy page, the rest are documented on the process page
-ENERGY_DEFINITIONS_SECTIONS = {"TURBINES"}
+ENERGY_DEFINITIONS_SECTIONS = {"TURBINES", "GENERATOR_SETS"}
 
 # Maximum recursion depth to prevent infinite loops on circular references
 MAX_DEPTH = 8
@@ -223,6 +224,12 @@ ENERGY_EXAMPLES: list[Example] = [
                     "EFFICIENCY": [0.22, 0.31, 0.35, 0.37],
                 },
             }
+        ),
+    ),
+    Example(
+        "DEFINITIONS.GENERATOR_SETS",
+        lambda: YamlGeneratorSetDefinition.model_validate(
+            {"CURVE": {"POWER": [0, 5, 10, 15], "FUEL": [0, 25000, 48000, 70000]}}
         ),
     ),
     Example(
