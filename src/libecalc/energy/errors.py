@@ -19,6 +19,15 @@ class NegativeEnergyError(EnergyDomainError):
         super().__init__(f"{energy_type} value must be non-negative, got {value}")
 
 
+class NonFiniteEnergyError(EnergyDomainError):
+    """Raised when an energy value is NaN or infinite."""
+
+    def __init__(self, value: float, energy_type: str):
+        self.value = value
+        self.energy_type = energy_type
+        super().__init__(f"{energy_type} value must be finite, got {value}")
+
+
 class InvalidEnergyNetworkError(EnergyDomainError):
     """Raised when an energy network violates a topology invariant."""
 

@@ -5,9 +5,12 @@ from __future__ import annotations
 import pytest
 
 from libecalc.energy import (
+    DieselRate,
     ElectricalPower,
+    FuelGasRate,
     MechanicalPower,
 )
+from libecalc.energy.errors import NegativeEnergyError, NonFiniteEnergyError
 
 
 class TestEnergyDomainContracts:
@@ -47,3 +50,18 @@ class TestEnergyDomainContracts:
         assert ElectricalPower(5.0) < electrical
         assert electrical >= ElectricalPower(10.0)
         assert min(electrical, ElectricalPower(5.0)) == ElectricalPower(5.0)
+
+
+class TestEnergyValueValidation:
+    @pytest.mark.parametrize("energy_type", [ElectricalPower, MechanicalPower, FuelGasRate, DieselRate])
+    @pytest.mark.parametrize("value", [float("nan"), float("inf"), float("-inf")])
+    def test_rejects_non_finite_values(self, energy_type, value):
+        with pytest.raises(NonFiniteEnergyError):
+            energy_type(value)
+
+    def test_rejects_negative_values(self):
+        with pytest.raises(NegativeEnergyError):
+            ElectricalPower(-1.0)
+
+    def test_accepts_zero(self):
+        assert ElectricalPower(0.0).value == 0.0

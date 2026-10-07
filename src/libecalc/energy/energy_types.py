@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import abc
+import math
 from dataclasses import dataclass
 from typing import Self
 
 from libecalc.common.units import Unit
+from libecalc.energy.errors import NegativeEnergyError, NonFiniteEnergyError
 
 
 @dataclass(frozen=True)
@@ -18,9 +20,9 @@ class Energy(abc.ABC):
     value: float
 
     def __post_init__(self) -> None:
+        if not math.isfinite(self.value):
+            raise NonFiniteEnergyError(self.value, type(self).__name__)
         if self.value < 0:
-            from libecalc.energy.errors import NegativeEnergyError
-
             raise NegativeEnergyError(self.value, type(self).__name__)
 
     @property
