@@ -1,5 +1,17 @@
 # Changelog
 
+## [15.1.1](https://github.com/equinor/ecalc/compare/v15.1.0...v15.1.1) (2026-10-07)
+
+
+### Bug Fixes
+
+* update docusaurus due to vulnerabilities ([#1844](https://github.com/equinor/ecalc/issues/1844)) ([3405742](https://github.com/equinor/ecalc/commit/340574251bce4002e775229018396362809615ec))
+
+
+### Continuous Integration
+
+* fix release please target branch ([#1846](https://github.com/equinor/ecalc/issues/1846)) ([#1847](https://github.com/equinor/ecalc/issues/1847)) ([ebda770](https://github.com/equinor/ecalc/commit/ebda770654c7821b3ab3888c7077a96f8968740b))
+
 ## [15.1.0](https://github.com/equinor/ecalc/compare/v15.0.2...v15.1.0) (2026-10-05)
 
 
