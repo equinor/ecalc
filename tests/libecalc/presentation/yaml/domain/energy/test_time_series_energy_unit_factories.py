@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import partial
 from uuid import UUID
 
 import pytest
@@ -10,11 +11,10 @@ from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConn
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.presentation.yaml.domain.energy import (
+    TimeSeriesEfficiencyConverterFactory,
     TimeSeriesElectricalCableFactory,
-    TimeSeriesElectricalMotorFactory,
-    TimeSeriesGasTurbineFactory,
-    TimeSeriesGeneratorSetFactory,
     TimeSeriesJunctionFactory,
+    TimeSeriesSampledConverterFactory,
     TimeSeriesSourceFactory,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -48,14 +48,41 @@ def incoming(target_id: EnergyUnitId, energy_type, *source_ids: EnergyUnitId) ->
     )
 
 
+class _ConstantEfficiency:
+    """Minimal TimeSeriesExpression stand-in for factory tests that don't otherwise exercise efficiency."""
+
+    def get_value(self, period: Period) -> float:
+        return 1.0
+
+
 # Capacity is a rating on each unit's output, which for a converter differs from what it draws.
 RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, FuelGasRate, None, id="fuel gas source"),
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
-    pytest.param(TimeSeriesGeneratorSetFactory, ElectricalPower, FuelGasRate, id="generator set"),
-    pytest.param(TimeSeriesGasTurbineFactory, MechanicalPower, FuelGasRate, id="gas turbine"),
-    pytest.param(TimeSeriesElectricalMotorFactory, MechanicalPower, ElectricalPower, id="electrical motor"),
+    pytest.param(
+        partial(TimeSeriesSampledConverterFactory, input_energy_type=FuelGasRate, output_energy_type=ElectricalPower),
+        ElectricalPower,
+        FuelGasRate,
+        id="generator set",
+    ),
+    pytest.param(
+        partial(TimeSeriesSampledConverterFactory, input_energy_type=FuelGasRate, output_energy_type=MechanicalPower),
+        MechanicalPower,
+        FuelGasRate,
+        id="gas turbine",
+    ),
+    pytest.param(
+        partial(
+            TimeSeriesEfficiencyConverterFactory,
+            input_energy_type=ElectricalPower,
+            output_energy_type=MechanicalPower,
+            efficiency=_ConstantEfficiency(),  # pyright: ignore[reportArgumentType]
+        ),
+        MechanicalPower,
+        ElectricalPower,
+        id="electrical motor",
+    ),
     pytest.param(TimeSeriesElectricalCableFactory, ElectricalPower, ElectricalPower, id="electrical cable"),
 ]
 
