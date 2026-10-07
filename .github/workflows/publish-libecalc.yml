@@ -3,10 +3,11 @@ name: Publish libeCalc package to PyPI
 on:
   # zizmor: ignore[dangerous-triggers]
   # The workflow is not prone to dangerous-triggers:
-  #   1. The triggering `release-please` workflow only runs on `push` to `main` / `workflow_dispatch` (never on
-  #      forked PRs), so the artifact consumed here cannot be attacker-controlled.
-  #   2. The publish job checks out the repository default branch (not the triggering ref) and uses
-  #      `persist-credentials: false`, so no untrusted code from the triggering run is executed.
+  #   1. The triggering `release-please` workflow only runs on `push` to `main` / `release/v*` / `workflow_dispatch`
+  #      (never on forked PRs), so the artifact consumed here cannot be attacker-controlled.
+  #   2. The publish job checks out the branch the triggering run executed on (validated to be `main` or
+  #      `release/v*`), not an arbitrary ref, and uses `persist-credentials: false`, so no untrusted code
+  #      from the triggering run is executed.
   # `workflow_run` is required because Trusted Publishing to PyPI cannot be done from a reusable workflow.
   workflow_run:
     workflows: [ release-please ]
@@ -68,11 +69,32 @@ jobs:
       contents: read
     runs-on: ubuntu-24.04
     steps:
+      - name: Resolve and validate release branch
+        id: release-branch
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_BRANCH: ${{ github.event.workflow_run.head_branch }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [[ "${EVENT_NAME}" == "workflow_dispatch" ]]; then
+            BRANCH="${DEFAULT_BRANCH}"
+          else
+            BRANCH="${HEAD_BRANCH}"
+          fi
+
+          if [[ "${BRANCH}" == "main" || "${BRANCH}" == release/v* ]]; then
+            echo "branch=${BRANCH}" >> "$GITHUB_OUTPUT"
+          else
+            echo "Error: Unexpected triggering branch '${BRANCH}'" >&2
+            exit 1
+          fi
+
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # NOTE: Make sure we publish from the main branch, not the triggering ref
-          ref: ${{ github.event.repository.default_branch }}
+          # NOTE: Publish from the branch the release-please run actually executed on
+          # (main for minor/major releases, release/vX.Y for patch releases), not always the default branch.
+          ref: ${{ steps.release-branch.outputs.branch }}
           persist-credentials: false
 
       - name: Install uv
