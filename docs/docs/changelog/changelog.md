@@ -1,5 +1,12 @@
 # Changelog
 
+## [15.1.2](https://github.com/equinor/ecalc/compare/v15.1.1...v15.1.2) (2026-10-07)
+
+
+### Continuous Integration
+
+* fetch correct libecalc version/branch ([#1850](https://github.com/equinor/ecalc/issues/1850)) ([#1852](https://github.com/equinor/ecalc/issues/1852)) ([91a1912](https://github.com/equinor/ecalc/commit/91a191202cde0eb3c74664deab8b9a2df7a077fc))
+
 ## [15.1.1](https://github.com/equinor/ecalc/compare/v15.1.0...v15.1.1) (2026-10-07)
 
 
