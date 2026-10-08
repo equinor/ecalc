@@ -22,6 +22,7 @@ from libecalc.energy.energy_units import (
     GeneratorSet,
     Junction,
 )
+from libecalc.energy.errors import InvalidCapacityTypeError
 
 INPUT = EnergyConnectionId(UUID(int=100))
 SECOND_INPUT = EnergyConnectionId(UUID(int=101))
@@ -124,3 +125,35 @@ class TestJunctions:
 
         assert bus.get_input_energies() == {INPUT: ElectricalPower(4), SECOND_INPUT: ElectricalPower(6)}
         assert bus.get_failures() == []
+
+
+class TestCapacityType:
+    @pytest.mark.parametrize(
+        ("create", "capacity"),
+        [
+            (lambda capacity: Source("fuel", output_energy=FuelGasRate(0), capacity=capacity), MechanicalPower(1)),
+            (
+                lambda capacity: GeneratorSet("gen", ElectricalPower(0), input_connection_id=INPUT, capacity=capacity),
+                MechanicalPower(1),
+            ),
+            (
+                lambda capacity: GasTurbine(
+                    "turbine", MechanicalPower(0), input_connection_id=INPUT, capacity=capacity
+                ),
+                ElectricalPower(1),
+            ),
+            (
+                lambda capacity: ElectricalCable(
+                    "cable", ElectricalPower(0), input_connection_id=INPUT, capacity=capacity
+                ),
+                MechanicalPower(1),
+            ),
+        ],
+    )
+    def test_capacity_of_other_energy_type_is_rejected(self, create, capacity):
+        with pytest.raises(InvalidCapacityTypeError):
+            create(capacity)
+
+    def test_capacity_of_matching_energy_type_is_accepted(self):
+        turbine = GasTurbine("turbine", MechanicalPower(0), input_connection_id=INPUT, capacity=MechanicalPower(1))
+        assert turbine.get_capacity() == MechanicalPower(1)
