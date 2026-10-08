@@ -171,6 +171,21 @@ class TestFromExpressionReferences:
             datetime(2022, 1, 1),
         ]
 
+    def test_columns_match_time_vector_when_filtered_by_start_end(self):
+        tv = [datetime(2019, 1, 1), datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
+        tsr = self._make_tsr(tv, {"col1": [1.0, 2.0, 3.0, 4.0]})
+
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"SIM;col1"},
+            variables={},
+            time_series_resources={"SIM": tsr},
+            start=datetime(2020, 1, 1),
+            end=datetime(2021, 6, 1),
+        )
+
+        result = evaluator.evaluate(Expression.setup_from_expression(value="SIM;col1"))
+        np.testing.assert_array_equal(result, [2.0, 3.0])
+
     def test_with_variable_references(self):
         """Test that $var.* references are resolved transitively."""
         tv = [datetime(2020, 1, 1), datetime(2021, 1, 1)]

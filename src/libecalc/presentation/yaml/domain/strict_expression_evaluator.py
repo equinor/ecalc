@@ -66,12 +66,14 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
                     raise EcalcError(
                         title="Invalid time series", message="The specified start should exist in the time series"
                     )
-                time_vector = [time for time in first_tsr_time_vector if start <= time < end]
-            else:
-                time_vector = [time for time in first_tsr_time_vector if time < end]
+            selected_rows = [
+                i for i, time in enumerate(first_tsr_time_vector) if (start is None or start <= time) and time < end
+            ]
+            time_vector = [first_tsr_time_vector[i] for i in selected_rows]
         else:
             if start is None:
                 raise EcalcError(title="Invalid time series", message="No time steps to calculate")
+            selected_rows = []
             time_vector = [start]
 
         time_vector = [*time_vector, end]  # Start already included and confirmed to exist in time series resources
@@ -81,7 +83,8 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
         for tsr_name in expression_references_map:
             tsr = time_series_resources_used[tsr_name]
             for tsr_column in expression_references_map[tsr_name]:
-                time_series_columns[f"{tsr_name};{tsr_column}"] = tsr.get_float_column(tsr_column)
+                column = tsr.get_float_column(tsr_column)
+                time_series_columns[f"{tsr_name};{tsr_column}"] = [column[i] for i in selected_rows]
 
         referenced_variables = {}
         for ref in all_refs:
