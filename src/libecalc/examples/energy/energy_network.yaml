@@ -5,9 +5,9 @@
 #   fuel_gas ──► genset_a ──► base_load (5 MW)
 #       │            ├──────► steamgen (3 MW)
 #       │            ├──────► heating_sat_a (2 MW)
-#       │            └──────► waterinj_motor ──► waterinj_train (process sim)
+#       │            └──────► waterinj_motor ──► waterinj_train (4 MW)
 #       │
-#       ├──► export_turbine ──► export_train (process sim)
+#       ├──► export_turbine ──► export_train (export_shaft)
 #       │
 #       └──► [gas_compressor_sampled turbine] ──► gas_compressor_sampled (FILE)
 #
@@ -120,13 +120,13 @@ ENERGY_NETWORK:
       INPUT: diesel
       RATE: 500  # l/d
 
-    # Process simulation driven
+    # Shaft driven
     - NAME: export_train
       TYPE: MECHANICAL_CONSUMER
       INPUT: export_turbine
-      PROCESS_SIMULATION: export_compressor_sim
+      SHAFT: export_shaft
 
     - NAME: waterinj_train
       TYPE: MECHANICAL_CONSUMER
       INPUT: waterinj_motor
-      PROCESS_SIMULATION: waterinj_pump_sim
+      LOAD: 4
