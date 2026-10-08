@@ -1,6 +1,7 @@
 from enum import StrEnum
 
 from libecalc.energy.energy_types import Energy
+from libecalc.energy.errors import InvalidCapacityTypeError
 
 
 class EnergyFailureStatus(StrEnum):
@@ -39,3 +40,9 @@ def capacity_failures(required_energy: Energy, capacity: Energy | None) -> list[
             )
         ]
     return []
+
+
+def check_capacity(unit_name: str, capacity: Energy | None, output_energy: Energy) -> Energy | None:
+    if capacity is not None and type(capacity) is not type(output_energy):
+        raise InvalidCapacityTypeError(unit_name, type(output_energy).__name__, type(capacity).__name__)
+    return capacity

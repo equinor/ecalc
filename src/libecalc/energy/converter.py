@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import abc
 
-from libecalc.energy.energy_failure import EnergyFailure, capacity_failures
+from libecalc.energy.energy_failure import EnergyFailure, capacity_failures, check_capacity
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnit
 from libecalc.energy.ids import EnergyConnectionId, EnergyUnitId
@@ -32,7 +32,7 @@ class Converter(EnergyUnit, abc.ABC):
         super().__init__(name, energy_unit_id)
         self._output_energy = output_energy
         self._input_connection_id = input_connection_id
-        self._capacity = capacity
+        self._capacity = check_capacity(name, capacity, output_energy)
 
     def get_output_energy(self) -> Energy:
         return self._output_energy

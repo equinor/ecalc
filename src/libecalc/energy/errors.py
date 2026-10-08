@@ -28,6 +28,13 @@ class NonFiniteEnergyError(EnergyDomainError):
         super().__init__(f"{energy_type} value must be finite, got {value}")
 
 
+class InvalidCapacityTypeError(EnergyDomainError):
+    """Raised when a unit's capacity is of another energy type than the unit delivers."""
+
+    def __init__(self, unit_name: str, expected: str, actual: str):
+        super().__init__(f"Capacity for '{unit_name}' must be {expected}, got {actual}")
+
+
 class InvalidEnergyNetworkError(EnergyDomainError):
     """Raised when an energy network violates a topology invariant."""
 
