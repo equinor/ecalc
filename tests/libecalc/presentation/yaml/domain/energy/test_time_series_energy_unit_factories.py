@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import partial
 from uuid import UUID
 
 import pytest
@@ -54,7 +55,12 @@ RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
     pytest.param(TimeSeriesGeneratorSetFactory, ElectricalPower, FuelGasRate, id="generator set"),
-    pytest.param(TimeSeriesGasTurbineFactory, MechanicalPower, FuelGasRate, id="gas turbine"),
+    pytest.param(
+        partial(TimeSeriesGasTurbineFactory, power_to_fuel=lambda power: power),
+        MechanicalPower,
+        FuelGasRate,
+        id="gas turbine",
+    ),
     pytest.param(TimeSeriesElectricalMotorFactory, MechanicalPower, ElectricalPower, id="electrical motor"),
     pytest.param(TimeSeriesElectricalCableFactory, ElectricalPower, ElectricalPower, id="electrical cable"),
 ]
@@ -152,3 +158,18 @@ class TestJunctionFactories:
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="must be finite and non-negative"):
             bus.create(ElectricalPower(1), incoming_connections=connections, period=FIRST_PERIOD)
+
+
+class TestGasTurbineCapacity:
+    @pytest.mark.parametrize(("capacity", "expected"), [(6, 6), (10, 10), (0, 0)])
+    def test_capacity_is_resolved_from_the_expression(self, expression_factory, capacity, expected):
+        factory = TimeSeriesGasTurbineFactory(
+            name="turbine",
+            power_to_fuel=lambda power: power,
+            capacity=expression_factory(capacity),
+        )
+        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+
+        turbine = factory.create(MechanicalPower(1), incoming_connections=connections, period=FIRST_PERIOD)
+
+        assert turbine.get_capacity() == MechanicalPower(expected)

@@ -5,14 +5,14 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
 from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
 
-LOADS = [0, 2.352, 4.589, 6.853]
-EFFICIENCIES = [0, 0.138, 0.210, 0.255]
+LOADS = [2.352, 4.589, 6.853]
+EFFICIENCIES = [0.138, 0.210, 0.255]
 
 
 @pytest.mark.parametrize(
     ("loads", "efficiencies"),
     [(LOADS, EFFICIENCIES), ([2, 10], [0.2, 0.3])],
-    ids=["from_zero", "below_first_load"],
+    ids=["datasheet_curve", "below_first_load"],
 )
 def test_fuel_matches_legacy_turbine_from_first_load(loads, efficiencies):
     fuel_model = TurbineFuelModel(loads, efficiencies, 38)
@@ -50,22 +50,22 @@ def test_negative_power_is_rejected():
 @pytest.mark.parametrize(
     ("loads", "efficiencies", "lhv"),
     [
-        ([0, 1], [0, 0.2, 0.3], 38),
-        ([0], [0], 38),
-        ([0, 2, 2], [0, 0.2, 0.3], 38),
-        ([0, 1, 2], [0, 0.2, 1.2], 38),
-        ([0, 1, 2], [0, 0, 0.3], 38),
-        ([0, 1, float("nan")], [0, 0.2, 0.3], 38),
-        ([0, 1, 2], [0, 0.2, 0.3], 0),
-        ([0, 1, 2], [0, 0.2, 0.3], float("inf")),
-        ([-1, 1, 2], [0, 0.2, 0.3], 38),
+        ([0, 1], [0.1, 0.2, 0.3], 38),
+        ([1], [0.1], 38),
+        ([0, 2, 2], [0.1, 0.2, 0.3], 38),
+        ([0, 1, 2], [0.1, 0.2, 1.2], 38),
+        ([1, 2, 3], [0.1, 0, 0.3], 38),
+        ([0, 1, float("nan")], [0.1, 0.2, 0.3], 38),
+        ([0, 1, 2], [0.1, 0.2, 0.3], 0),
+        ([0, 1, 2], [0.1, 0.2, 0.3], float("inf")),
+        ([-1, 1, 2], [0.1, 0.2, 0.3], 38),
     ],
     ids=[
         "unequal_lengths",
         "single_point",
         "loads_not_increasing",
         "efficiency_above_one",
-        "zero_efficiency_at_positive_load",
+        "zero_efficiency",
         "non_finite_load",
         "zero_heating_value",
         "infinite_heating_value",
