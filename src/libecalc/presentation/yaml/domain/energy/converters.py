@@ -9,7 +9,7 @@ from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, GeneratorSet
 from libecalc.presentation.yaml.domain.energy.base import ResolvedEnergyUnitFactory, TimeSeriesEnergyUnitFactory
-from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy, resolve_optional_value
+from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_efficiency, resolve_optional_energy
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -96,7 +96,7 @@ class TimeSeriesElectricalMotorFactory(TimeSeriesEnergyUnitFactory):
         self.efficiency = efficiency
 
     def resolve(self, period: Period) -> EnergyUnitFactory:
-        efficiency = resolve_optional_value(
+        efficiency = resolve_optional_efficiency(
             self.efficiency, period=period, description=f"Efficiency for '{self.get_name()}'"
         )
         capacity = resolve_optional_energy(

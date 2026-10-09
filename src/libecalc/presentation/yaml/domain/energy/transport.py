@@ -11,7 +11,7 @@ from libecalc.energy.energy_units import ElectricalCable
 from libecalc.presentation.yaml.domain.energy.base import ResolvedEnergyUnitFactory, TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import (
     resolve_optional_energy,
-    resolve_optional_value,
+    resolve_optional_loss_fraction,
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
@@ -29,7 +29,7 @@ class TimeSeriesElectricalCableFactory(TimeSeriesEnergyUnitFactory):
         self.loss_fraction = loss_fraction
 
     def resolve(self, period: Period) -> EnergyUnitFactory:
-        loss_fraction = resolve_optional_value(
+        loss_fraction = resolve_optional_loss_fraction(
             self.loss_fraction, period=period, description=f"Loss fraction for '{self.get_name()}'"
         )
         capacity = resolve_optional_energy(

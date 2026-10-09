@@ -53,3 +53,25 @@ def resolve_optional_value(
     if not math.isfinite(value):
         raise InvalidEnergyNetworkInputError(f"{description} must be finite, got {value} for period {period}")
     return value
+
+
+def resolve_optional_efficiency(
+    expression: TimeSeriesExpression | None, *, period: Period, description: str
+) -> float | None:
+    value = resolve_optional_value(expression, period=period, description=description)
+    if value is not None and not 0 < value <= 1:
+        raise InvalidEnergyNetworkInputError(
+            f"{description} must be above 0 and up to 1, got {value} for period {period}"
+        )
+    return value
+
+
+def resolve_optional_loss_fraction(
+    expression: TimeSeriesExpression | None, *, period: Period, description: str
+) -> float | None:
+    value = resolve_optional_value(expression, period=period, description=description)
+    if value is not None and not 0 <= value < 1:
+        raise InvalidEnergyNetworkInputError(
+            f"{description} must be at least 0 and below 1, got {value} for period {period}"
+        )
+    return value

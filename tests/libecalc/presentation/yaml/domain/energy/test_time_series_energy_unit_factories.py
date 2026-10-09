@@ -182,3 +182,23 @@ class TestEfficiencyAndLoss:
 
         assert first.get_input_energies()[connections[0].id] == ElectricalPower(8)
         assert second.get_input_energies()[connections[0].id] == ElectricalPower(10)
+
+    @pytest.mark.parametrize("efficiency", [0, 1.2, -0.1])
+    def test_motor_rejects_efficiency_outside_range_in_a_period(self, expression_factory, efficiency):
+        factory = TimeSeriesElectricalMotorFactory(
+            name="motor", efficiency=expression_factory("SIM1;EFF", {"SIM1;EFF": [0.9, efficiency]})
+        )
+
+        factory.resolve(FIRST_PERIOD)
+        with pytest.raises(InvalidEnergyNetworkInputError, match="Efficiency for 'motor' must be above 0 and up to 1"):
+            factory.resolve(SECOND_PERIOD)
+
+    @pytest.mark.parametrize("loss_fraction", [1, 1.5, -0.1])
+    def test_cable_rejects_loss_fraction_outside_range_in_a_period(self, expression_factory, loss_fraction):
+        factory = TimeSeriesElectricalCableFactory(
+            name="cable", loss_fraction=expression_factory("SIM1;LOSS", {"SIM1;LOSS": [0.1, loss_fraction]})
+        )
+
+        factory.resolve(FIRST_PERIOD)
+        with pytest.raises(InvalidEnergyNetworkInputError, match="Loss fraction for 'cable' must be at least 0"):
+            factory.resolve(SECOND_PERIOD)
