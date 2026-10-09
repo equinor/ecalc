@@ -1,5 +1,37 @@
 # Changelog
 
+## [15.2.0](https://github.com/equinor/ecalc/compare/v15.1.0...v15.2.0) (2026-10-09)
+
+
+### Features
+
+* add turbine definitions to DEFINITIONS ([#1838](https://github.com/equinor/ecalc/issues/1838)) ([030e4d1](https://github.com/equinor/ecalc/commit/030e4d136cb3a815b5f3c9d0e69012aac1ff97c1))
+* add turbine fuel model ([#1839](https://github.com/equinor/ecalc/issues/1839)) ([f3af21d](https://github.com/equinor/ecalc/commit/f3af21d78acfe7ebb7c1e69846c6e00ecb30347c))
+* **libecalc:** reject capacity of wrong energy type ([#1855](https://github.com/equinor/ecalc/issues/1855)) ([e59026a](https://github.com/equinor/ecalc/commit/e59026a003ad4ef8ec0effbbd4ff686d8896b836))
+
+
+### Bug Fixes
+
+* reject non-finite energy values ([#1845](https://github.com/equinor/ecalc/issues/1845)) ([217cb00](https://github.com/equinor/ecalc/commit/217cb002fbf2a15e10d73c2b4e8e134973f525f0))
+* support END changes in process simulations ([#1837](https://github.com/equinor/ecalc/issues/1837)) ([bf06ad4](https://github.com/equinor/ecalc/commit/bf06ad4a78599d59bc067ed552fd1cab0065b950))
+* update docusaurus due to vulnerabilities ([#1844](https://github.com/equinor/ecalc/issues/1844)) ([#1854](https://github.com/equinor/ecalc/issues/1854)) ([20e78fc](https://github.com/equinor/ecalc/commit/20e78fcd81be55db4466e10e2358343f27668e72))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump the npm_and_yarn group across 1 directory with 2 updates ([#1840](https://github.com/equinor/ecalc/issues/1840)) ([bc72f97](https://github.com/equinor/ecalc/commit/bc72f97fa5e6aab37d83cbf407060acbcfcee2a3))
+
+
+### Code Refactoring
+
+* **libecalc:** remove unused capacity from Consumer ([#1856](https://github.com/equinor/ecalc/issues/1856)) ([ae7eda4](https://github.com/equinor/ecalc/commit/ae7eda4792771b4525a70f3b767dcf827e7bbcd0))
+
+
+### Continuous Integration
+
+* fetch correct libecalc version/branch ([#1850](https://github.com/equinor/ecalc/issues/1850)) ([e6118b5](https://github.com/equinor/ecalc/commit/e6118b54f1956873246cc5cac66963976445b8de))
+* fix release please target branch ([#1846](https://github.com/equinor/ecalc/issues/1846)) ([a19789b](https://github.com/equinor/ecalc/commit/a19789bc085ce94801b74e6381b2df1778c796d9))
+
 ## [15.1.0](https://github.com/equinor/ecalc/compare/v15.0.2...v15.1.0) (2026-10-05)
 
 
