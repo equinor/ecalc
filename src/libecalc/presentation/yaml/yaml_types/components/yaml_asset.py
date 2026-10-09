@@ -5,6 +5,7 @@ from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
@@ -43,6 +44,15 @@ class YamlDefinitions(YamlBase):
         description="Defines fluids that can be referenced in inlet streams.",
     )
 
+    turbines: dict[str, YamlTurbineDefinition] = Field(
+        default_factory=dict,
+        title="TURBINES",
+        description="Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. "
+        "Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the "
+        "last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of "
+        "a GAS_TURBINE unless its CAPACITY is set lower.",
+    )
+
 
 class YamlAsset(YamlBase):
     """An eCalc™ yaml file"""
@@ -54,7 +64,7 @@ class YamlAsset(YamlBase):
     definitions: YamlDefinitions = Field(
         default_factory=YamlDefinitions,
         title="DEFINITIONS",
-        description="Contains reusable definitions such as process units and fluids.",
+        description="Contains reusable definitions.",
     )
     time_series: list[YamlTimeSeriesCollection] = Field(
         default_factory=list,
@@ -213,6 +223,7 @@ class YamlAsset(YamlBase):
 
         references.extend(self.definitions.process_units.keys())
         references.extend(self.definitions.fluids.keys())
+        references.extend(self.definitions.turbines.keys())
 
         for process_simulation in self.process_simulations:
             references.append(process_simulation.name)
