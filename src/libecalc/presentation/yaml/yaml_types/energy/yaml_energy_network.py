@@ -420,6 +420,44 @@ class YamlCompressorSampled(YamlConsumerBase):
         return self
 
 
+class YamlTabularConsumer(YamlConsumerBase):
+    """
+    A consumer whose energy usage is interpolated from `FILE` against arbitrary named variables. The energy
+    column decides what the unit consumes:
+
+    - `FUEL`: a fuel consumer, gas or diesel after what `INPUT` provides.
+    - `POWER`: a power consumer, electrical or mechanical after what `INPUT` provides.
+
+    `FILE` must have exactly one of them.
+
+    Every other column in `FILE` is a variable, and must be given in `VARIABLES`.
+
+    There is no extrapolation. The table covers the convex hull of its rows, so with several variables a value
+    can be outside the table even if each variable is within its own column's range. A value outside the table
+    stops the run; include the off state, e.g. rate 0, in the table if the consumer can be shut in.
+
+    `POWER` is in MW. `FUEL` is in Sm3/day for gas and litres/day for diesel.
+    """
+
+    model_config = ConfigDict(title="TabularConsumer")
+
+    type: Literal["TABULAR_CONSUMER"]
+    file: Annotated[
+        str,
+        Field(title="FILE", description="Resource tabulating FUEL or POWER against the variables."),
+    ]
+    variables: Annotated[
+        dict[str, YamlExpressionType],
+        Field(
+            min_length=1,
+            title="VARIABLES",
+            description="Variable name (a column header in FILE) to its value.",
+        ),
+    ]
+
+    validate_file_exists = field_validator("file", mode="after")(file_exists_validator)
+
+
 YamlComponent = Annotated[
     Union[
         YamlGeneratorSet,
@@ -433,6 +471,7 @@ YamlComponent = Annotated[
         YamlFuelGasConsumer,
         YamlDieselConsumer,
         YamlCompressorSampled,
+        YamlTabularConsumer,
     ],
     Field(discriminator="type"),
 ]
@@ -473,7 +512,7 @@ SOURCE_OUTPUT_ENERGY: dict[YamlEnergySourceType, EnergyType] = {
     YamlEnergySourceType.ELECTRICAL_SOURCE: EnergyType.ELECTRICAL,
 }
 
-FILE_DEFINED_INPUT_TYPES = {"COMPRESSOR_SAMPLED"}
+FILE_DEFINED_INPUT_TYPES = {"COMPRESSOR_SAMPLED", "TABULAR_CONSUMER"}
 
 CONSUMER_TYPES = (set(INPUT_ENERGY) - set(OUTPUT_ENERGY)) | FILE_DEFINED_INPUT_TYPES
 
