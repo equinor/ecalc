@@ -1,14 +1,15 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
 
+from libecalc.common.time_utils import Period
 from libecalc.energy.dispatch import DispatchStrategy
+from libecalc.energy.energy_network_simulation import EnergyUnitFactory
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import Junction
-from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
+from libecalc.presentation.yaml.domain.energy.base import ResolvedEnergyUnitFactory, TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import resolve_energy
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
@@ -30,21 +31,29 @@ class TimeSeriesJunctionFactory(TimeSeriesEnergyUnitFactory):
         self.dispatch_strategy = dispatch_strategy
         self.input_capacities = input_capacities or {}
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Junction:
-        return Junction(
-            name=self.get_name(),
-            output_energy=demand,
-            energy_type=self.energy_type,
-            input_connection_ids={connection.source_id: connection.id for connection in incoming_connections},
-            dispatch_strategy=self.dispatch_strategy,
-            input_capacities={
-                candidate_id: resolve_energy(
-                    expression,
-                    self.energy_type,
-                    period=extra.get("period"),
-                    description=f"Input capacity from {candidate_id} for '{self.get_name()}'",
-                )
-                for candidate_id, expression in self.input_capacities.items()
-            },
-            energy_unit_id=self.get_id(),
-        )
+    def resolve(self, period: Period) -> EnergyUnitFactory:
+        input_capacities = {
+            candidate_id: resolve_energy(
+                expression,
+                self.energy_type,
+                period=period,
+                description=f"Input capacity from {candidate_id} for '{self.get_name()}'",
+            )
+            for candidate_id, expression in self.input_capacities.items()
+        }
+
+        name, energy_unit_id = self.get_name(), self.get_id()
+        energy_type, dispatch_strategy = self.energy_type, self.dispatch_strategy
+
+        def create(demand: Energy, incoming_connections: Sequence[EnergyConnection]) -> Junction:
+            return Junction(
+                name=name,
+                output_energy=demand,
+                energy_type=energy_type,
+                input_connection_ids={connection.source_id: connection.id for connection in incoming_connections},
+                dispatch_strategy=dispatch_strategy,
+                input_capacities=input_capacities,
+                energy_unit_id=energy_unit_id,
+            )
+
+        return ResolvedEnergyUnitFactory(energy_unit_id=energy_unit_id, name=name, create=create)

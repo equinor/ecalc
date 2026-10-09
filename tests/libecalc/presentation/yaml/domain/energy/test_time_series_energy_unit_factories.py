@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import partial
 from uuid import UUID
 
 import pytest
@@ -50,9 +51,11 @@ def incoming(target_id: EnergyUnitId, energy_type, *source_ids: EnergyUnitId) ->
 
 # Capacity is a rating on each unit's output, which for a converter differs from what it draws.
 RATED_FACTORIES = [
-    pytest.param(TimeSeriesSourceFactory, FuelGasRate, None, id="fuel gas source"),
-    pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
-    pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
+    pytest.param(partial(TimeSeriesSourceFactory, energy_type=FuelGasRate), FuelGasRate, None, id="fuel gas source"),
+    pytest.param(
+        partial(TimeSeriesSourceFactory, energy_type=ElectricalPower), ElectricalPower, None, id="electrical source"
+    ),
+    pytest.param(partial(TimeSeriesSourceFactory, energy_type=DieselRate), DieselRate, None, id="diesel source"),
     pytest.param(TimeSeriesGeneratorSetFactory, ElectricalPower, FuelGasRate, id="generator set"),
     pytest.param(TimeSeriesGasTurbineFactory, MechanicalPower, FuelGasRate, id="gas turbine"),
     pytest.param(TimeSeriesElectricalMotorFactory, MechanicalPower, ElectricalPower, id="electrical motor"),
@@ -68,46 +71,48 @@ class TestRatedFactories:
         factory = factory_class(name="unit", capacity=expression_factory("SIM1;CAPACITY", {"SIM1;CAPACITY": [5, 8]}))
         connections = () if input_type is None else incoming(factory.get_id(), input_type, FIRST_CANDIDATE)
 
-        first = factory.create(output_type(1), incoming_connections=connections, period=FIRST_PERIOD)
-        second = factory.create(output_type(1), incoming_connections=connections, period=SECOND_PERIOD)
+        first = factory.resolve(FIRST_PERIOD).create(output_type(1), incoming_connections=connections)
+        second = factory.resolve(SECOND_PERIOD).create(output_type(1), incoming_connections=connections)
 
         assert first.get_capacity() == output_type(5)
         assert second.get_capacity() == output_type(8)
         assert first.get_input_energies().keys() == {connection.id for connection in connections}
 
     def test_zero_capacity_is_a_limit(self, expression_factory):
-        factory = TimeSeriesSourceFactory(name="grid", capacity=expression_factory(0))
+        factory = TimeSeriesSourceFactory(name="grid", energy_type=ElectricalPower, capacity=expression_factory(0))
 
-        assert factory.create(ElectricalPower(1), incoming_connections=(), period=FIRST_PERIOD).get_capacity() == (
+        assert factory.resolve(FIRST_PERIOD).create(ElectricalPower(1), incoming_connections=()).get_capacity() == (
             ElectricalPower(0)
         )
 
-    def test_unconfigured_source_needs_no_period(self):
-        factory = TimeSeriesSourceFactory(name="fuel")
+    def test_unconfigured_source_has_no_capacity(self):
+        factory = TimeSeriesSourceFactory(name="fuel", energy_type=FuelGasRate)
 
-        assert factory.create(FuelGasRate(1), incoming_connections=()).get_capacity() is None
+        assert factory.resolve(FIRST_PERIOD).create(FuelGasRate(1), incoming_connections=()).get_capacity() is None
 
-    def test_configured_capacity_requires_a_period(self, expression_factory):
-        factory = TimeSeriesSourceFactory(name="grid", capacity=expression_factory(5))
+    def test_rejects_demand_of_another_energy_type(self):
+        factory = TimeSeriesSourceFactory(name="grid", energy_type=ElectricalPower)
 
-        with pytest.raises(InvalidEnergyNetworkInputError, match="needs a period"):
-            factory.create(ElectricalPower(1), incoming_connections=())
+        with pytest.raises(InvalidEnergyNetworkInputError, match="provides ElectricalPower"):
+            factory.resolve(FIRST_PERIOD).create(FuelGasRate(1), incoming_connections=())
 
     def test_rejects_period_without_a_value(self, expression_factory):
-        factory = TimeSeriesSourceFactory(name="grid", capacity=expression_factory(5))
+        factory = TimeSeriesSourceFactory(name="grid", energy_type=ElectricalPower, capacity=expression_factory(5))
         unknown_period = Period(start=datetime(2030, 1, 1), end=datetime(2031, 1, 1))
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="has no value for period"):
-            factory.create(ElectricalPower(1), incoming_connections=(), period=unknown_period)
+            factory.resolve(unknown_period)
 
     @pytest.mark.parametrize("value", [-1.0, float("nan"), float("inf")])
     def test_rejects_capacity_that_is_not_finite_and_non_negative(self, expression_factory, value):
         factory = TimeSeriesSourceFactory(
-            name="grid", capacity=expression_factory("SIM1;CAPACITY", {"SIM1;CAPACITY": [value, value]})
+            name="grid",
+            energy_type=ElectricalPower,
+            capacity=expression_factory("SIM1;CAPACITY", {"SIM1;CAPACITY": [value, value]}),
         )
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="must be finite and non-negative"):
-            factory.create(ElectricalPower(1), incoming_connections=(), period=FIRST_PERIOD)
+            factory.resolve(FIRST_PERIOD)
 
 
 class TestJunctionFactories:
@@ -121,8 +126,8 @@ class TestJunctionFactories:
         connections = incoming(bus.get_id(), ElectricalPower, FIRST_CANDIDATE, SECOND_CANDIDATE)
         first_input, second_input = (connection.id for connection in connections)
 
-        first = bus.create(ElectricalPower(10), incoming_connections=connections, period=FIRST_PERIOD)
-        second = bus.create(ElectricalPower(10), incoming_connections=connections, period=SECOND_PERIOD)
+        first = bus.resolve(FIRST_PERIOD).create(ElectricalPower(10), incoming_connections=connections)
+        second = bus.resolve(SECOND_PERIOD).create(ElectricalPower(10), incoming_connections=connections)
 
         assert first.get_input_energies() == {first_input: ElectricalPower(4), second_input: ElectricalPower(6)}
         assert second.get_input_energies() == {first_input: ElectricalPower(7), second_input: ElectricalPower(3)}
@@ -136,7 +141,7 @@ class TestJunctionFactories:
         connections = incoming(manifold.get_id(), FuelGasRate, FIRST_CANDIDATE, SECOND_CANDIDATE)
         first_input, second_input = (connection.id for connection in connections)
 
-        junction = manifold.create(FuelGasRate(900), incoming_connections=connections)
+        junction = manifold.resolve(FIRST_PERIOD).create(FuelGasRate(900), incoming_connections=connections)
 
         assert junction.get_input_energies() == {first_input: FuelGasRate(900), second_input: FuelGasRate(0)}
 
@@ -148,7 +153,52 @@ class TestJunctionFactories:
             dispatch_strategy=PriorityDispatch(order=(FIRST_CANDIDATE, SECOND_CANDIDATE)),
             input_capacities={FIRST_CANDIDATE: expression_factory("SIM1;LIMIT", {"SIM1;LIMIT": [float("nan")] * 2})},
         )
-        connections = incoming(bus.get_id(), ElectricalPower, FIRST_CANDIDATE, SECOND_CANDIDATE)
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="must be finite and non-negative"):
-            bus.create(ElectricalPower(1), incoming_connections=connections, period=FIRST_PERIOD)
+            bus.resolve(FIRST_PERIOD)
+
+
+class TestEfficiencyAndLoss:
+    def test_motor_resolves_efficiency_per_period(self, expression_factory):
+        factory = TimeSeriesElectricalMotorFactory(
+            name="motor", efficiency=expression_factory("SIM1;EFF", {"SIM1;EFF": [0.9, 0.5]})
+        )
+        connections = incoming(factory.get_id(), ElectricalPower, FIRST_CANDIDATE)
+
+        first = factory.resolve(FIRST_PERIOD).create(MechanicalPower(9), incoming_connections=connections)
+        second = factory.resolve(SECOND_PERIOD).create(MechanicalPower(9), incoming_connections=connections)
+
+        assert first.get_input_energies()[connections[0].id] == ElectricalPower(10)
+        assert second.get_input_energies()[connections[0].id] == ElectricalPower(18)
+
+    def test_cable_resolves_loss_fraction_per_period(self, expression_factory):
+        factory = TimeSeriesElectricalCableFactory(
+            name="cable", loss_fraction=expression_factory("SIM1;LOSS", {"SIM1;LOSS": [0.0, 0.2]})
+        )
+        connections = incoming(factory.get_id(), ElectricalPower, FIRST_CANDIDATE)
+
+        first = factory.resolve(FIRST_PERIOD).create(ElectricalPower(8), incoming_connections=connections)
+        second = factory.resolve(SECOND_PERIOD).create(ElectricalPower(8), incoming_connections=connections)
+
+        assert first.get_input_energies()[connections[0].id] == ElectricalPower(8)
+        assert second.get_input_energies()[connections[0].id] == ElectricalPower(10)
+
+    @pytest.mark.parametrize("efficiency", [0, 1.2, -0.1])
+    def test_motor_rejects_efficiency_outside_range_in_a_period(self, expression_factory, efficiency):
+        factory = TimeSeriesElectricalMotorFactory(
+            name="motor", efficiency=expression_factory("SIM1;EFF", {"SIM1;EFF": [0.9, efficiency]})
+        )
+
+        factory.resolve(FIRST_PERIOD)
+        with pytest.raises(InvalidEnergyNetworkInputError, match="Efficiency for 'motor' must be above 0 and up to 1"):
+            factory.resolve(SECOND_PERIOD)
+
+    @pytest.mark.parametrize("loss_fraction", [1, 1.5, -0.1])
+    def test_cable_rejects_loss_fraction_outside_range_in_a_period(self, expression_factory, loss_fraction):
+        factory = TimeSeriesElectricalCableFactory(
+            name="cable", loss_fraction=expression_factory("SIM1;LOSS", {"SIM1;LOSS": [0.1, loss_fraction]})
+        )
+
+        factory.resolve(FIRST_PERIOD)
+        with pytest.raises(InvalidEnergyNetworkInputError, match="Loss fraction for 'cable' must be at least 0"):
+            factory.resolve(SECOND_PERIOD)

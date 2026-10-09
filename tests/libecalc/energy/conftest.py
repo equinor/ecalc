@@ -55,7 +55,7 @@ class NoOpEnergyUnitFactory[T: EnergyUnit](EnergyUnitFactory):
             return self._output_energy_type
         return self._unit_class.get_output_energy_type()  # pyright: ignore[reportCallIssue]
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: object) -> T:
+    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection]) -> T:
         connection_kwargs = {}
         if self.get_input_energy_type() is not None:
             (incoming_connection,) = incoming_connections
@@ -100,7 +100,7 @@ class NoOpJunctionFactory(EnergyUnitFactory):
     def get_output_energy_type(self) -> type[Energy]:
         return self._energy_type
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: object) -> Junction:
+    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection]) -> Junction:
         return Junction(
             name=self._name,
             output_energy=demand,

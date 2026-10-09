@@ -1,4 +1,5 @@
 from libecalc.presentation.yaml.domain.energy.base import (
+    ResolvedEnergyUnitFactory,
     TimeSeriesEnergyUnit,
     TimeSeriesEnergyUnitFactory,
 )
@@ -16,6 +17,7 @@ from libecalc.presentation.yaml.domain.energy.demand import (
     TimeSeriesDemand,
 )
 from libecalc.presentation.yaml.domain.energy.junction import TimeSeriesJunctionFactory
+from libecalc.presentation.yaml.domain.energy.simulation import create_simulation_for_period
 from libecalc.presentation.yaml.domain.energy.sources import (
     TimeSeriesSourceFactory,
 )
@@ -24,6 +26,7 @@ from libecalc.presentation.yaml.domain.energy.transport import (
 )
 
 __all__ = [
+    "ResolvedEnergyUnitFactory",
     "CompressorSampledDemand",
     "ExpressionDemand",
     "TimeSeriesConsumer",
@@ -36,4 +39,5 @@ __all__ = [
     "TimeSeriesGeneratorSetFactory",
     "TimeSeriesJunctionFactory",
     "TimeSeriesSourceFactory",
+    "create_simulation_for_period",
 ]

@@ -3,7 +3,7 @@ from io import StringIO
 import pytest
 import yaml
 
-from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
+from libecalc.presentation.yaml.domain.energy import create_simulation_for_period
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.testing.yaml_builder import YamlTimeSeriesBuilder
 
@@ -57,7 +57,6 @@ def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
     topology, energy_unit_factories, consumers, _periods = model.get_energy_network()
 
     assert topology is not None
-    simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=energy_unit_factories)
     (load,) = consumers
     assert load.demand.expression is not None
     (load_connection,) = topology.get_incoming_connections(load.get_id())
@@ -65,10 +64,8 @@ def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
     grid_to_bus = topology.get_connection(factories_by_name["grid"].get_id(), factories_by_name["bus"].get_id())
 
     grid_shares = [
-        simulation.run(
-            {load_connection.id: load.get_demand(period)},
-            period=period,
-        )
+        create_simulation_for_period(topology, energy_unit_factories, period)
+        .run({load_connection.id: load.get_demand(period)})
         .get_energy()[grid_to_bus.id]
         .value
         for period in load.demand.expression.get_periods()
