@@ -33,6 +33,7 @@ from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion impo
     expand,
     unit_key,
 )
+from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
@@ -125,7 +126,7 @@ class EnergyNetworkMapper:
             else:
                 key = unit_key(unit.name)
                 node, input_type, output_type = self._map_unit(
-                    unit, node_ids_by_key[key], node_ids_by_key, expression_evaluator
+                    unit, node_ids_by_key[key], node_ids_by_key, resources, expression_evaluator
                 )
                 mapped_nodes.append((key, node, input_type, output_type))
                 connections.extend(
@@ -268,6 +269,7 @@ class EnergyNetworkMapper:
         unit: YamlComponent,
         energy_unit_id: EnergyUnitId,
         node_ids_by_key: Mapping[NodeKey, EnergyUnitId],
+        resources: Mapping[str, Resource],
         expression_evaluator: ExpressionEvaluator,
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
@@ -279,9 +281,14 @@ class EnergyNetworkMapper:
                     ElectricalPower,
                 )
             case YamlGasTurbine():
-                capacity = self._time_series(unit.capacity, expression_evaluator)
+                fuel_model = map_turbine_fuel_model(unit.name, unit.model, resources)
                 return (
-                    TimeSeriesGasTurbineFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
+                    TimeSeriesGasTurbineFactory(
+                        name=unit.name,
+                        energy_unit_id=energy_unit_id,
+                        capacity=self._time_series(fuel_model.max_power, expression_evaluator),
+                        power_to_fuel=fuel_model.fuel_for_power,
+                    ),
                     FuelGasRate,
                     MechanicalPower,
                 )

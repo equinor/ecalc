@@ -1,10 +1,11 @@
 from enum import StrEnum
 from typing import Annotated, Literal, Union
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import AfterValidator, ConfigDict, Field, field_validator, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -18,6 +19,13 @@ def _check_efficiency(v: YamlExpressionType | None) -> YamlExpressionType | None
     if isinstance(v, (int, float)) and not (0 < v <= 1):
         raise ValueError(f"EFFICIENCY must be in (0, 1], got {v}")
     return v
+
+
+YamlCapacity = Annotated[
+    YamlExpressionType | None,
+    Field(title="CAPACITY", description="Maximum output capacity. Omit for unlimited."),
+    AfterValidator(lambda v: _check_non_negative(v, "CAPACITY")),
+]
 
 
 class YamlEnergySourceType(StrEnum):
@@ -72,23 +80,12 @@ class YamlConverterBase(YamlBase):
             description="Source or component this receives energy from.",
         ),
     ]
-    capacity: Annotated[
-        YamlExpressionType | None,
-        Field(
-            title="CAPACITY",
-            description="Maximum output capacity. Omit for unlimited.",
-        ),
-    ] = None
-
-    @field_validator("capacity", mode="after")
-    @classmethod
-    def _capacity_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
-        return _check_non_negative(v, "CAPACITY")
 
 
 class YamlGeneratorSet(YamlConverterBase):
     model_config = ConfigDict(title="GeneratorSet")
 
+    capacity: YamlCapacity = None
     type: Literal["GENERATOR_SET"]
     model: Annotated[
         str | None,
@@ -104,17 +101,18 @@ class YamlGasTurbine(YamlConverterBase):
 
     type: Literal["GAS_TURBINE"]
     model: Annotated[
-        str | None,
+        YamlTurbineDefinition,
         Field(
             title="MODEL",
-            description="Reference to a facility model defining the power-to-fuel curve.",
+            description="Turbine model, given directly in place.",
         ),
-    ] = None
+    ]
 
 
 class YamlElectricalMotor(YamlConverterBase):
     model_config = ConfigDict(title="ElectricalMotor")
 
+    capacity: YamlCapacity = None
     type: Literal["ELECTRICAL_MOTOR"]
     efficiency: Annotated[
         YamlExpressionType | None,
@@ -133,6 +131,7 @@ class YamlElectricalMotor(YamlConverterBase):
 class YamlElectricalCable(YamlConverterBase):
     model_config = ConfigDict(title="ElectricalCable")
 
+    capacity: YamlCapacity = None
     type: Literal["ELECTRICAL_CABLE"]
     efficiency: Annotated[
         YamlExpressionType | None,

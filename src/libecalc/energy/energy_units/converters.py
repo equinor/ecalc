@@ -54,7 +54,7 @@ class GasTurbine(Converter):
         output_energy: Energy,
         *,
         input_connection_id: EnergyConnectionId,
-        power_to_fuel: Callable[[float], float] = lambda power: power,
+        power_to_fuel: Callable[[float], float],
         capacity: Energy | None = None,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:

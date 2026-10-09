@@ -50,7 +50,7 @@ class YamlDefinitions(YamlBase):
         description="Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. "
         "Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the "
         "last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of "
-        "a GAS_TURBINE unless its CAPACITY is set lower.",
+        "a GAS_TURBINE.",
     )
 
 

@@ -6,7 +6,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import
 
 def test_accepts_inline_and_file_curves():
     YamlTurbineDefinition.model_validate(
-        {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [0, 10], "EFFICIENCY": [0, 0.3]}}
+        {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
     )
     YamlTurbineDefinition.model_validate({"LOWER_HEATING_VALUE": 38, "CURVE": {"FILE": "curve.csv"}})
 
@@ -16,10 +16,11 @@ def test_accepts_inline_and_file_curves():
     [
         (38, {"LOAD": [0, 10], "EFFICIENCY": [0, 0.2, 0.3]}, "equal number"),
         (38, {"LOAD": [10, 0], "EFFICIENCY": [0.3, 0.2]}, "strictly increasing"),
-        (38, {"LOAD": [0, 10], "EFFICIENCY": [0, 1.2]}, "between 0 and 1"),
-        (0, {"LOAD": [0, 10], "EFFICIENCY": [0, 0.3]}, "greater than 0"),
+        (38, {"LOAD": [0, 10], "EFFICIENCY": [0, 0.3]}, "above 0 and up to 1"),
+        (38, {"LOAD": [5, 10], "EFFICIENCY": [0.2, 1.2]}, "above 0 and up to 1"),
+        (0, {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}, "greater than 0"),
     ],
-    ids=["unequal_lengths", "loads_not_increasing", "efficiency_above_one", "zero_heating_value"],
+    ids=["unequal_lengths", "loads_not_increasing", "zero_efficiency", "efficiency_above_one", "zero_heating_value"],
 )
 def test_rejects_invalid_definition(lhv, curve, message):
     with pytest.raises(ValidationError, match=message):

@@ -14,11 +14,15 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergySource,
     YamlFuelGasConsumer,
     YamlFuelGasManifold,
+    YamlGasTurbine,
     YamlGeneratorSet,
     YamlMechanicalConsumer,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 
 EXAMPLE_YAML = Path(__file__).parents[3] / "src" / "libecalc" / "examples" / "energy" / "energy_network.yaml"
+
+TURBINE = {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
 
 _component_adapter = TypeAdapter(YamlComponent)
 
@@ -33,6 +37,8 @@ class TestExampleYamlParsing:
         network = _load_network(EXAMPLE_YAML)
         assert len(network.sources) == 5
         assert len(network.units) == 14
+        turbine = next(unit for unit in network.units if isinstance(unit, YamlGasTurbine))
+        assert isinstance(turbine.model, YamlTurbineDefinition)
 
     def test_sources_have_no_input(self):
         network = _load_network(EXAMPLE_YAML)
@@ -319,7 +325,7 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel"},
+                        {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
                         {"NAME": "load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "turbine", "LOAD": 5},
                     ],
                 }
@@ -360,7 +366,7 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel"},
+                        {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
                         {"NAME": "comp", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "turbine"},
                     ],
                 }
