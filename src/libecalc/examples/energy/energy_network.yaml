@@ -56,8 +56,11 @@ ENERGY_NETWORK:
     - NAME: export_turbine
       TYPE: GAS_TURBINE
       INPUT: fuel_gas
-      MODEL: turbine_30mw
-      CAPACITY: 30  # MW
+      MODEL:
+        LOWER_HEATING_VALUE: 38  # MJ/Sm3
+        CURVE:
+          LOAD: [7.5, 15, 22.5, 30]  # MW
+          EFFICIENCY: [0.22, 0.31, 0.35, 0.37]
 
     - NAME: waterinj_motor
       TYPE: ELECTRICAL_MOTOR

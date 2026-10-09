@@ -158,7 +158,12 @@ def test_rejects_unknown_shaft_reference_from_drive_train():
         {
             "SOURCES": [{"NAME": "fuel_gas", "TYPE": "FUEL_GAS_SOURCE"}],
             "UNITS": [
-                {"NAME": "export_turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel_gas"},
+                {
+                    "NAME": "export_turbine",
+                    "TYPE": "GAS_TURBINE",
+                    "INPUT": "fuel_gas",
+                    "MODEL": {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}},
+                },
                 {
                     "NAME": "export_load",
                     "TYPE": "DRIVE_TRAIN",
