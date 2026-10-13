@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
@@ -186,6 +188,31 @@ class YamlAsset(YamlBase):
                 "Component names must be unique. Components include the main model, installations,"
                 " generator sets, electricity consumers, fuel consumers, systems and its consumers and direct emitters."
                 f" Duplicated names are: {', '.join(duplicated_names)}"
+            )
+
+        return self
+
+    @model_validator(mode="after")
+    def validate_pipeline_targeted_by_single_simulation(self):
+        """A process pipeline can currently only be solved by a single process simulation."""
+        simulations_by_target: dict[str, list[str]] = defaultdict(list)
+        for process_simulation in self.process_simulations:
+            for target in process_simulation.targets:
+                simulations_by_target[target].append(process_simulation.name)
+
+        conflicts = {
+            target: simulation_names
+            for target, simulation_names in simulations_by_target.items()
+            if len(simulation_names) > 1
+        }
+
+        if conflicts:
+            conflict_descriptions = ", ".join(
+                f"'{target}' is targeted by {simulation_names}" for target, simulation_names in conflicts.items()
+            )
+            raise ValueError(
+                "A process pipeline can currently only be targeted by one process simulation. "
+                f"Conflicts found: {conflict_descriptions}."
             )
 
         return self
