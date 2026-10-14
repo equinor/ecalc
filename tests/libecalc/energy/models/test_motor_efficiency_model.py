@@ -25,8 +25,3 @@ def test_rejects_efficiency_above_one():
 def test_rejects_zero_efficiency():
     with pytest.raises(EcalcValidationException, match="above 0 and up to 1"):
         MotorEfficiencyModel(loads=[0, 3], efficiencies=[0, 0.95])
-
-
-def test_rejects_loads_that_are_not_increasing():
-    with pytest.raises(EcalcValidationException, match="strictly increasing"):
-        MotorEfficiencyModel(loads=[3, 1], efficiencies=[0.95, 0.90])

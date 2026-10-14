@@ -5,6 +5,8 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.energy.yaml_motor_definition import YamlMotorDefinition
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -121,6 +123,13 @@ class YamlElectricalMotor(YamlConverterBase):
         Field(
             title="EFFICIENCY",
             description="Conversion efficiency (0–1]. Defaults to 0.95 if omitted.",
+        ),
+    ] = None
+    model: Annotated[
+        YamlMotorDefinition | DefinitionReference | None,
+        Field(
+            title="MODEL",
+            description="Efficiency curve, given as a name defined in DEFINITIONS.MOTORS or directly in place.",
         ),
     ] = None
 

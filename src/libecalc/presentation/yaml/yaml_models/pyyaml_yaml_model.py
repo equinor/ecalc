@@ -29,6 +29,7 @@ from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
+from libecalc.presentation.yaml.yaml_types.energy.yaml_motor_definition import YamlMotorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -56,6 +57,7 @@ _INLET_STREAMS_KEY = "INLET_STREAMS"
 _FLUID_MODELS_KEY = "FLUID_MODELS"
 _FLUIDS_KEY = "FLUIDS"
 _TURBINES_KEY = "TURBINES"
+_MOTORS_KEY = "MOTORS"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _ECALC_EVENTS_KEY = "ECALC_EVENTS"
 _PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
@@ -330,7 +332,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
         )
         if isinstance(definitions, dict):
-            for section in (_PROCESS_UNITS_KEY, _TURBINES_KEY):
+            for section in (_PROCESS_UNITS_KEY, _TURBINES_KEY, _MOTORS_KEY):
                 resource_names.extend(_find_file_references(definitions.get(section)))
         for section in ("PROCESS_PIPELINES", "ENERGY_NETWORK"):
             resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
@@ -463,12 +465,14 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         process_units: dict[str, YamlProcessUnitDefinition] = {}
         fluids: dict[str, YamlFluidDefinition] = {}
         turbines: dict[str, YamlTurbineDefinition] = {}
+        motors: dict[str, YamlMotorDefinition] = {}
         definitions = (
             self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
         )
         raw_process_units = definitions.get(_PROCESS_UNITS_KEY, {}) if isinstance(definitions, dict) else {}
         raw_fluids = definitions.get(_FLUIDS_KEY, {}) if isinstance(definitions, dict) else {}
         raw_turbines = definitions.get(_TURBINES_KEY, {}) if isinstance(definitions, dict) else {}
+        raw_motors = definitions.get(_MOTORS_KEY, {}) if isinstance(definitions, dict) else {}
 
         for name, unit_data in raw_process_units.items():
             try:
@@ -485,8 +489,13 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 turbines[name] = TypeAdapter(YamlTurbineDefinition).validate_python(turbine_data)
             except PydanticValidationError:
                 pass
+        for name, motor_data in raw_motors.items():
+            try:
+                motors[name] = TypeAdapter(YamlMotorDefinition).validate_python(motor_data)
+            except PydanticValidationError:
+                pass
 
-        return YamlDefinitions(process_units=process_units, fluids=fluids, turbines=turbines)
+        return YamlDefinitions(process_units=process_units, fluids=fluids, turbines=turbines, motors=motors)
 
     @property
     def process_pipelines(self) -> dict[str, YamlProcessPipeline]:
