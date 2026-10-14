@@ -1,15 +1,10 @@
 from __future__ import annotations
 
-import abc
-from collections.abc import Sequence
-from typing import Any, Final, Self
+from typing import Final, Self
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
-from libecalc.energy.energy_network_simulation import EnergyUnitFactory
-from libecalc.energy.energy_network_topology import EnergyConnection
-from libecalc.energy.energy_types import Energy
-from libecalc.energy.energy_unit import EnergyUnit, EnergyUnitId
+from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -29,8 +24,8 @@ class TimeSeriesEnergyUnit(Entity[EnergyUnitId]):
         return EnergyUnitId(ecalc_id_generator())
 
 
-class TimeSeriesEnergyUnitFactory(TimeSeriesEnergyUnit, EnergyUnitFactory, abc.ABC):
-    """Creates energy units from time series configuration, resolved for the period of each operating point."""
+class TimeSeriesEnergyUnitFactory(TimeSeriesEnergyUnit):
+    """Holds time series configuration for an energy unit."""
 
     def __init__(
         self,
@@ -41,12 +36,3 @@ class TimeSeriesEnergyUnitFactory(TimeSeriesEnergyUnit, EnergyUnitFactory, abc.A
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id)
         self.capacity = capacity
-
-    @abc.abstractmethod
-    def create(
-        self,
-        demand: Energy,
-        *,
-        incoming_connections: Sequence[EnergyConnection],
-        **extra: Any,
-    ) -> EnergyUnit: ...
