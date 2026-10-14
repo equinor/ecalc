@@ -7,6 +7,7 @@ from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
+from libecalc.presentation.yaml.yaml_types.energy.yaml_motor_definition import YamlMotorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -53,6 +54,12 @@ class YamlDefinitions(YamlBase):
         "Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the "
         "last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of "
         "a GAS_TURBINE unless its CAPACITY is set lower.",
+    )
+
+    motors: dict[str, YamlMotorDefinition] = Field(
+        default_factory=dict,
+        title="MOTORS",
+        description="Defines electrical motors with an efficiency that depends on the load.",
     )
 
 
@@ -251,6 +258,7 @@ class YamlAsset(YamlBase):
         references.extend(self.definitions.process_units.keys())
         references.extend(self.definitions.fluids.keys())
         references.extend(self.definitions.turbines.keys())
+        references.extend(self.definitions.motors.keys())
 
         for process_simulation in self.process_simulations:
             references.append(process_simulation.name)
