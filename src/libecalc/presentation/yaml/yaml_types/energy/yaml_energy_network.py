@@ -9,7 +9,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
-def _check_non_negative(v: YamlExpressionType | None, field_name: str) -> YamlExpressionType | None:
+def _check_non_negative[T](v: T, field_name: str) -> T:
     if isinstance(v, (int, float)) and v < 0:
         raise ValueError(f"{field_name} must be non-negative, got {v}")
     return v
@@ -283,32 +283,28 @@ class YamlMechanicalConsumer(YamlConsumerBase):
 
     type: Literal["MECHANICAL_CONSUMER"]
     load: Annotated[
-        YamlExpressionType | None,
+        YamlExpressionType,
         Field(
             title="LOAD",
-            description="Shaft power demand (MW). Mutually exclusive with SHAFT.",
+            description="Shaft power demand (MW).",
         ),
-    ] = None
-    shaft: Annotated[
-        ShaftReference | None,
-        Field(
-            title="SHAFT",
-            description="Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand. Mutually exclusive with LOAD.",
-        ),
-    ] = None
+    ]
 
     @field_validator("load", mode="after")
     @classmethod
-    def _load_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
+    def _load_non_negative(cls, v: YamlExpressionType) -> YamlExpressionType:
         return _check_non_negative(v, "LOAD")
 
-    @model_validator(mode="after")
-    def check_exactly_one_demand_source(self):
-        if self.load is None and self.shaft is None:
-            raise ValueError(f"'{self.name}': either LOAD or SHAFT must be specified.")
-        if self.load is not None and self.shaft is not None:
-            raise ValueError(f"'{self.name}': cannot specify both LOAD and SHAFT.")
-        return self
+
+class YamlDriveTrain(YamlConsumerBase):
+    type: Literal["DRIVE_TRAIN"]
+    shaft: Annotated[
+        ShaftReference,
+        Field(
+            title="SHAFT",
+            description="Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand.",
+        ),
+    ]
 
 
 class YamlFuelGasConsumer(YamlConsumerBase):
@@ -431,6 +427,7 @@ YamlComponent = Annotated[
         YamlFuelGasManifold,
         YamlElectricalConsumer,
         YamlMechanicalConsumer,
+        YamlDriveTrain,
         YamlFuelGasConsumer,
         YamlDieselConsumer,
         YamlCompressorSampled,
@@ -455,6 +452,7 @@ INPUT_ENERGY: dict[str, EnergyType] = {
     "FUEL_GAS_MANIFOLD": EnergyType.FUEL_GAS,
     "ELECTRICAL_CONSUMER": EnergyType.ELECTRICAL,
     "MECHANICAL_CONSUMER": EnergyType.MECHANICAL,
+    "DRIVE_TRAIN": EnergyType.MECHANICAL,
     "FUEL_GAS_CONSUMER": EnergyType.FUEL_GAS,
     "DIESEL_CONSUMER": EnergyType.DIESEL,
 }

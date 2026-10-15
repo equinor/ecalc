@@ -7,8 +7,8 @@ from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    YamlDriveTrain,
     YamlEnergyNetwork,
-    YamlMechanicalConsumer,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
@@ -365,12 +365,11 @@ class YamlAsset(YamlBase):
 
         available_shaft_names = {shaft.name for shaft in self.shafts}
         for unit in self.energy_network.units:
-            if not isinstance(unit, YamlMechanicalConsumer) or unit.shaft is None:
-                continue
-            if unit.shaft not in available_shaft_names:
-                available = ", ".join(sorted(available_shaft_names)) or "none"
-                raise ValueError(
-                    f"Mechanical consumer '{unit.name}' references unknown shaft '{unit.shaft}'. "
-                    f"Available shafts in SHAFTS: {available}."
-                )
+            if isinstance(unit, YamlDriveTrain):
+                if unit.shaft not in available_shaft_names:
+                    available = ", ".join(sorted(available_shaft_names)) or "none"
+                    raise ValueError(
+                        f"Drive train '{unit.name}' references unknown shaft '{unit.shaft}'. "
+                        f"Available shafts in SHAFTS: {available}."
+                    )
         return self

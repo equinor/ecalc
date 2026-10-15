@@ -122,7 +122,7 @@ ENERGY_NETWORK:
 
     # Shaft driven
     - NAME: export_train
-      TYPE: MECHANICAL_CONSUMER
+      TYPE: DRIVE_TRAIN
       INPUT: export_turbine
       SHAFT: export_shaft
 

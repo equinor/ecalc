@@ -153,7 +153,7 @@ def test_rejects_compressors_without_shaft_when_pipeline_uses_shaft():
     ) in str(exc_info.value)
 
 
-def test_rejects_unknown_shaft_reference_from_mechanical_consumer():
+def test_rejects_unknown_shaft_reference_from_drive_train():
     energy_network = YamlEnergyNetwork.model_validate(
         {
             "SOURCES": [{"NAME": "fuel_gas", "TYPE": "FUEL_GAS_SOURCE"}],
@@ -161,7 +161,7 @@ def test_rejects_unknown_shaft_reference_from_mechanical_consumer():
                 {"NAME": "export_turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel_gas"},
                 {
                     "NAME": "export_load",
-                    "TYPE": "MECHANICAL_CONSUMER",
+                    "TYPE": "DRIVE_TRAIN",
                     "INPUT": "export_turbine",
                     "SHAFT": "missing_shaft",
                 },
@@ -171,7 +171,7 @@ def test_rejects_unknown_shaft_reference_from_mechanical_consumer():
 
     with pytest.raises(
         ValidationError,
-        match="Mechanical consumer 'export_load' references unknown shaft 'missing_shaft'. "
+        match="Drive train 'export_load' references unknown shaft 'missing_shaft'. "
         "Available shafts in SHAFTS: export_shaft.",
     ):
         (
