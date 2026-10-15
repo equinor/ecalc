@@ -138,7 +138,11 @@ class TestCapacityType:
             ),
             (
                 lambda capacity: GasTurbine(
-                    "turbine", MechanicalPower(0), input_connection_id=INPUT, capacity=capacity
+                    "turbine",
+                    MechanicalPower(0),
+                    input_connection_id=INPUT,
+                    power_to_fuel=lambda mw: mw,
+                    capacity=capacity,
                 ),
                 ElectricalPower(1),
             ),
@@ -155,5 +159,11 @@ class TestCapacityType:
             create(capacity)
 
     def test_capacity_of_matching_energy_type_is_accepted(self):
-        turbine = GasTurbine("turbine", MechanicalPower(0), input_connection_id=INPUT, capacity=MechanicalPower(1))
+        turbine = GasTurbine(
+            "turbine",
+            MechanicalPower(0),
+            input_connection_id=INPUT,
+            power_to_fuel=lambda mw: mw,
+            capacity=MechanicalPower(1),
+        )
         assert turbine.get_capacity() == MechanicalPower(1)

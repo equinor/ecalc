@@ -153,12 +153,15 @@ def test_rejects_compressors_without_shaft_when_pipeline_uses_shaft():
     ) in str(exc_info.value)
 
 
+TURBINE = {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
+
+
 def test_rejects_unknown_shaft_reference_from_drive_train():
     energy_network = YamlEnergyNetwork.model_validate(
         {
             "SOURCES": [{"NAME": "fuel_gas", "TYPE": "FUEL_GAS_SOURCE"}],
             "UNITS": [
-                {"NAME": "export_turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel_gas"},
+                {"NAME": "export_turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel_gas", "MODEL": TURBINE},
                 {
                     "NAME": "export_load",
                     "TYPE": "DRIVE_TRAIN",

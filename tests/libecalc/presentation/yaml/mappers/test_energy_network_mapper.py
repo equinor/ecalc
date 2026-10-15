@@ -2,12 +2,77 @@ from datetime import datetime
 
 import pytest
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
 from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
-from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSeriesSourceFactory
+from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
+from libecalc.presentation.yaml.domain.energy import (
+    TimeSeriesConsumer,
+    TimeSeriesGasTurbineFactory,
+    TimeSeriesSourceFactory,
+)
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
+
+TURBINE = {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}}
+
+
+def test_gas_turbine_capacity_is_the_curve_maximum(expression_evaluator_factory, period):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+            "UNITS": [{"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE}],
+        }
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    _, factories, _ = EnergyNetworkMapper().map_energy_network(yaml_network, expression_evaluator)
+
+    (turbine,) = (factory for factory in factories if factory.get_name() == "turbine")
+    assert turbine.capacity.get_evaluated_expression() == [20]
+
+
+def _turbine_network(model):
+    return YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+            "UNITS": [{"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": model}],
+        }
+    )
+
+
+def test_gas_turbine_model_can_reference_definitions_turbines(expression_evaluator_factory, period):
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    _, factories, _ = EnergyNetworkMapper().map_energy_network(
+        _turbine_network("main_turbine"),
+        expression_evaluator,
+        turbines={"main_turbine": YamlTurbineDefinition.model_validate(TURBINE)},
+    )
+
+    (turbine,) = (factory for factory in factories if factory.get_name() == "turbine")
+    assert isinstance(turbine, TimeSeriesGasTurbineFactory)
+    assert isinstance(turbine.fuel_model, TurbineFuelModel)
+    assert turbine.fuel_model.max_power == 20
+
+
+def test_gas_turbine_rejects_unknown_turbine_reference(expression_evaluator_factory, period):
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    with pytest.raises(EcalcValidationException, match="unknown turbine 'missing'"):
+        EnergyNetworkMapper().map_energy_network(_turbine_network("missing"), expression_evaluator)
+
+
+def test_gas_turbine_does_not_accept_capacity():
+    with pytest.raises(ValueError, match="CAPACITY"):
+        YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                "UNITS": [{"NAME": "t", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "CAPACITY": 5, "MODEL": TURBINE}],
+            }
+        )
 
 
 def test_maps_sources_units_connections_and_expressions(expression_evaluator_factory, period):
@@ -21,7 +86,7 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
             ],
             "UNITS": [
                 {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "CAPACITY": 10},
-                {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "CAPACITY": 15},
+                {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
                 {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5, "EFFICIENCY": 0.9},
                 {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4, "EFFICIENCY": 0.96},
                 {"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["cable", "grid"], "DISPATCH_STRATEGY": "PRIORITY"},
@@ -87,7 +152,7 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
         "diesel": 500,
         "backup_fuel": 50,
         "genset": 10,
-        "turbine": 15,
+        "turbine": 20,
         "motor": 5,
         "cable": 4,
     }

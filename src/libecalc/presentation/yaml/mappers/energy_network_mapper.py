@@ -33,6 +33,7 @@ from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion impo
     expand,
     unit_key,
 )
+from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
@@ -57,6 +58,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlMechanicalConsumer,
     get_input_names,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 
 _ENERGY_CLASSES: dict[EnergyType, type[Energy]] = {
     EnergyType.FUEL_GAS: FuelGasRate,
@@ -72,6 +74,7 @@ class EnergyNetworkMapper:
         yaml_energy_network: YamlEnergyNetwork,
         expression_evaluator: ExpressionEvaluator,
         resources: Mapping[str, Resource] | None = None,
+        turbines: Mapping[str, YamlTurbineDefinition] | None = None,
     ) -> tuple[
         EnergyNetworkTopology,
         Sequence[TimeSeriesEnergyUnitFactory],
@@ -82,6 +85,7 @@ class EnergyNetworkMapper:
         References may point to units declared later.
         """
         resources = resources or {}
+        turbines = turbines or {}
         output_types = self._yaml_output_types(yaml_energy_network)
 
         expansions: dict[str, Expansion] = {
@@ -126,7 +130,7 @@ class EnergyNetworkMapper:
             else:
                 key = unit_key(unit.name)
                 node, input_type, output_type = self._map_unit(
-                    unit, node_ids_by_key[key], node_ids_by_key, expression_evaluator
+                    unit, node_ids_by_key[key], node_ids_by_key, resources, turbines, expression_evaluator
                 )
                 mapped_nodes.append((key, node, input_type, output_type))
                 connections.extend(
@@ -260,7 +264,7 @@ class EnergyNetworkMapper:
         spec: TurbineSpec, energy_unit_id: EnergyUnitId
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         turbine = TimeSeriesGasTurbineFactory(
-            name=spec.name, energy_unit_id=energy_unit_id, power_to_fuel=spec.fuel_power_curve.fuel_for_power
+            name=spec.name, energy_unit_id=energy_unit_id, fuel_model=spec.fuel_power_curve
         )
         return turbine, FuelGasRate, MechanicalPower
 
@@ -269,6 +273,8 @@ class EnergyNetworkMapper:
         unit: YamlComponent,
         energy_unit_id: EnergyUnitId,
         node_ids_by_key: Mapping[NodeKey, EnergyUnitId],
+        resources: Mapping[str, Resource],
+        turbines: Mapping[str, YamlTurbineDefinition],
         expression_evaluator: ExpressionEvaluator,
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
@@ -280,9 +286,22 @@ class EnergyNetworkMapper:
                     ElectricalPower,
                 )
             case YamlGasTurbine():
-                capacity = self._time_series(unit.capacity, expression_evaluator)
+                definition = unit.model
+                if isinstance(definition, str):
+                    if definition not in turbines:
+                        raise EcalcValidationException(
+                            f"GAS_TURBINE '{unit.name}' references unknown turbine '{definition}'. "
+                            f"Available turbines in DEFINITIONS.TURBINES: {', '.join(turbines) or 'none'}."
+                        )
+                    definition = turbines[definition]
+                fuel_model = map_turbine_fuel_model(unit.name, definition, resources)
                 return (
-                    TimeSeriesGasTurbineFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
+                    TimeSeriesGasTurbineFactory(
+                        name=unit.name,
+                        energy_unit_id=energy_unit_id,
+                        capacity=self._time_series(fuel_model.max_power, expression_evaluator),
+                        fuel_model=fuel_model,
+                    ),
                     FuelGasRate,
                     MechanicalPower,
                 )

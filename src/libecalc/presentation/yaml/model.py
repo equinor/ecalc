@@ -313,7 +313,10 @@ class YamlModel:
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
             topology, energy_unit_factories, consumers = EnergyNetworkMapper().map_energy_network(
-                yaml_energy_network, expression_evaluator, resources=facility_resources
+                yaml_energy_network,
+                expression_evaluator,
+                resources=facility_resources,
+                turbines=self._configuration.definitions.turbines,
             )
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
         except EcalcValidationException as e:

@@ -21,9 +21,21 @@ class TurbineFuelModel:
         lower_heating_value: float,
     ) -> None:
         validate_turbine_curve(loads, efficiencies, lower_heating_value)
-        self._lower_heating_value = lower_heating_value
+        self._lower_heating_value = float(lower_heating_value)
         self._loads = np.asarray(loads, dtype=np.float64)
         self._efficiencies = np.asarray(efficiencies, dtype=np.float64)
+
+    @property
+    def loads(self) -> list[float]:
+        return self._loads.tolist()
+
+    @property
+    def efficiencies(self) -> list[float]:
+        return self._efficiencies.tolist()
+
+    @property
+    def lower_heating_value(self) -> float:
+        return self._lower_heating_value
 
     @property
     def max_power(self) -> float:
@@ -44,9 +56,12 @@ _TURBINE_LABELS = CurveLabels(subject="turbine", x="load", y="efficiency")
 
 def validate_turbine_curve(loads: Sequence[float], efficiencies: Sequence[float], lower_heating_value: float) -> None:
     validate_curve(loads, efficiencies, _TURBINE_LABELS)
-    if any(not 0 <= efficiency <= 1 for efficiency in efficiencies):
-        raise EcalcValidationException("Turbine efficiencies must be fractions between 0 and 1.")
-    if any(efficiency == 0 and load > 0 for load, efficiency in zip(loads, efficiencies)):
-        raise EcalcValidationException("Turbine efficiency must be greater than 0 for loads above 0.")
+    invalid = [(load, efficiency) for load, efficiency in zip(loads, efficiencies) if not 0 < efficiency <= 1]
+    if invalid:
+        load, efficiency = invalid[0]
+        raise EcalcValidationException(
+            f"Turbine efficiencies must be fractions above 0 and up to 1. Got {efficiency} at load {load}. "
+            "Remove points with zero efficiency, such as a zero-load point."
+        )
     if not math.isfinite(lower_heating_value) or lower_heating_value <= 0:
         raise EcalcValidationException("Turbine lower heating value must be finite and greater than 0.")

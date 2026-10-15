@@ -1,4 +1,5 @@
 from datetime import datetime
+from functools import partial
 from uuid import UUID
 
 import pytest
@@ -9,6 +10,7 @@ from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
+from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
 from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
@@ -19,6 +21,7 @@ from libecalc.presentation.yaml.domain.energy import (
 )
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
+TURBINE_MODEL = TurbineFuelModel([2, 10], [0.2, 0.3], 38)
 FIRST_PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
 SECOND_PERIOD = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
 PERIODS = [FIRST_PERIOD, SECOND_PERIOD]
@@ -54,7 +57,12 @@ RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
     pytest.param(TimeSeriesGeneratorSetFactory, ElectricalPower, FuelGasRate, id="generator set"),
-    pytest.param(TimeSeriesGasTurbineFactory, MechanicalPower, FuelGasRate, id="gas turbine"),
+    pytest.param(
+        partial(TimeSeriesGasTurbineFactory, fuel_model=TURBINE_MODEL),
+        MechanicalPower,
+        FuelGasRate,
+        id="gas turbine",
+    ),
     pytest.param(TimeSeriesElectricalMotorFactory, MechanicalPower, ElectricalPower, id="electrical motor"),
     pytest.param(TimeSeriesElectricalCableFactory, ElectricalPower, ElectricalPower, id="electrical cable"),
 ]
@@ -152,3 +160,18 @@ class TestJunctionFactories:
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="must be finite and non-negative"):
             bus.create(ElectricalPower(1), incoming_connections=connections, period=FIRST_PERIOD)
+
+
+class TestGasTurbineCapacity:
+    @pytest.mark.parametrize(("capacity", "expected"), [(6, 6), (10, 10), (0, 0)])
+    def test_capacity_is_resolved_from_the_expression(self, expression_factory, capacity, expected):
+        factory = TimeSeriesGasTurbineFactory(
+            name="turbine",
+            fuel_model=TURBINE_MODEL,
+            capacity=expression_factory(capacity),
+        )
+        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+
+        turbine = factory.create(MechanicalPower(1), incoming_connections=connections, period=FIRST_PERIOD)
+
+        assert turbine.get_capacity() == MechanicalPower(expected)
