@@ -139,8 +139,18 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `MECHANICAL_CONSUMER` | Required |
-| `LOAD` | Shaft power demand (MW). Mutually exclusive with SHAFT. | Optional |
-| `SHAFT` | Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand. Mutually exclusive with LOAD. | Optional |
+| `LOAD` | Shaft power demand (MW). | Required |
+
+</TabItem>
+
+<TabItem value="DRIVE_TRAIN" label="DRIVE_TRAIN">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `TYPE` | `DRIVE_TRAIN` | Required |
+| `SHAFT` | Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand. | Required |
 
 </TabItem>
 
