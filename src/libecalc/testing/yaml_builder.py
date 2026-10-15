@@ -35,6 +35,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingVolume,
     YamlVentingVolumeEmission,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlFacilityModel,
@@ -56,6 +57,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlDefaultTimeSeriesCollection,
     YamlTimeSeriesCollection,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
     YamlEmissionRateUnits,
@@ -738,11 +740,13 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.models = []
         self.fuel_types = []
         self.variables = None
+        self.shafts: list[YamlShaft] | None = None
         self.installations = []
         self.definitions: YamlDefinitions | None = None
         self.inlet_streams: dict[str, YamlInletStream] | None = None
         self.process_pipelines = None
         self.process_simulations = None
+        self.energy_network: YamlEnergyNetwork | None = None
         self.start = None
         self.end = None
 
@@ -790,6 +794,10 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.variables = variables
         return self
 
+    def with_shafts(self, shafts: list[YamlShaft]) -> Self:
+        self.shafts = shafts
+        return self
+
     def with_installations(self, installations: list[YamlInstallation]):
         if len(installations) == 0:
             self.installations = []
@@ -819,6 +827,10 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
     def with_process_simulations(self, process_simulations: list[YamlProcessSimulation]) -> Self:
         self.process_simulations = process_simulations
+        return self
+
+    def with_energy_network(self, energy_network: YamlEnergyNetwork) -> Self:
+        self.energy_network = energy_network
         return self
 
     def with_start(self, start: str):
