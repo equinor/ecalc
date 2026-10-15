@@ -28,6 +28,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
     YamlInletStream,
     YamlStreamRateUnit,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.testing.yaml_builder import Builder
@@ -43,6 +44,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlProcessUnitInstance,
     YamlProcessPipeline,
+    YamlShaftDrivenProcessUnitInstance,
 )
 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -250,6 +252,15 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
 
     def with_item(self, target: YamlProcessUnitDefinition | DefinitionReference, name: str | None = None) -> Self:
         self.process_units.append(YamlProcessUnitInstance(name=name, target=target))
+        return self
+
+    def with_shaft_driven_item(
+        self,
+        target: YamlCompressorDefinition | DefinitionReference,
+        shaft: ShaftReference,
+        name: str | None = None,
+    ) -> Self:
+        self.process_units.append(YamlShaftDrivenProcessUnitInstance(name=name, target=target, shaft=shaft))
         return self
 
     def with_items(self, items: list[tuple[str | None, YamlProcessUnitDefinition | DefinitionReference]]) -> Self:

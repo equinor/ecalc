@@ -5,6 +5,7 @@ from pydantic import ConfigDict, Field, field_validator, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -285,14 +286,14 @@ class YamlMechanicalConsumer(YamlConsumerBase):
         YamlExpressionType | None,
         Field(
             title="LOAD",
-            description="Shaft power demand (MW). Mutually exclusive with PROCESS_SIMULATION.",
+            description="Shaft power demand (MW). Mutually exclusive with SHAFT.",
         ),
     ] = None
-    process_simulation: Annotated[
-        str | None,
+    shaft: Annotated[
+        ShaftReference | None,
         Field(
-            title="PROCESS_SIMULATION",
-            description="Reference to a process simulation that determines shaft power demand. Mutually exclusive with LOAD.",
+            title="SHAFT",
+            description="Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand. Mutually exclusive with LOAD.",
         ),
     ] = None
 
@@ -303,10 +304,10 @@ class YamlMechanicalConsumer(YamlConsumerBase):
 
     @model_validator(mode="after")
     def check_exactly_one_demand_source(self):
-        if self.load is None and self.process_simulation is None:
-            raise ValueError(f"'{self.name}': either LOAD or PROCESS_SIMULATION must be specified.")
-        if self.load is not None and self.process_simulation is not None:
-            raise ValueError(f"'{self.name}': cannot specify both LOAD and PROCESS_SIMULATION.")
+        if self.load is None and self.shaft is None:
+            raise ValueError(f"'{self.name}': either LOAD or SHAFT must be specified.")
+        if self.load is not None and self.shaft is not None:
+            raise ValueError(f"'{self.name}': cannot specify both LOAD and SHAFT.")
         return self
 
 

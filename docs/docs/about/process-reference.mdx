@@ -14,6 +14,7 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 
 - [DEFINITIONS](#definitions)
 - [INLET_STREAMS](#inlet_streams)
+- [SHAFTS](#shafts)
 - [PROCESS_PIPELINES](#process_pipelines)
 - [PROCESS_SIMULATIONS](#process_simulations)
 
@@ -344,6 +345,18 @@ TYPE: STREAM_DAY
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
+## SHAFTS
+
+Defines named shafts representing mechanical connections between drivers and driven equipment.
+
+```yaml
+NAME: default_shaft
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the shaft. | Required |
+
 ## PROCESS_PIPELINES
 
 Defines process pipelines to use in process simulations.
@@ -392,6 +405,7 @@ PROCESS_UNITS:
         UNIT: FRACTION
         VALUE: 0.0
   NAME: default_compressor
+  SHAFT: default_shaft
 EVENTS: []
 ```
 
@@ -403,10 +417,27 @@ EVENTS: []
 
 ##### PROCESS_UNITS {/* #process-pipelines-process-units */}
 
+<Tabs>
+<TabItem value="SHAFT_DRIVEN_COMPRESSOR" label="SHAFT_DRIVEN_COMPRESSOR">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `NAME` |  | Optional |
+| `SHAFT` | Reference to a shaft defined in SHAFTS. | Required |
+
+</TabItem>
+
+<TabItem value="PROCESS_UNIT" label="PROCESS_UNIT">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
+| `NAME` |  | Optional |
+
+</TabItem>
+
+</Tabs>
 
 ##### EVENTS {/* #process-pipelines-events */}
 
