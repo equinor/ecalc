@@ -7,6 +7,7 @@ from pydantic import TypeAdapter, ValidationError
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlCompressorSampled,
+    YamlDriveTrain,
     YamlElectricalBus,
     YamlElectricalCable,
     YamlElectricalConsumer,
@@ -15,7 +16,6 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasConsumer,
     YamlFuelGasManifold,
     YamlGeneratorSet,
-    YamlMechanicalConsumer,
 )
 
 EXAMPLE_YAML = Path(__file__).parents[3] / "src" / "libecalc" / "examples" / "energy" / "energy_network.yaml"
@@ -50,7 +50,7 @@ class TestExampleYamlParsing:
         assert isinstance(by_name["subsea_cable"], YamlElectricalCable)
         assert isinstance(by_name["base_load"], YamlElectricalConsumer)
         assert isinstance(by_name["flare"], YamlFuelGasConsumer)
-        assert isinstance(by_name["export_train"], YamlMechanicalConsumer)
+        assert isinstance(by_name["export_train"], YamlDriveTrain)
         assert isinstance(by_name["gas_compressor_sampled"], YamlCompressorSampled)
 
     def test_consumers_use_load_and_rate(self):
@@ -345,7 +345,7 @@ class TestNetworkValidation:
                     {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset"},
                     {
                         "NAME": "compressor",
-                        "TYPE": "MECHANICAL_CONSUMER",
+                        "TYPE": "DRIVE_TRAIN",
                         "INPUT": "motor",
                         "SHAFT": "shaft",
                     },
@@ -353,27 +353,6 @@ class TestNetworkValidation:
             }
         )
         assert len(network.units) == 3
-
-    def test_mechanical_consumer_needs_load_or_shaft(self):
-        with pytest.raises(ValueError, match="either LOAD or SHAFT must be specified"):
-            YamlEnergyNetwork.model_validate(
-                {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
-                    "UNITS": [
-                        {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel"},
-                        {"NAME": "comp", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "turbine"},
-                    ],
-                }
-            )
-
-    def test_mechanical_consumer_rejects_both_load_and_shaft(self):
-        with pytest.raises(
-            ValueError,
-            match="cannot specify both LOAD and SHAFT",
-        ):
-            _component_adapter.validate_python(
-                {"NAME": "c", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "x", "LOAD": 5, "SHAFT": "shaft"}
-            )
 
 
 class TestSampledCompressor:
