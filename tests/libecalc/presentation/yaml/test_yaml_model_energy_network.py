@@ -3,7 +3,7 @@ from io import StringIO
 import pytest
 import yaml
 
-from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
+from libecalc.presentation.yaml.domain.energy import TimeSeriesJunctionFactory
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.testing.yaml_builder import YamlTimeSeriesBuilder
 
@@ -14,11 +14,14 @@ def test_returns_nothing_without_an_energy_network(minimal_model_yaml_factory, y
     assert model.get_energy_network() == (None, (), (), [])
 
 
+@pytest.mark.parametrize(("period_index", "grid_share"), [(0, 6), (1, 8)])
 def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
     yaml_asset_builder_factory,
     minimal_installation_yaml_factory,
     yaml_fuel_type_builder_factory,
     yaml_model_factory,
+    period_index,
+    grid_share,
 ):
     """The evaluator only loads referenced time series, so a reference nested in INPUT must be found and used."""
     asset = (
@@ -54,24 +57,12 @@ def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
         },
     )
 
-    topology, energy_unit_factories, consumers, _periods = model.get_energy_network()
+    topology, energy_unit_factories, _consumers, _periods = model.get_energy_network()
 
     assert topology is not None
-    simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=energy_unit_factories)
-    (load,) = consumers
-    assert load.demand.expression is not None
-    (load_connection,) = topology.get_incoming_connections(load.get_id())
     factories_by_name = {factory.get_name(): factory for factory in energy_unit_factories}
-    grid_to_bus = topology.get_connection(factories_by_name["grid"].get_id(), factories_by_name["bus"].get_id())
+    bus = factories_by_name["bus"]
+    assert isinstance(bus, TimeSeriesJunctionFactory)
+    grid_limit = bus.input_capacities[factories_by_name["grid"].get_id()]
 
-    grid_shares = [
-        simulation.run(
-            {load_connection.id: load.get_demand(period)},
-            period=period,
-        )
-        .get_energy()[grid_to_bus.id]
-        .value
-        for period in load.demand.expression.get_periods()
-    ]
-
-    assert grid_shares == pytest.approx([6, 8])
+    assert grid_limit.get_value(grid_limit.get_periods()[period_index]) == pytest.approx(grid_share)

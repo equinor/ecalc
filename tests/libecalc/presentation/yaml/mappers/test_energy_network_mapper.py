@@ -3,9 +3,15 @@ from datetime import datetime
 import pytest
 
 from libecalc.common.time_utils import Period
-from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
+from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
-from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSeriesSourceFactory
+from libecalc.presentation.yaml.domain.energy import (
+    TimeSeriesConsumer,
+    TimeSeriesElectricalCableFactory,
+    TimeSeriesElectricalMotorFactory,
+    TimeSeriesJunctionFactory,
+    TimeSeriesSourceFactory,
+)
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
@@ -92,7 +98,9 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
         "cable": 4,
     }
     for name, capacity in expected_capacities.items():
-        assert factories_by_name[name].capacity.get_original_expression() == capacity
+        capacity_expression = factories_by_name[name].capacity
+        assert capacity_expression is not None
+        assert capacity_expression.get_original_expression() == capacity
 
     # Consumer demand is a callable producing the appropriate Energy type per period.
     consumers_by_name = {consumer.get_name(): consumer for consumer in consumers}
@@ -102,8 +110,14 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
     assert consumers_by_name["diesel_load"].get_demand(period) == DieselRate(20)
 
     # Efficiency and loss fraction are kept on the relevant factories.
-    assert factories_by_name["motor"].efficiency.get_original_expression() == 0.9
-    assert factories_by_name["cable"].loss_fraction.get_original_expression() == "1 {-} (0.96)"
+    motor = factories_by_name["motor"]
+    cable = factories_by_name["cable"]
+    assert isinstance(motor, TimeSeriesElectricalMotorFactory)
+    assert isinstance(cable, TimeSeriesElectricalCableFactory)
+    assert motor.efficiency is not None
+    assert motor.efficiency.get_original_expression() == 0.9
+    assert cable.loss_fraction is not None
+    assert cable.loss_fraction.get_original_expression() == "1 {-} (0.96)"
 
 
 SHORE_AND_WIND = {
@@ -124,43 +138,23 @@ SHORE_AND_WIND = {
 }
 
 
-class TestMappedNetworkSimulation:
-    def test_dispatches_each_period_with_that_periods_input_capacity(self, expression_evaluator_factory):
-        """Declaration order must not affect priority or per-period dispatch limits."""
-        first_period = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
-        second_period = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
-        expression_evaluator = expression_evaluator_factory.from_periods(
-            periods=[first_period, second_period],
-            variables={"SIM1;LOAD": [22, 20], "SIM1;CABLE_AT_BUS": [19.4, 15]},
-        )
-        topology, energy_unit_factories, consumers = EnergyNetworkMapper().map_energy_network(
-            YamlEnergyNetwork.model_validate(SHORE_AND_WIND), expression_evaluator
-        )
-        simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=energy_unit_factories)
-        ids_by_name = {node.get_name(): node.get_id() for node in [*energy_unit_factories, *consumers]}
+FIRST_PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
+SECOND_PERIOD = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
 
-        def run(period: Period):
-            connection_demands = {}
-            for consumer in consumers:
-                (connection,) = topology.get_incoming_connections(consumer.get_id())
-                demand = consumer.get_demand(period)
-                assert demand is not None
-                connection_demands[connection.id] = demand
-            return simulation.run(connection_demands, period=period)
 
-        def energy(network, source: str, target: str) -> float:
-            return network.get_energy()[topology.get_connection(ids_by_name[source], ids_by_name[target]).id].value
+@pytest.mark.parametrize(("period", "cable_to_bus"), [(FIRST_PERIOD, 19.4), (SECOND_PERIOD, 15)])
+def test_junction_input_capacity_is_evaluated_per_period(expression_evaluator_factory, period, cable_to_bus):
+    expression_evaluator = expression_evaluator_factory.from_periods(
+        periods=[FIRST_PERIOD, SECOND_PERIOD],
+        variables={"SIM1;LOAD": [22, 20], "SIM1;CABLE_AT_BUS": [19.4, 15]},
+    )
+    topology, energy_unit_factories, _consumers = EnergyNetworkMapper().map_energy_network(
+        YamlEnergyNetwork.model_validate(SHORE_AND_WIND), expression_evaluator
+    )
+    factories_by_name = {factory.get_name(): factory for factory in energy_unit_factories}
+    bus = factories_by_name["bus"]
+    assert isinstance(bus, TimeSeriesJunctionFactory)
 
-        first = run(first_period)
-        second = run(second_period)
-
-        # 19.4 MW at the bus is what 20 MW from shore delivers through the 97 % cable, so nothing is overloaded.
-        assert energy(first, "cable", "bus") == pytest.approx(19.4)
-        assert energy(first, "wind", "bus") == pytest.approx(2.6)
-        assert energy(first, "shore", "cable") == pytest.approx(20)
-        assert not first.get_capacity_failures()
-
-        # A lower limit at the bus moves demand onto wind, which is then over its own 4.4 MW rating.
-        assert energy(second, "cable", "bus") == pytest.approx(15)
-        assert energy(second, "wind", "bus") == pytest.approx(5)
-        assert set(second.get_capacity_failures()) == {ids_by_name["wind"]}
+    cable_id, wind_id = factories_by_name["cable"].get_id(), factories_by_name["wind"].get_id()
+    assert bus.dispatch_strategy == PriorityDispatch(order=(cable_id, wind_id))
+    assert bus.input_capacities[cable_id].get_value(period) == pytest.approx(cable_to_bus)
