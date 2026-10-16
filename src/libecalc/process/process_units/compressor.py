@@ -1,6 +1,7 @@
 from typing import Final
 
 from libecalc.common.ddd import value_object
+from libecalc.common.units import UnitConstants
 from libecalc.process.chart.chart import ChartData
 from libecalc.process.chart.compressor import CompressorChart
 from libecalc.process.fluid_stream.constants import ThermodynamicConstants
@@ -66,6 +67,25 @@ class Compressor(ProcessUnit):
             polytropic_head_joule_per_kg=operational_point.polytropic_head_joule_per_kg,
             inlet_stream=inlet_stream,
             fluid_service=self._fluid_service,
+        )
+
+    def get_gas_power_mw(self, inlet_stream: FluidStream) -> float:
+        """
+        Power delivered to the gas [MW], i.e. mass rate * polytropic enthalpy change.
+        Does not include mechanical losses (bearings, seals, gearbox) or driver efficiency.
+
+        enthalpy_change [J/kg] = polytropic_head [J/kg] / polytropic_efficiency
+        power [MW] = mass_rate [kg/h] * enthalpy_change / 3600 [s/h] * 1e-6 [MW/W]
+        """
+        operational_point = self.get_operational_point(inlet_stream=inlet_stream)
+        enthalpy_change_joule_per_kg = (
+            operational_point.polytropic_head_joule_per_kg / operational_point.polytropic_efficiency
+        )
+        return (
+            enthalpy_change_joule_per_kg
+            * inlet_stream.mass_rate_kg_per_h
+            / UnitConstants.SECONDS_PER_HOUR
+            * UnitConstants.WATT_TO_MEGAWATT
         )
 
     def get_operational_point(self, inlet_stream: FluidStream) -> OperationalPoint:

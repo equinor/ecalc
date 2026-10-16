@@ -1,3 +1,4 @@
+from collections.abc import Mapping
 from typing import Any, assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
@@ -44,7 +45,10 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import
     YamlFluidDefinition,
     YamlPredefinedFluidDefinition,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlProcessPipeline,
+    YamlShaftDrivenProcessUnitInstance,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
     InstanceReference,
 )
@@ -67,6 +71,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution impo
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.process.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
@@ -89,7 +94,7 @@ from libecalc.process.process_units.outlet import Outlet
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.splitter import Splitter
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
-from libecalc.process.shaft import VariableSpeedShaft
+from libecalc.process.shaft import Shaft
 from libecalc.process.stream_distribution.common_stream_distribution import (
     HasExcessRate,
     Overflow,
@@ -129,12 +134,14 @@ class ProcessSimulationMapper:
         references: dict[InstanceReference, Any],
         resources: Resources,
         ecalc_event_service: EcalcEventService,
+        shafts: Mapping[ShaftReference, Shaft],
     ):
         self._expression_evaluator = expression_evaluator
         self._fluid_service = fluid_service
         self._references = references
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
+        self._shafts = shafts
 
     def _resolve_pipeline_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
@@ -292,8 +299,7 @@ class ProcessSimulationMapper:
         return events
 
     def map_process_simulation(
-        self,
-        yaml_process_simulation: YamlProcessSimulation,
+        self, yaml_process_simulation: YamlProcessSimulation
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         process_pipelines: list[ProcessPipeline] = []
         process_problems: list[ProcessProblem] = []
@@ -314,10 +320,8 @@ class ProcessSimulationMapper:
         section_builder = ProcessSectionBuilder()
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers = []
-            shaft = VariableSpeedShaft()
             item = self._resolve_pipeline_reference(yaml_compressor_train_item)
             process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
-            compressor_ids: list[ProcessUnitId] = []
             unit_name_to_id: dict[InstanceReference, ProcessUnitId] = {}
             problem_time_series_configurations: dict[
                 ProcessUnitId,
@@ -334,7 +338,14 @@ class ProcessSimulationMapper:
                 match yaml_process_unit:
                     case YamlCompressorDefinition():
                         unit = self._get_compressor(yaml_process_unit)
-                        compressor_ids.append(unit.get_id())
+                        assert isinstance(yaml_pipeline_item, YamlShaftDrivenProcessUnitInstance), (
+                            "Expected shaft driven instance for compressor definition"
+                        )
+                        shaft = self._shafts[yaml_pipeline_item.shaft]
+                        shaft.connect(unit)
+
+                        if shaft not in problem_configuration_handlers:
+                            problem_configuration_handlers.append(shaft)
 
                     case YamlPressureDropperDefinition():
                         unit = PressureDropper(fluid_service=self._fluid_service)
@@ -381,14 +392,6 @@ class ProcessSimulationMapper:
                             f"Process unit names must be unique within a process."
                         )
                     unit_name_to_id[process_unit_name] = unit.get_id()
-
-            for compressor_id in compressor_ids:
-                compressor = process_unit_map[compressor_id]
-                assert isinstance(compressor, Compressor)
-                shaft.connect(compressor)
-
-            # Shaft is currently (potentially) an inter-section configuration handler
-            problem_configuration_handlers.append(shaft)
 
             # Since we, in addition to intra-section connection, have inter-section connections, we keep them separate
             # from section, and keep track of them at pipeline level

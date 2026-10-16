@@ -24,6 +24,7 @@ from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesJunctionFactory,
     TimeSeriesSourceFactory,
 )
+from libecalc.presentation.yaml.domain.energy.drive_train import TimeSeriesDriveTrain
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion import (
     ConsumerSpec,
@@ -57,6 +58,8 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlMechanicalConsumer,
     get_input_names,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
+from libecalc.process.shaft import Shaft
 
 _ENERGY_CLASSES: dict[EnergyType, type[Energy]] = {
     EnergyType.FUEL_GAS: FuelGasRate,
@@ -67,6 +70,9 @@ _ENERGY_CLASSES: dict[EnergyType, type[Energy]] = {
 
 
 class EnergyNetworkMapper:
+    def __init__(self, shafts: Mapping[ShaftReference, Shaft]):
+        self._shafts = shafts
+
     def map_energy_network(
         self,
         yaml_energy_network: YamlEnergyNetwork,
@@ -75,7 +81,7 @@ class EnergyNetworkMapper:
     ) -> tuple[
         EnergyNetworkTopology,
         Sequence[TimeSeriesEnergyUnitFactory],
-        Sequence[TimeSeriesConsumer],
+        Sequence[TimeSeriesConsumer | TimeSeriesDriveTrain],
     ]:
         """Return topology, node factories (including junctions), and consumers.
 
@@ -145,7 +151,9 @@ class EnergyNetworkMapper:
         energy_unit_factories = [
             node for _, node, _, _ in mapped_nodes if isinstance(node, TimeSeriesEnergyUnitFactory)
         ]
-        consumers = [node for _, node, _, _ in mapped_nodes if isinstance(node, TimeSeriesConsumer)]
+        consumers = [
+            node for _, node, _, _ in mapped_nodes if isinstance(node, TimeSeriesConsumer | TimeSeriesDriveTrain)
+        ]
         return topology, energy_unit_factories, consumers
 
     @staticmethod
@@ -347,7 +355,12 @@ class EnergyNetworkMapper:
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlDriveTrain():
-                raise EcalcValidationException(f"'{unit.name}': SHAFT-driven demand is not supported yet.")
+                consumer = TimeSeriesDriveTrain(
+                    name=unit.name,
+                    shaft=self._shafts[unit.shaft],
+                    energy_unit_id=energy_unit_id,
+                )
+                return consumer, consumer.get_input_energy_type(), None
             case YamlMechanicalConsumer():
                 expression = self._time_series(unit.load, expression_evaluator)
                 consumer = TimeSeriesConsumer(

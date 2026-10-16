@@ -6,7 +6,6 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.presentation.yaml.domain.energy import TimeSeriesGasTurbineFactory
-from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
@@ -40,10 +39,10 @@ def _connections_by_name(topology, nodes) -> set[tuple[str, str]]:
 
 class TestMapperExpansion:
     def test_fuel_only_maps_to_fuel_gas_consumer(
-        self, expression_evaluator_factory, period, make_resource, rates, fuel
+        self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, fuel
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        topology, factories, consumers = EnergyNetworkMapper().map_energy_network(
+        topology, factories, consumers = energy_network_mapper_factory().map_energy_network(
             _network("fuel"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel)}
         )
 
@@ -58,10 +57,10 @@ class TestMapperExpansion:
         }
 
     def test_power_only_maps_to_consumer_typed_after_input(
-        self, expression_evaluator_factory, period, make_resource, rates, power
+        self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, power
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        topology, factories, consumers = EnergyNetworkMapper().map_energy_network(
+        topology, factories, consumers = energy_network_mapper_factory().map_energy_network(
             _network("genset"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, POWER=power)}
         )
 
@@ -72,10 +71,10 @@ class TestMapperExpansion:
         assert ("genset", "compressor") in _connections_by_name(topology, [*factories, *consumers])
 
     def test_fuel_and_power_generates_turbine_fed_by_declared_input(
-        self, expression_evaluator_factory, period, make_resource, rates, fuel, power
+        self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, fuel, power
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        topology, factories, consumers = EnergyNetworkMapper().map_energy_network(
+        topology, factories, consumers = energy_network_mapper_factory().map_energy_network(
             _network("fuel"),
             evaluator,
             resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel, POWER=power)},
@@ -96,23 +95,25 @@ class TestMapperExpansion:
         assert ("fuel", "compressor") not in connections
         assert topology.get_connection(turbine.get_id(), compressor.get_id()).energy_type is MechanicalPower
 
-    def test_missing_resource_rejected(self, expression_evaluator_factory, period):
+    def test_missing_resource_rejected(self, energy_network_mapper_factory, expression_evaluator_factory, period):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         with pytest.raises(EcalcValidationException, match="FILE 'compressor.csv' not found"):
-            EnergyNetworkMapper().map_energy_network(_network("fuel"), evaluator, resources={})
+            energy_network_mapper_factory().map_energy_network(_network("fuel"), evaluator, resources={})
 
     def test_fuel_only_on_electrical_input_rejected(
-        self, expression_evaluator_factory, period, make_resource, rates, fuel
+        self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, fuel
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         with pytest.raises(EcalcValidationException, match="must be fed FuelGasRate"):
-            EnergyNetworkMapper().map_energy_network(
+            energy_network_mapper_factory().map_energy_network(
                 _network("genset"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel)}
             )
 
-    def test_rate_outside_sampled_range_rejected(self, expression_evaluator_factory, period, make_resource, fuel):
+    def test_rate_outside_sampled_range_rejected(
+        self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, fuel
+    ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        _, _, consumers = EnergyNetworkMapper().map_energy_network(
+        _, _, consumers = energy_network_mapper_factory().map_energy_network(
             _network("fuel", RATE=999_999),
             evaluator,
             resources={"compressor.csv": make_resource(RATE=[1000.0, 2000.0, 3000.0], FUEL=fuel)},
@@ -123,7 +124,7 @@ class TestMapperExpansion:
             compressor.get_demand(period)
 
     def test_generated_turbine_name_colliding_with_a_user_name_rejected(
-        self, expression_evaluator_factory, period, make_resource, rates, fuel, power
+        self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, fuel, power
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         yaml_network = YamlEnergyNetwork.model_validate(
@@ -142,7 +143,7 @@ class TestMapperExpansion:
             }
         )
         with pytest.raises(EcalcValidationException, match="Duplicate names.*compressor turbine"):
-            EnergyNetworkMapper().map_energy_network(
+            energy_network_mapper_factory().map_energy_network(
                 yaml_network,
                 evaluator,
                 resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel, POWER=power)},

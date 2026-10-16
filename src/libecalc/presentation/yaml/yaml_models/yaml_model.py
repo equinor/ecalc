@@ -28,6 +28,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import Yaml
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable
 from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
@@ -91,6 +92,11 @@ class YamlValidator(abc.ABC):
     @property
     @abc.abstractmethod
     def definitions(self) -> YamlDefinitions:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def shafts(self) -> list[YamlShaft]:
         pass
 
     @property

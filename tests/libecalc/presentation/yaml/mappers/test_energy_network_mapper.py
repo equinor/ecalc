@@ -6,11 +6,12 @@ from libecalc.common.time_utils import Period
 from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSeriesSourceFactory
-from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
 
-def test_maps_sources_units_connections_and_expressions(expression_evaluator_factory, period):
+def test_maps_sources_units_connections_and_expressions(
+    energy_network_mapper_factory, expression_evaluator_factory, period
+):
     yaml_network = YamlEnergyNetwork.model_validate(
         {
             "SOURCES": [
@@ -40,7 +41,7 @@ def test_maps_sources_units_connections_and_expressions(expression_evaluator_fac
     )
 
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
-    topology, energy_unit_factories, consumers = EnergyNetworkMapper().map_energy_network(
+    topology, energy_unit_factories, consumers = energy_network_mapper_factory().map_energy_network(
         yaml_network, expression_evaluator
     )
 
@@ -125,7 +126,9 @@ SHORE_AND_WIND = {
 
 
 class TestMappedNetworkSimulation:
-    def test_dispatches_each_period_with_that_periods_input_capacity(self, expression_evaluator_factory):
+    def test_dispatches_each_period_with_that_periods_input_capacity(
+        self, expression_evaluator_factory, energy_network_mapper_factory
+    ):
         """Declaration order must not affect priority or per-period dispatch limits."""
         first_period = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
         second_period = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
@@ -133,7 +136,7 @@ class TestMappedNetworkSimulation:
             periods=[first_period, second_period],
             variables={"SIM1;LOAD": [22, 20], "SIM1;CABLE_AT_BUS": [19.4, 15]},
         )
-        topology, energy_unit_factories, consumers = EnergyNetworkMapper().map_energy_network(
+        topology, energy_unit_factories, consumers = energy_network_mapper_factory().map_energy_network(
             YamlEnergyNetwork.model_validate(SHORE_AND_WIND), expression_evaluator
         )
         simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=energy_unit_factories)
