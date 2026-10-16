@@ -8,6 +8,8 @@ from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, GeneratorSet
+from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
+from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -47,27 +49,28 @@ class TimeSeriesGasTurbineFactory(TimeSeriesEnergyUnitFactory):
         self,
         *,
         name: str,
+        fuel_model: TurbineFuelModel | FuelPowerCurve,
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
-        power_to_fuel: Callable[[float], float] = lambda power: power,
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
-        self.power_to_fuel = power_to_fuel
+        self.fuel_model = fuel_model
 
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> GasTurbine:
         (incoming_connection,) = incoming_connections
+        capacity = resolve_optional_energy(
+            self.capacity,
+            GasTurbine.get_output_energy_type(),
+            period=extra.get("period"),
+            description=f"Capacity for '{self.get_name()}'",
+        )
         return GasTurbine(
             name=self.get_name(),
-            power_to_fuel=self.power_to_fuel,
+            power_to_fuel=self.fuel_model.fuel_for_power,
             energy_unit_id=self.get_id(),
             output_energy=demand,
             input_connection_id=incoming_connection.id,
-            capacity=resolve_optional_energy(
-                self.capacity,
-                GasTurbine.get_output_energy_type(),
-                period=extra.get("period"),
-                description=f"Capacity for '{self.get_name()}'",
-            ),
+            capacity=capacity,
         )
 
 

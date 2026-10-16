@@ -87,7 +87,7 @@ class TestMapperExpansion:
 
         turbine = next(f for f in factories if f.get_name() == "compressor turbine")
         assert isinstance(turbine, TimeSeriesGasTurbineFactory)
-        assert turbine.power_to_fuel(12.5) == pytest.approx(25000)
+        assert turbine.fuel_model.fuel_for_power(12.5) == pytest.approx(25000)
 
         assert len(topology.get_nodes()) == 4
         connections = _connections_by_name(topology, [*factories, *consumers])
