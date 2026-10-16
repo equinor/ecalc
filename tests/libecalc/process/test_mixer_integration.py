@@ -7,7 +7,7 @@ from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesTemperatureSetterConfiguration,
 )
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
-from libecalc.process.shaft import Shaft
+from libecalc.process.shaft import Shaft, VariableSpeedShaft
 from libecalc.testing.process_builders import (
     YamlCompressorBuilder,
     YamlIndividualStreamDistributionBuilder,
@@ -18,6 +18,8 @@ from libecalc.testing.process_builders import (
 )
 
 PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2030, 1, 1))
+
+SHAFT_NAME = "shaft_1"
 
 
 def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory, fluid_service):
@@ -35,10 +37,14 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .with_item(target=yaml_mixer)
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .validate()
     )
 
@@ -51,7 +57,9 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
     yaml_simulation = builder.validate()
 
     # -- Map to process domain objects --
-    pipelines, simulation = process_simulation_mapper_factory(builder.get_pipeline_references()).map_process_simulation(
+    pipelines, simulation = process_simulation_mapper_factory(
+        builder.get_pipeline_references(), shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 

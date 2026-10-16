@@ -49,6 +49,7 @@ from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesConsumer,
     TimeSeriesEnergyUnitFactory,
 )
+from libecalc.presentation.yaml.domain.energy.drive_train import TimeSeriesDriveTrain
 from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.domain.strict_expression_evaluator import StrictExpressionEvaluator
@@ -86,6 +87,7 @@ from libecalc.process.pump.pump_process_simulation import (
     PumpOperatingInput,
     PumpProcessSimulation,
 )
+from libecalc.process.shaft import VariableSpeedShaft
 
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
@@ -147,6 +149,7 @@ class YamlModel:
         resource_service: ResourceService,
     ) -> None:
         self._configuration = configuration
+        self._shafts = {shaft.name: VariableSpeedShaft() for shaft in self._configuration.shafts}
         self._resource_service = resource_service
 
         self._is_validated = False
@@ -261,6 +264,7 @@ class YamlModel:
                 resources=facility_resources,
                 references=reference_objects,
                 ecalc_event_service=ecalc_event_service,
+                shafts=self._shafts,
             )
 
             try:
@@ -288,7 +292,7 @@ class YamlModel:
     ) -> tuple[
         EnergyNetworkTopology | None,
         Sequence[TimeSeriesEnergyUnitFactory],
-        Sequence[TimeSeriesConsumer],
+        Sequence[TimeSeriesConsumer | TimeSeriesDriveTrain],
         list[Period],
     ]:
         self.validate_for_run()
@@ -312,7 +316,7 @@ class YamlModel:
         )
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
-            topology, energy_unit_factories, consumers = EnergyNetworkMapper().map_energy_network(
+            topology, energy_unit_factories, consumers = EnergyNetworkMapper(shafts=self._shafts).map_energy_network(
                 yaml_energy_network, expression_evaluator, resources=facility_resources
             )
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods

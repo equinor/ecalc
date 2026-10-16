@@ -32,6 +32,8 @@ from libecalc.testing.process_builders import (
 
 PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2030, 1, 1))
 
+SHAFT_NAME = "shaft_1"
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -45,7 +47,7 @@ def _simple_pipeline(name: str = "train_1"):
         .with_item(target=YamlPressureDropperBuilder().with_test_data().validate())
         .with_item(target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_item(target=YamlLiquidRemoverBuilder().with_test_data().validate())
-        .with_item(target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME)
         .validate()
     )
 
@@ -89,7 +91,9 @@ def test_mapper_returns_one_pipeline_per_target(process_simulation_mapper_factor
     )
     yaml_simulation = builder.validate()
 
-    pipelines, _ = process_simulation_mapper_factory(builder.get_pipeline_references()).map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(
+        builder.get_pipeline_references(), shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 
@@ -107,7 +111,9 @@ def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulat
     ASV recirculation. This is not visible in YAML but added by the mapper."""
     yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline())
 
-    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(
+        refs, shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 
@@ -124,7 +130,9 @@ def test_mapper_preserves_yaml_unit_order_inside_segment(process_simulation_mapp
     """User-defined units appear in the order specified in YAML."""
     yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline())
 
-    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(
+        refs, shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 
@@ -143,7 +151,9 @@ def test_mapper_adds_choke_for_downstream_choke_pressure_control(process_simulat
     """DOWNSTREAM_CHOKE pressure control adds a Choke at the end of the pipeline."""
     yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline(), pressure_control="DOWNSTREAM_CHOKE")
 
-    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(
+        refs, shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 
@@ -157,7 +167,9 @@ def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulatio
     """UPSTREAM_CHOKE pressure control adds a Choke at the very start of the pipeline."""
     yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline(), pressure_control="UPSTREAM_CHOKE")
 
-    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(
+        refs, shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 
@@ -173,16 +185,22 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer_and_splitter")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .with_item(target=YamlSplitterBuilder().with_test_data().validate())
         .with_item(target=YamlMixerBuilder().with_test_data().validate())
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .validate()
     )
     yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
-    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(
+        refs, shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 
@@ -212,8 +230,7 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
 
 def test_incompatible_strategies_raises_validation_exception(process_simulation_mapper_factory):
     """Test that incompatible ANTI_SURGE and PRESSURE_CONTROL strategies raise exception."""
-    builder = YamlProcessSimulationBuilder().with_test_data()
-    yaml_simulation = builder.validate()
+    yaml_simulation, pipeline_references = _build_simulation_with_pipeline(_simple_pipeline())
 
     # Use incompatible combinations
     pipeline_name = yaml_simulation.targets[0]
@@ -223,7 +240,7 @@ def test_incompatible_strategies_raises_validation_exception(process_simulation_
     constraint.pressure_control = "COMMON_ASV"
 
     # Check that validation fails
-    mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
+    mapper = process_simulation_mapper_factory(pipeline_references, shafts={SHAFT_NAME: VariableSpeedShaft()})
     with pytest.raises(EcalcValidationException) as exc_info:
         mapper.map_process_simulation(yaml_simulation)
 
@@ -232,8 +249,7 @@ def test_incompatible_strategies_raises_validation_exception(process_simulation_
 
 def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_mapper_factory):
     """Test that COMMON_ASV anti-surge + INDIVIDUAL_ASV_RATE pressure control raises exception."""
-    builder = YamlProcessSimulationBuilder().with_test_data()
-    yaml_simulation = builder.validate()
+    yaml_simulation, pipeline_references = _build_simulation_with_pipeline(_simple_pipeline())
 
     pipeline_name = yaml_simulation.targets[0]
 
@@ -241,15 +257,14 @@ def test_incompatible_common_asv_with_individual_asv_rate(process_simulation_map
     constraint.anti_surge = "COMMON_ASV"
     constraint.pressure_control = "INDIVIDUAL_ASV_RATE"
 
-    mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
+    mapper = process_simulation_mapper_factory(pipeline_references, shafts={SHAFT_NAME: VariableSpeedShaft()})
     with pytest.raises(EcalcValidationException):
         mapper.map_process_simulation(yaml_simulation)
 
 
 def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation_mapper_factory):
     """Test that COMMON_ASV anti-surge + INDIVIDUAL_ASV_PRESSURE pressure control raises exception."""
-    builder = YamlProcessSimulationBuilder().with_test_data()
-    yaml_simulation = builder.validate()
+    yaml_simulation, pipeline_references = _build_simulation_with_pipeline(_simple_pipeline())
 
     pipeline_name = yaml_simulation.targets[0]
 
@@ -257,15 +272,14 @@ def test_incompatible_common_asv_with_individual_asv_pressure(process_simulation
     constraint.anti_surge = "COMMON_ASV"
     constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
 
-    mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
+    mapper = process_simulation_mapper_factory(pipeline_references, shafts={SHAFT_NAME: VariableSpeedShaft()})
     with pytest.raises(EcalcValidationException):
         mapper.map_process_simulation(yaml_simulation)
 
 
 def test_compatible_strategies_succeeds(process_simulation_mapper_factory):
     """Test that compatible strategies pass validation."""
-    builder = YamlProcessSimulationBuilder().with_test_data()
-    yaml_simulation = builder.validate()
+    yaml_simulation, pipeline_references = _build_simulation_with_pipeline(_simple_pipeline())
 
     # Use compatible combinations
     pipeline_name = yaml_simulation.targets[0]
@@ -275,7 +289,7 @@ def test_compatible_strategies_succeeds(process_simulation_mapper_factory):
     constraint.pressure_control = "INDIVIDUAL_ASV_PRESSURE"
 
     # Run without exception
-    mapper = process_simulation_mapper_factory(builder.get_pipeline_references())
+    mapper = process_simulation_mapper_factory(pipeline_references, shafts={SHAFT_NAME: VariableSpeedShaft()})
     mapper.map_process_simulation(yaml_simulation)
 
 
@@ -290,15 +304,21 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
         YamlProcessPipelineBuilder()
         .with_name("train_with_aftercooler")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .with_item(name="temp_setter_3", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .validate()
     )
     yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
-    pipelines, _ = process_simulation_mapper_factory(refs).map_process_simulation(
+    pipelines, _ = process_simulation_mapper_factory(
+        refs, shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 
@@ -324,15 +344,21 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper_fact
         YamlProcessPipelineBuilder()
         .with_name("train_with_duplicate_unit_names")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .validate()
     )
     yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
 
     with pytest.raises(EcalcValidationException) as exc_info:
-        process_simulation_mapper_factory(refs).map_process_simulation(yaml_simulation)
+        process_simulation_mapper_factory(refs, shafts={SHAFT_NAME: VariableSpeedShaft()}).map_process_simulation(
+            yaml_simulation
+        )
 
     assert "Duplicate process unit name 'temp_setter_1'" in str(exc_info.value)
 
@@ -345,7 +371,9 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper_fact
 def test_mapper_builds_single_process_problem_section(process_simulation_mapper_factory):
     """A single constraint pipeline produces one ProcessProblemSection."""
     yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline())
-    _, simulation = process_simulation_mapper_factory(refs).map_process_simulation(
+    _, simulation = process_simulation_mapper_factory(
+        refs, shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
     assert len(simulation.process_problems) == 1
@@ -370,10 +398,14 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
         YamlProcessPipelineBuilder()
         .with_name("train_with_intermediate_constraint")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .with_item(target=YamlMixerBuilder().with_test_data().validate())
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_shaft_driven_item(
+            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .validate()
     )
 
@@ -387,7 +419,9 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
     )
     yaml_simulation.constraints[yaml_pipeline.name].insert(0, constraint)
 
-    _, simulation = process_simulation_mapper_factory(refs).map_process_simulation(
+    _, simulation = process_simulation_mapper_factory(
+        refs, shafts={SHAFT_NAME: VariableSpeedShaft()}
+    ).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 

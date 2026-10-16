@@ -26,6 +26,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
     YamlOverflow,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
@@ -37,6 +38,10 @@ from libecalc.testing.process_builders import (
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
 
+SHAFT_NAME = "shaft_1"
+SHAFT_NAME_2 = "shaft_2"
+SHAFTS = [YamlShaft(name=SHAFT_NAME), YamlShaft(name=SHAFT_NAME_2)]
+
 
 def _asset_to_stream(asset) -> ResourceStream:
     """Serialize a YamlAsset to a ResourceStream for use with yaml_model_factory."""
@@ -45,12 +50,14 @@ def _asset_to_stream(asset) -> ResourceStream:
     return ResourceStream(name="test_model", stream=StringIO(yaml_string))
 
 
-def _build_pipeline(name="train_1"):
+def _build_pipeline(name="train_1", shaft=SHAFT_NAME):
     return (
         YamlProcessPipelineBuilder()
         .with_name(name)
         .with_item(target=YamlPressureDropperBuilder().with_test_data().validate(), name="dropper")
-        .with_item(target=YamlCompressorBuilder().with_test_data().validate(), name="compressor")
+        .with_shaft_driven_item(
+            target=YamlCompressorBuilder().with_test_data().validate(), name="compressor", shaft=shaft
+        )
         .validate()
     )
 
@@ -78,6 +85,7 @@ class TestTargetReferencesNonexistentPipeline:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_shafts(SHAFTS)
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
@@ -91,7 +99,7 @@ class TestTargetReferencesNonexistentPipeline:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 52
+	Object starting on line 56
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -124,6 +132,7 @@ class TestConstraintReferencesInvalid:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_shafts(SHAFTS)
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
@@ -137,7 +146,7 @@ class TestConstraintReferencesInvalid:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 52
+	Object starting on line 56
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -147,7 +156,7 @@ Validation error
     def test_target_pipeline_missing_constraint(self, yaml_model_factory):
         """A target pipeline with no matching constraint entry should produce a clear error."""
         pipeline_1 = _build_pipeline("train_1")
-        pipeline_2 = _build_pipeline("train_2")
+        pipeline_2 = _build_pipeline("train_2", shaft=SHAFT_NAME_2)
 
         simulation = (
             YamlProcessSimulationBuilder()
@@ -162,6 +171,7 @@ Validation error
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_shafts(SHAFTS)
             .with_process_pipelines({"train_1": pipeline_1, "train_2": pipeline_2})
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
@@ -175,7 +185,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 90
+	Object starting on line 95
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Missing constraint for process system 'train_2'
 """)
@@ -205,6 +215,7 @@ class TestInletStreamReferenceNotFound:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_shafts(SHAFTS)
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
@@ -218,7 +229,7 @@ class TestInletStreamReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 52
+	Object starting on line 56
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_stream'. Available references: fuel, train_1, my_sim
 """)
@@ -247,7 +258,7 @@ class TestPipelineEventRefNotFound:
             YamlProcessPipelineBuilder()
             .with_name("train_1")
             .with_item(target=YamlPressureDropperBuilder().with_test_data().validate(), name="dropper")
-            .with_item(target=compressor_def, name="stage_1")
+            .with_shaft_driven_item(target=compressor_def, name="stage_1", shaft=SHAFT_NAME)
             .with_events([event])
             .validate()
         )
@@ -262,6 +273,7 @@ class TestPipelineEventRefNotFound:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_shafts(SHAFTS)
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
@@ -275,7 +287,7 @@ class TestPipelineEventRefNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 114
+	Object starting on line 118
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Pipeline event 'nonexistent_event' does not match any known process event.
 """)
@@ -306,6 +318,7 @@ class TestOverflowReferenceNotFound:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_shafts(SHAFTS)
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
@@ -319,7 +332,7 @@ class TestOverflowReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 52
+	Object starting on line 56
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -346,6 +359,7 @@ Validation error
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_shafts(SHAFTS)
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
@@ -359,7 +373,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 52
+	Object starting on line 56
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)

@@ -45,6 +45,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import Yam
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
 
@@ -60,6 +61,7 @@ _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _ECALC_EVENTS_KEY = "ECALC_EVENTS"
 _PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
 _PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
+_SHAFTS_KEY = "SHAFTS"
 dt_adapter = TypeAdapter(datetime.datetime)
 
 
@@ -487,6 +489,17 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 pass
 
         return YamlDefinitions(process_units=process_units, fluids=fluids, turbines=turbines)
+
+    @property
+    def shafts(self) -> list[YamlShaft]:
+        shafts: list[YamlShaft] = []
+        adapter = TypeAdapter(YamlShaft)
+        for shaft in self._get_yaml_list_or_empty(_SHAFTS_KEY):
+            try:
+                shafts.append(adapter.validate_python(shaft))
+            except PydanticValidationError:
+                pass
+        return shafts
 
     @property
     def process_pipelines(self) -> dict[str, YamlProcessPipeline]:

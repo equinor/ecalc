@@ -30,6 +30,7 @@ from libecalc.presentation.yaml.domain.expression_time_series_power import Expre
 from libecalc.presentation.yaml.domain.expression_time_series_pressure import ExpressionTimeSeriesPressure
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
+from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.model import YamlModel
@@ -692,13 +693,27 @@ def process_simulation_mapper_factory(
     """
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    def _create(references: dict | None = None):
+    def _create(references: dict | None = None, shafts: dict | None = None):
         return ProcessSimulationMapper(
             expression_evaluator=expression_evaluator,
             fluid_service=fluid_service,
             references=references or {},
             resources={},
             ecalc_event_service=EcalcEventService(ecalc_events=[]),
+            shafts=shafts or {},
         )
+
+    return _create
+
+
+@pytest.fixture
+def energy_network_mapper_factory():
+    """
+    Factory fixture that returns an EnergyNetworkMapper.
+    Call with shafts to register shafts for drive trains. Default is no shafts.
+    """
+
+    def _create(shafts: dict | None = None):
+        return EnergyNetworkMapper(shafts=shafts or {})
 
     return _create
