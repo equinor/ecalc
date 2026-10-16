@@ -22,7 +22,7 @@ repos:
       - id: detect-private-key  # Checks for private keys
       - id: check-merge-conflict  # Check for merge conflict strings
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: '6fec9b7edb08fd9989088709d864a7826dc74e80'  # frozen: v0.15.12
+    rev: 'a56c0b927e6465d37cae3e97d35d4d18ab2b96cd'  # frozen: v0.16.9
     hooks:
       - id: ruff
         priority: 10
@@ -34,7 +34,7 @@ repos:
       - id: ruff-format
 
   - repo: https://github.com/codespell-project/codespell
-    rev: '2ccb47ff45ad361a21071a7eedda4c37e6ae8c5a' # frozen: v2.4.2
+    rev: '57b21406f092110c18776e39b0bda50d37c945c8' # frozen: v2.4.3
     hooks:
       - id: codespell
         priority: 10
@@ -43,7 +43,7 @@ repos:
         exclude: docs/docs/changelog/changelog.md|.*\.ipynb
         args: ["--write-changes"]  # Instead of just complaining about typos, automatically fix them in the files.
   - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
-    rev: 1d7031e6d0bbfce76e5a625b0cec24fb22e517a0  # frozen: v9.25.0
+    rev: 1f1ac45c93d1c2ce36b71330252c489a5f4f2724  # frozen: v9.27.0
 
     hooks:
       - id: commitlint
@@ -52,7 +52,7 @@ repos:
         additional_dependencies: [ '@commitlint/config-conventional' ]
 
   - repo: https://github.com/trufflesecurity/trufflehog
-    rev: 17456f8c7d042d8c82c9a8ca9e937231f9f42e26  # frozen: v3.95.2
+    rev: 4dd8831c5f12599465d4d45c3c447b4018a34c85  # frozen: v3.97.9
     hooks:
       - id: trufflehog
         priority: 10
