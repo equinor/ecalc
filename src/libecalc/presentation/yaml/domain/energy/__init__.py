@@ -7,9 +7,8 @@ from libecalc.presentation.yaml.domain.energy.consumers import (
     TimeSeriesConsumer,
 )
 from libecalc.presentation.yaml.domain.energy.converters import (
-    TimeSeriesElectricalMotorFactory,
-    TimeSeriesGasTurbineFactory,
-    TimeSeriesGeneratorSetFactory,
+    TimeSeriesEfficiencyConverterFactory,
+    TimeSeriesSampledConverterFactory,
 )
 from libecalc.presentation.yaml.domain.energy.demand import (
     ExpressionDemand,
@@ -28,12 +27,11 @@ __all__ = [
     "ExpressionDemand",
     "TimeSeriesConsumer",
     "TimeSeriesDemand",
+    "TimeSeriesEfficiencyConverterFactory",
     "TimeSeriesElectricalCableFactory",
-    "TimeSeriesElectricalMotorFactory",
     "TimeSeriesEnergyUnit",
     "TimeSeriesEnergyUnitFactory",
-    "TimeSeriesGasTurbineFactory",
-    "TimeSeriesGeneratorSetFactory",
     "TimeSeriesJunctionFactory",
+    "TimeSeriesSampledConverterFactory",
     "TimeSeriesSourceFactory",
 ]
