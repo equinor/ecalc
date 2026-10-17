@@ -19,6 +19,7 @@ from libecalc.presentation.yaml.domain.energy.junction import TimeSeriesJunction
 from libecalc.presentation.yaml.domain.energy.sources import (
     TimeSeriesSourceFactory,
 )
+from libecalc.presentation.yaml.domain.energy.tabular import TabularDemand
 from libecalc.presentation.yaml.domain.energy.transport import (
     TimeSeriesElectricalCableFactory,
 )
@@ -26,6 +27,7 @@ from libecalc.presentation.yaml.domain.energy.transport import (
 __all__ = [
     "CompressorSampledDemand",
     "ExpressionDemand",
+    "TabularDemand",
     "TimeSeriesConsumer",
     "TimeSeriesDemand",
     "TimeSeriesElectricalCableFactory",
