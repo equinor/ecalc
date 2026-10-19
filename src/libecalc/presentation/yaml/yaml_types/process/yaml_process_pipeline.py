@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Annotated, TypeVar
+from typing import Annotated
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -14,8 +14,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 
-TTarget = TypeVar("TTarget")
-
 
 class YamlProcessUnitInstance[TTarget](YamlBase):
     model_config = ConfigDict(title="PROCESS_UNIT")
@@ -24,22 +22,17 @@ class YamlProcessUnitInstance[TTarget](YamlBase):
     name: str | None = None
 
 
-class YamlShaftDrivenProcessUnitInstance(YamlProcessUnitInstance[YamlCompressorDefinition]):
-    model_config = ConfigDict(title="SHAFT_DRIVEN_COMPRESSOR")
+class YamlCompressorProcessUnitInstance(YamlBase):
+    model_config = ConfigDict(title="COMPRESSOR_PROCESS_UNIT")
+
+    target: YamlCompressorDefinition | DefinitionReference
+    name: str
 
     shaft: ShaftReference = Field(
         ...,
         title="SHAFT",
         description="Reference to a shaft defined in SHAFTS.",
     )
-
-
-def describe_process_unit(process_unit: YamlProcessUnitInstance, position: int) -> str:
-    if process_unit.name is not None:
-        return f"'{process_unit.name}'"
-    if isinstance(process_unit.target, str):
-        return f"'{process_unit.target}'"
-    return f"#{position} ({process_unit.target.type})"
 
 
 class PipelineEventAction(StrEnum):
@@ -99,7 +92,7 @@ class YamlPipelineEvent(YamlBase):
 
 class YamlProcessPipeline(YamlBase):
     name: str
-    process_units: list[YamlShaftDrivenProcessUnitInstance | YamlProcessUnitInstance[YamlProcessUnitDefinition]]
+    process_units: list[YamlCompressorProcessUnitInstance | YamlProcessUnitInstance[YamlProcessUnitDefinition]]
     events: Annotated[
         list[YamlPipelineEvent],
         Field(
@@ -113,7 +106,7 @@ class YamlProcessPipeline(YamlBase):
         shaft_names = {
             process_unit.shaft
             for process_unit in self.process_units
-            if isinstance(process_unit, YamlShaftDrivenProcessUnitInstance)
+            if isinstance(process_unit, YamlCompressorProcessUnitInstance)
         }
         if len(shaft_names) > 1:
             raise ValueError(

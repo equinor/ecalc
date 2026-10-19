@@ -91,7 +91,6 @@ def test_get_expected_types_with_real_process_unit_annotation():
 
     result = get_expected_types(annotation)
     assert set(result) == {
-        YamlCompressorDefinition,
         YamlPressureDropperDefinition,
         YamlTemperatureSetterDefinition,
         YamlLiquidRemoverDefinition,

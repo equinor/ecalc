@@ -239,7 +239,7 @@ class TestGeneratorSet:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 15
+	Object starting on line 17
 	Location: installations.Installation 1.GENERATORSETS.DefaultGeneratorSet.fuel
 	Message: Missing fuel reference
 """)

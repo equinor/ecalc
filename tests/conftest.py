@@ -40,9 +40,11 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlCo
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.testing.process_builders import YamlCompressorBuilder, YamlProcessPipelineBuilder
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,
+    YamlEnergyNetworkBuilder,
     YamlEnergyUsageModelDirectFuelBuilder,
     YamlFuelConsumerBuilder,
     YamlFuelTypeBuilder,
@@ -327,6 +329,21 @@ def resource_service_factory():
         return DirectResourceService(resources=resources)
 
     return create_resource_service
+
+
+@pytest.fixture
+def yaml_process_pipeline_builder_factory():
+    return lambda: YamlProcessPipelineBuilder()
+
+
+@pytest.fixture
+def energy_network_builder_factory():
+    return lambda: YamlEnergyNetworkBuilder()
+
+
+@pytest.fixture
+def yaml_compressor_builder_factory():
+    return lambda: YamlCompressorBuilder()
 
 
 @pytest.fixture
