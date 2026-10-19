@@ -46,8 +46,8 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import
     YamlPredefinedFluidDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorProcessUnitInstance,
     YamlProcessPipeline,
-    YamlShaftDrivenProcessUnitInstance,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
     InstanceReference,
@@ -338,7 +338,7 @@ class ProcessSimulationMapper:
                 match yaml_process_unit:
                     case YamlCompressorDefinition():
                         unit = self._get_compressor(yaml_process_unit)
-                        assert isinstance(yaml_pipeline_item, YamlShaftDrivenProcessUnitInstance), (
+                        assert isinstance(yaml_pipeline_item, YamlCompressorProcessUnitInstance), (
                             "Expected shaft driven instance for compressor definition"
                         )
                         shaft = self._shafts[yaml_pipeline_item.shaft]

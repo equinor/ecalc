@@ -104,6 +104,18 @@ class YamlSplitterDefinition(YamlBase):
 
 
 YamlProcessUnitDefinition = Annotated[
+    YamlPressureDropperDefinition
+    | YamlTemperatureSetterDefinition
+    | YamlLiquidRemoverDefinition
+    | YamlMixerDefinition
+    | YamlSplitterDefinition,
+    Field(discriminator="type"),
+]
+
+
+# Everything that can be defined under DEFINITIONS.PROCESS_UNITS. Compressors are deliberately not part of
+# YamlProcessUnitDefinition, since they can only be used by shaft driven process unit instances.
+YamlReferenceableProcessUnitDefinition = Annotated[
     YamlCompressorDefinition
     | YamlPressureDropperDefinition
     | YamlTemperatureSetterDefinition

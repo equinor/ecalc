@@ -101,7 +101,7 @@ class TestFuelConsumer:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 13
+	Object starting on line 15
 	Location: installations.Installation 1.FUELCONSUMERS.flare.fuel
 	Message: Missing fuel reference
 """)

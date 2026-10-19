@@ -1,8 +1,7 @@
 import abc
 from enum import Enum
+from types import get_original_bases
 from typing import Generic, Literal, Self, TypeVar, get_args
-
-from typing_extensions import get_original_bases
 
 from libecalc.common.utils.rates import RateType
 from libecalc.presentation.yaml.consumer_category import ConsumerUserDefinedCategoryType
@@ -23,8 +22,8 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsse
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
-    YamlInstallation,
     InstallationUserDefinedCategoryType,
+    YamlInstallation,
 )
 from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import (
     YamlDirectTypeEmitter,
@@ -35,7 +34,14 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingVolume,
     YamlVentingVolumeEmission,
 )
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    YamlComponent,
+    YamlDriveTrain,
+    YamlEnergyNetwork,
+    YamlEnergySource,
+    YamlEnergySourceType,
+    YamlGasTurbine,
+)
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlFacilityModel,
@@ -43,7 +49,7 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 )
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model_type import YamlFacilityModelType
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_emission import YamlEmission
-from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType, FuelTypeUserDefinedCategoryType
+from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import FuelTypeUserDefinedCategoryType, YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlTurbine
 from libecalc.presentation.yaml.yaml_types.models.model_reference_validation import (
     CompressorEnergyUsageModelModelReference,
@@ -116,6 +122,37 @@ class Builder(abc.ABC, Generic[T]):
 
     def validate(self) -> T:
         return self.__model__.model_validate(self._get_model_data())
+
+
+class YamlEnergyNetworkBuilder(Builder[YamlEnergyNetwork]):
+    """
+    Builder for ENERGY_NETWORK input
+    """
+
+    def __init__(self):
+        self.sources: list[YamlEnergySource] = []
+        self.units: list[YamlComponent] = []
+
+    def with_test_data(self) -> Self:
+        self.sources = [YamlEnergySource(name="fuel_gas", type=YamlEnergySourceType.FUEL_GAS_SOURCE)]
+        self.units = []
+        return self
+
+    def with_sources(self, sources: list[YamlEnergySource]) -> Self:
+        self.sources = sources
+        return self
+
+    def with_units(self, units: list[YamlComponent]) -> Self:
+        self.units = units
+        return self
+
+    def with_gas_turbine(self, name: str, input: str) -> Self:
+        self.units = [*self.units, YamlGasTurbine(name=name, type="GAS_TURBINE", input=input)]
+        return self
+
+    def with_drive_train(self, name: str, input: str, shaft: str) -> Self:
+        self.units = [*self.units, YamlDriveTrain(name=name, type="DRIVE_TRAIN", input=input, shaft=shaft)]
+        return self
 
 
 class YamlTimeSeriesBuilder(Builder[YamlDefaultTimeSeriesCollection]):
@@ -762,6 +799,7 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.fuel_types = [fuel_types_builder.validate()]
 
         self.variables = None
+        self.shafts = [YamlShaft(name="default_shaft")]
         self.definitions = None
         self.inlet_streams = None
 

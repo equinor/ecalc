@@ -4,8 +4,8 @@ from pydantic import ValidationError
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorProcessUnitInstance,
     YamlProcessPipeline,
-    YamlShaftDrivenProcessUnitInstance,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.testing.process_builders import (
@@ -50,14 +50,12 @@ def test_rejects_duplicate_shaft_names():
 
 
 def test_maps_same_shaft_to_multiple_compressor_process_units():
-    pipeline = YamlProcessPipeline.model_validate(
-        {
-            "NAME": "export_pipeline",
-            "PROCESS_UNITS": [
-                {"NAME": "lp_compressor", "TARGET": "compressor", "SHAFT": "export_shaft"},
-                {"NAME": "hp_compressor", "TARGET": "compressor", "SHAFT": "export_shaft"},
-            ],
-        }
+    pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("export_pipeline")
+        .with_shaft_driven_item(name="lp_compressor", target="compressor", shaft="export_shaft")
+        .with_shaft_driven_item(name="hp_compressor", target="compressor", shaft="export_shaft")
+        .validate()
     )
     asset = _asset_builder(
         shafts=[YamlShaft(name="export_shaft")],
@@ -67,7 +65,7 @@ def test_maps_same_shaft_to_multiple_compressor_process_units():
 
     process_units = asset.process_pipelines["export_pipeline"].process_units
     shaft_driven_units = [
-        process_unit for process_unit in process_units if isinstance(process_unit, YamlShaftDrivenProcessUnitInstance)
+        process_unit for process_unit in process_units if isinstance(process_unit, YamlCompressorProcessUnitInstance)
     ]
     assert [process_unit.shaft for process_unit in shaft_driven_units] == ["export_shaft", "export_shaft"]
 
@@ -129,28 +127,15 @@ def test_rejects_same_shaft_in_multiple_process_pipelines():
         )
 
 
-def test_rejects_compressors_without_shaft_when_pipeline_uses_shaft():
-    pipeline = (
-        YamlProcessPipelineBuilder()
-        .with_name("export_pipeline")
-        .with_shaft_driven_item(name="lp_compressor", target="compressor", shaft="export_shaft")
-        .with_item(name="hp_compressor", target="compressor")
-        .with_item(target="compressor")
-        .with_item(target=YamlCompressorBuilder().with_test_data().validate())
-        .validate()
-    )
-
-    with pytest.raises(ValidationError) as exc_info:
-        _asset_builder(
-            shafts=[YamlShaft(name="export_shaft")],
-            definitions=_compressor_definitions(),
-            pipeline=pipeline,
-        ).validate()
-
-    assert (
-        "Process pipeline 'export_pipeline' uses SHAFT, but these compressors are missing SHAFT: "
-        "'hp_compressor', 'compressor', #4 (COMPRESSOR)."
-    ) in str(exc_info.value)
+def test_rejects_compressors_without_shaft(yaml_process_pipeline_builder_factory, yaml_compressor_builder_factory):
+    with pytest.raises(ValidationError):
+        (
+            yaml_process_pipeline_builder_factory()
+            .with_name("export_pipeline")
+            .with_shaft_driven_item(name="lp_compressor", target="compressor", shaft="export_shaft")
+            .with_item(name="hp_compressor", target=yaml_compressor_builder_factory().with_test_data().validate())
+            .validate()
+        )
 
 
 def test_rejects_unknown_shaft_reference_from_drive_train():
@@ -178,6 +163,30 @@ def test_rejects_unknown_shaft_reference_from_drive_train():
             YamlAssetBuilder()
             .with_end("2025-01-01")
             .with_shafts([YamlShaft(name="export_shaft")])
+            .with_energy_network(energy_network)
+            .validate()
+        )
+
+
+def test_rejects_same_shaft_in_multiple_drive_trains(energy_network_builder_factory):
+    energy_network = (
+        energy_network_builder_factory()
+        .with_test_data()
+        .with_gas_turbine(name="export_turbine", input="fuel_gas")
+        .with_gas_turbine(name="injection_turbine", input="fuel_gas")
+        .with_drive_train(name="export_load", input="export_turbine", shaft="common_shaft")
+        .with_drive_train(name="injection_load", input="injection_turbine", shaft="common_shaft")
+        .construct()
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="Shaft 'common_shaft' is referenced by multiple drive trains: export_load, injection_load",
+    ):
+        (
+            YamlAssetBuilder()
+            .with_end("2025-01-01")
+            .with_shafts([YamlShaft(name="common_shaft")])
             .with_energy_network(energy_network)
             .validate()
         )

@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlProcessPipelineBuilder,
@@ -40,9 +41,27 @@ def test_pipeline_can_only_be_targeted_by_one_simulation():
         )
 
 
-def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation():
-    pipeline_1 = YamlProcessPipelineBuilder().with_test_data().with_name("train_1").validate()
-    pipeline_2 = YamlProcessPipelineBuilder().with_test_data().with_name("train_2").validate()
+def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
+    yaml_process_pipeline_builder_factory,
+    yaml_compressor_builder_factory,
+    yaml_asset_builder_factory,
+):
+    pipeline_1 = (
+        yaml_process_pipeline_builder_factory()
+        .with_name("train_1")
+        .with_shaft_driven_item(
+            name="compressor_1", target=yaml_compressor_builder_factory().with_test_data().validate(), shaft="shaft_1"
+        )
+        .validate()
+    )
+    pipeline_2 = (
+        yaml_process_pipeline_builder_factory()
+        .with_name("train_2")
+        .with_shaft_driven_item(
+            name="compressor_2", target=yaml_compressor_builder_factory().with_test_data().validate(), shaft="shaft_2"
+        )
+        .validate()
+    )
 
     simulation_1 = (
         YamlProcessSimulationBuilder()
@@ -60,8 +79,9 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation():
     )
 
     asset = (
-        YamlAssetBuilder()
+        yaml_asset_builder_factory()
         .with_test_data()
+        .with_shafts([YamlShaft(name="shaft_1"), YamlShaft(name="shaft_2")])
         .with_process_pipelines({pipeline_1.name: pipeline_1, pipeline_2.name: pipeline_2})
         .with_process_simulations([simulation_1, simulation_2])
         .validate()

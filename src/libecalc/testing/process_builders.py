@@ -1,16 +1,31 @@
 from typing import Self
 
 from libecalc.common.utils.rates import RateType
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
+    YamlCurve,
+    YamlEfficiencyUnits,
+    YamlHeadUnits,
+    YamlRateUnits,
+    YamlUnits,
+)
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
 from libecalc.presentation.yaml.yaml_types.models.yaml_fluid import (
     YamlEosModel,
-    YamlPredefinedFluidType,
     YamlFluidModelType,
+    YamlPredefinedFluidType,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import (
-    YamlFluidDefinition,
-    YamlPredefinedFluidDefinition,
     YamlCompositionFluidDefinition,
     YamlFluidComposition,
+    YamlFluidDefinition,
+    YamlPredefinedFluidDefinition,
+)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorProcessUnitInstance,
+    YamlProcessPipeline,
+    YamlProcessUnitInstance,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
 from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
@@ -20,50 +35,34 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessEvent,
     YamlProcessSimulation,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
+    YamlCompressorChart,
+    YamlCompressorDefinition,
+    YamlCompressorModelChart,
+    YamlControlMargin,
+    YamlLiquidRemoverDefinition,
+    YamlMixerDefinition,
+    YamlPressureDropperDefinition,
+    YamlProcessUnitDefinition,
+    YamlReferenceableProcessUnitDefinition,
+    YamlSplitterDefinition,
+    YamlTemperatureSetterDefinition,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
     YamlCommonStreamDistribution,
-    YamlIndividualStreamDistribution,
     YamlCommonStreamSetting,
+    YamlIndividualStreamDistribution,
     YamlOverflow,
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
-    YamlInletStreamRate,
     YamlInletStream,
+    YamlInletStreamRate,
     YamlStreamRateUnit,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.testing.yaml_builder import Builder
-from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
-    YamlUnits,
-    YamlCurve,
-    YamlRateUnits,
-    YamlHeadUnits,
-    YamlEfficiencyUnits,
-)
-from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import YamlControlMarginUnits
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlProcessUnitInstance,
-    YamlProcessPipeline,
-    YamlShaftDrivenProcessUnitInstance,
-)
-
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlLiquidRemoverDefinition,
-    YamlTemperatureSetterDefinition,
-    YamlPressureDropperDefinition,
-    YamlCompressorModelChart,
-    YamlCompressorDefinition,
-    YamlControlMargin,
-    YamlCompressorChart,
-    YamlProcessUnitDefinition,
-    YamlMixerDefinition,
-    YamlSplitterDefinition,
-)
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
-
 
 # ---------------------------------------------------------------------------
 # Chart builders
@@ -241,6 +240,9 @@ class YamlSplitterBuilder(Builder[YamlSplitterDefinition]):
 # ---------------------------------------------------------------------------
 
 
+DEFAULT_SHAFT_NAME = "default_shaft"
+
+
 class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
     def __init__(self):
         self.type = "SERIAL"
@@ -261,9 +263,9 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self,
         target: YamlCompressorDefinition | DefinitionReference,
         shaft: ShaftReference,
-        name: str | None = None,
+        name: str,
     ) -> Self:
-        self.process_units.append(YamlShaftDrivenProcessUnitInstance(name=name, target=target, shaft=shaft))
+        self.process_units.append(YamlCompressorProcessUnitInstance(name=name, target=target, shaft=shaft))
         return self
 
     def with_items(self, items: list[tuple[str | None, YamlProcessUnitDefinition | DefinitionReference]]) -> Self:
@@ -292,7 +294,11 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
                 name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
             )
             .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
-            .with_item(name="default_compressor", target=YamlCompressorBuilder().with_test_data().validate())
+            .with_shaft_driven_item(
+                name="default_compressor",
+                target=YamlCompressorBuilder().with_test_data().validate(),
+                shaft=DEFAULT_SHAFT_NAME,
+            )
         )
 
 
@@ -605,14 +611,14 @@ class YamlProcessEventBuilder(Builder[YamlProcessEvent]):
 
 class YamlDefinitionsBuilder(Builder[YamlDefinitions]):
     def __init__(self):
-        self.process_units: dict[str, YamlProcessUnitDefinition] = {}
+        self.process_units: dict[str, YamlReferenceableProcessUnitDefinition] = {}
         self.fluids: dict[str, YamlFluidDefinition] = {}
 
-    def with_process_unit(self, name: str, definition: YamlProcessUnitDefinition) -> Self:
+    def with_process_unit(self, name: str, definition: YamlReferenceableProcessUnitDefinition) -> Self:
         self.process_units[name] = definition
         return self
 
-    def with_process_units(self, process_units: dict[str, YamlProcessUnitDefinition]) -> Self:
+    def with_process_units(self, process_units: dict[str, YamlReferenceableProcessUnitDefinition]) -> Self:
         self.process_units = process_units
         return self
 

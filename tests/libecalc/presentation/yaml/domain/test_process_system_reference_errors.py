@@ -20,6 +20,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     YamlPipelineEvent,
 )
 from libecalc.testing.process_builders import (
+    DEFAULT_SHAFT_NAME,
     YamlCommonStreamDistributionBuilder,
     YamlCompressorBuilder,
     YamlDefinitionsBuilder,
@@ -46,12 +47,11 @@ class TestDefinitionReferenceNotFound:
     def test_pipeline_references_nonexistent_definition(self, yaml_model_factory):
         """A pipeline with a process unit referencing a definition that doesn't exist
         should produce a clear error listing available definitions."""
-        compressor_def = YamlCompressorBuilder().with_test_data().validate()
 
         pipeline = (
             YamlProcessPipelineBuilder()
             .with_name("train_1")
-            .with_item(target="nonexistent_compressor", name="stage_1")
+            .with_shaft_driven_item(target="nonexistent_compressor", name="stage_1", shaft=DEFAULT_SHAFT_NAME)
             .validate()
         )
 
@@ -63,6 +63,7 @@ class TestDefinitionReferenceNotFound:
         )
         simulation = sim_builder.validate()
 
+        compressor_def = YamlCompressorBuilder().with_test_data().validate()
         definitions = YamlDefinitionsBuilder().with_process_unit("real_compressor", compressor_def).validate()
 
         asset = (
@@ -81,7 +82,7 @@ class TestDefinitionReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 42
+	Object starting on line 44
 	Location: PROCESS_PIPELINES.train_1
 	Message: Definition reference 'nonexistent_compressor' not found. Available definitions: ['real_compressor']
 """)
@@ -94,7 +95,6 @@ class TestDefinitionReferenceWrongType:
     @pytest.mark.inlinesnapshot
     def test_pipeline_unit_references_fluid_definition(self, yaml_model_factory):
         """A process unit instance referencing a fluid definition should produce a type error."""
-        fluid_def = YamlPredefinedFluidDefinitionBuilder().with_test_data().validate()
 
         pipeline = (
             YamlProcessPipelineBuilder().with_name("train_1").with_item(target="my_fluid", name="stage_1").validate()
@@ -108,6 +108,7 @@ class TestDefinitionReferenceWrongType:
         )
         simulation = sim_builder.validate()
 
+        fluid_def = YamlPredefinedFluidDefinitionBuilder().with_test_data().validate()
         definitions = YamlDefinitionsBuilder().with_fluid("my_fluid", fluid_def).validate()
 
         asset = (
@@ -126,9 +127,9 @@ class TestDefinitionReferenceWrongType:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 17
+	Object starting on line 19
 	Location: PROCESS_PIPELINES.train_1
-	Message: Definition reference 'my_fluid' resolved to type 'YamlPredefinedFluidDefinition', but expected one of: YamlCompressorDefinition, YamlPressureDropperDefinition, YamlTemperatureSetterDefinition, YamlLiquidRemoverDefinition, YamlMixerDefinition, YamlSplitterDefinition
+	Message: Definition reference 'my_fluid' resolved to type 'YamlPredefinedFluidDefinition', but expected one of: YamlPressureDropperDefinition, YamlTemperatureSetterDefinition, YamlLiquidRemoverDefinition, YamlMixerDefinition, YamlSplitterDefinition
 """)
 
     @pytest.mark.snapshot
@@ -151,7 +152,7 @@ Validation error
         pipeline = (
             YamlProcessPipelineBuilder()
             .with_name("train_1")
-            .with_item(target=compressor_def, name="stage_1")
+            .with_shaft_driven_item(target=compressor_def, name="stage_1", shaft=DEFAULT_SHAFT_NAME)
             .with_events([event])
             .validate()
         )
@@ -182,7 +183,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 16
+	Object starting on line 18
 	Location: PROCESS_PIPELINES.train_1
 	Message: Definition reference 'my_pressure_dropper' resolved to type 'YamlPressureDropperDefinition', but expected one of: YamlCompressorDefinition
 """)

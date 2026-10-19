@@ -41,7 +41,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlReferenceableProcessUnitDefinition
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
@@ -462,7 +462,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def definitions(self) -> YamlDefinitions:
-        process_units: dict[str, YamlProcessUnitDefinition] = {}
+        process_units: dict[str, YamlReferenceableProcessUnitDefinition] = {}
         fluids: dict[str, YamlFluidDefinition] = {}
         turbines: dict[str, YamlTurbineDefinition] = {}
         definitions = (
@@ -474,7 +474,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
         for name, unit_data in raw_process_units.items():
             try:
-                process_units[name] = TypeAdapter(YamlProcessUnitDefinition).validate_python(unit_data)
+                process_units[name] = TypeAdapter(YamlReferenceableProcessUnitDefinition).validate_python(unit_data)
             except PydanticValidationError:
                 pass
         for name, fluid_data in raw_fluids.items():

@@ -47,7 +47,9 @@ def _simple_pipeline(name: str = "train_1"):
         .with_item(target=YamlPressureDropperBuilder().with_test_data().validate())
         .with_item(target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_item(target=YamlLiquidRemoverBuilder().with_test_data().validate())
-        .with_shaft_driven_item(target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME)
+        .with_shaft_driven_item(
+            name="compressor", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+        )
         .validate()
     )
 

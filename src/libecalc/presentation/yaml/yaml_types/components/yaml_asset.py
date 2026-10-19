@@ -16,11 +16,9 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorProcessUnitInstance,
     YamlProcessPipeline,
-    YamlShaftDrivenProcessUnitInstance,
-    describe_process_unit,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlEcalcEvent,
     YamlProcessEvent,
@@ -28,8 +26,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlPumpProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlCompressorDefinition,
-    YamlProcessUnitDefinition,
+    YamlReferenceableProcessUnitDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
@@ -46,7 +43,7 @@ class YamlDefinitions(YamlBase):
         title="Definitions",
     )
 
-    process_units: dict[str, YamlProcessUnitDefinition] = Field(
+    process_units: dict[str, YamlReferenceableProcessUnitDefinition] = Field(
         default_factory=dict,
         title="PROCESS_UNITS",
         description="Defines process units used in PROCESS_PIPELINES.",
@@ -303,17 +300,17 @@ class YamlAsset(YamlBase):
         return self
 
     @model_validator(mode="after")
-    def validate_shaft_references(self):
+    def validate_process_pipeline_shaft_references(self):
         available_shaft_names = {shaft.name for shaft in self.shafts}
 
         for pipeline_name, pipeline in self.process_pipelines.items():
-            for position, process_unit in enumerate(pipeline.process_units, start=1):
-                if not isinstance(process_unit, YamlShaftDrivenProcessUnitInstance):
+            for process_unit in pipeline.process_units:
+                if not isinstance(process_unit, YamlCompressorProcessUnitInstance):
                     continue
                 if process_unit.shaft not in available_shaft_names:
                     available = ", ".join(sorted(available_shaft_names)) or "none"
                     raise ValueError(
-                        f"Process unit {describe_process_unit(process_unit, position)} in process pipeline "
+                        f"Process unit '{process_unit.name}' in process pipeline "
                         f"'{pipeline_name}' references unknown shaft '{process_unit.shaft}'. "
                         f"Available shafts in SHAFTS: {available}."
                     )
@@ -324,7 +321,7 @@ class YamlAsset(YamlBase):
         pipelines_by_shaft: dict[ShaftReference, set[str]] = defaultdict(set)
         for pipeline_name, pipeline in self.process_pipelines.items():
             for process_unit in pipeline.process_units:
-                if isinstance(process_unit, YamlShaftDrivenProcessUnitInstance):
+                if isinstance(process_unit, YamlCompressorProcessUnitInstance):
                     pipelines_by_shaft[process_unit.shaft].add(pipeline_name)
 
         for shaft_name, pipeline_names in pipelines_by_shaft.items():
@@ -336,30 +333,7 @@ class YamlAsset(YamlBase):
         return self
 
     @model_validator(mode="after")
-    def validate_all_compressors_shaft_driven(self):
-        for pipeline_name, pipeline in self.process_pipelines.items():
-            if not any(isinstance(unit, YamlShaftDrivenProcessUnitInstance) for unit in pipeline.process_units):
-                continue
-
-            compressors_without_shaft = [
-                describe_process_unit(process_unit, position)
-                for position, process_unit in enumerate(pipeline.process_units, start=1)
-                if not isinstance(process_unit, YamlShaftDrivenProcessUnitInstance)
-                and self._is_compressor(process_unit.target)
-            ]
-            if compressors_without_shaft:
-                raise ValueError(
-                    f"Process pipeline '{pipeline_name}' uses SHAFT, but these compressors are missing SHAFT: "
-                    f"{', '.join(compressors_without_shaft)}. All compressors in a process pipeline must reference a shaft."
-                )
-        return self
-
-    def _is_compressor(self, target: YamlProcessUnitDefinition | DefinitionReference) -> bool:
-        resolved_target = self.definitions.process_units.get(target) if isinstance(target, str) else target
-        return isinstance(resolved_target, YamlCompressorDefinition)
-
-    @model_validator(mode="after")
-    def validate_mechanical_consumer_shaft_references(self):
+    def validate_drive_train_shaft_references(self):
         if self.energy_network is None:
             return self
 
@@ -372,4 +346,22 @@ class YamlAsset(YamlBase):
                         f"Drive train '{unit.name}' references unknown shaft '{unit.shaft}'. "
                         f"Available shafts in SHAFTS: {available}."
                     )
+        return self
+
+    @model_validator(mode="after")
+    def validate_shaft_used_by_single_drive_train(self):
+        if self.energy_network is None:
+            return self
+
+        drive_trains_by_shaft: dict[ShaftReference, set[str]] = defaultdict(set)
+        for unit in self.energy_network.units:
+            if isinstance(unit, YamlDriveTrain):
+                drive_trains_by_shaft[unit.shaft].add(unit.name)
+
+        for shaft_name, drive_train_names in drive_trains_by_shaft.items():
+            if len(drive_train_names) > 1:
+                raise ValueError(
+                    f"Shaft '{shaft_name}' is referenced by multiple drive trains: "
+                    f"{', '.join(sorted(drive_train_names))}. A shaft can only be used in one drive train."
+                )
         return self
