@@ -882,6 +882,7 @@ class CompressorTrainCommonShaft(CompressorTrainModel):
                 target_discharge_pressure=outlet_pressure_for_stage,
                 inlet_stream_stage=inlet_stream_stage,
             )
+            assert stage_result.outlet_stream is not None
             inlet_stream_stage = stage_result.outlet_stream
             stage_results.append(stage_result)
 

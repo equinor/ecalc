@@ -1,8 +1,6 @@
-import operator
 import typing
 from collections import defaultdict
 from dataclasses import dataclass
-from functools import reduce
 from typing import TypeVar
 
 TResult = TypeVar("TResult")
@@ -54,9 +52,7 @@ class PriorityOptimizer[TResult]:
                 priority_results[priority][evaluator_result.id] = evaluator_result.result
 
             # Check if consumers are valid for this priority, should be valid for all consumers
-            all_evaluator_results_valid = reduce(
-                operator.mul, [evaluator_result.is_valid for evaluator_result in evaluator_results]
-            )
+            all_evaluator_results_valid = all(evaluator_result.is_valid for evaluator_result in evaluator_results)
 
             if all_evaluator_results_valid:
                 priority_used = priority
