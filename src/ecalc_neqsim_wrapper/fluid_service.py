@@ -381,6 +381,14 @@ class NeqSimFluidService(FluidService):
 
     def remove_liquid(self, fluid: Fluid) -> GasPhase:
         """Multiphase TP flash at the fluid's conditions; returns the retained phase and its molar fraction of the feed."""
+        composition_key = _make_composition_key(fluid.fluid_model.composition.normalized())
+        cache_key = ("GAS_PHASE",) + self._make_pt_cache_key(
+            composition_key, fluid.fluid_model.eos_model, fluid.pressure_bara, fluid.temperature_kelvin
+        )[1:]
+        cached = self._flash_cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         ref = self._get_reference_fluid(fluid.fluid_model)
         gas_only, molar_fraction = ref.separate_gas_phase(
             pressure_bara=fluid.pressure_bara,
@@ -389,10 +397,12 @@ class NeqSimFluidService(FluidService):
 
         new_fluid_model = FluidModel(composition=gas_only.composition, eos_model=fluid.fluid_model.eos_model)
         props = self._extract_properties(gas_only, new_fluid_model)
-        return GasPhase(
+        result = GasPhase(
             fluid=Fluid(fluid_model=new_fluid_model, properties=props),
             molar_fraction=molar_fraction,
         )
+        self._flash_cache.put(cache_key, result)
+        return result
 
     # === Factory Methods (implementing FluidService interface) ===
 
