@@ -10,13 +10,20 @@ Designed to work as a singleton for global caching.
 from __future__ import annotations
 
 import abc
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 if TYPE_CHECKING:
     from libecalc.process.fluid_stream.fluid import Fluid
     from libecalc.process.fluid_stream.fluid_model import FluidModel
     from libecalc.process.fluid_stream.fluid_properties import FluidProperties
     from libecalc.process.fluid_stream.fluid_stream import FluidStream
+
+
+class GasPhase(NamedTuple):
+    """The fluid kept after liquid removal and the molar fraction of the feed it retains."""
+
+    fluid: Fluid
+    molar_fraction: float
 
 
 class FluidService(abc.ABC):
@@ -83,20 +90,8 @@ class FluidService(abc.ABC):
     def remove_liquid(
         self,
         fluid: Fluid,
-    ) -> Fluid:
-        """Remove liquid phase from fluid, returning gas-phase only.
-
-        Performs a TP flash at the fluid's current conditions and extracts only
-        the gas phase. The returned Fluid will have updated composition reflecting
-        the gas-phase composition.
-
-        Args:
-            fluid: The fluid to remove liquid from
-
-        Returns:
-            New Fluid with liquid removed (gas-phase only). Composition will be
-            updated to reflect the gas-phase composition if liquid was present.
-        """
+    ) -> GasPhase:
+        """Remove liquid at the fluid's conditions, keeping the gas phase, or the dense hydrocarbon phase if no gas."""
         ...
 
     # === Convenience Methods ===

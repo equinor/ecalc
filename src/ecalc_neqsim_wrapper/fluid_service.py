@@ -21,7 +21,7 @@ from libecalc.process.fluid_stream.fluid import Fluid
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_properties import FluidProperties
 from libecalc.process.fluid_stream.fluid_property_validation import validate_ph_flash_result
-from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.fluid_stream.fluid_service import FluidService, GasPhase
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 
 _logger = logging.getLogger(__name__)
@@ -379,39 +379,20 @@ class NeqSimFluidService(FluidService):
         self._flash_cache.put(cache_key, result)
         return result
 
-    def remove_liquid(self, fluid: Fluid) -> Fluid:
-        """Remove liquid phase from fluid, returning gas-phase only.
-
-        Performs a TP flash at the fluid's current conditions and extracts only
-        the gas phase. The returned Fluid will have updated composition reflecting
-        the gas-phase composition.
-
-        Args:
-            fluid: The fluid to remove liquid from
-
-        Returns:
-            New Fluid with liquid removed (gas-phase only). Composition will be
-            updated to reflect the gas-phase composition if liquid was present.
-        """
-        # If already all vapor, return as-is
-        if fluid.vapor_fraction_molar >= ThermodynamicConstants.PURE_VAPOR_THRESHOLD:
-            return fluid
-
-        # Flash to current conditions to get NeqsimFluid, then extract gas phase
+    def remove_liquid(self, fluid: Fluid) -> GasPhase:
+        """Multiphase TP flash at the fluid's conditions; returns the retained phase and its molar fraction of the feed."""
         ref = self._get_reference_fluid(fluid.fluid_model)
-        flashed = ref.set_new_pressure_and_temperature(
-            new_pressure_bara=fluid.pressure_bara,
-            new_temperature_kelvin=fluid.temperature_kelvin,
+        gas_only, molar_fraction = ref.separate_gas_phase(
+            pressure_bara=fluid.pressure_bara,
+            temperature_kelvin=fluid.temperature_kelvin,
         )
 
-        # Extract gas phase only
-        gas_only = flashed.clone_gas_phase()
-        gas_composition = gas_only.composition
-
-        # Create new Fluid with gas-phase composition
-        new_fluid_model = FluidModel(composition=gas_composition, eos_model=fluid.fluid_model.eos_model)
+        new_fluid_model = FluidModel(composition=gas_only.composition, eos_model=fluid.fluid_model.eos_model)
         props = self._extract_properties(gas_only, new_fluid_model)
-        return Fluid(fluid_model=new_fluid_model, properties=props)
+        return GasPhase(
+            fluid=Fluid(fluid_model=new_fluid_model, properties=props),
+            molar_fraction=molar_fraction,
+        )
 
     # === Factory Methods (implementing FluidService interface) ===
 
