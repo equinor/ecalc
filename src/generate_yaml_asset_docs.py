@@ -34,6 +34,7 @@ from libecalc.testing.process_builders import (
     YamlCompressorChartBuilder,
     YamlCompressorModelChartBuilder,
     YamlCurveBuilder,
+    YamlEcalcEventBuilder,
     YamlIndividualStreamDistributionBuilder,
     YamlInletStreamBuilder,
     YamlInletStreamRateBuilder,
@@ -41,6 +42,7 @@ from libecalc.testing.process_builders import (
     YamlMixerBuilder,
     YamlPredefinedFluidDefinitionBuilder,
     YamlPressureDropperBuilder,
+    YamlProcessEventBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
     YamlSplitterBuilder,
@@ -48,7 +50,15 @@ from libecalc.testing.process_builders import (
 )
 
 # Top-level YamlAsset fields to document (by python attribute name)
-PROCESS_INCLUDE_FIELDS = {"definitions", "shafts", "process_pipelines", "inlet_streams", "process_simulations"}
+PROCESS_INCLUDE_FIELDS = {
+    "definitions",
+    "shafts",
+    "process_pipelines",
+    "inlet_streams",
+    "process_simulations",
+    "ecalc_events",
+    "process_events",
+}
 ENERGY_INCLUDE_FIELDS = {"energy_network"}
 
 # Maximum recursion depth to prevent infinite loops on circular references
@@ -221,6 +231,16 @@ EXAMPLES: list[Example] = [
     Example(
         "PROCESS_SIMULATIONS.STREAM_DISTRIBUTION.INDIVIDUAL_STREAMS",
         lambda: YamlIndividualStreamDistributionBuilder().with_test_data().validate(),
+    ),
+    # --- ECALC_EVENTS ---
+    Example(
+        "ECALC_EVENTS",
+        lambda: YamlEcalcEventBuilder().with_test_data().validate(),
+    ),
+    # --- PROCESS_EVENTS ---
+    Example(
+        "PROCESS_EVENTS",
+        lambda: YamlProcessEventBuilder().with_test_data().validate(),
     ),
 ]
 
@@ -513,6 +533,8 @@ SIDEBAR_DEPTH: dict[str, int] = {
     "shafts": 2,  # SHAFTS only (h2)
     "process_pipelines": 2,  # PROCESS_PIPELINES only (h2)
     "process_simulations": 2,  # PROCESS_SIMULATIONS only (h2)
+    "ecalc_events": 2,  # ECALC_EVENTS only (h2)
+    "process_events": 2,  # PROCESS_EVENTS only (h2)
     "energy_network": 3,  # ENERGY_NETWORK only (h2)
 }
 
@@ -925,6 +947,8 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [SHAFTS](#shafts)
 - [PROCESS_PIPELINES](#process_pipelines)
 - [PROCESS_SIMULATIONS](#process_simulations)
+- [ECALC_EVENTS](#ecalc_events)
+- [PROCESS_EVENTS](#process_events)
 
 """,
         examples=EXAMPLES,

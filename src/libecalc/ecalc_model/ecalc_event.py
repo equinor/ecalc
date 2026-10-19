@@ -7,8 +7,8 @@ from libecalc.common.ddd import value_object
 # TODO: Unknown types or categories. Does it even make sense to specify in hierarchy?
 # We will figure out more soon
 class EcalcEventType(StrEnum):
-    OPERATIONAL_MEASUREMENT = "OPERATIONAL_MEASUREMENT"
-    ENERGY_EFFICIENCY_MEASUREMENT = "ENERGY_EFFICIENCY_MEASUREMENT"
+    OPERATIONAL_MEASURE = "OPERATIONAL_MEASURE"
+    ENERGY_EFFICIENCY_MEASURE = "ENERGY_EFFICIENCY_MEASURE"
     CALIBRATION = "CALIBRATION"
     TIE_IN = "TIE_IN"
     OTHER = "OTHER"

@@ -13,8 +13,11 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import
     YamlFluidComposition,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
+from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
+    YamlEcalcEvent,
     YamlProcessConstraint,
+    YamlProcessEvent,
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
@@ -526,6 +529,73 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
     def get_pipeline_references(self) -> dict[str, YamlProcessPipeline]:
         """Return a dict of pipeline name -> pipeline object for use with DirectReferenceService."""
         return dict(self._pipelines)
+
+
+# ---------------------------------------------------------------------------
+# Event builders
+# ---------------------------------------------------------------------------
+
+
+class YamlEcalcEventBuilder(Builder[YamlEcalcEvent]):
+    def __init__(self):
+        self.type: EcalcEventType | None = None
+        self.start = None
+        self.name: str | None = None
+        self.description: str | None = None
+
+    def with_type(self, type: EcalcEventType) -> Self:
+        self.type = type
+        return self
+
+    def with_start(self, start) -> Self:
+        self.start = start
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_description(self, description: str | None) -> Self:
+        self.description = description
+        return self
+
+    def with_test_data(self) -> Self:
+        self.type = EcalcEventType.TIE_IN
+        self.start = "2025-01-01"
+        self.name = "DefaultEcalcEvent"
+        self.description = "Tie-in of new wells"
+        return self
+
+
+class YamlProcessEventBuilder(Builder[YamlProcessEvent]):
+    def __init__(self):
+        self.type: ProcessEventType | None = None
+        self.name: str | None = None
+        self.description: str | None = None
+        self.ref: InstanceReference | None = None
+
+    def with_type(self, type: ProcessEventType) -> Self:
+        self.type = type
+        return self
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_description(self, description: str | None) -> Self:
+        self.description = description
+        return self
+
+    def with_ref(self, ref: InstanceReference) -> Self:
+        self.ref = ref
+        return self
+
+    def with_test_data(self) -> Self:
+        self.type = ProcessEventType.INCREASED_GAS_RATE
+        self.name = "DefaultProcessEvent"
+        self.description = "Increased gas rate after tie-in"
+        self.ref = "DefaultEcalcEvent"
+        return self
 
 
 # ---------------------------------------------------------------------------
