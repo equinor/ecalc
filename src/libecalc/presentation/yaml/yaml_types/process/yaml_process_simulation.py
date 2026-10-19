@@ -24,7 +24,7 @@ class YamlEcalcEvent(YamlBase):
         EcalcEventType,
         Field(
             title="TYPE",
-            description="Domain affected by this event, e.g. PROCESS, ENERGY, or ALL.",
+            description="Type of event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN or OTHER.",
         ),
     ]
     start: Annotated[
@@ -55,7 +55,7 @@ class YamlProcessEvent(YamlBase):
         ProcessEventType,
         Field(
             title="TYPE",
-            description="Type of process event, e.g. REBUNDLE, REVAMP.",
+            description="Type of process event: INCREASED_GAS_RATE, INCREASED_WATER_INJECTION or OTHER.",
         ),
     ]
     name: Annotated[

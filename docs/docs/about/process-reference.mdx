@@ -17,6 +17,8 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [SHAFTS](#shafts)
 - [PROCESS_PIPELINES](#process_pipelines)
 - [PROCESS_SIMULATIONS](#process_simulations)
+- [ECALC_EVENTS](#ecalc_events)
+- [PROCESS_EVENTS](#process_events)
 
 ## DEFINITIONS
 
@@ -638,3 +640,39 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 | `OUTLET_PRESSURE` | Target outlet pressure [bara]. | Required |
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
+
+## ECALC_EVENTS
+
+Defines eCalc events associated with temporal model changes
+
+```yaml
+TYPE: TIE_IN
+START: '2025-01-01T00:00:00'
+NAME: DefaultEcalcEvent
+DESCRIPTION: Tie-in of new wells
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | Type of event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN or OTHER. | Required |
+| `START` | Start date when this event takes effect. | Required |
+| `NAME` | Short identifier for the event. | Required |
+| `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |
+
+## PROCESS_EVENTS
+
+Defines process-specific events that reference global eCalc events.
+
+```yaml
+TYPE: INCREASED_GAS_RATE
+NAME: DefaultProcessEvent
+DESCRIPTION: Increased gas rate after tie-in
+REF: DefaultEcalcEvent
+```
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | Type of process event: INCREASED_GAS_RATE, INCREASED_WATER_INJECTION or OTHER. | Required |
+| `NAME` | Short identifier for the process event. | Required |
+| `DESCRIPTION` | Human-readable description of the process event. | Optional |
+| `REF` | Reference to a global ECALC_EVENT by name. | Required |
