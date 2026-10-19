@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -106,6 +106,32 @@ def test_liquid_remover_removes_only_water_from_dense_hydrocarbon_phase(fluid_se
     assert outlet_stream.fluid.fluid_model.composition.water < inlet_stream.fluid.fluid_model.composition.water
 
 
+def test_liquid_remover_removes_hydrocarbon_liquid_without_water(fluid_service, liquid_remover_factory):
+    composition = FluidComposition(
+        nitrogen=1,
+        CO2=1,
+        methane=60,
+        ethane=15,
+        propane=13,
+        i_butane=1,
+        n_butane=2,
+        i_pentane=1,
+        n_pentane=1,
+        n_hexane=5,
+    )
+    inlet_stream = fluid_service.create_stream_from_standard_rate(
+        fluid_model=FluidModel(eos_model=EoSModel.PR, composition=composition),
+        pressure_bara=60.0,
+        temperature_kelvin=260.0,
+        standard_rate_m3_per_day=1e6,
+    )
+
+    outlet_stream = liquid_remover_factory().propagate_stream(inlet_stream)
+
+    assert outlet_stream.mass_rate_kg_per_h < inlet_stream.mass_rate_kg_per_h
+    assert outlet_stream.vapor_fraction_molar >= ThermodynamicConstants.PURE_VAPOR_THRESHOLD
+
+
 def test_dense_hydrocarbon_phase_kept_by_liquid_remover_is_rejected_by_compressor(
     fluid_service, liquid_remover_factory, compressor_factory, variable_speed_compressor_chart_data
 ):
@@ -141,10 +167,13 @@ def test_liquid_remover_passthrough_when_no_liquid(fluid_service, liquid_remover
         fluid_properties=fluid.properties,
     )
     remover = liquid_remover_factory()
-    outlet_stream = remover.propagate_stream(inlet_stream)
+    with patch.object(fluid_service, "_get_reference_fluid", wraps=fluid_service._get_reference_fluid) as get_ref:
+        outlet_stream = remover.propagate_stream(inlet_stream)
 
     assert inlet_stream.vapor_fraction_molar == 1.0
     assert outlet_stream.mass_rate_kg_per_h == inlet_stream.mass_rate_kg_per_h
+    # Water-free and already pure vapor: the no-flash shortcut should apply, not the multiphase flash.
+    get_ref.assert_not_called()
 
 
 def test_liquid_remover_raises_on_non_positive_inlet_molar_mass():

@@ -381,6 +381,11 @@ class NeqSimFluidService(FluidService):
 
     def remove_liquid(self, fluid: Fluid) -> GasPhase:
         """Multiphase TP flash at the fluid's conditions; returns the retained phase and its molar fraction of the feed."""
+        has_water = bool(fluid.fluid_model.composition.water > 0)
+        if not has_water and fluid.vapor_fraction_molar >= ThermodynamicConstants.PURE_VAPOR_THRESHOLD:
+            # Already single-phase vapor with nothing that could form a second liquid phase: no flash needed.
+            return GasPhase(fluid=fluid, molar_fraction=1.0)
+
         composition_key = _make_composition_key(fluid.fluid_model.composition.normalized())
         cache_key = ("GAS_PHASE",) + self._make_pt_cache_key(
             composition_key, fluid.fluid_model.eos_model, fluid.pressure_bara, fluid.temperature_kelvin
@@ -393,6 +398,7 @@ class NeqSimFluidService(FluidService):
         gas_only, molar_fraction = ref.separate_gas_phase(
             pressure_bara=fluid.pressure_bara,
             temperature_kelvin=fluid.temperature_kelvin,
+            has_water=has_water,
         )
 
         new_fluid_model = FluidModel(composition=gas_only.composition, eos_model=fluid.fluid_model.eos_model)

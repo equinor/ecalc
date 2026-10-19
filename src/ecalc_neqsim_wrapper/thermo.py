@@ -385,17 +385,20 @@ class NeqsimFluid:
         gas_only_system = NeqsimFluid._remove_liquid(self._thermodynamic_system, use_gerg=self._use_gerg)
         return NeqsimFluid(thermodynamic_system=gas_only_system, use_gerg=self._use_gerg)
 
-    def separate_gas_phase(self, pressure_bara: float, temperature_kelvin: float) -> tuple[NeqsimFluid, float]:
+    def separate_gas_phase(
+        self, pressure_bara: float, temperature_kelvin: float, has_water: bool = True
+    ) -> tuple[NeqsimFluid, float]:
         """Multiphase TP flash, returning the retained phase and its molar fraction of the feed.
 
-        The multiphase check finds an aqueous phase alongside a hydrocarbon liquid.
+        The multiphase check finds an aqueous phase alongside a hydrocarbon liquid, and is only needed
+        when the feed contains water; without water, an ordinary two-phase flash is exact and cheaper.
         The phase is not re-flashed, so its properties are those of the equilibrium phase.
         Without a gas phase the hydrocarbon phase is kept as a dense fluid, and only the aqueous phase is removed.
         A single phase, even a liquid, has nothing to separate and is returned as is.
         """
         try:
-            flashed = self._flash_for_separation(pressure_bara, temperature_kelvin, multiphase_check=True)
-            if flashed.getNumberOfPhases() == 1:
+            flashed = self._flash_for_separation(pressure_bara, temperature_kelvin, multiphase_check=has_water)
+            if has_water and flashed.getNumberOfPhases() == 1:
                 # The multiphase flash can miss a gas-liquid split near the critical point
                 two_phase = self._flash_for_separation(pressure_bara, temperature_kelvin, multiphase_check=False)
                 if two_phase.getNumberOfPhases() > 1:
