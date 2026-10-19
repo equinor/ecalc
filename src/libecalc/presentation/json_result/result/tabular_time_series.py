@@ -20,7 +20,7 @@ from libecalc.presentation.json_result.result.base import EcalcResultBaseModel
 
 def with_timesteps(v: Periods, handler, info: SerializationInfo):
     context = info.context
-    data = handler(v, info)
+    data = handler(v)
     if context:
         include_timesteps = context.get("include_timesteps", False)
         if include_timesteps:
