@@ -31,15 +31,16 @@ class LiquidRemover(ProcessUnit):
         Returns:
             FluidStream: A new FluidStream with liquid removed.
         """
-        if inlet_stream.vapor_fraction_molar < ThermodynamicConstants.PURE_VAPOR_THRESHOLD:
-            new_fluid = self._fluid_service.remove_liquid(inlet_stream.fluid)
-            inlet_molar_mass = inlet_stream.fluid.molar_mass
-            assert inlet_molar_mass > 0.0, (
-                f"Degenerate stream with non-positive molar mass ({inlet_molar_mass}) reached LiquidRemover — "
-                "this should have been caught at stream construction."
-            )
-            gas_mass_fraction = inlet_stream.vapor_fraction_molar * new_fluid.molar_mass / inlet_molar_mass
-            new_mass_rate = inlet_stream.mass_rate_kg_per_h * gas_mass_fraction
-            return inlet_stream.with_new_fluid(new_fluid).with_mass_rate(new_mass_rate)
-        else:
+        inlet_molar_mass = inlet_stream.fluid.molar_mass
+        assert inlet_molar_mass > 0.0, (
+            f"Degenerate stream with non-positive molar mass ({inlet_molar_mass}) reached LiquidRemover — "
+            "this should have been caught at stream construction."
+        )
+        gas_phase = self._fluid_service.remove_liquid(inlet_stream.fluid)
+        if gas_phase.molar_fraction >= ThermodynamicConstants.PURE_VAPOR_THRESHOLD:
             return inlet_stream
+
+        new_fluid = gas_phase.fluid
+        gas_mass_fraction = gas_phase.molar_fraction * new_fluid.molar_mass / inlet_molar_mass
+        new_mass_rate = inlet_stream.mass_rate_kg_per_h * gas_mass_fraction
+        return inlet_stream.with_new_fluid(new_fluid).with_mass_rate(new_mass_rate)

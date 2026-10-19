@@ -12,6 +12,8 @@ sidebar_position: -72
 
 ## Bug Fixes
 
+- Liquid removal now correctly removes both water and hydrocarbon liquid phases, instead of only accounting for one.
+
 ## Breaking changes
 
 ### CLI
