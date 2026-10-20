@@ -1,21 +1,31 @@
 from __future__ import annotations
 
+from collections.abc import Sequence
+
 import numpy as np
 from scipy.interpolate import interp1d
-
-from libecalc.energy.models.convex_hull import FloatArray
 
 
 class FuelPowerCurve:
     """A compressor's sampled (fuel, power) relation, invertible in either direction."""
 
-    def __init__(self, sorted_fuel: FloatArray, sorted_power: FloatArray) -> None:
+    def __init__(self, sorted_fuel: Sequence[float], sorted_power: Sequence[float]) -> None:
+        self._sorted_fuel = np.asarray(sorted_fuel, dtype=np.float64)
+        self._sorted_power = np.asarray(sorted_power, dtype=np.float64)
         self._power_to_fuel = interp1d(
-            sorted_power, sorted_fuel, fill_value=(sorted_fuel[0], np.nan), bounds_error=False
+            self._sorted_power, self._sorted_fuel, fill_value=(self._sorted_fuel[0], np.nan), bounds_error=False
         )
         self._fuel_to_power = interp1d(
-            sorted_fuel, sorted_power, fill_value=(sorted_power[0], np.nan), bounds_error=False
+            self._sorted_fuel, self._sorted_power, fill_value=(self._sorted_power[0], np.nan), bounds_error=False
         )
+
+    @property
+    def sorted_fuel(self) -> list[float]:
+        return self._sorted_fuel.tolist()
+
+    @property
+    def sorted_power(self) -> list[float]:
+        return self._sorted_power.tolist()
 
     def fuel_for_power(self, power: float) -> float:
         if power <= 0:

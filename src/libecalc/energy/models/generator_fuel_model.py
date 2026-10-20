@@ -20,6 +20,14 @@ class GeneratorFuelModel:
     def max_power(self) -> float:
         return float(self._powers[-1])
 
+    @property
+    def powers(self) -> list[float]:
+        return self._powers.tolist()
+
+    @property
+    def fuels(self) -> list[float]:
+        return self._fuels.tolist()
+
     def fuel_for_power(self, power: float) -> float:
         assert power >= 0, f"Power must not be negative, got {power}."
         if power == 0:

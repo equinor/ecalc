@@ -29,6 +29,18 @@ class TurbineFuelModel:
     def max_power(self) -> float:
         return float(self._loads[-1])
 
+    @property
+    def loads(self) -> list[float]:
+        return self._loads.tolist()
+
+    @property
+    def efficiencies(self) -> list[float]:
+        return self._efficiencies.tolist()
+
+    @property
+    def lower_heating_value(self) -> float:
+        return self._lower_heating_value
+
     def fuel_for_power(self, power: float) -> float:
         assert power >= 0, f"Power must not be negative, got {power}."
         if power == 0:

@@ -152,7 +152,7 @@ class SampledCompressorData:
             fuel_values = _as_float_array(energy_usage_values)
             power_values_array = _as_float_array(power_interpolation_values)
             sorted_fuel, sorted_power = _require_strictly_monotonic_fuel_power_samples(fuel_values, power_values_array)
-            fuel_power_curve = FuelPowerCurve(sorted_fuel=sorted_fuel, sorted_power=sorted_power)
+            fuel_power_curve = FuelPowerCurve(sorted_fuel=sorted_fuel.tolist(), sorted_power=sorted_power.tolist())
         provided_variables: dict[VariableName, FloatArray] = {
             name: _as_float_array(values)
             for name, values in cast(

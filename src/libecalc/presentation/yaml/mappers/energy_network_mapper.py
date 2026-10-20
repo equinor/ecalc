@@ -274,7 +274,7 @@ class EnergyNetworkMapper:
         spec: TurbineSpec, energy_unit_id: EnergyUnitId
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         turbine = TimeSeriesGasTurbineFactory(
-            name=spec.name, energy_unit_id=energy_unit_id, power_to_fuel=spec.fuel_power_curve.fuel_for_power
+            name=spec.name, energy_unit_id=energy_unit_id, fuel_model=spec.fuel_power_curve
         )
         return turbine, FuelGasRate, MechanicalPower
 
@@ -302,7 +302,7 @@ class EnergyNetworkMapper:
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
                         capacity=self._time_series(fuel_model.max_power, expression_evaluator),
-                        power_to_fuel=fuel_model.fuel_for_power,
+                        fuel_model=fuel_model,
                     ),
                     FuelGasRate,
                     ElectricalPower,
@@ -316,7 +316,7 @@ class EnergyNetworkMapper:
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
                         capacity=self._time_series(fuel_model.max_power, expression_evaluator),
-                        power_to_fuel=fuel_model.fuel_for_power,
+                        fuel_model=fuel_model,
                     ),
                     FuelGasRate,
                     MechanicalPower,
