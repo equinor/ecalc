@@ -50,9 +50,12 @@ from libecalc.testing.process_builders import (
     YamlTemperatureSetterBuilder,
 )
 
-# Top-level YamlAsset fields to document (by python attribute name)
+# YamlAsset fields to document, as dot-separated python attribute paths.
+# A top-level name includes the whole field; a dotted path (e.g. "definitions.turbines")
+# includes only that sub-field, so a section can be split across documents.
 PROCESS_INCLUDE_FIELDS = {
-    "definitions",
+    "definitions.process_units",
+    "definitions.fluids",
     "shafts",
     "process_pipelines",
     "inlet_streams",
@@ -60,7 +63,10 @@ PROCESS_INCLUDE_FIELDS = {
     "ecalc_events",
     "process_events",
 }
-ENERGY_INCLUDE_FIELDS = {"energy_network"}
+ENERGY_INCLUDE_FIELDS = {
+    "definitions.turbines",
+    "energy_network",
+}
 
 # Maximum recursion depth to prevent infinite loops on circular references
 MAX_DEPTH = 8
@@ -454,7 +460,9 @@ def build_tree(
 
     Args:
         model: The pydantic model class to introspect.
-        include_fields: If provided, only include these field names (top-level filter).
+        include_fields: If provided, only include these fields. Entries are dot-separated
+            python attribute paths: "definitions" includes the whole field, while
+            "definitions.turbines" includes only the turbines sub-field of definitions.
         _depth: Current recursion depth (internal).
         _seen: Set of already-visited model types to prevent infinite recursion.
 
@@ -471,8 +479,15 @@ def build_tree(
     nodes = []
 
     for field_name, field_info in model.model_fields.items():
-        if include_fields and field_name not in include_fields:
-            continue
+        child_include_fields: set[str] | None = None
+        if include_fields:
+            if field_name in include_fields:
+                child_include_fields = None
+            else:
+                prefix = field_name + "."
+                child_include_fields = {p.removeprefix(prefix) for p in include_fields if p.startswith(prefix)}
+                if not child_include_fields:
+                    continue
 
         annotation = model.__annotations__.get(field_name, None)
         # Fall back to field_info.annotation for generic/parameterized models
@@ -511,7 +526,12 @@ def build_tree(
                     node.children.append(variant_node)
             elif len(inner_models) == 1:
                 # Single nested model — recurse directly
-                node.children = build_tree(inner_models[0], _depth=_depth + 1, _seen=_seen)
+                node.children = build_tree(
+                    inner_models[0],
+                    include_fields=child_include_fields,
+                    _depth=_depth + 1,
+                    _seen=_seen,
+                )
 
         nodes.append(node)
 
@@ -973,7 +993,10 @@ def generate_energy_markdown() -> str:
         intro="""\
 # Energy Reference
 
-This page documents the [ENERGY_NETWORK](#energy_network) YAML configuration key for the eCalc Asset model.
+This page documents the energy related YAML configuration keys for the eCalc Asset model, covering the following top-level sections:
+
+- [DEFINITIONS](#definitions)
+- [ENERGY_NETWORK](#energy_network)
 
 """,
         examples=ENERGY_EXAMPLES,
