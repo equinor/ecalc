@@ -24,6 +24,8 @@ Contains reusable definitions.
 
 Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of a GAS_TURBINE.
 
+<YamlCodeBlock>{"LOWER_HEATING_VALUE: 38.0\nCURVE:\n  LOAD:\n  - 2.352\n  - 4.589\n  - 6.853\n  EFFICIENCY:\n  - 0.138\n  - 0.21\n  - 0.255"}</YamlCodeBlock>
+
 #### LOWER_HEATING_VALUE
 
 Lower heating value [MJ/Sm3] of the fuel.
@@ -37,6 +39,8 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 <Tabs>
 <TabItem value="TURBINECURVE" label="TURBINECURVE">
 
+<YamlCodeBlock>{"LOAD:\n- 2.352\n- 4.589\n- 6.853\nEFFICIENCY:\n- 0.138\n- 0.21\n- 0.255"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `LOAD` | Turbine loads [MW], strictly increasing. In a FILE, this is the LOAD column. | Required |
@@ -45,6 +49,8 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<YamlCodeBlock>{"FILE: turbine_curve.csv"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -58,9 +64,13 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 
 Defines the energy network configuration.
 
+<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator_set\n  INPUT: fuel_gas\n  CAPACITY: 30\n  TYPE: GENERATOR_SET\n  MODEL: generator_set_model\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator_set\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
+
 ### SOURCES
 
 External energy entering the system (fuel gas, electrical, diesel).
+
+<YamlCodeBlock>{"NAME: fuel_gas\nTYPE: FUEL_GAS_SOURCE\nCAPACITY: 50000"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -77,6 +87,8 @@ Converters, junctions, and consumers forming the energy network.
 <Tabs>
 <TabItem value="GENERATOR_SET" label="GENERATOR_SET">
 
+<YamlCodeBlock>{"NAME: generator_set\nINPUT: fuel_gas\nCAPACITY: 30\nTYPE: GENERATOR_SET\nMODEL: generator_set_model"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
@@ -88,6 +100,8 @@ Converters, junctions, and consumers forming the energy network.
 </TabItem>
 
 <TabItem value="GAS_TURBINE" label="GAS_TURBINE">
+
+<YamlCodeBlock>{"NAME: gas_turbine\nINPUT: fuel_gas\nTYPE: GAS_TURBINE\nMODEL:\n  LOWER_HEATING_VALUE: 38.0\n  CURVE:\n    LOAD:\n    - 2.352\n    - 4.589\n    - 6.853\n    EFFICIENCY:\n    - 0.138\n    - 0.21\n    - 0.255"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -131,6 +145,8 @@ Turbine model, given directly in place.
 
 <TabItem value="ELECTRICAL_MOTOR" label="ELECTRICAL_MOTOR">
 
+<YamlCodeBlock>{"NAME: electrical_motor\nINPUT: main_bus\nTYPE: ELECTRICAL_MOTOR\nEFFICIENCY: 0.95"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
@@ -143,6 +159,8 @@ Turbine model, given directly in place.
 
 <TabItem value="ELECTRICAL_CABLE" label="ELECTRICAL_CABLE">
 
+<YamlCodeBlock>{"NAME: power_from_shore_cable\nINPUT: power_from_shore\nCAPACITY: 20\nTYPE: ELECTRICAL_CABLE\nEFFICIENCY: 0.98"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
@@ -154,6 +172,8 @@ Turbine model, given directly in place.
 </TabItem>
 
 <TabItem value="ELECTRICAL_BUS" label="ELECTRICAL_BUS">
+
+<YamlCodeBlock>{"NAME: main_bus\nINPUT:\n- NAME: power_from_shore_cable\n  CAPACITY: 15\n- generator_set\nDISPATCH_STRATEGY: PRIORITY\nTYPE: ELECTRICAL_BUS"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -175,6 +195,8 @@ At least two sources or units feeding into this junction, in dispatch priority o
 
 <TabItem value="FUEL_GAS_MANIFOLD" label="FUEL_GAS_MANIFOLD">
 
+<YamlCodeBlock>{"NAME: fuel_gas_manifold\nINPUT:\n- fuel_gas\n- imported_fuel_gas\nDISPATCH_STRATEGY: PRIORITY\nTYPE: FUEL_GAS_MANIFOLD"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
@@ -195,6 +217,8 @@ At least two sources or units feeding into this junction, in dispatch priority o
 
 <TabItem value="ELECTRICAL_CONSUMER" label="ELECTRICAL_CONSUMER">
 
+<YamlCodeBlock>{"NAME: base_load\nINPUT: main_bus\nTYPE: ELECTRICAL_CONSUMER\nLOAD: 5"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
@@ -205,6 +229,8 @@ At least two sources or units feeding into this junction, in dispatch priority o
 </TabItem>
 
 <TabItem value="MECHANICAL_CONSUMER" label="MECHANICAL_CONSUMER">
+
+<YamlCodeBlock>{"NAME: pump\nINPUT: electrical_motor\nTYPE: MECHANICAL_CONSUMER\nLOAD: 2"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -217,6 +243,8 @@ At least two sources or units feeding into this junction, in dispatch priority o
 
 <TabItem value="DRIVE_TRAIN" label="DRIVE_TRAIN">
 
+<YamlCodeBlock>{"NAME: compressor_train\nINPUT: gas_turbine\nTYPE: DRIVE_TRAIN\nSHAFT: default_shaft"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
@@ -228,6 +256,8 @@ At least two sources or units feeding into this junction, in dispatch priority o
 
 <TabItem value="FUEL_GAS_CONSUMER" label="FUEL_GAS_CONSUMER">
 
+<YamlCodeBlock>{"NAME: flare\nINPUT: fuel_gas\nTYPE: FUEL_GAS_CONSUMER\nRATE: 10000"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
@@ -238,6 +268,8 @@ At least two sources or units feeding into this junction, in dispatch priority o
 </TabItem>
 
 <TabItem value="DIESEL_CONSUMER" label="DIESEL_CONSUMER">
+
+<YamlCodeBlock>{"NAME: diesel_engine\nINPUT: diesel\nTYPE: DIESEL_CONSUMER\nRATE: 5000"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -262,7 +294,7 @@ A compressor whose energy usage is tabulated in `FILE` against `RATE`, `SUCTION_
 Every variable tabulated in `FILE` must be given as an expression, and every given expression must be
 tabulated.
 
-<YamlCodeBlock>{"NAME: gas_compressor_sampled\nINPUT: fuel_manifold\nTYPE: COMPRESSOR_SAMPLED\nFILE: gas_compressor_sampled.csv\nRATE: 2500000\nSUCTION_PRESSURE: 40\nDISCHARGE_PRESSURE: 120"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: gas_compressor_sampled\nINPUT: fuel_gas\nTYPE: COMPRESSOR_SAMPLED\nFILE: gas_compressor_sampled.csv\nRATE: 2500000\nSUCTION_PRESSURE: 40\nDISCHARGE_PRESSURE: 120"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |

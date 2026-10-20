@@ -40,11 +40,11 @@ from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlCo
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.testing.energy_builders import YamlEnergyNetworkBuilder
 from libecalc.testing.process_builders import YamlCompressorBuilder, YamlProcessPipelineBuilder
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,
-    YamlEnergyNetworkBuilder,
     YamlEnergyUsageModelDirectFuelBuilder,
     YamlFuelConsumerBuilder,
     YamlFuelTypeBuilder,

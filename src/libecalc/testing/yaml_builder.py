@@ -34,15 +34,7 @@ from libecalc.presentation.yaml.yaml_types.emitters.yaml_venting_emitter import 
     YamlVentingVolume,
     YamlVentingVolumeEmission,
 )
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
-    YamlComponent,
-    YamlDriveTrain,
-    YamlEnergyNetwork,
-    YamlEnergySource,
-    YamlEnergySourceType,
-    YamlGasTurbine,
-)
-from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlFacilityModel,
@@ -123,37 +115,6 @@ class Builder(abc.ABC, Generic[T]):
 
     def validate(self) -> T:
         return self.__model__.model_validate(self._get_model_data())
-
-
-class YamlEnergyNetworkBuilder(Builder[YamlEnergyNetwork]):
-    """
-    Builder for ENERGY_NETWORK input
-    """
-
-    def __init__(self):
-        self.sources: list[YamlEnergySource] = []
-        self.units: list[YamlComponent] = []
-
-    def with_test_data(self) -> Self:
-        self.sources = [YamlEnergySource(name="fuel_gas", type=YamlEnergySourceType.FUEL_GAS_SOURCE)]
-        self.units = []
-        return self
-
-    def with_sources(self, sources: list[YamlEnergySource]) -> Self:
-        self.sources = sources
-        return self
-
-    def with_units(self, units: list[YamlComponent]) -> Self:
-        self.units = units
-        return self
-
-    def with_gas_turbine(self, name: str, input: str, model: YamlTurbineDefinition) -> Self:
-        self.units = [*self.units, YamlGasTurbine(name=name, type="GAS_TURBINE", input=input, model=model)]
-        return self
-
-    def with_drive_train(self, name: str, input: str, shaft: str) -> Self:
-        self.units = [*self.units, YamlDriveTrain(name=name, type="DRIVE_TRAIN", input=input, shaft=shaft)]
-        return self
 
 
 class YamlTimeSeriesBuilder(Builder[YamlDefaultTimeSeriesCollection]):
