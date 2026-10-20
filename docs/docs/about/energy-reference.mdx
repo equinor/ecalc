@@ -11,7 +11,48 @@ import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 
 # Energy Reference
 
-This page documents the [ENERGY_NETWORK](#energy_network) YAML configuration key for the eCalc Asset model.
+This page documents the energy related YAML configuration keys for the eCalc Asset model, covering the following top-level sections:
+
+- [DEFINITIONS](#definitions)
+- [ENERGY_NETWORK](#energy_network)
+
+## DEFINITIONS
+
+Contains reusable definitions.
+
+### TURBINES
+
+Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of a GAS_TURBINE.
+
+#### LOWER_HEATING_VALUE
+
+Lower heating value [MJ/Sm3] of the fuel.
+
+#### CURVE
+
+Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY columns.
+
+##### CURVE {/* #definitions-turbines-curve */}
+
+<Tabs>
+<TabItem value="TURBINECURVE" label="TURBINECURVE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `LOAD` | Turbine loads [MW], strictly increasing. In a FILE, this is the LOAD column. | Required |
+| `EFFICIENCY` | Turbine efficiency [fraction above 0 and up to 1] for each load. In a FILE, this is the EFFICIENCY column. | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
 
 ## ENERGY_NETWORK
 
@@ -52,9 +93,39 @@ Converters, junctions, and consumers forming the energy network.
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
-| `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
 | `TYPE` | `GAS_TURBINE` | Required |
-| `MODEL` | Reference to a facility model defining the power-to-fuel curve. | Optional |
+| [`MODEL`](#energy-network-units-gas-turbine-model) | Turbine model, given directly in place. | Required |
+
+##### MODEL {/* #energy-network-units-gas-turbine-model */}
+
+Turbine model, given directly in place.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `LOWER_HEATING_VALUE` | Lower heating value [MJ/Sm3] of the fuel. | Required |
+| [`CURVE`](#energy-network-units-gas-turbine-model-curve) | Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY columns. | Required |
+
+##### CURVE {/* #energy-network-units-gas-turbine-model-curve */}
+
+<Tabs>
+<TabItem value="TURBINECURVE" label="TURBINECURVE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `LOAD` | Turbine loads [MW], strictly increasing. In a FILE, this is the LOAD column. | Required |
+| `EFFICIENCY` | Turbine efficiency [fraction above 0 and up to 1] for each load. In a FILE, this is the EFFICIENCY column. | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
 
 </TabItem>
 

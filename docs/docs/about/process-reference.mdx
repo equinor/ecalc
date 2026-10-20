@@ -237,40 +237,6 @@ Defines fluids that can be referenced in inlet streams.
 | `N_PENTANE` |  | Default: `0.0` |
 | `N_HEXANE` |  | Default: `0.0` |
 
-### TURBINES
-
-Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of a GAS_TURBINE unless its CAPACITY is set lower.
-
-#### LOWER_HEATING_VALUE
-
-Lower heating value [MJ/Sm3] of the fuel.
-
-#### CURVE
-
-Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY columns.
-
-##### CURVE {/* #definitions-turbines-curve */}
-
-<Tabs>
-<TabItem value="TURBINECURVE" label="TURBINECURVE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `LOAD` | Turbine loads [MW], strictly increasing. In a FILE, this is the LOAD column. | Required |
-| `EFFICIENCY` | Turbine efficiency [fraction between 0 and 1] for each load, above 0 wherever the load is above 0. In a FILE, this is the EFFICIENCY column. | Required |
-
-</TabItem>
-
-<TabItem value="YAMLFILE" label="YAMLFILE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
-
-</TabItem>
-
-</Tabs>
-
 ## INLET_STREAMS
 
 Defines inlet streams that can be referenced by process system and stream distribution.
