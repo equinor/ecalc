@@ -3,6 +3,7 @@ from pydantic import ValidationError
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineCurve, YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlCompressorProcessUnitInstance,
     YamlProcessPipeline,
@@ -174,11 +175,15 @@ def test_rejects_unknown_shaft_reference_from_drive_train():
 
 
 def test_rejects_same_shaft_in_multiple_drive_trains(energy_network_builder_factory):
+    turbine_model = YamlTurbineDefinition(
+        lower_heating_value=38,
+        curve=YamlTurbineCurve(load=[10, 20], efficiency=[0.2, 0.3]),
+    )
     energy_network = (
         energy_network_builder_factory()
         .with_test_data()
-        .with_gas_turbine(name="export_turbine", input="fuel_gas")
-        .with_gas_turbine(name="injection_turbine", input="fuel_gas")
+        .with_gas_turbine(name="export_turbine", input="fuel_gas", model=turbine_model)
+        .with_gas_turbine(name="injection_turbine", input="fuel_gas", model=turbine_model)
         .with_drive_train(name="export_load", input="export_turbine", shaft="common_shaft")
         .with_drive_train(name="injection_load", input="injection_turbine", shaft="common_shaft")
         .construct()
