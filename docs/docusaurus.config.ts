@@ -2,6 +2,7 @@ import type { Config } from '@docusaurus/types';
 import type * as Preset from '@docusaurus/preset-classic';
 
 import { themes as prismThemes } from 'prism-react-renderer';
+import prismDark from './src/utils/prismDark';
 import math from 'remark-math';
 import katex from 'rehype-katex';
 import localSearch from '@easyops-cn/docusaurus-search-local';
@@ -113,7 +114,7 @@ const config: Config = {
       },
       prism: {
         theme: prismThemes.github,
-        darkTheme: prismThemes.dracula,
+        darkTheme: prismDark,
         magicComments: [
           // Remember to extend the default highlight class name as well!
           {
