@@ -47,27 +47,28 @@ class TimeSeriesGasTurbineFactory(TimeSeriesEnergyUnitFactory):
         self,
         *,
         name: str,
+        power_to_fuel: Callable[[float], float],
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
-        power_to_fuel: Callable[[float], float] = lambda power: power,
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
         self.power_to_fuel = power_to_fuel
 
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> GasTurbine:
         (incoming_connection,) = incoming_connections
+        capacity = resolve_optional_energy(
+            self.capacity,
+            GasTurbine.get_output_energy_type(),
+            period=extra.get("period"),
+            description=f"Capacity for '{self.get_name()}'",
+        )
         return GasTurbine(
             name=self.get_name(),
             power_to_fuel=self.power_to_fuel,
             energy_unit_id=self.get_id(),
             output_energy=demand,
             input_connection_id=incoming_connection.id,
-            capacity=resolve_optional_energy(
-                self.capacity,
-                GasTurbine.get_output_energy_type(),
-                period=extra.get("period"),
-                description=f"Capacity for '{self.get_name()}'",
-            ),
+            capacity=capacity,
         )
 
 
