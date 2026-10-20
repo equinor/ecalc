@@ -7,6 +7,7 @@ description: Complete reference for the process configuration.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 
 # Process Reference
 
@@ -32,10 +33,7 @@ Defines process units used in PROCESS_PIPELINES.
 
 A Compressor process unit
 
-```yaml
-TYPE: COMPRESSOR
-COMPRESSOR_MODEL: ...
-```
+<YamlCodeBlock>{"TYPE: COMPRESSOR\nCOMPRESSOR_MODEL: ..."}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -44,13 +42,7 @@ COMPRESSOR_MODEL: ...
 
 ##### COMPRESSOR_MODEL {/* #definitions-process-units-compressor-compressor-model */}
 
-```yaml
-TYPE: COMPRESSOR_CHART
-CHART: ...
-CONTROL_MARGIN:
-  UNIT: FRACTION
-  VALUE: 0.0
-```
+<YamlCodeBlock>{"TYPE: COMPRESSOR_CHART\nCHART: ...\nCONTROL_MARGIN:\n  UNIT: FRACTION\n  VALUE: 0.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -60,13 +52,7 @@ CONTROL_MARGIN:
 
 ##### CHART {/* #definitions-process-units-compressor-compressor-model-chart */}
 
-```yaml
-CURVES: ...
-UNITS:
-  RATE: AM3_PER_HOUR
-  HEAD: M
-  EFFICIENCY: FRACTION
-```
+<YamlCodeBlock>{"CURVES: ...\nUNITS:\n  RATE: AM3_PER_HOUR\n  HEAD: M\n  EFFICIENCY: FRACTION"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -78,24 +64,7 @@ UNITS:
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
 
-```yaml
-SPEED: 10000.0
-RATE:
-- 500.0
-- 3000.0
-- 5000.0
-- 8000.0
-HEAD:
-- 30000.0
-- 25000.0
-- 20000.0
-- 15000.0
-EFFICIENCY:
-- 0.68
-- 0.72
-- 0.74
-- 0.7
-```
+<YamlCodeBlock>{"SPEED: 10000.0\nRATE:\n- 500.0\n- 3000.0\n- 5000.0\n- 8000.0\nHEAD:\n- 30000.0\n- 25000.0\n- 20000.0\n- 15000.0\nEFFICIENCY:\n- 0.68\n- 0.72\n- 0.74\n- 0.7"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -137,10 +106,7 @@ Defines the units
 
 A pressure dropper unit — reduces stream pressure by a fixed amount.
 
-```yaml
-TYPE: PRESSURE_DROPPER
-PRESSURE_DROP: 1.0
-```
+<YamlCodeBlock>{"TYPE: PRESSURE_DROPPER\nPRESSURE_DROP: 1.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -151,10 +117,7 @@ PRESSURE_DROP: 1.0
 
 A temperature setter unit — forces the stream to a specified temperature.
 
-```yaml
-TYPE: TEMPERATURE_SETTER
-TEMPERATURE: 30.0
-```
+<YamlCodeBlock>{"TYPE: TEMPERATURE_SETTER\nTEMPERATURE: 30.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -168,9 +131,7 @@ the stream, leaving only the gas phase.
 
 No-op if the stream is already pure vapor.
 
-```yaml
-TYPE: LIQUID_REMOVER
-```
+<YamlCodeBlock>{"TYPE: LIQUID_REMOVER"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -181,21 +142,7 @@ TYPE: LIQUID_REMOVER
 Mixes an external sidestream into the through-stream at an
 intermediate point in the pipeline.
 
-```yaml
-TYPE: MIXER
-SIDESTREAM:
-  NAME: SidestreamDefault
-  FLUID:
-    TYPE: PREDEFINED
-    EOS_MODEL: SRK
-    GAS_TYPE: MEDIUM
-  TEMPERATURE: 30.0
-  PRESSURE: 20.0
-  RATE:
-    VALUE: 200000
-    UNIT: SM3_PER_DAY
-    TYPE: STREAM_DAY
-```
+<YamlCodeBlock>{"TYPE: MIXER\nSIDESTREAM:\n  NAME: SidestreamDefault\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 200000\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -231,13 +178,7 @@ Rate with unit + value.
 Removes a fixed rate from the through-stream at an
 intermediate point in the pipeline (e.g. fuel gas offtake).
 
-```yaml
-TYPE: SPLITTER
-OFFTAKE_RATE:
-  VALUE: 50000
-  UNIT: SM3_PER_DAY
-  TYPE: STREAM_DAY
-```
+<YamlCodeBlock>{"TYPE: SPLITTER\nOFFTAKE_RATE:\n  VALUE: 50000\n  UNIT: SM3_PER_DAY\n  TYPE: STREAM_DAY"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -262,11 +203,7 @@ Defines fluids that can be referenced in inlet streams.
 
 #### PREDEFINED
 
-```yaml
-TYPE: PREDEFINED
-EOS_MODEL: SRK
-GAS_TYPE: MEDIUM
-```
+<YamlCodeBlock>{"TYPE: PREDEFINED\nEOS_MODEL: SRK\nGAS_TYPE: MEDIUM"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -276,13 +213,7 @@ GAS_TYPE: MEDIUM
 
 #### COMPOSITION
 
-```yaml
-TYPE: COMPOSITION
-EOS_MODEL: SRK
-COMPOSITION:
-  methane: 90.0
-  ethane: 10.0
-```
+<YamlCodeBlock>{"TYPE: COMPOSITION\nEOS_MODEL: SRK\nCOMPOSITION:\n  methane: 90.0\n  ethane: 10.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -344,16 +275,7 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 
 Defines inlet streams that can be referenced by process system and stream distribution.
 
-```yaml
-NAME: DefaultInletStream
-FLUID:
-  TYPE: PREDEFINED
-  EOS_MODEL: SRK
-  GAS_TYPE: MEDIUM
-TEMPERATURE: 30.0
-PRESSURE: 20.0
-RATE: ...
-```
+<YamlCodeBlock>{"NAME: DefaultInletStream\nFLUID:\n  TYPE: PREDEFINED\n  EOS_MODEL: SRK\n  GAS_TYPE: MEDIUM\nTEMPERATURE: 30.0\nPRESSURE: 20.0\nRATE: ..."}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -367,11 +289,7 @@ RATE: ...
 
 Rate with unit + value.
 
-```yaml
-VALUE: 1000000.0
-UNIT: SM3_PER_DAY
-TYPE: STREAM_DAY
-```
+<YamlCodeBlock>{"VALUE: 1000000.0\nUNIT: SM3_PER_DAY\nTYPE: STREAM_DAY"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -385,9 +303,7 @@ TYPE: STREAM_DAY
 
 Defines named shafts representing mechanical connections between drivers and driven equipment.
 
-```yaml
-NAME: default_shaft
-```
+<YamlCodeBlock>{"NAME: default_shaft"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -397,53 +313,7 @@ NAME: default_shaft
 
 Defines process pipelines to use in process simulations.
 
-```yaml
-NAME: DefaultPipeline
-PROCESS_UNITS:
-- TARGET:
-    TYPE: PRESSURE_DROPPER
-    PRESSURE_DROP: 1.0
-  NAME: default_pressure_dropper
-- TARGET:
-    TYPE: TEMPERATURE_SETTER
-    TEMPERATURE: 30.0
-  NAME: default_temperature_setter
-- TARGET:
-    TYPE: LIQUID_REMOVER
-  NAME: default_liquid_remover
-- TARGET:
-    TYPE: COMPRESSOR
-    COMPRESSOR_MODEL:
-      TYPE: COMPRESSOR_CHART
-      CHART:
-        CURVES:
-        - SPEED: 10000.0
-          RATE:
-          - 500.0
-          - 3000.0
-          - 5000.0
-          - 8000.0
-          HEAD:
-          - 30000.0
-          - 25000.0
-          - 20000.0
-          - 15000.0
-          EFFICIENCY:
-          - 0.68
-          - 0.72
-          - 0.74
-          - 0.7
-        UNITS:
-          RATE: AM3_PER_HOUR
-          HEAD: M
-          EFFICIENCY: FRACTION
-      CONTROL_MARGIN:
-        UNIT: FRACTION
-        VALUE: 0.0
-  NAME: default_compressor
-  SHAFT: default_shaft
-EVENTS: []
-```
+<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- TARGET:\n    TYPE: COMPRESSOR\n    COMPRESSOR_MODEL:\n      TYPE: COMPRESSOR_CHART\n      CHART:\n        CURVES:\n        - SPEED: 10000.0\n          RATE:\n          - 500.0\n          - 3000.0\n          - 5000.0\n          - 8000.0\n          HEAD:\n          - 30000.0\n          - 25000.0\n          - 20000.0\n          - 15000.0\n          EFFICIENCY:\n          - 0.68\n          - 0.72\n          - 0.74\n          - 0.7\n        UNITS:\n          RATE: AM3_PER_HOUR\n          HEAD: M\n          EFFICIENCY: FRACTION\n      CONTROL_MARGIN:\n        UNIT: FRACTION\n        VALUE: 0.0\n  NAME: default_compressor\n  SHAFT: default_shaft\nEVENTS: []"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -454,12 +324,12 @@ EVENTS: []
 ##### PROCESS_UNITS {/* #process-pipelines-process-units */}
 
 <Tabs>
-<TabItem value="SHAFT_DRIVEN_COMPRESSOR" label="SHAFT_DRIVEN_COMPRESSOR">
+<TabItem value="COMPRESSOR_PROCESS_UNIT" label="COMPRESSOR_PROCESS_UNIT">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
-| `NAME` |  | Optional |
+| `NAME` |  | Required |
 | `SHAFT` | Reference to a shaft defined in SHAFTS. | Required |
 
 </TabItem>
@@ -492,18 +362,7 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 
 Defines one or more process simulations to be run.
 
-```yaml
-NAME: DefaultProcessSimulation
-TARGETS:
-- DefaultPipeline
-STREAM_DISTRIBUTION: ...
-CONSTRAINTS:
-  DefaultPipeline:
-  - PROCESS_UNIT: default_compressor
-    OUTLET_PRESSURE: 100.0
-    PRESSURE_CONTROL: DOWNSTREAM_CHOKE
-    ANTI_SURGE: INDIVIDUAL_ASV
-```
+<YamlCodeBlock>{"NAME: DefaultProcessSimulation\nTARGETS:\n- DefaultPipeline\nSTREAM_DISTRIBUTION: ...\nCONSTRAINTS:\n  DefaultPipeline:\n  - PROCESS_UNIT: default_compressor\n    OUTLET_PRESSURE: 100.0\n    PRESSURE_CONTROL: DOWNSTREAM_CHOKE\n    ANTI_SURGE: INDIVIDUAL_ASV"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -517,25 +376,7 @@ CONSTRAINTS:
 <Tabs>
 <TabItem value="COMMON_STREAM" label="COMMON_STREAM">
 
-```yaml
-METHOD: COMMON_STREAM
-INLET_STREAM:
-  NAME: DefaultInletStream
-  FLUID:
-    TYPE: PREDEFINED
-    EOS_MODEL: SRK
-    GAS_TYPE: MEDIUM
-  TEMPERATURE: 30.0
-  PRESSURE: 20.0
-  RATE:
-    VALUE: 1000000.0
-    UNIT: SM3_PER_DAY
-    TYPE: STREAM_DAY
-SETTINGS:
-- RATE_FRACTIONS:
-  - 1.0
-  OVERFLOW: null
-```
+<YamlCodeBlock>{"METHOD: COMMON_STREAM\nINLET_STREAM:\n  NAME: DefaultInletStream\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 1000000.0\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY\nSETTINGS:\n- RATE_FRACTIONS:\n  - 1.0\n  OVERFLOW: null"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -583,21 +424,7 @@ Rate with unit + value.
 
 <TabItem value="INDIVIDUAL_STREAMS" label="INDIVIDUAL_STREAMS">
 
-```yaml
-METHOD: INDIVIDUAL_STREAMS
-INLET_STREAMS:
-- NAME: DefaultInletStream
-  FLUID:
-    TYPE: PREDEFINED
-    EOS_MODEL: SRK
-    GAS_TYPE: MEDIUM
-  TEMPERATURE: 30.0
-  PRESSURE: 20.0
-  RATE:
-    VALUE: 1000000.0
-    UNIT: SM3_PER_DAY
-    TYPE: STREAM_DAY
-```
+<YamlCodeBlock>{"METHOD: INDIVIDUAL_STREAMS\nINLET_STREAMS:\n- NAME: DefaultInletStream\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 1000000.0\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -645,12 +472,7 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 
 Defines eCalc events associated with temporal model changes
 
-```yaml
-TYPE: TIE_IN
-START: '2025-01-01T00:00:00'
-NAME: DefaultEcalcEvent
-DESCRIPTION: Tie-in of new wells
-```
+<YamlCodeBlock>{"TYPE: TIE_IN\nSTART: '2025-01-01T00:00:00'\nNAME: DefaultEcalcEvent\nDESCRIPTION: Tie-in of new wells"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -663,12 +485,7 @@ DESCRIPTION: Tie-in of new wells
 
 Defines process-specific events that reference global eCalc events.
 
-```yaml
-TYPE: INCREASED_GAS_RATE
-NAME: DefaultProcessEvent
-DESCRIPTION: Increased gas rate after tie-in
-REF: DefaultEcalcEvent
-```
+<YamlCodeBlock>{"TYPE: INCREASED_GAS_RATE\nNAME: DefaultProcessEvent\nDESCRIPTION: Increased gas rate after tie-in\nREF: DefaultEcalcEvent"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |

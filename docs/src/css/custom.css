@@ -65,3 +65,19 @@
   padding: 0 var(--ifm-pre-padding);
   border-left: 3px solid rgba(14, 201, 41, 0.88);
 }
+
+/* Indent guides for <YamlCodeBlock>: each indentation level of a line is its own span of
+   spaces, drawn with a 1px guide on its left edge. */
+.yaml-indent-guide {
+  /* inline-block takes the full line box height, so guides connect between lines */
+  display: inline-block;
+  vertical-align: top;
+  /* inset shadow instead of border: does not affect layout */
+  box-shadow: inset 1px 0 0 var(--yaml-indent-guide-color);
+  /* Only the colour is meant to be tuned; keep the 1px inset shadow so alignment is unaffected */
+  --yaml-indent-guide-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme='dark'] .yaml-indent-guide {
+  --yaml-indent-guide-color: rgba(255, 255, 255, 0.1);
+}
