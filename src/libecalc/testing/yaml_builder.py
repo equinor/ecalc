@@ -42,6 +42,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergySourceType,
     YamlGasTurbine,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import (
     YamlCompressorTabularModel,
     YamlFacilityModel,
@@ -146,8 +147,8 @@ class YamlEnergyNetworkBuilder(Builder[YamlEnergyNetwork]):
         self.units = units
         return self
 
-    def with_gas_turbine(self, name: str, input: str) -> Self:
-        self.units = [*self.units, YamlGasTurbine(name=name, type="GAS_TURBINE", input=input)]
+    def with_gas_turbine(self, name: str, input: str, model: YamlTurbineDefinition) -> Self:
+        self.units = [*self.units, YamlGasTurbine(name=name, type="GAS_TURBINE", input=input, model=model)]
         return self
 
     def with_drive_train(self, name: str, input: str, shaft: str) -> Self:
