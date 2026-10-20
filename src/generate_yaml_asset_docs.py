@@ -25,9 +25,28 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlCompressorSampled
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
+from libecalc.testing.energy_builders import (
+    YamlCompressorSampledBuilder,
+    YamlDieselConsumerBuilder,
+    YamlDriveTrainBuilder,
+    YamlElectricalBusBuilder,
+    YamlElectricalCableBuilder,
+    YamlElectricalConsumerBuilder,
+    YamlElectricalMotorBuilder,
+    YamlEnergyGeneratorSetBuilder,
+    YamlEnergyNetworkBuilder,
+    YamlEnergySourceBuilder,
+    YamlFileBuilder,
+    YamlFuelGasConsumerBuilder,
+    YamlFuelGasManifoldBuilder,
+    YamlGasTurbineBuilder,
+    YamlMechanicalConsumerBuilder,
+    YamlTurbineCurveBuilder,
+    YamlTurbineDefinitionBuilder,
+)
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompositionFluidDefinitionBuilder,
@@ -80,11 +99,14 @@ class Example:
         path: Dot-separated YAML key path (e.g. "DEFINITIONS.PROCESS_UNITS.COMPRESSOR").
               For discriminated union variants, the variant name is used as the last segment.
         builder: A callable that returns a validated pydantic model instance.
+        abbreviate: Whether fields with their own registered example are shown as '...'.
+              Disable to show a complete example, e.g. a whole network.
     """
 
-    def __init__(self, path: str, builder: Callable):
+    def __init__(self, path: str, builder: Callable, abbreviate: bool = True):
         self.path = path
         self.builder = builder
+        self.abbreviate = abbreviate
 
     @property
     def model(self) -> BaseModel:
@@ -256,19 +278,100 @@ EXAMPLES: list[Example] = [
 # ---------------------------------------------------------------------------
 
 ENERGY_EXAMPLES: list[Example] = [
+    # --- DEFINITIONS.TURBINES ---
+    Example(
+        "DEFINITIONS.TURBINES",
+        lambda: YamlTurbineDefinitionBuilder().with_test_data().validate(),
+        abbreviate=False,
+    ),
+    Example(
+        "DEFINITIONS.TURBINES.CURVE.TURBINECURVE",
+        lambda: YamlTurbineCurveBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "DEFINITIONS.TURBINES.CURVE.YAMLFILE",
+        lambda: YamlFileBuilder().with_test_data().validate(),
+    ),
+    # --- ENERGY_NETWORK ---
+    Example(
+        "ENERGY_NETWORK",
+        lambda: (
+            YamlEnergyNetworkBuilder()
+            .with_sources(
+                [
+                    YamlEnergySourceBuilder().with_test_data().validate(),
+                    YamlEnergySourceBuilder()
+                    .with_name("power_from_shore")
+                    .with_type(YamlEnergySourceType.ELECTRICAL_SOURCE)
+                    .validate(),
+                ]
+            )
+            .with_units(
+                [
+                    YamlEnergyGeneratorSetBuilder().with_test_data().validate(),
+                    YamlElectricalCableBuilder().with_test_data().validate(),
+                    YamlElectricalBusBuilder().with_test_data().validate(),
+                    YamlElectricalConsumerBuilder().with_test_data().validate(),
+                    YamlGasTurbineBuilder().with_test_data().validate(),
+                    YamlDriveTrainBuilder().with_test_data().validate(),
+                ]
+            )
+            .validate()
+        ),
+        abbreviate=False,
+    ),
+    Example(
+        "ENERGY_NETWORK.SOURCES",
+        lambda: YamlEnergySourceBuilder().with_test_data().with_capacity(50000).validate(),
+    ),
+    # --- ENERGY_NETWORK.UNITS variants ---
+    Example(
+        "ENERGY_NETWORK.UNITS.GENERATOR_SET",
+        lambda: YamlEnergyGeneratorSetBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.GAS_TURBINE",
+        lambda: YamlGasTurbineBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.ELECTRICAL_MOTOR",
+        lambda: YamlElectricalMotorBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.ELECTRICAL_CABLE",
+        lambda: YamlElectricalCableBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.ELECTRICAL_BUS",
+        lambda: YamlElectricalBusBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.FUEL_GAS_MANIFOLD",
+        lambda: YamlFuelGasManifoldBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.ELECTRICAL_CONSUMER",
+        lambda: YamlElectricalConsumerBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.MECHANICAL_CONSUMER",
+        lambda: YamlMechanicalConsumerBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.DRIVE_TRAIN",
+        lambda: YamlDriveTrainBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.FUEL_GAS_CONSUMER",
+        lambda: YamlFuelGasConsumerBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.DIESEL_CONSUMER",
+        lambda: YamlDieselConsumerBuilder().with_test_data().validate(),
+    ),
     Example(
         "ENERGY_NETWORK.UNITS.COMPRESSOR_SAMPLED",
-        lambda: YamlCompressorSampled.model_validate(
-            {
-                "NAME": "gas_compressor_sampled",
-                "TYPE": "COMPRESSOR_SAMPLED",
-                "INPUT": "fuel_manifold",
-                "FILE": "gas_compressor_sampled.csv",
-                "RATE": 2500000,
-                "SUCTION_PRESSURE": 40,
-                "DISCHARGE_PRESSURE": 120,
-            }
-        ),
+        lambda: YamlCompressorSampledBuilder().with_test_data().validate(),
     ),
 ]
 
@@ -307,7 +410,7 @@ class ExampleRegistry:
             return None
 
         child_paths = self.child_paths_for(path)
-        if child_paths:
+        if child_paths and example.abbreviate:
             return _model_to_yaml_with_ellipsis(example.model, child_paths, path)
         else:
             return example.yaml_str
