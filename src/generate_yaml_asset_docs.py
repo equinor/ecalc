@@ -12,6 +12,7 @@ Usage:
 from __future__ import annotations
 
 import inspect
+import json
 import re
 import types
 from collections.abc import Callable
@@ -558,9 +559,15 @@ class MarkdownBuilder:
         return self
 
     def code_block(self, code: str, language: str = "yaml") -> MarkdownBuilder:
-        self._lines.append(f"```{language}")
-        self._lines.append(code)
-        self._lines.append("```")
+        if language == "yaml":
+            # Rendered with indent guides. Emitted as a single-line JS string literal: MDX strips
+            # leading whitespace from continuation lines of multi-line JSX expressions, which
+            # would corrupt the YAML indentation.
+            self._lines.append("<YamlCodeBlock>{" + json.dumps(code) + "}</YamlCodeBlock>")
+        else:
+            self._lines.append(f"```{language}")
+            self._lines.append(code)
+            self._lines.append("```")
         self._lines.append("")
         return self
 
@@ -915,6 +922,7 @@ description: {description}
     imports = """\
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 
 """
 

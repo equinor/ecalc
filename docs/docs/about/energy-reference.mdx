@@ -7,6 +7,7 @@ description: Complete reference for the energy network configuration.
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
+import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 
 # Energy Reference
 
@@ -190,15 +191,7 @@ A compressor whose energy usage is tabulated in `FILE` against `RATE`, `SUCTION_
 Every variable tabulated in `FILE` must be given as an expression, and every given expression must be
 tabulated.
 
-```yaml
-NAME: gas_compressor_sampled
-INPUT: fuel_manifold
-TYPE: COMPRESSOR_SAMPLED
-FILE: gas_compressor_sampled.csv
-RATE: 2500000
-SUCTION_PRESSURE: 40
-DISCHARGE_PRESSURE: 120
-```
+<YamlCodeBlock>{"NAME: gas_compressor_sampled\nINPUT: fuel_manifold\nTYPE: COMPRESSOR_SAMPLED\nFILE: gas_compressor_sampled.csv\nRATE: 2500000\nSUCTION_PRESSURE: 40\nDISCHARGE_PRESSURE: 120"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
