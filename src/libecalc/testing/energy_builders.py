@@ -17,7 +17,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasConsumer,
     YamlFuelGasManifold,
     YamlGasTurbine,
-    YamlGeneratorSet,
+    YamlGenerator,
     YamlJunctionInput,
     YamlMechanicalConsumer,
 )
@@ -118,9 +118,9 @@ class YamlEnergySourceBuilder(Builder[YamlEnergySource]):
 # ---------------------------------------------------------------------------
 
 
-class YamlEnergyGeneratorSetBuilder(Builder[YamlGeneratorSet]):
+class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
     def __init__(self):
-        self.type = "GENERATOR_SET"
+        self.type = "GENERATOR"
         self.name = None
         self.input = None
         self.capacity = None
@@ -143,10 +143,10 @@ class YamlEnergyGeneratorSetBuilder(Builder[YamlGeneratorSet]):
         return self
 
     def with_test_data(self) -> Self:
-        self.name = "generator_set"
+        self.name = "generator"
         self.input = "fuel_gas"
         self.capacity = 30
-        self.model = "generator_set_model"
+        self.model = "generator_model"
         return self
 
 
@@ -267,7 +267,7 @@ class YamlElectricalBusBuilder(Builder[YamlElectricalBus]):
         self.name = "main_bus"
         self.input = [
             YamlJunctionInput(name="power_from_shore_cable", capacity=15),
-            "generator_set",
+            "generator",
         ]
         self.dispatch_strategy = YamlDispatchStrategy.PRIORITY
         return self

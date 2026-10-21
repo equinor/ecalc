@@ -1,4 +1,4 @@
-from .converters import ElectricalMotor, GasTurbine, GeneratorSet
+from .converters import ElectricalMotor, GasTurbine, Generator
 from .junction import Junction
 from .transporter import ElectricalCable, Transporter
 
@@ -7,6 +7,6 @@ __all__ = [
     "ElectricalMotor",
     "Junction",
     "GasTurbine",
-    "GeneratorSet",
+    "Generator",
     "Transporter",
 ]

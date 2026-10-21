@@ -15,7 +15,7 @@ class Converter(EnergyUnit, abc.ABC):
     output_energy_type is what it delivers.
 
     Examples:
-        GeneratorSet: input FuelGasRate, output ElectricalPower
+        Generator: input FuelGasRate, output ElectricalPower
         GasTurbine: input FuelGasRate, output MechanicalPower
         ElectricalMotor: input ElectricalPower, output MechanicalPower
     """

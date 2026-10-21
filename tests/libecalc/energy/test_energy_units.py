@@ -19,7 +19,7 @@ from libecalc.energy.energy_units import (
     ElectricalCable,
     ElectricalMotor,
     GasTurbine,
-    GeneratorSet,
+    Generator,
     Junction,
 )
 from libecalc.energy.errors import InvalidCapacityTypeError
@@ -59,8 +59,8 @@ class TestConverters:
         assert result.keys() == {INPUT}
         assert result[INPUT].value == pytest.approx(10.0 / 0.96)
 
-    def test_generator_set_applies_fuel_curve(self):
-        genset = GeneratorSet(
+    def test_generator_applies_fuel_curve(self):
+        genset = Generator(
             "gs1",
             output_energy=ElectricalPower(10.0),
             input_connection_id=INPUT,
@@ -133,7 +133,7 @@ class TestCapacityType:
         [
             (lambda capacity: Source("fuel", output_energy=FuelGasRate(0), capacity=capacity), MechanicalPower(1)),
             (
-                lambda capacity: GeneratorSet("gen", ElectricalPower(0), input_connection_id=INPUT, capacity=capacity),
+                lambda capacity: Generator("gen", ElectricalPower(0), input_connection_id=INPUT, capacity=capacity),
                 MechanicalPower(1),
             ),
             (

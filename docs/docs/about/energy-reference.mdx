@@ -64,7 +64,7 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 
 Defines the energy network configuration.
 
-<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator_set\n  INPUT: fuel_gas\n  CAPACITY: 30\n  TYPE: GENERATOR_SET\n  MODEL: generator_set_model\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator_set\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
+<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  CAPACITY: 30\n  TYPE: GENERATOR\n  MODEL: generator_model\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
 
 ### SOURCES
 
@@ -85,16 +85,16 @@ Converters, junctions, and consumers forming the energy network.
 ##### UNITS {/* #energy-network-units */}
 
 <Tabs>
-<TabItem value="GENERATOR_SET" label="GENERATOR_SET">
+<TabItem value="GENERATOR" label="GENERATOR">
 
-<YamlCodeBlock>{"NAME: generator_set\nINPUT: fuel_gas\nCAPACITY: 30\nTYPE: GENERATOR_SET\nMODEL: generator_set_model"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: generator\nINPUT: fuel_gas\nCAPACITY: 30\nTYPE: GENERATOR\nMODEL: generator_model"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
-| `TYPE` | `GENERATOR_SET` | Required |
+| `TYPE` | `GENERATOR` | Required |
 | `MODEL` | Reference to a facility model defining the power-to-fuel curve. | Optional |
 
 </TabItem>
@@ -173,7 +173,7 @@ Turbine model, given directly in place.
 
 <TabItem value="ELECTRICAL_BUS" label="ELECTRICAL_BUS">
 
-<YamlCodeBlock>{"NAME: main_bus\nINPUT:\n- NAME: power_from_shore_cable\n  CAPACITY: 15\n- generator_set\nDISPATCH_STRATEGY: PRIORITY\nTYPE: ELECTRICAL_BUS"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: main_bus\nINPUT:\n- NAME: power_from_shore_cable\n  CAPACITY: 15\n- generator\nDISPATCH_STRATEGY: PRIORITY\nTYPE: ELECTRICAL_BUS"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |

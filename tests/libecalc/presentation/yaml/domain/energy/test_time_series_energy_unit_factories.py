@@ -14,7 +14,7 @@ from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
     TimeSeriesGasTurbineFactory,
-    TimeSeriesGeneratorSetFactory,
+    TimeSeriesGeneratorFactory,
     TimeSeriesJunctionFactory,
     TimeSeriesSourceFactory,
 )
@@ -54,7 +54,7 @@ RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, FuelGasRate, None, id="fuel gas source"),
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
-    pytest.param(TimeSeriesGeneratorSetFactory, ElectricalPower, FuelGasRate, id="generator set"),
+    pytest.param(TimeSeriesGeneratorFactory, ElectricalPower, FuelGasRate, id="generator set"),
     pytest.param(
         partial(TimeSeriesGasTurbineFactory, power_to_fuel=lambda power: power),
         MechanicalPower,

@@ -20,7 +20,7 @@ from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesEnergyUnit,
     TimeSeriesEnergyUnitFactory,
     TimeSeriesGasTurbineFactory,
-    TimeSeriesGeneratorSetFactory,
+    TimeSeriesGeneratorFactory,
     TimeSeriesJunctionFactory,
     TimeSeriesSourceFactory,
 )
@@ -54,7 +54,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasConsumer,
     YamlFuelGasManifold,
     YamlGasTurbine,
-    YamlGeneratorSet,
+    YamlGenerator,
     YamlJunctionBase,
     YamlMechanicalConsumer,
     get_input_names,
@@ -282,10 +282,10 @@ class EnergyNetworkMapper:
         expression_evaluator: ExpressionEvaluator,
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
-            case YamlGeneratorSet():
+            case YamlGenerator():
                 capacity = self._time_series(unit.capacity, expression_evaluator)
                 return (
-                    TimeSeriesGeneratorSetFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
+                    TimeSeriesGeneratorFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
                     FuelGasRate,
                     ElectricalPower,
                 )

@@ -7,13 +7,13 @@ from libecalc.common.time_utils import Period
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, GeneratorSet
+from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, Generator
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
-class TimeSeriesGeneratorSetFactory(TimeSeriesEnergyUnitFactory):
+class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
     def __init__(
         self,
         *,
@@ -25,9 +25,9 @@ class TimeSeriesGeneratorSetFactory(TimeSeriesEnergyUnitFactory):
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
         self.power_to_fuel = power_to_fuel
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> GeneratorSet:
+    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Generator:
         (incoming_connection,) = incoming_connections
-        return GeneratorSet(
+        return Generator(
             name=self.get_name(),
             power_to_fuel=self.power_to_fuel,
             energy_unit_id=self.get_id(),
@@ -35,7 +35,7 @@ class TimeSeriesGeneratorSetFactory(TimeSeriesEnergyUnitFactory):
             input_connection_id=incoming_connection.id,
             capacity=resolve_optional_energy(
                 self.capacity,
-                GeneratorSet.get_output_energy_type(),
+                Generator.get_output_energy_type(),
                 period=extra.get("period"),
                 description=f"Capacity for '{self.get_name()}'",
             ),
