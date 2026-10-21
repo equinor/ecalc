@@ -1,7 +1,6 @@
 import abc
 from collections import defaultdict
-from collections.abc import Hashable, Iterable
-from collections.abc import Mapping
+from collections.abc import Hashable, Iterable, Mapping
 from dataclasses import dataclass
 from typing import Generic, TypeVar
 

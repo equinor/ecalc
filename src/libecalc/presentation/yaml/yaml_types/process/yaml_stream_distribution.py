@@ -1,5 +1,6 @@
+from typing import Annotated, Literal
+
 from pydantic import Field
-from typing import Literal, Annotated
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType

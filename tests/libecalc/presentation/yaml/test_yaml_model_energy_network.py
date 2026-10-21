@@ -230,3 +230,126 @@ def test_turbine_file_headers_are_case_insensitive(headers, turbine_network_data
     fuel, _ = _run_turbine(model)
 
     assert fuel == pytest.approx(EXPECTED_FUEL)
+
+
+def test_turbine_model_resolved_from_definitions_still_validates_file_existence(
+    turbine_network_data_factory, yaml_model_factory
+):
+    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": {"FILE": "missing.csv"}}
+    data = _turbine_model_data("my_turbine", {"TURBINES": {"my_turbine": turbine}}, turbine_network_data_factory)
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+    )
+
+    with pytest.raises(ModelValidationException, match="resource not found"):
+        model.get_energy_network()
+
+
+def test_invalid_inline_turbine_file_is_still_validated_for_existence(turbine_network_data_factory, yaml_model_factory):
+    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": {"FILE": "missing.csv"}}
+    data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+    )
+
+    with pytest.raises(ModelValidationException, match="resource not found"):
+        model.get_energy_network()
+
+
+def test_gas_turbine_model_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
+    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": CURVE}
+    data = _turbine_model_data("my_turbine", {"TURBINES": {"my_turbine": turbine}}, turbine_network_data_factory)
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+    )
+
+    fuel, _ = _run_turbine(model)
+
+    assert fuel == pytest.approx(EXPECTED_FUEL)
+
+
+def test_turbine_definition_reference_not_found_is_reported(turbine_network_data_factory, yaml_model_factory):
+    data = _turbine_model_data("missing_turbine", {}, turbine_network_data_factory)
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+    )
+
+    with pytest.raises(ModelValidationException, match="missing_turbine.*not found. Available definitions"):
+        model.get_energy_network()
+
+
+GENERATOR_MODEL = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+# 7 MW sits between the points: fuel is interpolated linearly, so fuel = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
+EXPECTED_GENERATOR_FUEL = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
+
+
+def _generator_model_data(model, definitions, base_data_factory, load=7):
+    data = base_data_factory()
+    data["DEFINITIONS"] = definitions
+    data["ENERGY_NETWORK"] = {
+        "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+        "UNITS": [
+            {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": model},
+            {"NAME": "load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "genset", "LOAD": load},
+        ],
+    }
+    return data
+
+
+def _run_generator(model):
+    topology, factories, consumers, _ = model.get_energy_network()
+    simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=factories)
+    (load,) = consumers
+    (period,) = load.demand.expression.get_periods()
+    (load_connection,) = topology.get_incoming_connections(load.get_id())
+    factories_by_name = {factory.get_name(): factory for factory in factories}
+    fuel_connection = topology.get_connection(factories_by_name["fuel"].get_id(), factories_by_name["genset"].get_id())
+    result = simulation.run({load_connection.id: load.get_demand(period)}, period=period)
+    return result.get_energy()[fuel_connection.id].value, result.get_capacity_failures()
+
+
+def test_generator_fuel_follows_its_model(turbine_network_data_factory, yaml_model_factory):
+    data = _generator_model_data(GENERATOR_MODEL, {}, turbine_network_data_factory)
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+    )
+
+    fuel, _ = _run_generator(model)
+    assert fuel == pytest.approx(EXPECTED_GENERATOR_FUEL)
+
+
+def test_generator_model_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
+    data = _generator_model_data(
+        "my_generator", {"GENERATORS": {"my_generator": GENERATOR_MODEL}}, turbine_network_data_factory
+    )
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+    )
+
+    fuel, _ = _run_generator(model)
+    assert fuel == pytest.approx(EXPECTED_GENERATOR_FUEL)
+
+
+def test_generator_definition_reference_not_found_is_reported(turbine_network_data_factory, yaml_model_factory):
+    data = _generator_model_data("missing_generator", {}, turbine_network_data_factory)
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+    )
+
+    with pytest.raises(ModelValidationException, match="missing_generator.*not found. Available definitions"):
+        model.get_energy_network()
+
+
+def test_invalid_inline_generator_model_is_reported_at_the_model(turbine_network_data_factory, yaml_model_factory):
+    bad_model = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, -5]}}  # fuel must not be negative
+    data = _generator_model_data(bad_model, {}, turbine_network_data_factory)
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+    )
+
+    with pytest.raises(ModelValidationException) as exc_info:
+        model.get_energy_network()
+
+    (error,) = exc_info.value.errors()
+    assert error.location.keys[:5] == ["ENERGY_NETWORK", "UNITS", 0, "GENERATOR", "MODEL"]
+    assert "must not be negative" in error.message

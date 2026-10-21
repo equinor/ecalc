@@ -730,7 +730,7 @@ def energy_network_mapper_factory():
     Call with shafts to register shafts for drive trains. Default is no shafts.
     """
 
-    def _create(shafts: dict | None = None):
-        return EnergyNetworkMapper(shafts=shafts or {})
+    def _create(shafts: dict | None = None, definitions=None):
+        return EnergyNetworkMapper(shafts=shafts or {}, definitions=definitions)
 
     return _create

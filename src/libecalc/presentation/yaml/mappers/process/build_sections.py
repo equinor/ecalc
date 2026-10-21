@@ -7,7 +7,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.process.process_solver.section_assembly import assemble_process_section, AssembledSection
+from libecalc.process.process_solver.section_assembly import AssembledSection, assemble_process_section
 
 
 class ProcessSectionBuilder:

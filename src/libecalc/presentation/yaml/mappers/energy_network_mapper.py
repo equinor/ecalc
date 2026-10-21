@@ -1,5 +1,5 @@
 from collections.abc import Mapping, Sequence
-from typing import overload
+from typing import Any, overload
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
@@ -11,6 +11,7 @@ from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, Fu
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.expression.expression import ExpressionType
+from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.energy import (
     CompressorSampledDemand,
     ExpressionDemand,
@@ -60,6 +61,8 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlMechanicalConsumer,
     get_input_names,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
+from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.process.shaft import Shaft
 
@@ -72,8 +75,9 @@ _ENERGY_CLASSES: dict[EnergyType, type[Energy]] = {
 
 
 class EnergyNetworkMapper:
-    def __init__(self, shafts: Mapping[ShaftReference, Shaft]):
+    def __init__(self, shafts: Mapping[ShaftReference, Shaft], definitions: dict[str, Any] | None = None):
         self._shafts = shafts
+        self._definitions = definitions or {}
 
     def map_energy_network(
         self,
@@ -274,6 +278,12 @@ class EnergyNetworkMapper:
         )
         return turbine, FuelGasRate, MechanicalPower
 
+    def _resolve_definitions[Unit: (YamlGenerator, YamlGasTurbine)](self, unit: Unit) -> Unit:
+        try:
+            return expand_definitions(unit, definitions=self._definitions)
+        except DefinitionReferenceError as e:
+            raise EcalcValidationException(str(e)) from e
+
     def _map_unit(
         self,
         unit: YamlComponent,
@@ -284,6 +294,8 @@ class EnergyNetworkMapper:
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
             case YamlGenerator():
+                unit = self._resolve_definitions(unit)
+                assert isinstance(unit.model, YamlGeneratorDefinition)
                 fuel_model = map_generator_fuel_model(unit.name, unit.model, resources)
                 return (
                     TimeSeriesGeneratorFactory(
@@ -296,6 +308,8 @@ class EnergyNetworkMapper:
                     ElectricalPower,
                 )
             case YamlGasTurbine():
+                unit = self._resolve_definitions(unit)
+                assert isinstance(unit.model, YamlTurbineDefinition)
                 fuel_model = map_turbine_fuel_model(unit.name, unit.model, resources)
                 return (
                     TimeSeriesGasTurbineFactory(
