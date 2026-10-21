@@ -34,6 +34,7 @@ from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion impo
     expand,
     unit_key,
 )
+from libecalc.presentation.yaml.mappers.energy.generator_fuel_model_mapper import map_generator_fuel_model
 from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
@@ -283,9 +284,14 @@ class EnergyNetworkMapper:
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
             case YamlGenerator():
-                capacity = self._time_series(unit.capacity, expression_evaluator)
+                fuel_model = map_generator_fuel_model(unit.name, unit.model, resources)
                 return (
-                    TimeSeriesGeneratorFactory(name=unit.name, energy_unit_id=energy_unit_id, capacity=capacity),
+                    TimeSeriesGeneratorFactory(
+                        name=unit.name,
+                        energy_unit_id=energy_unit_id,
+                        capacity=self._time_series(fuel_model.max_power, expression_evaluator),
+                        power_to_fuel=fuel_model.fuel_for_power,
+                    ),
                     FuelGasRate,
                     ElectricalPower,
                 )

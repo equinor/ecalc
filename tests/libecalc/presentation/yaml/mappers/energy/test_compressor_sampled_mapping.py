@@ -10,6 +10,8 @@ from libecalc.presentation.yaml.model_validation_exception import ModelValidatio
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
+GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+
 
 def _network(compressor_input: str, **compressor_fields) -> YamlEnergyNetwork:
     return YamlEnergyNetwork.model_validate(
@@ -18,7 +20,7 @@ def _network(compressor_input: str, **compressor_fields) -> YamlEnergyNetwork:
                 {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"},
             ],
             "UNITS": [
-                {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel"},
+                {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
                 {
                     "NAME": "compressor",
                     "TYPE": "COMPRESSOR_SAMPLED",
@@ -131,7 +133,7 @@ class TestMapperExpansion:
             {
                 "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                 "UNITS": [
-                    {"NAME": "compressor turbine", "TYPE": "GENERATOR", "INPUT": "fuel"},
+                    {"NAME": "compressor turbine", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
                     {
                         "NAME": "compressor",
                         "TYPE": "COMPRESSOR_SAMPLED",

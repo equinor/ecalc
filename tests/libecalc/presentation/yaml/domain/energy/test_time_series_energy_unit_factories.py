@@ -54,7 +54,12 @@ RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, FuelGasRate, None, id="fuel gas source"),
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
-    pytest.param(TimeSeriesGeneratorFactory, ElectricalPower, FuelGasRate, id="generator set"),
+    pytest.param(
+        partial(TimeSeriesGeneratorFactory, power_to_fuel=lambda power: power),
+        ElectricalPower,
+        FuelGasRate,
+        id="generator",
+    ),
     pytest.param(
         partial(TimeSeriesGasTurbineFactory, power_to_fuel=lambda power: power),
         MechanicalPower,
