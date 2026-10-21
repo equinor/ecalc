@@ -43,6 +43,8 @@ from libecalc.testing.energy_builders import (
     YamlFuelGasConsumerBuilder,
     YamlFuelGasManifoldBuilder,
     YamlGasTurbineBuilder,
+    YamlGeneratorCurveBuilder,
+    YamlGeneratorDefinitionBuilder,
     YamlMechanicalConsumerBuilder,
     YamlTurbineCurveBuilder,
     YamlTurbineDefinitionBuilder,
@@ -84,6 +86,7 @@ PROCESS_INCLUDE_FIELDS = {
 }
 ENERGY_INCLUDE_FIELDS = {
     "definitions.turbines",
+    "definitions.generators",
     "energy_network",
 }
 
@@ -291,6 +294,20 @@ ENERGY_EXAMPLES: list[Example] = [
     Example(
         "DEFINITIONS.TURBINES.CURVE.YAMLFILE",
         lambda: YamlFileBuilder().with_test_data().validate(),
+    ),
+    # --- DEFINITIONS.GENERATORS ---
+    Example(
+        "DEFINITIONS.GENERATORS",
+        lambda: YamlGeneratorDefinitionBuilder().with_test_data().validate(),
+        abbreviate=False,
+    ),
+    Example(
+        "DEFINITIONS.GENERATORS.CURVE.GENERATORCURVE",
+        lambda: YamlGeneratorCurveBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "DEFINITIONS.GENERATORS.CURVE.YAMLFILE",
+        lambda: YamlFileBuilder().with_file("generator_curve.csv").validate(),
     ),
     # --- ENERGY_NETWORK ---
     Example(

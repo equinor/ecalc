@@ -21,6 +21,10 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlJunctionInput,
     YamlMechanicalConsumer,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import (
+    YamlGeneratorCurve,
+    YamlGeneratorDefinition,
+)
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import (
     YamlTurbineCurve,
     YamlTurbineDefinition,
@@ -81,6 +85,43 @@ class YamlTurbineDefinitionBuilder(Builder[YamlTurbineDefinition]):
     def with_test_data(self) -> Self:
         self.lower_heating_value = 38.0
         self.curve = YamlTurbineCurveBuilder().with_test_data().validate()
+        return self
+
+
+# ---------------------------------------------------------------------------
+# Generator definition builders
+# ---------------------------------------------------------------------------
+
+
+class YamlGeneratorCurveBuilder(Builder[YamlGeneratorCurve]):
+    def __init__(self):
+        self.power = None
+        self.fuel = None
+
+    def with_power(self, power: list[float]) -> Self:
+        self.power = power
+        return self
+
+    def with_fuel(self, fuel: list[float]) -> Self:
+        self.fuel = fuel
+        return self
+
+    def with_test_data(self) -> Self:
+        self.power = [0.0, 5.0, 10.0, 15.0]
+        self.fuel = [0.0, 25000.0, 48000.0, 70000.0]
+        return self
+
+
+class YamlGeneratorDefinitionBuilder(Builder[YamlGeneratorDefinition]):
+    def __init__(self):
+        self.curve = None
+
+    def with_curve(self, curve: YamlGeneratorCurve | YamlFile) -> Self:
+        self.curve = curve
+        return self
+
+    def with_test_data(self) -> Self:
+        self.curve = YamlGeneratorCurveBuilder().with_test_data().validate()
         return self
 
 
