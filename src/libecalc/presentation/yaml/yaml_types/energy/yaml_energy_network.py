@@ -1,14 +1,30 @@
 from enum import StrEnum
-from typing import Annotated, Literal, Union
+from typing import Annotated, Any, Literal, Union
 
-from pydantic import AfterValidator, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    AfterValidator,
+    BeforeValidator,
+    ConfigDict,
+    Field,
+    ValidationInfo,
+    field_validator,
+    model_validator,
+)
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
+
+
+def _validate_definition_reference_or_inline_model[Model: YamlBase](model_cls: type[Model]):
+    def validate(v: Any, info: ValidationInfo) -> str | Model:
+        return v if isinstance(v, str) else model_cls.model_validate(v, context=info.context)
+
+    return BeforeValidator(validate)
 
 
 def _check_non_negative[T](v: T, field_name: str) -> T:
@@ -89,10 +105,11 @@ class YamlGenerator(YamlConverterBase):
 
     type: Literal["GENERATOR"]
     model: Annotated[
-        YamlGeneratorDefinition,
+        DefinitionReference | YamlGeneratorDefinition,
+        _validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
         Field(
             title="MODEL",
-            description="Generator set model, given directly in place.",
+            description="Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS.",
         ),
     ]
 
@@ -102,10 +119,11 @@ class YamlGasTurbine(YamlConverterBase):
 
     type: Literal["GAS_TURBINE"]
     model: Annotated[
-        YamlTurbineDefinition,
+        DefinitionReference | YamlTurbineDefinition,
+        _validate_definition_reference_or_inline_model(YamlTurbineDefinition),
         Field(
             title="MODEL",
-            description="Turbine model, given directly in place.",
+            description="Turbine model, given directly in place or as a reference to DEFINITIONS.TURBINES.",
         ),
     ]
 

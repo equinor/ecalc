@@ -1,6 +1,7 @@
 from typing import Self
 
 from libecalc.common.utils.rates import RateType
+from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
@@ -28,7 +29,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     YamlProcessUnitInstance,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
-from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlEcalcEvent,
     YamlProcessConstraint,
