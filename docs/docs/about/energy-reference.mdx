@@ -62,7 +62,7 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 
 ### GENERATORS
 
-Defines generators that can be referenced from GENERATOR units in the ENERGY_NETWORK. Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a GENERATOR unit unless its CAPACITY is set lower.
+Defines generators that can be referenced from GENERATOR units in the ENERGY_NETWORK. Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a GENERATOR.
 
 <YamlCodeBlock>{"CURVE:\n  POWER:\n  - 0.0\n  - 5.0\n  - 10.0\n  - 15.0\n  FUEL:\n  - 0.0\n  - 25000.0\n  - 48000.0\n  - 70000.0"}</YamlCodeBlock>
 
@@ -100,7 +100,7 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 Defines the energy network configuration.
 
-<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  CAPACITY: 30\n  TYPE: GENERATOR\n  MODEL: generator_model\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
+<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  TYPE: GENERATOR\n  MODEL:\n    CURVE:\n      POWER:\n      - 0.0\n      - 5.0\n      - 10.0\n      - 15.0\n      FUEL:\n      - 0.0\n      - 25000.0\n      - 48000.0\n      - 70000.0\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
 
 ### SOURCES
 
@@ -123,15 +123,44 @@ Converters, junctions, and consumers forming the energy network.
 <Tabs>
 <TabItem value="GENERATOR" label="GENERATOR">
 
-<YamlCodeBlock>{"NAME: generator\nINPUT: fuel_gas\nCAPACITY: 30\nTYPE: GENERATOR\nMODEL: generator_model"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: generator\nINPUT: fuel_gas\nTYPE: GENERATOR\nMODEL:\n  CURVE:\n    POWER:\n    - 0.0\n    - 5.0\n    - 10.0\n    - 15.0\n    FUEL:\n    - 0.0\n    - 25000.0\n    - 48000.0\n    - 70000.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
-| `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
 | `TYPE` | `GENERATOR` | Required |
-| `MODEL` | Reference to a facility model defining the power-to-fuel curve. | Optional |
+| [`MODEL`](#energy-network-units-generator-model) | Generator set model, given directly in place. | Required |
+
+##### MODEL {/* #energy-network-units-generator-model */}
+
+Generator set model, given directly in place.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`CURVE`](#energy-network-units-generator-model-curve) | Power and fuel values, given directly or in a FILE with POWER and FUEL columns. | Required |
+
+##### CURVE {/* #energy-network-units-generator-model-curve */}
+
+<Tabs>
+<TabItem value="GENERATORCURVE" label="GENERATORCURVE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `POWER` | Electrical power [MW], strictly increasing. In a FILE, this is the POWER column. | Required |
+| `FUEL` | Fuel gas rate [Sm3/day] for each power. In a FILE, this is the FUEL column. | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
 
 </TabItem>
 

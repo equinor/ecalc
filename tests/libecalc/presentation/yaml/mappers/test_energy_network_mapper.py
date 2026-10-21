@@ -9,6 +9,7 @@ from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSer
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
 TURBINE = {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}}
+GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 
 def test_gas_turbine_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
@@ -36,6 +37,31 @@ def test_gas_turbine_does_not_accept_capacity():
         )
 
 
+def test_generator_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+            "UNITS": [{"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR}],
+        }
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+
+    (genset,) = (factory for factory in factories if factory.get_name() == "genset")
+    assert genset.capacity.get_evaluated_expression() == [10]
+
+
+def test_generator_does_not_accept_capacity():
+    with pytest.raises(ValueError, match="CAPACITY"):
+        YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                "UNITS": [{"NAME": "g", "TYPE": "GENERATOR", "INPUT": "fuel", "CAPACITY": 5, "MODEL": GENERATOR}],
+            }
+        )
+
+
 def test_maps_sources_units_connections_and_expressions(
     energy_network_mapper_factory, expression_evaluator_factory, period
 ):
@@ -48,7 +74,7 @@ def test_maps_sources_units_connections_and_expressions(
                 {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": 50},
             ],
             "UNITS": [
-                {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "CAPACITY": 10},
+                {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
                 {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
                 {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5, "EFFICIENCY": 0.9},
                 {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4, "EFFICIENCY": 0.96},

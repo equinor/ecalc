@@ -164,7 +164,6 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
         self.type = "GENERATOR"
         self.name = None
         self.input = None
-        self.capacity = None
         self.model = None
 
     def with_name(self, name: str) -> Self:
@@ -175,19 +174,14 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
         self.input = input
         return self
 
-    def with_capacity(self, capacity: YamlExpressionType) -> Self:
-        self.capacity = capacity
-        return self
-
-    def with_model(self, model: str) -> Self:
+    def with_model(self, model: YamlGeneratorDefinition) -> Self:
         self.model = model
         return self
 
     def with_test_data(self) -> Self:
         self.name = "generator"
         self.input = "fuel_gas"
-        self.capacity = 30
-        self.model = "generator_model"
+        self.model = YamlGeneratorDefinitionBuilder().with_test_data().validate()
         return self
 
 

@@ -71,7 +71,7 @@ class YamlDefinitions(YamlBase):
         description="Defines generators that can be referenced from GENERATOR units in the ENERGY_NETWORK. "
         "Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above "
         "the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a "
-        "GENERATOR unit unless its CAPACITY is set lower.",
+        "GENERATOR.",
     )
 
 
