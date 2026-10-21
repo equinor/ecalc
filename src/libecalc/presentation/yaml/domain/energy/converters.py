@@ -8,6 +8,9 @@ from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, Generator
+from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
+from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
+from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -18,12 +21,16 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
         self,
         *,
         name: str,
-        power_to_fuel: Callable[[float], float],
+        fuel_model: GeneratorFuelModel,
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
-        self.power_to_fuel = power_to_fuel
+        self.fuel_model = fuel_model
+
+    @property
+    def power_to_fuel(self) -> Callable[[float], float]:
+        return self.fuel_model.fuel_for_power
 
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Generator:
         (incoming_connection,) = incoming_connections
@@ -48,12 +55,16 @@ class TimeSeriesGasTurbineFactory(TimeSeriesEnergyUnitFactory):
         self,
         *,
         name: str,
-        power_to_fuel: Callable[[float], float],
+        fuel_model: TurbineFuelModel | FuelPowerCurve,
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
-        self.power_to_fuel = power_to_fuel
+        self.fuel_model = fuel_model
+
+    @property
+    def power_to_fuel(self) -> Callable[[float], float]:
+        return self.fuel_model.fuel_for_power
 
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> GasTurbine:
         (incoming_connection,) = incoming_connections

@@ -28,6 +28,13 @@ FIRST_CANDIDATE = EnergyUnitId(UUID(int=1))
 SECOND_CANDIDATE = EnergyUnitId(UUID(int=2))
 
 
+class IdentityFuelModel:
+    """Fuel model test double whose fuel_for_power is the identity function."""
+
+    def fuel_for_power(self, power: float) -> float:
+        return power
+
+
 @pytest.fixture
 def expression_factory(expression_evaluator_factory):
     def build(expression, variables: dict[str, list[float]] | None = None) -> TimeSeriesExpression:
@@ -55,13 +62,13 @@ RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
     pytest.param(
-        partial(TimeSeriesGeneratorFactory, power_to_fuel=lambda power: power),
+        partial(TimeSeriesGeneratorFactory, fuel_model=IdentityFuelModel()),
         ElectricalPower,
         FuelGasRate,
         id="generator",
     ),
     pytest.param(
-        partial(TimeSeriesGasTurbineFactory, power_to_fuel=lambda power: power),
+        partial(TimeSeriesGasTurbineFactory, fuel_model=IdentityFuelModel()),
         MechanicalPower,
         FuelGasRate,
         id="gas turbine",
@@ -170,7 +177,7 @@ class TestGasTurbineCapacity:
     def test_capacity_is_resolved_from_the_expression(self, expression_factory, capacity, expected):
         factory = TimeSeriesGasTurbineFactory(
             name="turbine",
-            power_to_fuel=lambda power: power,
+            fuel_model=IdentityFuelModel(),
             capacity=expression_factory(capacity),
         )
         connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
