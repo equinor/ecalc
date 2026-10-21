@@ -160,16 +160,16 @@ def test_builder_supports_multi_stage_individual_asv(
     assert len(system.recirculation_loops) == 2
     assert system.choke is None
     assert _unit_types(system.pipeline.get_process_units()) == (
-        DirectMixer,
         TemperatureSetter,
         Choke,
         LiquidRemover,
+        DirectMixer,
         Compressor,
         DirectSplitter,
-        DirectMixer,
         TemperatureSetter,
         Choke,
         LiquidRemover,
+        DirectMixer,
         Compressor,
         DirectSplitter,
     )
