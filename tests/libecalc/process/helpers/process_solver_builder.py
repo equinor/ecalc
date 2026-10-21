@@ -8,11 +8,10 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, ScipyRootFindingStrategy
+from libecalc.process.process_solver.section_assembly import individual_recirculation_loops, recirculation_loop
 from libecalc.process.process_solver.solver_assembly import ProcessSolverSystem, assemble_solver
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
-from libecalc.process.process_units.direct_mixer import DirectMixer
-from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
@@ -106,23 +105,10 @@ class ProcessSolverBuilder:
         *,
         stage_units: Sequence[Sequence[ProcessUnit]],
     ) -> tuple[list[ProcessUnit], list[RecirculationLoop]]:
+        all_units = [unit for units in stage_units for unit in units]
         if self._pressure_control_config.type == "COMMON_ASV":
-            recirculation_loop, process_units = self._wrap_units_with_asv(
-                [unit for units in stage_units for unit in units]
-            )
-            return process_units, [recirculation_loop]
+            loop, process_units = recirculation_loop(all_units)
+            return process_units, [loop]
 
-        process_units: list[ProcessUnit] = []
-        recirculation_loops: list[RecirculationLoop] = []
-        for units in stage_units:
-            recirculation_loop, stage_process_units = self._wrap_units_with_asv(units)
-            recirculation_loops.append(recirculation_loop)
-            process_units.extend(stage_process_units)
-        return process_units, recirculation_loops
-
-    @staticmethod
-    def _wrap_units_with_asv(units: Sequence[ProcessUnit]) -> tuple[RecirculationLoop, list[ProcessUnit]]:
-        mixer = DirectMixer()
-        splitter = DirectSplitter()
-        recirculation_loop = RecirculationLoop(mixer=mixer, splitter=splitter)
-        return recirculation_loop, [mixer, *units, splitter]
+        loops, process_units = individual_recirculation_loops(all_units)
+        return process_units, loops

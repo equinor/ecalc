@@ -31,7 +31,12 @@ from libecalc.presentation.yaml.domain.expression_time_series_pressure import Ex
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
-from libecalc.presentation.yaml.mappers.fluid_mapper import DRY_MW_18P3, MEDIUM_MW_19P4, RICH_MW_21P4
+from libecalc.presentation.yaml.mappers.fluid_mapper import (
+    DRY_MW_18P3,
+    MEDIUM_MW_19P4,
+    RICH_MW_21P4,
+    ULTRA_RICH_MW_24P6,
+)
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService, TupleWithError
@@ -567,13 +572,15 @@ def make_time_series_fluid_density():
 
 @pytest.fixture(scope="session")
 def fluid_composition_factory():
-    def create_fluid_composition(composition_type: Literal["dry", "medium", "rich"] = "medium"):
+    def create_fluid_composition(composition_type: Literal["dry", "medium", "rich", "ultra_rich"] = "medium"):
         if composition_type == "dry":
             return DRY_MW_18P3
         elif composition_type == "medium":
             return MEDIUM_MW_19P4
         elif composition_type == "rich":
             return RICH_MW_21P4
+        elif composition_type == "ultra_rich":
+            return ULTRA_RICH_MW_24P6
 
         assert_never(composition_type)
 
@@ -599,6 +606,11 @@ def fluid_model_medium(fluid_model_factory, fluid_composition_factory) -> FluidM
 @pytest.fixture(scope="session")
 def fluid_model_rich(fluid_model_factory, fluid_composition_factory) -> FluidModel:
     return fluid_model_factory(fluid_composition=fluid_composition_factory(composition_type="rich"))
+
+
+@pytest.fixture(scope="session")
+def fluid_model_ultra_rich(fluid_model_factory, fluid_composition_factory) -> FluidModel:
+    return fluid_model_factory(fluid_composition=fluid_composition_factory(composition_type="ultra_rich"))
 
 
 @pytest.fixture(scope="session")

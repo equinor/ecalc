@@ -109,8 +109,9 @@ def test_mapper_returns_one_pipeline_per_target(process_simulation_mapper_factor
 
 
 def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulation_mapper_factory):
-    """Each compressor segment is wrapped with DirectMixer + DirectSplitter to enable
-    ASV recirculation. This is not visible in YAML but added by the mapper."""
+    """Each compressor is wrapped with DirectMixer + DirectSplitter to enable ASV recirculation.
+    This is not visible in YAML but added by the mapper. The mixer sits directly in front of the
+    compressor so upstream units (e.g. LiquidRemover) do not act on the recirculated gas."""
     yaml_simulation, refs = _build_simulation_with_pipeline(_simple_pipeline())
 
     pipelines, _ = process_simulation_mapper_factory(
@@ -121,11 +122,10 @@ def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulat
 
     units = pipelines[0].get_process_units()
     assert isinstance(units[0], Inlet)
-    assert isinstance(units[1], DirectMixer)
     assert isinstance(units[-1], Outlet)
-    splitter_index = next(i for i, u in enumerate(units) if isinstance(u, DirectSplitter))
     compressor_index = next(i for i, u in enumerate(units) if isinstance(u, Compressor))
-    assert splitter_index > compressor_index
+    assert isinstance(units[compressor_index - 1], DirectMixer)
+    assert isinstance(units[compressor_index + 1], DirectSplitter)
 
 
 def test_mapper_preserves_yaml_unit_order_inside_segment(process_simulation_mapper_factory):
@@ -211,14 +211,14 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
 
     assert unit_types == [
         "Inlet",
-        "DirectMixer",
         "TemperatureSetter",
+        "DirectMixer",
         "Compressor",
         "DirectSplitter",  # ASV loop 1
         "Splitter",  # between loops
         "Mixer",  # between loops
-        "DirectMixer",
         "TemperatureSetter",
+        "DirectMixer",
         "Compressor",
         "DirectSplitter",  # ASV loop 2
         "Outlet",
