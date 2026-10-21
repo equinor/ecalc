@@ -83,11 +83,11 @@ class YamlConverterBase(YamlBase):
     ]
 
 
-class YamlGeneratorSet(YamlConverterBase):
-    model_config = ConfigDict(title="GeneratorSet")
+class YamlGenerator(YamlConverterBase):
+    model_config = ConfigDict(title="Generator")
 
     capacity: YamlCapacity = None
-    type: Literal["GENERATOR_SET"]
+    type: Literal["GENERATOR"]
     model: Annotated[
         str | None,
         Field(
@@ -418,7 +418,7 @@ class YamlCompressorSampled(YamlConsumerBase):
 
 YamlComponent = Annotated[
     Union[
-        YamlGeneratorSet,
+        YamlGenerator,
         YamlGasTurbine,
         YamlElectricalMotor,
         YamlElectricalCable,
@@ -443,7 +443,7 @@ class EnergyType(StrEnum):
 
 
 INPUT_ENERGY: dict[str, EnergyType] = {
-    "GENERATOR_SET": EnergyType.FUEL_GAS,
+    "GENERATOR": EnergyType.FUEL_GAS,
     "GAS_TURBINE": EnergyType.FUEL_GAS,
     "ELECTRICAL_MOTOR": EnergyType.ELECTRICAL,
     "ELECTRICAL_CABLE": EnergyType.ELECTRICAL,
@@ -457,7 +457,7 @@ INPUT_ENERGY: dict[str, EnergyType] = {
 }
 
 OUTPUT_ENERGY: dict[str, EnergyType] = {
-    "GENERATOR_SET": EnergyType.ELECTRICAL,
+    "GENERATOR": EnergyType.ELECTRICAL,
     "GAS_TURBINE": EnergyType.MECHANICAL,
     "ELECTRICAL_MOTOR": EnergyType.MECHANICAL,
     "ELECTRICAL_CABLE": EnergyType.ELECTRICAL,

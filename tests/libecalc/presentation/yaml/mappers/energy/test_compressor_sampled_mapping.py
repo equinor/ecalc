@@ -18,7 +18,7 @@ def _network(compressor_input: str, **compressor_fields) -> YamlEnergyNetwork:
                 {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"},
             ],
             "UNITS": [
-                {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel"},
+                {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel"},
                 {
                     "NAME": "compressor",
                     "TYPE": "COMPRESSOR_SAMPLED",
@@ -131,7 +131,7 @@ class TestMapperExpansion:
             {
                 "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                 "UNITS": [
-                    {"NAME": "compressor turbine", "TYPE": "GENERATOR_SET", "INPUT": "fuel"},
+                    {"NAME": "compressor turbine", "TYPE": "GENERATOR", "INPUT": "fuel"},
                     {
                         "NAME": "compressor",
                         "TYPE": "COMPRESSOR_SAMPLED",

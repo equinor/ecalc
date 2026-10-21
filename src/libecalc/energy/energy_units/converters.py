@@ -5,7 +5,7 @@ from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate, M
 from libecalc.energy.ids import EnergyConnectionId, EnergyUnitId
 
 
-class GeneratorSet(Converter):
+class Generator(Converter):
     """Gas-fired generator set converting fuel gas to electrical power.
 
     The power_to_fuel curve determines the fuel consumption characteristic.

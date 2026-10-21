@@ -48,7 +48,7 @@ ENERGY_NETWORK:
   UNITS:
     # --- Converters ---
     - NAME: genset_a
-      TYPE: GENERATOR_SET
+      TYPE: GENERATOR
       INPUT: fuel_gas
       MODEL: genset_17mw
       CAPACITY: 17  # MW

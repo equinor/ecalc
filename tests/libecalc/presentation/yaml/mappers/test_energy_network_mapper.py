@@ -48,7 +48,7 @@ def test_maps_sources_units_connections_and_expressions(
                 {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": 50},
             ],
             "UNITS": [
-                {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "CAPACITY": 10},
+                {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "CAPACITY": 10},
                 {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
                 {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5, "EFFICIENCY": 0.9},
                 {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4, "EFFICIENCY": 0.96},
