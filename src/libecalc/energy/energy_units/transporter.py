@@ -1,6 +1,6 @@
 import abc
 
-from libecalc.energy import ElectricalPower, Energy, EnergyUnit, EnergyUnitId
+from libecalc.energy import ElectricalPower, Energy, EnergyUnit, EnergyUnitId, MechanicalPower
 from libecalc.energy.energy_failure import EnergyFailure, capacity_failures, check_capacity
 from libecalc.energy.ids import EnergyConnectionId
 
@@ -78,3 +78,41 @@ class ElectricalCable(Transporter):
 
     def get_input_energies(self) -> dict[EnergyConnectionId, Energy]:
         return {self._input_connection_id: ElectricalPower(self._output_energy.value / (1 - self._loss_fraction))}
+
+
+class DriveTrain(Transporter):
+    """
+    Mechanical transmission between a driver (gas turbine or electrical motor) and the equipment on its shaft.
+
+    Efficiency covers losses in the transmission (e.g. gearbox, couplings). Losses in the driver and in the
+    driven equipment are not included.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        output_energy: Energy,
+        *,
+        input_connection_id: EnergyConnectionId,
+        efficiency: float | None = None,
+        capacity: Energy | None = None,
+        energy_unit_id: EnergyUnitId | None = None,
+    ) -> None:
+        super().__init__(
+            name,
+            output_energy=output_energy,
+            input_connection_id=input_connection_id,
+            capacity=capacity,
+            energy_unit_id=energy_unit_id,
+        )
+        self._efficiency = efficiency if efficiency is not None else 1.0
+
+    @classmethod
+    def get_energy_type(cls) -> type[MechanicalPower]:
+        return MechanicalPower
+
+    def get_efficiency(self) -> float:
+        return self._efficiency
+
+    def get_input_energies(self) -> dict[EnergyConnectionId, Energy]:
+        return {self._input_connection_id: MechanicalPower(self._output_energy.value / self._efficiency)}

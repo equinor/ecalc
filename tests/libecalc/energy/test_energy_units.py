@@ -16,6 +16,7 @@ from libecalc.energy.energy_types import (
 )
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import (
+    DriveTrain,
     ElectricalCable,
     ElectricalMotor,
     GasTurbine,
@@ -83,6 +84,19 @@ class TestConverters:
         assert result.keys() == {INPUT}
         assert result[INPUT].value == pytest.approx(7.0 / 0.93)
         assert isinstance(result[INPUT], ElectricalPower)
+
+    def test_drive_train_divides_by_mechanical_efficiency(self):
+        drive_train = DriveTrain(
+            "drive_train", output_energy=MechanicalPower(20.0), input_connection_id=INPUT, efficiency=0.98
+        )
+        result = drive_train.get_input_energies()
+        assert result.keys() == {INPUT}
+        assert result[INPUT].value == pytest.approx(20.0 / 0.98)
+        assert isinstance(result[INPUT], MechanicalPower)
+
+    def test_drive_train_without_efficiency_is_lossless(self):
+        drive_train = DriveTrain("drive_train", output_energy=MechanicalPower(20.0), input_connection_id=INPUT)
+        assert drive_train.get_input_energies() == {INPUT: MechanicalPower(20.0)}
 
 
 class TestConsumers:
