@@ -1,5 +1,45 @@
 # Changelog
 
+## [15.4.0](https://github.com/equinor/ecalc/compare/v15.3.0...v15.4.0) (2026-10-23)
+
+
+### Features
+
+* add DriveTrain energy unit with mechanical efficiency ([#1886](https://github.com/equinor/ecalc/issues/1886)) ([b4b020a](https://github.com/equinor/ecalc/commit/b4b020ac4ee13ec1cb582d2548f3895ac6ae39fc))
+* add generator definitions to DEFINITIONS ([#1879](https://github.com/equinor/ecalc/issues/1879)) ([0238d6e](https://github.com/equinor/ecalc/commit/0238d6e39f1ac7329a79ba7691599632c397adbf))
+* add generator fuel model ([#1878](https://github.com/equinor/ecalc/issues/1878)) ([637020c](https://github.com/equinor/ecalc/commit/637020caeb59410ff2480c3060950ccd7d0e9875))
+* **libecalc:** keep fuel model on gas turbine and generator factories ([#1883](https://github.com/equinor/ecalc/issues/1883)) ([6baf678](https://github.com/equinor/ecalc/commit/6baf6785e800d31772905b439622572144da8eae))
+* **libecalc:** map GAS_TURBINE fuel from an inline turbine model ([#1858](https://github.com/equinor/ecalc/issues/1858)) ([7ce8a05](https://github.com/equinor/ecalc/commit/7ce8a057274e3aeb1ba8a2e17b8200f27561ecc2))
+* **libecalc:** map generator fuel from an inline generator model ([#1880](https://github.com/equinor/ecalc/issues/1880)) ([50022d3](https://github.com/equinor/ecalc/commit/50022d38a5158da5479f8129bd2baf2d1bed5787))
+* resolve GAS_TURBINE/GENERATOR models from DEFINITIONS ([#1882](https://github.com/equinor/ecalc/issues/1882)) ([896b370](https://github.com/equinor/ecalc/commit/896b370cc8e888b474a7c231bc9412240fda0b85))
+
+
+### Bug Fixes
+
+* add individual ASV recirculation directly in front of the compressor ([#1884](https://github.com/equinor/ecalc/issues/1884)) ([e815c9c](https://github.com/equinor/ecalc/commit/e815c9cd98a5e478150118ec63cb896da601b598))
+* **libecalc.core:** remove all liquid phases in liquid remover using a multiphase flash ([#1871](https://github.com/equinor/ecalc/issues/1871)) ([d8c5b6e](https://github.com/equinor/ecalc/commit/d8c5b6efb9fb67da3dcc10aa055d3bf18c2bc8c1))
+* **libecalc.fixtures:** add model to with_gas_turbine builder ([87bf364](https://github.com/equinor/ecalc/commit/87bf36420909f1b8e3fe0afb8a6abdb940ba5632))
+
+
+### Documentation
+
+* add dark code block theme matching site dark mode ([db080cb](https://github.com/equinor/ecalc/commit/db080cbb0d6ff4b34c57bb88d4f3d5fa1209438e))
+* add DEFINITIONS to energy reference ([7818e38](https://github.com/equinor/ecalc/commit/7818e382bc4d60337b1ec62fda6f74016ba1091b))
+* add energy examples ([a97cf06](https://github.com/equinor/ecalc/commit/a97cf06e630588c7be4a852a9ea549c52ddb4cbf))
+* add events to process reference ([60174e5](https://github.com/equinor/ecalc/commit/60174e5f516dfcbb94cafc502b9a5ca471774b78))
+* add indent guides to yaml examples in process and energy reference ([3bab564](https://github.com/equinor/ecalc/commit/3bab564861e6b5d434311b8b4df98f36f737a12b))
+
+
+### Miscellaneous Chores
+
+* energy drive train mapping ([9425cb1](https://github.com/equinor/ecalc/commit/9425cb11d0f583e9d46c13392d44ff304f2686d9))
+* require shaft and name for compressor process unit instance ([c440f93](https://github.com/equinor/ecalc/commit/c440f93b93fdbf21577dcadcbd91d0ad00b418bb))
+
+
+### Code Refactoring
+
+* **libecalc:** rename GENERATOR_SET to GENERATOR in the energy network domain ([#1881](https://github.com/equinor/ecalc/issues/1881)) ([a993a84](https://github.com/equinor/ecalc/commit/a993a84eddaa3cd01e9c2a6d42552f5458a879c1))
+
 ## [15.3.0](https://github.com/equinor/ecalc/compare/v15.2.0...v15.3.0) (2026-10-19)
 
 
