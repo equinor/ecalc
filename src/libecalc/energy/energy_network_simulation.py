@@ -2,8 +2,8 @@ import abc
 import operator
 from collections.abc import Iterable, Sequence
 from functools import reduce
-from typing import Any
 
+from libecalc.common.time_utils import Period
 from libecalc.energy import Energy, EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_network import EnergyNetwork
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId, EnergyNetworkTopology
@@ -25,9 +25,9 @@ class EnergyUnitFactory(abc.ABC):
         demand: Energy,
         *,
         incoming_connections: Sequence[EnergyConnection],
-        **extra: Any,
+        period: Period | None = None,
     ) -> EnergyUnit:
-        """Create a unit for the required output `demand`, using context such as the period from `extra`."""
+        """Create a unit for the required output `demand`, resolving any time series configuration for `period`."""
         ...
 
 
@@ -54,11 +54,11 @@ class EnergyNetworkSimulation:
     def run(
         self,
         connection_demands: dict[EnergyConnectionId, Energy],
-        **extra: Any,
+        period: Period | None = None,
     ) -> EnergyNetwork:
         """Calculate connection energies and capacity failures from demands on consumer-targeting connections.
 
-        `extra` is forwarded to every factory, for example to select the evaluation period.
+        `period` is forwarded to every factory, to resolve any time series configuration (e.g. capacity).
         """
         self._validate_connection_demands(connection_demands)
 
@@ -77,7 +77,7 @@ class EnergyNetworkSimulation:
             energy_unit = self._energy_unit_factories[node_id].create(
                 demand,
                 incoming_connections=incoming_connections,
-                **extra,
+                period=period,
             )
             input_energies = energy_unit.get_input_energies()
             # An extra key would silently overwrite another node's connection energy.

@@ -41,3 +41,23 @@ def resolve_optional_energy(
     if expression is None:
         return None
     return resolve_energy(expression, energy_type, period=period, description=description)
+
+
+def resolve_optional_fraction(
+    expression: TimeSeriesExpression | None,
+    *,
+    period: Period | None,
+    description: str,
+) -> float | None:
+    """Evaluate an optional dimensionless expression (e.g. efficiency, loss fraction) for `period`."""
+    if expression is None:
+        return None
+    if not isinstance(period, Period):
+        raise InvalidEnergyNetworkInputError(
+            f"{description} is an expression and needs a period to be evaluated, got {period!r}"
+        )
+
+    try:
+        return float(expression.get_value(period))
+    except KeyError as error:
+        raise InvalidEnergyNetworkInputError(f"{description} has no value for period {period}") from error

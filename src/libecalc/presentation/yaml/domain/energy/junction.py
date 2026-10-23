@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
 
+from libecalc.common.time_utils import Period
 from libecalc.energy.dispatch import DispatchStrategy
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import Energy
@@ -30,7 +30,9 @@ class TimeSeriesJunctionFactory(TimeSeriesEnergyUnitFactory):
         self.dispatch_strategy = dispatch_strategy
         self.input_capacities = input_capacities or {}
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Junction:
+    def create(
+        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], period: Period | None = None
+    ) -> Junction:
         return Junction(
             name=self.get_name(),
             output_energy=demand,
@@ -41,7 +43,7 @@ class TimeSeriesJunctionFactory(TimeSeriesEnergyUnitFactory):
                 candidate_id: resolve_energy(
                     expression,
                     self.energy_type,
-                    period=extra.get("period"),
+                    period=period,
                     description=f"Input capacity from {candidate_id} for '{self.get_name()}'",
                 )
                 for candidate_id, expression in self.input_capacities.items()

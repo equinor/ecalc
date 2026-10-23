@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
 
+from libecalc.common.time_utils import Period
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
@@ -24,7 +24,9 @@ class TimeSeriesSourceFactory(TimeSeriesEnergyUnitFactory):
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Source:
+    def create(
+        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], period: Period | None = None
+    ) -> Source:
         return Source(
             name=self.get_name(),
             energy_unit_id=self.get_id(),
@@ -32,7 +34,7 @@ class TimeSeriesSourceFactory(TimeSeriesEnergyUnitFactory):
             capacity=resolve_optional_energy(
                 self.capacity,
                 type(demand),
-                period=extra.get("period"),
+                period=period,
                 description=f"Capacity for '{self.get_name()}'",
             ),
         )

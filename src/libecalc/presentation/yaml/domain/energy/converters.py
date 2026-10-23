@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import Any
 
 from libecalc.common.time_utils import Period
 from libecalc.energy.energy_network_topology import EnergyConnection
@@ -12,7 +11,7 @@ from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
-from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
+from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy, resolve_optional_fraction
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -32,12 +31,14 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
     def power_to_fuel(self) -> Callable[[float], float]:
         return self.fuel_model.fuel_for_power
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Generator:
+    def create(
+        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], period: Period | None = None
+    ) -> Generator:
         (incoming_connection,) = incoming_connections
         capacity = resolve_optional_energy(
             self.capacity,
             Generator.get_output_energy_type(),
-            period=extra.get("period"),
+            period=period,
             description=f"Capacity for '{self.get_name()}'",
         )
         return Generator(
@@ -66,12 +67,14 @@ class TimeSeriesGasTurbineFactory(TimeSeriesEnergyUnitFactory):
     def power_to_fuel(self) -> Callable[[float], float]:
         return self.fuel_model.fuel_for_power
 
-    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> GasTurbine:
+    def create(
+        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], period: Period | None = None
+    ) -> GasTurbine:
         (incoming_connection,) = incoming_connections
         capacity = resolve_optional_energy(
             self.capacity,
             GasTurbine.get_output_energy_type(),
-            period=extra.get("period"),
+            period=period,
             description=f"Capacity for '{self.get_name()}'",
         )
         return GasTurbine(
@@ -97,20 +100,23 @@ class TimeSeriesElectricalMotorFactory(TimeSeriesEnergyUnitFactory):
         self.efficiency = efficiency
 
     def create(
-        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any
+        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], period: Period | None = None
     ) -> ElectricalMotor:
         (incoming_connection,) = incoming_connections
-        period: Period = extra["period"]
         return ElectricalMotor(
             name=self.get_name(),
-            efficiency=self.efficiency.get_value(period) if self.efficiency is not None else None,
+            efficiency=resolve_optional_fraction(
+                self.efficiency,
+                period=period,
+                description=f"Efficiency for '{self.get_name()}'",
+            ),
             energy_unit_id=self.get_id(),
             output_energy=demand,
             input_connection_id=incoming_connection.id,
             capacity=resolve_optional_energy(
                 self.capacity,
                 ElectricalMotor.get_output_energy_type(),
-                period=extra.get("period"),
+                period=period,
                 description=f"Capacity for '{self.get_name()}'",
             ),
         )

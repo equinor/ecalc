@@ -2,9 +2,10 @@ from __future__ import annotations
 
 import abc
 from collections.abc import Sequence
-from typing import Any, Final, Self
+from typing import Final, Self
 
 from libecalc.common.ddd.entity import Entity
+from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.energy.energy_network_simulation import EnergyUnitFactory
 from libecalc.energy.energy_network_topology import EnergyConnection
@@ -48,5 +49,5 @@ class TimeSeriesEnergyUnitFactory(TimeSeriesEnergyUnit, EnergyUnitFactory, abc.A
         demand: Energy,
         *,
         incoming_connections: Sequence[EnergyConnection],
-        **extra: Any,
+        period: Period | None = None,
     ) -> EnergyUnit: ...

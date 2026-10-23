@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
 
 from libecalc.common.time_utils import Period
 from libecalc.energy.energy_network_topology import EnergyConnection
@@ -9,7 +8,7 @@ from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import ElectricalCable
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
-from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
+from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy, resolve_optional_fraction
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 
 
@@ -26,20 +25,23 @@ class TimeSeriesElectricalCableFactory(TimeSeriesEnergyUnitFactory):
         self.loss_fraction = loss_fraction
 
     def create(
-        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any
+        self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], period: Period | None = None
     ) -> ElectricalCable:
         (incoming_connection,) = incoming_connections
-        period: Period = extra["period"]
         return ElectricalCable(
             name=self.get_name(),
-            loss_fraction=self.loss_fraction.get_value(period) if self.loss_fraction is not None else None,
+            loss_fraction=resolve_optional_fraction(
+                self.loss_fraction,
+                period=period,
+                description=f"Loss fraction for '{self.get_name()}'",
+            ),
             energy_unit_id=self.get_id(),
             output_energy=demand,
             input_connection_id=incoming_connection.id,
             capacity=resolve_optional_energy(
                 self.capacity,
                 ElectricalCable.get_output_energy_type(),
-                period=extra.get("period"),
+                period=period,
                 description=f"Capacity for '{self.get_name()}'",
             ),
         )
