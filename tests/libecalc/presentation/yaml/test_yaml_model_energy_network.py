@@ -353,3 +353,82 @@ def test_invalid_inline_generator_model_is_reported_at_the_model(turbine_network
     (error,) = exc_info.value.errors()
     assert error.location.keys[:5] == ["ENERGY_NETWORK", "UNITS", 0, "GENERATOR", "MODEL"]
     assert "must not be negative" in error.message
+
+
+def _tabular_model(
+    yaml_asset_builder_factory,
+    minimal_installation_yaml_factory,
+    yaml_fuel_type_builder_factory,
+    yaml_model_factory,
+    table_rows,
+):
+    asset = (
+        yaml_asset_builder_factory()
+        .with_test_data()
+        .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name("fuel").validate()])
+        .with_installations([minimal_installation_yaml_factory(fuel_name="fuel")])
+        .with_time_series([YamlTimeSeriesBuilder().with_name("SIM1").with_type("DEFAULT").with_file("SIM1").validate()])
+        .with_start("2020-01-01")
+        .with_end("2022-01-01")
+        .validate()
+    )
+    data = asset.model_dump(by_alias=True, exclude_unset=True, mode="json")
+    data["ENERGY_NETWORK"] = {
+        "SOURCES": [{"NAME": "fuel_source", "TYPE": "FUEL_GAS_SOURCE"}],
+        "UNITS": [
+            {
+                "NAME": "pump",
+                "TYPE": "TABULAR_CONSUMER",
+                "INPUT": "fuel_source",
+                "FILE": "table.csv",
+                "VARIABLES": {"RATE": "SIM1;RATE"},
+            }
+        ],
+    }
+    return yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="energy_network_model"),
+        resources={
+            "SIM1": MemoryResource(data=[["2020-01-01", "2021-01-01"], [1.5, 2.5]], headers=["DATE", "RATE"]),
+            "table.csv": MemoryResource(data=table_rows, headers=["RATE", "FUEL"]),
+        },
+    )
+
+
+def test_tabular_consumer_reads_its_file_and_time_series_variables(
+    yaml_asset_builder_factory,
+    minimal_installation_yaml_factory,
+    yaml_fuel_type_builder_factory,
+    yaml_model_factory,
+):
+    model = _tabular_model(
+        yaml_asset_builder_factory,
+        minimal_installation_yaml_factory,
+        yaml_fuel_type_builder_factory,
+        yaml_model_factory,
+        table_rows=[[1.0, 2.0, 3.0], [10.0, 20.0, 30.0]],
+    )
+
+    _topology, _factories, (pump,), _periods = model.get_energy_network()
+
+    demands = [pump.get_demand(period).value for period in pump.demand.variables["RATE"].get_periods()]
+    assert demands == pytest.approx([15, 25])
+
+
+def test_invalid_tabular_file_is_reported_at_the_energy_network(
+    yaml_asset_builder_factory,
+    minimal_installation_yaml_factory,
+    yaml_fuel_type_builder_factory,
+    yaml_model_factory,
+):
+    model = _tabular_model(
+        yaml_asset_builder_factory,
+        minimal_installation_yaml_factory,
+        yaml_fuel_type_builder_factory,
+        yaml_model_factory,
+        table_rows=[[1.0], [10.0]],
+    )
+
+    with pytest.raises(ModelValidationException) as error:
+        model.get_energy_network()
+
+    assert any("ENERGY_NETWORK" in str(e.location) for e in error.value.errors())

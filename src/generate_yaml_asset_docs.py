@@ -46,6 +46,7 @@ from libecalc.testing.energy_builders import (
     YamlGeneratorCurveBuilder,
     YamlGeneratorDefinitionBuilder,
     YamlMechanicalConsumerBuilder,
+    YamlTabularConsumerBuilder,
     YamlTurbineCurveBuilder,
     YamlTurbineDefinitionBuilder,
 )
@@ -389,6 +390,10 @@ ENERGY_EXAMPLES: list[Example] = [
     Example(
         "ENERGY_NETWORK.UNITS.COMPRESSOR_SAMPLED",
         lambda: YamlCompressorSampledBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.TABULAR_CONSUMER",
+        lambda: YamlTabularConsumerBuilder().with_test_data().validate(),
     ),
 ]
 

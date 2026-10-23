@@ -36,6 +36,7 @@ from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion impo
     unit_key,
 )
 from libecalc.presentation.yaml.mappers.energy.generator_fuel_model_mapper import map_generator_fuel_model
+from libecalc.presentation.yaml.mappers.energy.tabular_consumer import map_tabular_consumer
 from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
@@ -59,6 +60,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlGenerator,
     YamlJunctionBase,
     YamlMechanicalConsumer,
+    YamlTabularConsumer,
     get_input_names,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
@@ -138,7 +140,7 @@ class EnergyNetworkMapper:
             else:
                 key = unit_key(unit.name)
                 node, input_type, output_type = self._map_unit(
-                    unit, node_ids_by_key[key], node_ids_by_key, resources, expression_evaluator
+                    unit, node_ids_by_key[key], node_ids_by_key, expression_evaluator, resources, output_types
                 )
                 mapped_nodes.append((key, node, input_type, output_type))
                 connections.extend(
@@ -200,10 +202,14 @@ class EnergyNetworkMapper:
         resources: Mapping[str, Resource],
         output_types: Mapping[str, type[Energy]],
     ) -> Expansion:
+        return expand(unit, EnergyNetworkMapper._resource(unit, resources), output_types[unit.input])
+
+    @staticmethod
+    def _resource(unit: YamlCompressorSampled | YamlTabularConsumer, resources: Mapping[str, Resource]) -> Resource:
         resource = resources.get(unit.file)
         if resource is None:
             raise EcalcValidationException(f"'{unit.name}': FILE '{unit.file}' not found.")
-        return expand(unit, resource, output_types[unit.input])
+        return resource
 
     @staticmethod
     @overload
@@ -289,8 +295,9 @@ class EnergyNetworkMapper:
         unit: YamlComponent,
         energy_unit_id: EnergyUnitId,
         node_ids_by_key: Mapping[NodeKey, EnergyUnitId],
-        resources: Mapping[str, Resource],
         expression_evaluator: ExpressionEvaluator,
+        resources: Mapping[str, Resource],
+        output_types: Mapping[str, type[Energy]],
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
             case YamlGenerator():
@@ -410,6 +417,18 @@ class EnergyNetworkMapper:
                     name=unit.name,
                     energy_unit_id=energy_unit_id,
                     demand=ExpressionDemand(energy_type=DieselRate, expression=expression),
+                )
+                return consumer, consumer.get_input_energy_type(), None
+            case YamlTabularConsumer():
+                consumer = map_tabular_consumer(
+                    unit,
+                    energy_unit_id,
+                    self._resource(unit, resources),
+                    output_types[unit.input],
+                    variables={
+                        name: self._time_series(expression, expression_evaluator)
+                        for name, expression in unit.variables.items()
+                    },
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlCompressorSampled():

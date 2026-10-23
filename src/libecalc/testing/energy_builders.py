@@ -20,6 +20,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlGenerator,
     YamlJunctionInput,
     YamlMechanicalConsumer,
+    YamlTabularConsumer,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import (
     YamlGeneratorCurve,
@@ -510,6 +511,38 @@ class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
         self.rate = 2500000
         self.suction_pressure = 40
         self.discharge_pressure = 120
+        return self
+
+
+class YamlTabularConsumerBuilder(Builder[YamlTabularConsumer]):
+    def __init__(self):
+        self.type = "TABULAR_CONSUMER"
+        self.name = None
+        self.input = None
+        self.file = None
+        self.variables = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_input(self, input: str) -> Self:
+        self.input = input
+        return self
+
+    def with_file(self, file: str) -> Self:
+        self.file = file
+        return self
+
+    def with_variables(self, variables: dict[str, YamlExpressionType]) -> Self:
+        self.variables = variables
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "seawater_pump"
+        self.input = "main_bus"
+        self.file = "seawater_pump.csv"
+        self.variables = {"RATE": "SIM1;WATER_RATE", "PRESSURE": "SIM1;DISCHARGE_PRESSURE"}
         return self
 
 
