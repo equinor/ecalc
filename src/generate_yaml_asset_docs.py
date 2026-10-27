@@ -24,10 +24,17 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
+from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_version import (
+    V1,
+    V2,
+    get_root_field_names,
+    get_yaml_element_lifecycle,
+)
 from libecalc.testing.energy_builders import (
     YamlCompressorSampledBuilder,
     YamlDieselConsumerBuilder,
@@ -497,6 +504,13 @@ class DocNode:
             return False
         return self.field_info.default_factory is not None
 
+    @property
+    def available_since(self) -> Version:
+        """The yaml schema version this root element became available in, defaulting to V1."""
+        if self.field_info is None:
+            return V1
+        return get_yaml_element_lifecycle(self.field_info).available_since
+
     def __repr__(self) -> str:
         return f"DocNode({self.title}, children={len(self.children)})"
 
@@ -661,6 +675,11 @@ def build_tree(
 def build_yaml_asset_tree(include_fields: set[str]) -> list[DocNode]:
     """Build a documentation tree for selected YamlAsset sections."""
     return build_tree(YamlAsset, include_fields=include_fields)
+
+
+def build_yaml_asset_tree_for_version(version: Version) -> list[DocNode]:
+    """Build a documentation tree for all YamlAsset root elements available for the given yaml version."""
+    return build_yaml_asset_tree(get_root_field_names(YamlAsset, version))
 
 
 # --- Step 2: Render tree to markdown ---
@@ -1123,6 +1142,24 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
     )
 
 
+def generate_version_markdown(version: Version) -> str:
+    """Generate a reference document for all YamlAsset sections available for the given yaml version."""
+    return _generate_markdown(
+        include_fields=get_root_field_names(YamlAsset, version),
+        title=f"Schema {version} Reference",
+        sidebar_position=8,
+        description=f"Complete reference for yaml version {version}.",
+        intro=f"""\
+# Schema {version} Reference
+
+This page documents all YAML configuration keys available for yaml version `{version}`, filtered by VERSION
+rather than a fixed list of top-level sections.
+
+""",
+        examples=EXAMPLES + ENERGY_EXAMPLES,
+    )
+
+
 def main():
     output_dir = Path(__file__).parent.parent / "docs" / "docs" / "about"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1130,6 +1167,7 @@ def main():
     outputs = {
         output_dir / "process-reference.mdx": generate_process_markdown(),
         output_dir / "energy-reference.mdx": generate_energy_markdown(),
+        output_dir / "v2-reference.mdx": generate_version_markdown(V2),
     }
     for output_path, content in outputs.items():
         output_path.write_text(content)

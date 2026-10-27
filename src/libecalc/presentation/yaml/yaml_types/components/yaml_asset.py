@@ -34,6 +34,13 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
+from libecalc.presentation.yaml.yaml_types.yaml_version import (
+    V1,
+    V2,
+    YamlSemanticVersion,
+    version_field_json_schema_extra,
+    yaml_element_lifecycle,
+)
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 
@@ -82,6 +89,13 @@ class YamlAsset(YamlBase):
         title="Asset",
     )
 
+    version: YamlSemanticVersion = Field(
+        V1,
+        title="VERSION",
+        description="The eCalc YAML schema version (X.Y.Z). Determines which root elements are available. "
+        "Defaults to 1.0.0 if not specified.",
+        json_schema_extra=version_field_json_schema_extra(V1),
+    )
     definitions: YamlDefinitions = Field(
         default_factory=YamlDefinitions,
         title="DEFINITIONS",
@@ -146,6 +160,7 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="ECALC_EVENTS",
         description="Defines eCalc events associated with temporal model changes",
+        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     energy_network: YamlEnergyNetwork | None = Field(
         None,
