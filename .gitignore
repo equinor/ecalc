@@ -141,6 +141,7 @@ dmypy.json
 web/package-lock.json
 docs/build/
 docs/.docusaurus/
+docs/docs/about/getting_started/yaml/ecalc_json_schema.json
 
 .DS_store
 
