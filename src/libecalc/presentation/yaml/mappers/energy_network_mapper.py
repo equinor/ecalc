@@ -300,7 +300,7 @@ class EnergyNetworkMapper:
         node_ids_by_key: Mapping[NodeKey, EnergyUnitId],
         resources: Mapping[str, Resource],
         expression_evaluator: ExpressionEvaluator,
-    ) -> list[tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]]:
+    ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
             case YamlGenerator():
                 unit = self._resolve_definitions(unit)
@@ -414,6 +414,8 @@ class EnergyNetworkMapper:
                     demand=ExpressionDemand(energy_type=DieselRate, expression=expression),
                 )
                 return consumer, consumer.get_input_energy_type(), None
+            case YamlDriveTrain():
+                raise AssertionError("DRIVE_TRAIN units are handled separately, never mapped directly.")
             case YamlCompressorSampled():
                 raise AssertionError("COMPRESSOR_SAMPLED units are expanded, never mapped directly.")
 
