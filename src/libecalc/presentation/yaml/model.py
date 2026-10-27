@@ -49,7 +49,7 @@ from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesConsumer,
     TimeSeriesEnergyUnitFactory,
 )
-from libecalc.presentation.yaml.domain.energy.drive_train import TimeSeriesDriveTrain
+from libecalc.presentation.yaml.domain.energy.compressor import TimeSeriesProcessCompressor
 from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.domain.strict_expression_evaluator import StrictExpressionEvaluator
@@ -292,7 +292,7 @@ class YamlModel:
     ) -> tuple[
         EnergyNetworkTopology | None,
         Sequence[TimeSeriesEnergyUnitFactory],
-        Sequence[TimeSeriesConsumer | TimeSeriesDriveTrain],
+        Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor],
         list[Period],
     ]:
         self.validate_for_run()
