@@ -25,7 +25,11 @@ class YamlInletStreamRate(YamlBase):
         title="UNIT",
         description="Rate unit. SM3_PER_DAY for standard volume.",
     )
-    type: Literal[RateType.STREAM_DAY, RateType.CALENDAR_DAY] = RateType.STREAM_DAY
+    type: Literal[RateType.STREAM_DAY] = Field(
+        RateType.STREAM_DAY,
+        title="TYPE",
+        description="Type of rate. STREAM_DAY for stream day rate. ONLY STREAM_DAY is supported for inlet stream rate.",
+    )
 
     condition: YamlExpressionType | None = Field(
         None,
