@@ -109,26 +109,34 @@ class TestFromExpressionReferences:
                 end=datetime(2022, 1, 1),
             )
 
-    def test_mismatching_time_vectors_raises(self):
+    def test_different_time_vectors_are_merged_and_values_hold_until_next_date(self):
         tv1 = [datetime(2020, 1, 1), datetime(2021, 1, 1)]
         tv2 = [datetime(2020, 1, 1), datetime(2021, 6, 1)]
         tsr1 = self._make_tsr(tv1, {"col1": [1.0, 2.0]})
         tsr2 = self._make_tsr(tv2, {"col2": [3.0, 4.0]})
 
-        with pytest.raises(EcalcError, match="Mismatching timesteps"):
-            StrictExpressionEvaluator.from_expression_references(
-                expression_references={"SIM1;col1", "SIM2;col2"},
-                variables={},
-                time_series_resources={"SIM1": tsr1, "SIM2": tsr2},
-                start=datetime(2020, 1, 1),
-                end=datetime(2021, 1, 1),
-            )
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"SIM1;col1", "SIM2;col2"},
+            variables={},
+            time_series_resources={"SIM1": tsr1, "SIM2": tsr2},
+            start=datetime(2020, 1, 1),
+            end=datetime(2022, 1, 1),
+        )
 
-    def test_start_not_in_time_vector_raises(self):
+        assert evaluator.get_time_vector() == [
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2021, 6, 1),
+            datetime(2022, 1, 1),
+        ]
+        assert evaluator.evaluate(Expression.setup_from_expression("SIM1;col1")).tolist() == [1.0, 2.0, 2.0]
+        assert evaluator.evaluate(Expression.setup_from_expression("SIM2;col2")).tolist() == [3.0, 3.0, 4.0]
+
+    def test_start_before_first_date_raises(self):
         tv = [datetime(2020, 1, 1), datetime(2021, 1, 1)]
         tsr = self._make_tsr(tv, {"col1": [1.0, 2.0]})
 
-        with pytest.raises(EcalcError, match="start should exist"):
+        with pytest.raises(EcalcError, match="SIM has no value at start"):
             StrictExpressionEvaluator.from_expression_references(
                 expression_references={"SIM;col1"},
                 variables={},

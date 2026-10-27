@@ -1,3 +1,4 @@
+from bisect import bisect_right
 from collections import defaultdict
 from datetime import datetime
 from typing import Self
@@ -41,6 +42,7 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
         else:
             all_refs = expression_references
 
+        # Group referenced columns per time series, e.g. "SIM;RATE" -> {"SIM": ["RATE"]}
         ts_references = [ref for ref in all_refs if ";" in ref]
         expression_references_map: dict[str, list[str]] = defaultdict(list)
         for ts_reference in ts_references:
@@ -51,41 +53,44 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
             tsr_name: tsr for tsr_name, tsr in time_series_resources.items() if tsr_name in expression_references_map
         }
 
-        # Validate matching time vectors for all time series resources used in the expression references
+        # Build the merged time vector from the referenced time series
         if len(time_series_resources_used) > 0:
-            first_tsr_name = list(time_series_resources_used)[0]
-            first_tsr_time_vector = time_series_resources_used[first_tsr_name].get_time_vector()
+            # Without START, begin at the earliest date
+            if start is None:
+                start = min(min(tsr.get_time_vector()) for tsr in time_series_resources_used.values())
+            # Every time series must have a value at start
             for tsr_name, tsr in time_series_resources_used.items():
-                if tsr.get_time_vector() != first_tsr_time_vector:
+                if min(tsr.get_time_vector()) > start:
                     raise EcalcError(
-                        title="Mismatching timesteps",
-                        message=f"Time series {tsr_name} has a different time vector than the first time series {first_tsr_name}.",
+                        title="Invalid time series",
+                        message=f"Time series {tsr_name} has no value at start {start}. It must have a date on or before start.",
                     )
-            if start is not None:
-                if start not in first_tsr_time_vector:
-                    raise EcalcError(
-                        title="Invalid time series", message="The specified start should exist in the time series"
-                    )
-            selected_rows = [
-                i for i, time in enumerate(first_tsr_time_vector) if (start is None or start <= time) and time < end
-            ]
-            time_vector = [first_tsr_time_vector[i] for i in selected_rows]
+            dates_within_start_and_end = {
+                date
+                for tsr in time_series_resources_used.values()
+                for date in tsr.get_time_vector()
+                if start < date < end
+            }
+            time_vector = sorted({start, *dates_within_start_and_end})
         else:
             if start is None:
                 raise EcalcError(title="Invalid time series", message="No time steps to calculate")
-            selected_rows = []
             time_vector = [start]
 
-        time_vector = [*time_vector, end]  # Start already included and confirmed to exist in time series resources
-        periods = Periods.create_periods(time_vector, include_before=False, include_after=False)
+        # END closes the last period
+        periods = Periods.create_periods([*time_vector, end], include_before=False, include_after=False)
 
+        # Get the time series values at each date in the merged time vector
         time_series_columns: dict[str, list[float]] = {}
         for tsr_name in expression_references_map:
             tsr = time_series_resources_used[tsr_name]
+            # A value holds from its date until the next date in the same time series
+            rows = _get_latest_rows_on_or_before(time_vector=time_vector, resource_time_vector=tsr.get_time_vector())
             for tsr_column in expression_references_map[tsr_name]:
                 column = tsr.get_float_column(tsr_column)
-                time_series_columns[f"{tsr_name};{tsr_column}"] = [column[i] for i in selected_rows]
+                time_series_columns[f"{tsr_name};{tsr_column}"] = [column[row] for row in rows]
 
+        # Evaluate referenced variables on the same periods, using the time series values above
         referenced_variables = {}
         for ref in all_refs:
             if ref.startswith("$var."):
@@ -114,3 +119,12 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
 
     def evaluate(self, expression: Expression | TemporalModel | dict[Period, Expression]) -> NDArray[np.float64]:
         return self._variables_map.evaluate(expression)
+
+
+def _get_latest_rows_on_or_before(time_vector: list[datetime], resource_time_vector: list[datetime]) -> list[int]:
+    # Row numbers ordered by date, since the resource may be unsorted
+    sorted_rows = sorted(range(len(resource_time_vector)), key=lambda row: resource_time_vector[row])
+    sorted_dates = [resource_time_vector[row] for row in sorted_rows]
+
+    # For each date, the row with the latest resource date on or before it
+    return [sorted_rows[bisect_right(sorted_dates, date) - 1] for date in time_vector]
