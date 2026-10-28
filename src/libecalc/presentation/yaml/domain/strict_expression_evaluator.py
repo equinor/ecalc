@@ -85,10 +85,12 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
         for tsr_name in expression_references_map:
             tsr = time_series_resources_used[tsr_name]
             # A value holds from its date until the next date in the same time series
-            rows = _get_latest_rows_on_or_before(time_vector=time_vector, resource_time_vector=tsr.get_time_vector())
+            row_indices = _forward_fill_resource_row_indices(
+                time_vector=time_vector, resource_time_vector=tsr.get_time_vector()
+            )
             for tsr_column in expression_references_map[tsr_name]:
                 column = tsr.get_float_column(tsr_column)
-                time_series_columns[f"{tsr_name};{tsr_column}"] = [column[row] for row in rows]
+                time_series_columns[f"{tsr_name};{tsr_column}"] = [column[row_index] for row_index in row_indices]
 
         # Evaluate referenced variables on the same periods, using the time series values above
         referenced_variables = {}
@@ -121,10 +123,14 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
         return self._variables_map.evaluate(expression)
 
 
-def _get_latest_rows_on_or_before(time_vector: list[datetime], resource_time_vector: list[datetime]) -> list[int]:
-    # Row numbers ordered by date, since the resource may be unsorted
-    sorted_rows = sorted(range(len(resource_time_vector)), key=lambda row: resource_time_vector[row])
-    sorted_dates = [resource_time_vector[row] for row in sorted_rows]
+def _forward_fill_resource_row_indices(time_vector: list[datetime], resource_time_vector: list[datetime]) -> list[int]:
+    # The resource may be unsorted. sorted_dates is used for bisect; original_row_indices is the parallel list of
+    # row indices into the original csv, so a matched date can be translated back to its row.
+    original_row_indices = sorted(range(len(resource_time_vector)), key=lambda row: resource_time_vector[row])
+    sorted_dates = [resource_time_vector[row] for row in original_row_indices]
 
-    # For each date, the row with the latest resource date on or before it
-    return [sorted_rows[bisect_right(sorted_dates, date) - 1] for date in time_vector]
+    row_index_per_timestep = []
+    for date in time_vector:
+        latest_match_index = bisect_right(sorted_dates, date) - 1  # index of the latest date on or before
+        row_index_per_timestep.append(original_row_indices[latest_match_index])
+    return row_index_per_timestep
