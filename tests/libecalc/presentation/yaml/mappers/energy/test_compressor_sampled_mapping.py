@@ -153,6 +153,7 @@ class TestMapperExpansion:
 
 
 MODEL_YAML = """
+VERSION: 2
 START: 2020-01-01
 END: 2021-01-01
 FUEL_TYPES:

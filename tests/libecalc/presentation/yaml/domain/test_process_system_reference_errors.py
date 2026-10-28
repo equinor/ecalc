@@ -82,7 +82,7 @@ class TestDefinitionReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 44
+	Object starting on line 45
 	Location: PROCESS_PIPELINES.train_1
 	Message: Definition reference 'nonexistent_compressor' not found. Available definitions: ['real_compressor']
 """)
@@ -127,7 +127,7 @@ class TestDefinitionReferenceWrongType:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 19
+	Object starting on line 20
 	Location: PROCESS_PIPELINES.train_1
 	Message: Definition reference 'my_fluid' resolved to type 'YamlPredefinedFluidDefinition', but expected one of: YamlPressureDropperDefinition, YamlTemperatureSetterDefinition, YamlLiquidRemoverDefinition, YamlMixerDefinition, YamlSplitterDefinition
 """)
@@ -183,7 +183,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 18
+	Object starting on line 19
 	Location: PROCESS_PIPELINES.train_1
 	Message: Definition reference 'my_pressure_dropper' resolved to type 'YamlPressureDropperDefinition', but expected one of: YamlCompressorDefinition
 """)
