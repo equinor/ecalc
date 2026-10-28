@@ -11,6 +11,10 @@ sidebar_position: 0
 Changes to the NextGen YAML types: `FLUIDS`, `PROCESS_SIMULATIONS`, `PUMP_PROCESS_SIMULATIONS` and `ENERGY_NETWORK`.
 These are not available in legacy models, so they are not part of the release changelogs.
 
+## v15.5 {/* #v15-5 */}
+
+- `ENERGY_NETWORK`: `ELECTRICAL_CONSUMER` and `MECHANICAL_CONSUMER` `LOAD`, and `FUEL_GAS_CONSUMER` and `DIESEL_CONSUMER` `RATE`, can each be a 1D curve (inline or FILE) looked up by a variable, instead of a direct expression. This replaces the current usage of the legacy `TABULAR` facility model, which is 1D (mostly rate vs. power) in practice.
+
 ## v15.0 {/* #v15-0 */}
 
 - `PROCESS_SIMULATIONS`: solver constraints use a relative tolerance, improving convergence for large values.

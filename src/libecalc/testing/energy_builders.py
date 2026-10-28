@@ -358,6 +358,10 @@ class YamlElectricalConsumerBuilder(Builder[YamlElectricalConsumer]):
         self.load = load
         return self
 
+    def with_load_curve(self, curve: dict, variable: YamlExpressionType) -> Self:
+        self.load = {"curve": curve, "variable": variable}
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "base_load"
         self.input = "main_bus"
@@ -382,6 +386,10 @@ class YamlMechanicalConsumerBuilder(Builder[YamlMechanicalConsumer]):
 
     def with_load(self, load: YamlExpressionType) -> Self:
         self.load = load
+        return self
+
+    def with_load_curve(self, curve: dict, variable: YamlExpressionType) -> Self:
+        self.load = {"curve": curve, "variable": variable}
         return self
 
     def with_test_data(self) -> Self:
@@ -436,6 +444,10 @@ class YamlFuelGasConsumerBuilder(Builder[YamlFuelGasConsumer]):
         self.rate = rate
         return self
 
+    def with_rate_curve(self, curve: dict, variable: YamlExpressionType) -> Self:
+        self.rate = {"curve": curve, "variable": variable}
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "flare"
         self.input = "fuel_gas"
@@ -460,6 +472,10 @@ class YamlDieselConsumerBuilder(Builder[YamlDieselConsumer]):
 
     def with_rate(self, rate: YamlExpressionType) -> Self:
         self.rate = rate
+        return self
+
+    def with_rate_curve(self, curve: dict, variable: YamlExpressionType) -> Self:
+        self.rate = {"curve": curve, "variable": variable}
         return self
 
     def with_test_data(self) -> Self:
