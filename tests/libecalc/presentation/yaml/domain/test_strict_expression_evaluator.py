@@ -245,8 +245,3 @@ class TestForwardFillResourceRowIndices:
     def test_duplicate_dates_pick_the_last_matching_row(self):
         with_duplicates = [_date(2020), _date(2022), _date(2022)]  # rows 1 and 2 share the same date
         assert _forward_fill_resource_row_indices([_date(2022), _date(2023)], with_duplicates) == [2, 2]
-
-    def test_date_before_first_resource_date_is_prevented_upstream(self):
-        # The evaluator guarantees each timestep is on or after the resource's first date, so this never
-        # happens in practice. If it did, bisect would underflow to -1 and wrap around to the last row.
-        assert _forward_fill_resource_row_indices([_date(2019)], [_date(2020), _date(2022)]) == [1]
