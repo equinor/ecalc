@@ -1166,6 +1166,23 @@ import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
     return frontmatter + "\n" + imports + intro + body
 
 
+def _time_series_section(opening: str) -> str:
+    return f"""\
+## Time steps and time series
+
+{opening} These time steps come from the time series files it uses: their time vectors are merged into one time vector.
+
+A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Each file must have a value at `START`, otherwise the run fails.
+
+**When to resample yourself**
+
+Forward-fill fits inputs that hold steady between dates, such as rates or on/off states. Inputs that change gradually between dates, such as pressures, should carry the intermediate values in the file itself.
+
+> `INTERPOLATION_TYPE`, `EXTRAPOLATION` and `INFLUENCE_TIME_VECTOR` have no effect on time series referenced here.
+
+"""
+
+
 def generate_process_markdown() -> str:
     """Generate the process reference document."""
     return _generate_markdown(
@@ -1187,7 +1204,10 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [ECALC_EVENTS](#ecalc_events)
 - [PROCESS_EVENTS](#process_events)
 
-""",
+"""
+        + _time_series_section(
+            "Each process simulation is calculated on its own time steps, between `START` and `END`."
+        ),
         examples=EXAMPLES,
     )
 
@@ -1207,7 +1227,8 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
 - [DEFINITIONS](#definitions)
 - [ENERGY_NETWORK](#energy_network)
 
-""",
+"""
+        + _time_series_section("The energy network is calculated on time steps between `START` and `END`."),
         examples=ENERGY_EXAMPLES,
     )
 

@@ -8,7 +8,10 @@ from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.time_utils import Period, Periods
 from libecalc.common.variables import VariablesMap
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.domain.strict_expression_evaluator import StrictExpressionEvaluator
+from libecalc.presentation.yaml.domain.strict_expression_evaluator import (
+    StrictExpressionEvaluator,
+    _forward_fill_resource_row_indices,
+)
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariable
 
@@ -109,26 +112,34 @@ class TestFromExpressionReferences:
                 end=datetime(2022, 1, 1),
             )
 
-    def test_mismatching_time_vectors_raises(self):
+    def test_different_time_vectors_are_merged_and_values_hold_until_next_date(self):
         tv1 = [datetime(2020, 1, 1), datetime(2021, 1, 1)]
         tv2 = [datetime(2020, 1, 1), datetime(2021, 6, 1)]
         tsr1 = self._make_tsr(tv1, {"col1": [1.0, 2.0]})
         tsr2 = self._make_tsr(tv2, {"col2": [3.0, 4.0]})
 
-        with pytest.raises(EcalcError, match="Mismatching timesteps"):
-            StrictExpressionEvaluator.from_expression_references(
-                expression_references={"SIM1;col1", "SIM2;col2"},
-                variables={},
-                time_series_resources={"SIM1": tsr1, "SIM2": tsr2},
-                start=datetime(2020, 1, 1),
-                end=datetime(2021, 1, 1),
-            )
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"SIM1;col1", "SIM2;col2"},
+            variables={},
+            time_series_resources={"SIM1": tsr1, "SIM2": tsr2},
+            start=datetime(2020, 1, 1),
+            end=datetime(2022, 1, 1),
+        )
 
-    def test_start_not_in_time_vector_raises(self):
+        assert evaluator.get_time_vector() == [
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2021, 6, 1),
+            datetime(2022, 1, 1),
+        ]
+        assert evaluator.evaluate(Expression.setup_from_expression("SIM1;col1")).tolist() == [1.0, 2.0, 2.0]
+        assert evaluator.evaluate(Expression.setup_from_expression("SIM2;col2")).tolist() == [3.0, 3.0, 4.0]
+
+    def test_start_before_first_date_raises(self):
         tv = [datetime(2020, 1, 1), datetime(2021, 1, 1)]
         tsr = self._make_tsr(tv, {"col1": [1.0, 2.0]})
 
-        with pytest.raises(EcalcError, match="start should exist"):
+        with pytest.raises(EcalcError, match="SIM has no value at start"):
             StrictExpressionEvaluator.from_expression_references(
                 expression_references={"SIM;col1"},
                 variables={},
@@ -204,3 +215,33 @@ class TestFromExpressionReferences:
         )
 
         assert evaluator.get_time_vector() == [datetime(2020, 1, 1), datetime(2021, 1, 1)]
+
+
+def _date(year: int) -> datetime:
+    return datetime(year, 1, 1)
+
+
+class TestForwardFillResourceRowIndices:
+    """`_forward_fill_resource_row_indices` maps each merged timestep to the resource row whose date is
+    the latest one on or before that timestep (forward-fill). It returns one row number per
+    timestep; the caller uses those to read the held value from each referenced column."""
+
+    RESOURCE = [_date(2020), _date(2022), _date(2024)]  # rows 0, 1, 2
+
+    def test_forward_fills_across_merged_timesteps(self):
+        merged_timesteps = [_date(2020), _date(2021), _date(2022), _date(2023), _date(2025)]
+        assert _forward_fill_resource_row_indices(merged_timesteps, self.RESOURCE) == [0, 0, 1, 1, 2]
+
+    def test_single_row_resource_always_returns_row_zero(self):
+        assert _forward_fill_resource_row_indices([_date(2020), _date(2021), _date(2030)], [_date(2020)]) == [0, 0, 0]
+
+    def test_unsorted_resource_returns_original_row_indices(self):
+        # Guards that the method sorts internally: bisect requires sorted dates, so if the internal
+        # sort is ever removed this unsorted input yields wrong rows and this test fails.
+        unsorted = [_date(2024), _date(2020), _date(2022)]  # rows 0, 1, 2 given out of date order
+        merged_timesteps = [_date(2020), _date(2021), _date(2022), _date(2023), _date(2024)]
+        assert _forward_fill_resource_row_indices(merged_timesteps, unsorted) == [1, 1, 2, 2, 0]
+
+    def test_duplicate_dates_pick_the_last_matching_row(self):
+        with_duplicates = [_date(2020), _date(2022), _date(2022)]  # rows 1 and 2 share the same date
+        assert _forward_fill_resource_row_indices([_date(2022), _date(2023)], with_duplicates) == [2, 2]
