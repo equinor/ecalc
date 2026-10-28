@@ -3,6 +3,7 @@ from io import StringIO
 import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
+from libecalc.ecalc_model.compressor_equipment import CompressorEquipment
 from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.presentation.yaml.domain.energy import TimeSeriesGasTurbineFactory
@@ -11,6 +12,8 @@ from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStr
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
 GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+COMPRESSOR_NAME = "23KA001 Gas Compressor"
+COMPRESSOR_IDS = {COMPRESSOR_NAME: CompressorEquipment(name=COMPRESSOR_NAME).get_id()}
 
 
 def _network(compressor_input: str, **compressor_fields) -> YamlEnergyNetwork:
@@ -24,6 +27,7 @@ def _network(compressor_input: str, **compressor_fields) -> YamlEnergyNetwork:
                 {
                     "NAME": "compressor",
                     "TYPE": "COMPRESSOR_SAMPLED",
+                    "COMPRESSOR": COMPRESSOR_NAME,
                     "INPUT": compressor_input,
                     "FILE": "compressor.csv",
                     "RATE": 2500,
@@ -44,7 +48,9 @@ class TestMapperExpansion:
         self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, fuel
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        topology, factories, consumers = energy_network_mapper_factory().map_energy_network(
+        topology, factories, consumers = energy_network_mapper_factory(
+            compressor_ids=COMPRESSOR_IDS
+        ).map_energy_network(
             _network("fuel"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel)}
         )
 
@@ -62,7 +68,9 @@ class TestMapperExpansion:
         self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, power
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        topology, factories, consumers = energy_network_mapper_factory().map_energy_network(
+        topology, factories, consumers = energy_network_mapper_factory(
+            compressor_ids=COMPRESSOR_IDS
+        ).map_energy_network(
             _network("genset"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, POWER=power)}
         )
 
@@ -76,7 +84,9 @@ class TestMapperExpansion:
         self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, fuel, power
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        topology, factories, consumers = energy_network_mapper_factory().map_energy_network(
+        topology, factories, consumers = energy_network_mapper_factory(
+            compressor_ids=COMPRESSOR_IDS
+        ).map_energy_network(
             _network("fuel"),
             evaluator,
             resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel, POWER=power)},
@@ -100,14 +110,16 @@ class TestMapperExpansion:
     def test_missing_resource_rejected(self, energy_network_mapper_factory, expression_evaluator_factory, period):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         with pytest.raises(EcalcValidationException, match="FILE 'compressor.csv' not found"):
-            energy_network_mapper_factory().map_energy_network(_network("fuel"), evaluator, resources={})
+            energy_network_mapper_factory(compressor_ids=COMPRESSOR_IDS).map_energy_network(
+                _network("fuel"), evaluator, resources={}
+            )
 
     def test_fuel_only_on_electrical_input_rejected(
         self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, rates, fuel
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         with pytest.raises(EcalcValidationException, match="must be fed FuelGasRate"):
-            energy_network_mapper_factory().map_energy_network(
+            energy_network_mapper_factory(compressor_ids=COMPRESSOR_IDS).map_energy_network(
                 _network("genset"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel)}
             )
 
@@ -115,7 +127,7 @@ class TestMapperExpansion:
         self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, fuel
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        _, _, consumers = energy_network_mapper_factory().map_energy_network(
+        _, _, consumers = energy_network_mapper_factory(compressor_ids=COMPRESSOR_IDS).map_energy_network(
             _network("fuel", RATE=999_999),
             evaluator,
             resources={"compressor.csv": make_resource(RATE=[1000.0, 2000.0, 3000.0], FUEL=fuel)},
@@ -137,6 +149,7 @@ class TestMapperExpansion:
                     {
                         "NAME": "compressor",
                         "TYPE": "COMPRESSOR_SAMPLED",
+                        "COMPRESSOR": COMPRESSOR_NAME,
                         "INPUT": "fuel",
                         "FILE": "compressor.csv",
                         "RATE": 2500,
@@ -145,7 +158,7 @@ class TestMapperExpansion:
             }
         )
         with pytest.raises(EcalcValidationException, match="Duplicate names.*compressor turbine"):
-            energy_network_mapper_factory().map_energy_network(
+            energy_network_mapper_factory(compressor_ids=COMPRESSOR_IDS).map_energy_network(
                 yaml_network,
                 evaluator,
                 resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel, POWER=power)},
@@ -169,6 +182,8 @@ INSTALLATIONS:
         ENERGY_USAGE_MODEL:
           TYPE: DIRECT
           FUELRATE: 10
+COMPRESSORS:
+  - NAME: 23KA001 Gas Compressor
 ENERGY_NETWORK:
   SOURCES:
     - NAME: fuel
@@ -176,6 +191,7 @@ ENERGY_NETWORK:
   UNITS:
     - NAME: compressor
       TYPE: COMPRESSOR_SAMPLED
+      COMPRESSOR: 23KA001 Gas Compressor
       INPUT: fuel
       FILE: {file}
       RATE: 1500

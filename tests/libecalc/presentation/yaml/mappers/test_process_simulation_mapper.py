@@ -48,7 +48,9 @@ def _simple_pipeline(name: str = "train_1"):
         .with_item(target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_item(target=YamlLiquidRemoverBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor=f"{name} compressor",
+            target=YamlCompressorBuilder().with_test_data().validate(),
+            shaft=SHAFT_NAME,
         )
         .validate()
     )
@@ -188,13 +190,13 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
         .with_name("train_with_mixer_and_splitter")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .with_item(target=YamlSplitterBuilder().with_test_data().validate())
         .with_item(target=YamlMixerBuilder().with_test_data().validate())
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .validate()
     )
@@ -307,11 +309,11 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
         .with_name("train_with_aftercooler")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .with_item(name="temp_setter_3", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .validate()
@@ -347,11 +349,11 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper_fact
         .with_name("train_with_duplicate_unit_names")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .validate()
     )
@@ -401,12 +403,12 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
         .with_name("train_with_intermediate_constraint")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .with_item(target=YamlMixerBuilder().with_test_data().validate())
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .validate()
     )

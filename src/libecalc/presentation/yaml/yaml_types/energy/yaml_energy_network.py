@@ -18,6 +18,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
@@ -508,6 +509,13 @@ class YamlCompressorSampled(YamlConsumerBase):
     model_config = ConfigDict(title="CompressorSampled")
 
     type: Literal["COMPRESSOR_SAMPLED"]
+    compressor: Annotated[
+        CompressorReference,
+        Field(
+            title="COMPRESSOR",
+            description="Reference to a compressor defined in COMPRESSORS.",
+        ),
+    ]
     file: Annotated[
         str,
         Field(
