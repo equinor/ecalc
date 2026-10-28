@@ -11,6 +11,7 @@ from libecalc.presentation.yaml.domain.energy.converters import (
     TimeSeriesGasTurbineFactory,
     TimeSeriesGeneratorFactory,
 )
+from libecalc.presentation.yaml.domain.energy.curve_consumer import CurveConsumerDemand
 from libecalc.presentation.yaml.domain.energy.demand import (
     ExpressionDemand,
     TimeSeriesDemand,
@@ -25,6 +26,7 @@ from libecalc.presentation.yaml.domain.energy.transport import (
 
 __all__ = [
     "CompressorSampledDemand",
+    "CurveConsumerDemand",
     "ExpressionDemand",
     "TimeSeriesConsumer",
     "TimeSeriesDemand",

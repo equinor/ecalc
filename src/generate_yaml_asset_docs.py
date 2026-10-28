@@ -371,8 +371,48 @@ ENERGY_EXAMPLES: list[Example] = [
         lambda: YamlElectricalConsumerBuilder().with_test_data().validate(),
     ),
     Example(
+        "ENERGY_NETWORK.UNITS.ELECTRICAL_CONSUMER.LOAD.CURVE.POWERCURVE",
+        lambda: (
+            YamlElectricalConsumerBuilder()
+            .with_test_data()
+            .with_load_curve({"variable": [0, 1000, 5000], "power": [0, 0.8, 3.4]}, "SIM;RATE")
+            .validate()
+            .load
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.ELECTRICAL_CONSUMER.LOAD.CURVE.YAMLFILE",
+        lambda: (
+            YamlElectricalConsumerBuilder()
+            .with_test_data()
+            .with_load_curve({"file": "pump_sampled.csv"}, "SIM;RATE")
+            .validate()
+            .load
+        ),
+    ),
+    Example(
         "ENERGY_NETWORK.UNITS.MECHANICAL_CONSUMER",
         lambda: YamlMechanicalConsumerBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.MECHANICAL_CONSUMER.LOAD.CURVE.POWERCURVE",
+        lambda: (
+            YamlMechanicalConsumerBuilder()
+            .with_test_data()
+            .with_load_curve({"variable": [0, 1000, 5000], "power": [0, 0.8, 3.4]}, "SIM;RATE")
+            .validate()
+            .load
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.MECHANICAL_CONSUMER.LOAD.CURVE.YAMLFILE",
+        lambda: (
+            YamlMechanicalConsumerBuilder()
+            .with_test_data()
+            .with_load_curve({"file": "pump_sampled.csv"}, "SIM;RATE")
+            .validate()
+            .load
+        ),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.DRIVE_TRAIN",
@@ -383,8 +423,48 @@ ENERGY_EXAMPLES: list[Example] = [
         lambda: YamlFuelGasConsumerBuilder().with_test_data().validate(),
     ),
     Example(
+        "ENERGY_NETWORK.UNITS.FUEL_GAS_CONSUMER.RATE.CURVE.FUELTABLE",
+        lambda: (
+            YamlFuelGasConsumerBuilder()
+            .with_test_data()
+            .with_rate_curve({"variable": [0, 1000, 5000], "fuel": [0, 8000, 35000]}, "SIM;RATE")
+            .validate()
+            .rate
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.FUEL_GAS_CONSUMER.RATE.CURVE.YAMLFILE",
+        lambda: (
+            YamlFuelGasConsumerBuilder()
+            .with_test_data()
+            .with_rate_curve({"file": "flare_sampled.csv"}, "SIM;RATE")
+            .validate()
+            .rate
+        ),
+    ),
+    Example(
         "ENERGY_NETWORK.UNITS.DIESEL_CONSUMER",
         lambda: YamlDieselConsumerBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.DIESEL_CONSUMER.RATE.CURVE.FUELTABLE",
+        lambda: (
+            YamlDieselConsumerBuilder()
+            .with_test_data()
+            .with_rate_curve({"variable": [0, 1000, 5000], "fuel": [0, 8000, 35000]}, "SIM;RATE")
+            .validate()
+            .rate
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.DIESEL_CONSUMER.RATE.CURVE.YAMLFILE",
+        lambda: (
+            YamlDieselConsumerBuilder()
+            .with_test_data()
+            .with_rate_curve({"file": "flare_sampled.csv"}, "SIM;RATE")
+            .validate()
+            .rate
+        ),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.COMPRESSOR_SAMPLED",

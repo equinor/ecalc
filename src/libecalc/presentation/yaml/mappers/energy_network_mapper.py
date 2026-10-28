@@ -14,6 +14,7 @@ from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.energy import (
     CompressorSampledDemand,
+    CurveConsumerDemand,
     ExpressionDemand,
     TimeSeriesConsumer,
     TimeSeriesElectricalCableFactory,
@@ -34,6 +35,10 @@ from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion impo
     TurbineSpec,
     expand,
     unit_key,
+)
+from libecalc.presentation.yaml.mappers.energy.curve_consumer_mapper import (
+    map_load_curve_model,
+    map_rate_curve_model,
 )
 from libecalc.presentation.yaml.mappers.energy.generator_fuel_model_mapper import map_generator_fuel_model
 from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
@@ -58,7 +63,9 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlGasTurbine,
     YamlGenerator,
     YamlJunctionBase,
+    YamlLoadCurve,
     YamlMechanicalConsumer,
+    YamlRateCurve,
     get_input_names,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
@@ -237,6 +244,48 @@ class EnergyNetworkMapper:
             return None
         return TimeSeriesExpression(expression=expression, expression_evaluator=expression_evaluator)
 
+    def _power_demand(
+        self,
+        unit_name: str,
+        load: ExpressionType | YamlLoadCurve,
+        energy_type: type[Energy],
+        resources: Mapping[str, Resource],
+        expression_evaluator: ExpressionEvaluator,
+    ) -> ExpressionDemand | CurveConsumerDemand:
+        """Build a power demand from a LOAD expression or a LOAD curve lookup."""
+        if isinstance(load, YamlLoadCurve):
+            model = map_load_curve_model(unit_name=unit_name, curve=load.curve, resources=resources)
+            return CurveConsumerDemand(
+                energy_type=energy_type,
+                model=model,
+                variable=self._time_series(load.variable, expression_evaluator),
+            )
+        return ExpressionDemand(
+            energy_type=energy_type,
+            expression=self._time_series(load, expression_evaluator),
+        )
+
+    def _rate_demand(
+        self,
+        unit_name: str,
+        rate: ExpressionType | YamlRateCurve,
+        energy_type: type[Energy],
+        resources: Mapping[str, Resource],
+        expression_evaluator: ExpressionEvaluator,
+    ) -> ExpressionDemand | CurveConsumerDemand:
+        """Build a consumption demand from a RATE expression or a RATE curve lookup."""
+        if isinstance(rate, YamlRateCurve):
+            model = map_rate_curve_model(unit_name=unit_name, curve=rate.curve, resources=resources)
+            return CurveConsumerDemand(
+                energy_type=energy_type,
+                model=model,
+                variable=self._time_series(rate.variable, expression_evaluator),
+            )
+        return ExpressionDemand(
+            energy_type=energy_type,
+            expression=self._time_series(rate, expression_evaluator),
+        )
+
     def _map_source(
         self,
         source: YamlEnergySource,
@@ -383,35 +432,31 @@ class EnergyNetworkMapper:
                     FuelGasRate,
                 )
             case YamlElectricalConsumer():
-                expression = self._time_series(unit.load, expression_evaluator)
                 consumer = TimeSeriesConsumer(
                     name=unit.name,
                     energy_unit_id=energy_unit_id,
-                    demand=ExpressionDemand(energy_type=ElectricalPower, expression=expression),
+                    demand=self._power_demand(unit.name, unit.load, ElectricalPower, resources, expression_evaluator),
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlMechanicalConsumer():
-                expression = self._time_series(unit.load, expression_evaluator)
                 consumer = TimeSeriesConsumer(
                     name=unit.name,
                     energy_unit_id=energy_unit_id,
-                    demand=ExpressionDemand(energy_type=MechanicalPower, expression=expression),
+                    demand=self._power_demand(unit.name, unit.load, MechanicalPower, resources, expression_evaluator),
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlFuelGasConsumer():
-                expression = self._time_series(unit.rate, expression_evaluator)
                 consumer = TimeSeriesConsumer(
                     name=unit.name,
                     energy_unit_id=energy_unit_id,
-                    demand=ExpressionDemand(energy_type=FuelGasRate, expression=expression),
+                    demand=self._rate_demand(unit.name, unit.rate, FuelGasRate, resources, expression_evaluator),
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlDieselConsumer():
-                expression = self._time_series(unit.rate, expression_evaluator)
                 consumer = TimeSeriesConsumer(
                     name=unit.name,
                     energy_unit_id=energy_unit_id,
-                    demand=ExpressionDemand(energy_type=DieselRate, expression=expression),
+                    demand=self._rate_demand(unit.name, unit.rate, DieselRate, resources, expression_evaluator),
                 )
                 return consumer, consumer.get_input_energy_type(), None
             case YamlDriveTrain():
