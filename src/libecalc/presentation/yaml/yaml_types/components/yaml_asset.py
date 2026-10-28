@@ -35,9 +35,10 @@ from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefa
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
-    V1,
+    DEFAULT_YAML_VERSION,
     V2,
-    YamlSemanticVersion,
+    YamlMajorVersion,
+    get_unavailable_field_names,
     version_field_json_schema_extra,
     yaml_element_lifecycle,
 )
@@ -89,12 +90,13 @@ class YamlAsset(YamlBase):
         title="Asset",
     )
 
-    version: YamlSemanticVersion = Field(
-        V1,
+    version: YamlMajorVersion = Field(
+        DEFAULT_YAML_VERSION,
         title="VERSION",
-        description="The eCalc YAML schema version (X.Y.Z). Determines which root elements are available. "
-        "Defaults to 1.0.0 if not specified.",
-        json_schema_extra=version_field_json_schema_extra(V1),
+        description="The eCalc YAML schema major version. Determines which root elements are available. "
+        "Only the major version is tracked, e.g. VERSION: 2 allows any 2.x.y root elements. "
+        f"Defaults to {DEFAULT_YAML_VERSION} if not specified.",
+        json_schema_extra=version_field_json_schema_extra(DEFAULT_YAML_VERSION),
     )
     definitions: YamlDefinitions = Field(
         default_factory=YamlDefinitions,
@@ -193,6 +195,18 @@ class YamlAsset(YamlBase):
         title="END",
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
     )
+
+    @model_validator(mode="after")
+    def validate_root_elements_available_for_version(self):
+        """Ensure root elements explicitly set in the yaml are available for the declared VERSION."""
+        unavailable = get_unavailable_field_names(type(self), self.version, self.model_fields_set)
+        if not unavailable:
+            return self
+
+        aliases = sorted(YamlAsset.model_fields[field_name].alias or field_name.upper() for field_name in unavailable)
+        raise ValueError(
+            f"The following root elements are not available for yaml version {self.version}: {', '.join(aliases)}."
+        )
 
     @model_validator(mode="after")
     def validate_unique_component_names(self, info: ValidationInfo):

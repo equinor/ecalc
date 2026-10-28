@@ -1,28 +1,22 @@
 ---
-title: Schema 2.0.0 Reference (Experimental)
+title: Schema v2 Reference (Experimental)
 sidebar_position: 8
 toc_max_heading_level: 4
-description: Complete reference for yaml version 2.0.0.
+description: Complete reference for yaml version 2.
 ---
 
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 
-# Schema 2.0.0 Reference
+# Schema v2 Reference
 
-This page documents all YAML configuration keys available for yaml version `2.0.0`, filtered by VERSION
+This page documents all YAML configuration keys available for yaml version `2`, filtered by VERSION
 rather than a fixed list of top-level sections.
 
 ## VERSION
 
-The eCalc YAML schema version (X.Y.Z). Determines which root elements are available. Defaults to 1.0.0 if not specified.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `MAJOR` |  | Default: `0` |
-| `MINOR` |  | Default: `0` |
-| `PATCH` |  | Default: `0` |
+The eCalc YAML schema major version. Determines which root elements are available. Only the major version is tracked, e.g. VERSION: 2 allows any 2.x.y root elements. Defaults to 1 if not specified.
 
 ## DEFINITIONS
 
@@ -451,17 +445,17 @@ Defines fluid models that can be referenced by inlet streams.
 
 </TabItem>
 
-<TabItem value="FLUID" label="FLUID">
+<TabItem value="YAMLCOMPOSITIONFLUIDMODEL" label="YAMLCOMPOSITIONFLUIDMODEL">
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`COMPOSITION`](#fluid-models-fluid-composition) | Components in fluid and amount (relative to the others) in mole weights | Required |
+| [`COMPOSITION`](#fluid-models-yamlcompositionfluidmodel-composition) | Components in fluid and amount (relative to the others) in mole weights | Required |
 | `EOS_MODEL` |  | Default: `SRK` |
 | `FLUID_MODEL_TYPE` | `COMPOSITION` | Default: `COMPOSITION` |
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `TYPE` | `FLUID` | Default: `FLUID` |
 
-##### COMPOSITION {/* #fluid-models-fluid-composition */}
+##### COMPOSITION {/* #fluid-models-yamlcompositionfluidmodel-composition */}
 
 Components in fluid and amount (relative to the others) in mole weights
 
@@ -564,17 +558,17 @@ Defines the units
 
 </TabItem>
 
-<TabItem value="COMPRESSOR_CHART" label="COMPRESSOR_CHART">
+<TabItem value="YAMLVARIABLESPEEDCHART" label="YAMLVARIABLESPEEDCHART">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `TYPE` | `COMPRESSOR_CHART` | Default: `COMPRESSOR_CHART` |
 | `CHART_TYPE` | `VARIABLE_SPEED` | Default: `VARIABLE_SPEED` |
-| [`CURVES`](#models-compressor-chart-curves) | Compressor chart curves, one per speed. | Required |
-| [`UNITS`](#models-compressor-chart-units) | Defines the units | Optional |
+| [`CURVES`](#models-yamlvariablespeedchart-curves) | Compressor chart curves, one per speed. | Required |
+| [`UNITS`](#models-yamlvariablespeedchart-units) | Defines the units | Optional |
 
-##### CURVES {/* #models-compressor-chart-curves */}
+##### CURVES {/* #models-yamlvariablespeedchart-curves */}
 
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
@@ -598,7 +592,7 @@ Defines the units
 
 </Tabs>
 
-##### UNITS {/* #models-compressor-chart-units */}
+##### UNITS {/* #models-yamlvariablespeedchart-units */}
 
 Defines the units
 
@@ -610,7 +604,7 @@ Defines the units
 
 </TabItem>
 
-<TabItem value="COMPRESSOR_CHART" label="COMPRESSOR_CHART">
+<TabItem value="YAMLGENERICFROMDESIGNPOINTCHART" label="YAMLGENERICFROMDESIGNPOINTCHART">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -620,9 +614,9 @@ Defines the units
 | `POLYTROPIC_EFFICIENCY` | Polytropic efficiency for compressor chart | Required |
 | `DESIGN_RATE` | Design rate for generic compressor chart | Required |
 | `DESIGN_HEAD` | Design head for generic compressor chart | Required |
-| [`UNITS`](#models-compressor-chart-units) |  | Required |
+| [`UNITS`](#models-yamlgenericfromdesignpointchart-units) |  | Required |
 
-##### UNITS {/* #models-compressor-chart-units */}
+##### UNITS {/* #models-yamlgenericfromdesignpointchart-units */}
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -632,7 +626,7 @@ Defines the units
 
 </TabItem>
 
-<TabItem value="COMPRESSOR_CHART" label="COMPRESSOR_CHART">
+<TabItem value="YAMLGENERICFROMINPUTCHART" label="YAMLGENERICFROMINPUTCHART">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -640,9 +634,9 @@ Defines the units
 | `TYPE` | `COMPRESSOR_CHART` | Default: `COMPRESSOR_CHART` |
 | `CHART_TYPE` | `GENERIC_FROM_INPUT` | Default: `GENERIC_FROM_INPUT` |
 | `POLYTROPIC_EFFICIENCY` | Polytropic efficiency for compressor chart | Required |
-| [`UNITS`](#models-compressor-chart-units) | Defines the units | Optional |
+| [`UNITS`](#models-yamlgenericfrominputchart-units) | Defines the units | Optional |
 
-##### UNITS {/* #models-compressor-chart-units */}
+##### UNITS {/* #models-yamlgenericfrominputchart-units */}
 
 Defines the units
 
@@ -679,17 +673,17 @@ Defines the units
 
 </TabItem>
 
-<TabItem value="FLUID" label="FLUID">
+<TabItem value="YAMLCOMPOSITIONFLUIDMODEL" label="YAMLCOMPOSITIONFLUIDMODEL">
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`COMPOSITION`](#models-fluid-composition) | Components in fluid and amount (relative to the others) in mole weights | Required |
+| [`COMPOSITION`](#models-yamlcompositionfluidmodel-composition) | Components in fluid and amount (relative to the others) in mole weights | Required |
 | `EOS_MODEL` |  | Default: `SRK` |
 | `FLUID_MODEL_TYPE` | `COMPOSITION` | Default: `COMPOSITION` |
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `TYPE` | `FLUID` | Default: `FLUID` |
 
-##### COMPOSITION {/* #models-fluid-composition */}
+##### COMPOSITION {/* #models-yamlcompositionfluidmodel-composition */}
 
 Components in fluid and amount (relative to the others) in mole weights
 
@@ -931,30 +925,9 @@ Emission types and their attributes for this fuel.
 
 Defines variables used in an energy usage model by means of expressions or constants.
 
-##### VARIABLES {/* #variables */}
-
-<Tabs>
-<TabItem value="YAMLSINGLEVARIABLE" label="YAMLSINGLEVARIABLE">
-
-A variable in YAML that can be set to a valid eCalc Expression
-
 | Key | Description | Status |
 | --- | --- | --- |
 | `VALUE` |  | Required |
-
-</TabItem>
-
-<TabItem value="YAMLSINGLEVARIABLE" label="YAMLSINGLEVARIABLE">
-
-A variable in YAML that can be set to a valid eCalc Expression
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `VALUE` |  | Required |
-
-</TabItem>
-
-</Tabs>
 
 ## SHAFTS
 
@@ -1439,7 +1412,7 @@ Consumers getting electrical power from the generator set.
 ##### ENERGY_USAGE_MODEL {/* #installations-generatorsets-consumers-energy-usage-model */}
 
 <Tabs>
-<TabItem value="DIRECT" label="DIRECT">
+<TabItem value="YAMLENERGYUSAGEMODELDIRECTELECTRICITY" label="YAMLENERGYUSAGEMODELDIRECTELECTRICITY">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1452,7 +1425,7 @@ Consumers getting electrical power from the generator set.
 
 </TabItem>
 
-<TabItem value="COMPRESSOR" label="COMPRESSOR">
+<TabItem value="YAMLENERGYUSAGEMODELCOMPRESSOR" label="YAMLENERGYUSAGEMODELCOMPRESSOR">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1467,7 +1440,7 @@ Consumers getting electrical power from the generator set.
 
 </TabItem>
 
-<TabItem value="PUMP" label="PUMP">
+<TabItem value="YAMLENERGYUSAGEMODELPUMP" label="YAMLENERGYUSAGEMODELPUMP">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1483,7 +1456,7 @@ Consumers getting electrical power from the generator set.
 
 </TabItem>
 
-<TabItem value="COMPRESSOR_SYSTEM" label="COMPRESSOR_SYSTEM">
+<TabItem value="YAMLENERGYUSAGEMODELCOMPRESSORSYSTEM" label="YAMLENERGYUSAGEMODELCOMPRESSORSYSTEM">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1491,11 +1464,11 @@ Consumers getting electrical power from the generator set.
 | `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `COMPRESSOR_SYSTEM` | Required |
-| [`COMPRESSORS`](#installations-generatorsets-consumers-energy-usage-model-compressor-system-compressors) | The compressors in a compressor system. | Required |
+| [`COMPRESSORS`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-compressors) | The compressors in a compressor system. | Required |
 | `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy-usage-model-compressor-system-operational-settings) | Operational settings of the system. | Required |
+| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-operational-settings) | Operational settings of the system. | Required |
 
-##### COMPRESSORS {/* #installations-generatorsets-consumers-energy-usage-model-compressor-system-compressors */}
+##### COMPRESSORS {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-compressors */}
 
 The compressors in a compressor system.
 
@@ -1504,7 +1477,7 @@ The compressors in a compressor system.
 | `NAME` | Name of the compressor | Required |
 | `COMPRESSOR_MODEL` | Reference to a compressor type facility model defined in FACILITY_INPUTS | Required |
 
-##### OPERATIONAL_SETTINGS {/* #installations-generatorsets-consumers-energy-usage-model-compressor-system-operational-settings */}
+##### OPERATIONAL_SETTINGS {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-operational-settings */}
 
 Operational settings of the system.
 
@@ -1520,7 +1493,7 @@ Operational settings of the system.
 
 </TabItem>
 
-<TabItem value="PUMP_SYSTEM" label="PUMP_SYSTEM">
+<TabItem value="YAMLENERGYUSAGEMODELPUMPSYSTEM" label="YAMLENERGYUSAGEMODELPUMPSYSTEM">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1528,12 +1501,12 @@ Operational settings of the system.
 | `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `PUMP_SYSTEM` | Required |
-| [`PUMPS`](#installations-generatorsets-consumers-energy-usage-model-pump-system-pumps) | The pumps in a pump system. | Required |
+| [`PUMPS`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelpumpsystem-pumps) | The pumps in a pump system. | Required |
 | `FLUID_DENSITY` | Density of the fluid in kg/m3. | Optional |
 | `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy-usage-model-pump-system-operational-settings) | Operational settings of the system. | Required |
+| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelpumpsystem-operational-settings) | Operational settings of the system. | Required |
 
-##### PUMPS {/* #installations-generatorsets-consumers-energy-usage-model-pump-system-pumps */}
+##### PUMPS {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelpumpsystem-pumps */}
 
 The pumps in a pump system.
 
@@ -1542,7 +1515,7 @@ The pumps in a pump system.
 | `NAME` | Name of the pump | Required |
 | `COMPRESSOR_MODEL` | Reference to a pump type facility model defined in FACILITY_INPUTS | Required |
 
-##### OPERATIONAL_SETTINGS {/* #installations-generatorsets-consumers-energy-usage-model-pump-system-operational-settings */}
+##### OPERATIONAL_SETTINGS {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelpumpsystem-operational-settings */}
 
 Operational settings of the system.
 
@@ -1559,7 +1532,7 @@ Operational settings of the system.
 
 </TabItem>
 
-<TabItem value="TABULATED" label="TABULATED">
+<TabItem value="YAMLENERGYUSAGEMODELTABULATED" label="YAMLENERGYUSAGEMODELTABULATED">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1568,9 +1541,9 @@ Operational settings of the system.
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `TABULATED` | Required |
 | `ENERGY_FUNCTION` | The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS | Required |
-| [`VARIABLES`](#installations-generatorsets-consumers-energy-usage-model-tabulated-variables) | Variables for the tabulated energy function | Required |
+| [`VARIABLES`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodeltabulated-variables) | Variables for the tabulated energy function | Required |
 
-##### VARIABLES {/* #installations-generatorsets-consumers-energy-usage-model-tabulated-variables */}
+##### VARIABLES {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodeltabulated-variables */}
 
 Variables for the tabulated energy function
 
@@ -1581,166 +1554,7 @@ Variables for the tabulated energy function
 
 </TabItem>
 
-<TabItem value="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES" label="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` | Required |
-| `RATE_UNIT` | `SM3_PER_DAY` | Default: `SM3_PER_DAY` |
-| `COMPRESSOR_TRAIN_MODEL` | The compressor train model, reference to a compressor type model defined in MODELS | Required |
-| `RATE_PER_STREAM` | Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day | Required |
-| `SUCTION_PRESSURE` | Fluid (gas) pressure at compressor train inlet in bars | Required |
-| `DISCHARGE_PRESSURE` | Fluid (gas) pressure at compressor train outlet in bars | Required |
-| `INTERSTAGE_CONTROL_PRESSURE` | Fluid (gas) pressure at an intermediate step in the compressor train | Optional |
-
-</TabItem>
-
-<TabItem value="DIRECT" label="DIRECT">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `DIRECT` | Required |
-| `CONSUMPTION_RATE_TYPE` | Defines the energy usage rate as stream day or calendar day. | Optional |
-| `LOAD` | Fixed power consumer with constant load. | Required |
-
-</TabItem>
-
-<TabItem value="COMPRESSOR" label="COMPRESSOR">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `COMPRESSOR` | Required |
-| `ENERGY_FUNCTION` | The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS | Required |
-| `RATE` | Fluid (gas) rate through the compressor in Sm3/day | Required |
-| `SUCTION_PRESSURE` | Fluid (gas) pressure at compressor inlet in bars | Optional |
-| `DISCHARGE_PRESSURE` | Fluid (gas) pressure at compressor outlet in bars | Optional |
-
-</TabItem>
-
-<TabItem value="PUMP" label="PUMP">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `PUMP` | Required |
-| `ENERGY_FUNCTION` | The pump energy function, reference to a pump type facility model defined in FACILITY_INPUTS | Required |
-| `RATE` | Fluid rate through the pump in Sm3/day | Optional |
-| `SUCTION_PRESSURE` | Fluid pressure at pump inlet in bars | Optional |
-| `DISCHARGE_PRESSURE` | Fluid pressure at pump outlet in bars | Optional |
-| `FLUID_DENSITY` | Density of the fluid in kg/m3. | Required |
-
-</TabItem>
-
-<TabItem value="COMPRESSOR_SYSTEM" label="COMPRESSOR_SYSTEM">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `COMPRESSOR_SYSTEM` | Required |
-| [`COMPRESSORS`](#installations-generatorsets-consumers-energy-usage-model-compressor-system-compressors) | The compressors in a compressor system. | Required |
-| `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy-usage-model-compressor-system-operational-settings) | Operational settings of the system. | Required |
-
-##### COMPRESSORS {/* #installations-generatorsets-consumers-energy-usage-model-compressor-system-compressors */}
-
-The compressors in a compressor system.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `NAME` | Name of the compressor | Required |
-| `COMPRESSOR_MODEL` | Reference to a compressor type facility model defined in FACILITY_INPUTS | Required |
-
-##### OPERATIONAL_SETTINGS {/* #installations-generatorsets-consumers-energy-usage-model-compressor-system-operational-settings */}
-
-Operational settings of the system.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CROSSOVER` | Set cross over rules in system operational setting. | Optional |
-| `RATES` | Set rate per consumer in a consumer system operational setting. | Optional |
-| `RATE_FRACTIONS` | List of expressions defining fractional rate (of total system rate) per consumer. | Optional |
-| `SUCTION_PRESSURES` | Set suction pressure per consumer in a consumer system operational setting. | Optional |
-| `DISCHARGE_PRESSURES` | Set discharge pressure per consumer in a consumer system operational setting. | Optional |
-| `DISCHARGE_PRESSURE` | Set discharge pressure equal for all consumers in a consumer system operational setting. | Optional |
-| `SUCTION_PRESSURE` | Set suction pressure equal for all consumers in a consumer system operational setting. | Optional |
-
-</TabItem>
-
-<TabItem value="PUMP_SYSTEM" label="PUMP_SYSTEM">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `PUMP_SYSTEM` | Required |
-| [`PUMPS`](#installations-generatorsets-consumers-energy-usage-model-pump-system-pumps) | The pumps in a pump system. | Required |
-| `FLUID_DENSITY` | Density of the fluid in kg/m3. | Optional |
-| `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy-usage-model-pump-system-operational-settings) | Operational settings of the system. | Required |
-
-##### PUMPS {/* #installations-generatorsets-consumers-energy-usage-model-pump-system-pumps */}
-
-The pumps in a pump system.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `NAME` | Name of the pump | Required |
-| `COMPRESSOR_MODEL` | Reference to a pump type facility model defined in FACILITY_INPUTS | Required |
-
-##### OPERATIONAL_SETTINGS {/* #installations-generatorsets-consumers-energy-usage-model-pump-system-operational-settings */}
-
-Operational settings of the system.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CROSSOVER` | Set cross over rules in system operational setting. | Optional |
-| `RATES` | Set rate per consumer in a consumer system operational setting. | Optional |
-| `RATE_FRACTIONS` | List of expressions defining fractional rate (of total system rate) per consumer. | Optional |
-| `SUCTION_PRESSURES` | Set suction pressure per consumer in a consumer system operational setting. | Optional |
-| `DISCHARGE_PRESSURES` | Set discharge pressure per consumer in a consumer system operational setting. | Optional |
-| `DISCHARGE_PRESSURE` | Set discharge pressure equal for all consumers in a consumer system operational setting. | Optional |
-| `SUCTION_PRESSURE` | Set suction pressure equal for all consumers in a consumer system operational setting. | Optional |
-| `FLUID_DENSITIES` | Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression | Optional |
-
-</TabItem>
-
-<TabItem value="TABULATED" label="TABULATED">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `TABULATED` | Required |
-| `ENERGY_FUNCTION` | The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS | Required |
-| [`VARIABLES`](#installations-generatorsets-consumers-energy-usage-model-tabulated-variables) | Variables for the tabulated energy function | Required |
-
-##### VARIABLES {/* #installations-generatorsets-consumers-energy-usage-model-tabulated-variables */}
-
-Variables for the tabulated energy function
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `NAME` | Name of variable. Must correspond exactly to header/column name in the energy function | Required |
-| `EXPRESSION` | Expression defining the variable | Required |
-
-</TabItem>
-
-<TabItem value="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES" label="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES">
+<TabItem value="YAMLENERGYUSAGEMODELCOMPRESSORTRAINMULTIPLESTREAMS" label="YAMLENERGYUSAGEMODELCOMPRESSORTRAINMULTIPLESTREAMS">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1774,7 +1588,7 @@ Defines fuel consumers on the installation which are not generators.
 ##### ENERGY_USAGE_MODEL {/* #installations-fuelconsumers-energy-usage-model */}
 
 <Tabs>
-<TabItem value="DIRECT" label="DIRECT">
+<TabItem value="YAMLENERGYUSAGEMODELDIRECTFUEL" label="YAMLENERGYUSAGEMODELDIRECTFUEL">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1787,7 +1601,7 @@ Defines fuel consumers on the installation which are not generators.
 
 </TabItem>
 
-<TabItem value="COMPRESSOR" label="COMPRESSOR">
+<TabItem value="YAMLENERGYUSAGEMODELCOMPRESSOR" label="YAMLENERGYUSAGEMODELCOMPRESSOR">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1802,7 +1616,7 @@ Defines fuel consumers on the installation which are not generators.
 
 </TabItem>
 
-<TabItem value="COMPRESSOR_SYSTEM" label="COMPRESSOR_SYSTEM">
+<TabItem value="YAMLENERGYUSAGEMODELCOMPRESSORSYSTEM" label="YAMLENERGYUSAGEMODELCOMPRESSORSYSTEM">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1810,11 +1624,11 @@ Defines fuel consumers on the installation which are not generators.
 | `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `COMPRESSOR_SYSTEM` | Required |
-| [`COMPRESSORS`](#installations-fuelconsumers-energy-usage-model-compressor-system-compressors) | The compressors in a compressor system. | Required |
+| [`COMPRESSORS`](#installations-fuelconsumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-compressors) | The compressors in a compressor system. | Required |
 | `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-fuelconsumers-energy-usage-model-compressor-system-operational-settings) | Operational settings of the system. | Required |
+| [`OPERATIONAL_SETTINGS`](#installations-fuelconsumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-operational-settings) | Operational settings of the system. | Required |
 
-##### COMPRESSORS {/* #installations-fuelconsumers-energy-usage-model-compressor-system-compressors */}
+##### COMPRESSORS {/* #installations-fuelconsumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-compressors */}
 
 The compressors in a compressor system.
 
@@ -1823,7 +1637,7 @@ The compressors in a compressor system.
 | `NAME` | Name of the compressor | Required |
 | `COMPRESSOR_MODEL` | Reference to a compressor type facility model defined in FACILITY_INPUTS | Required |
 
-##### OPERATIONAL_SETTINGS {/* #installations-fuelconsumers-energy-usage-model-compressor-system-operational-settings */}
+##### OPERATIONAL_SETTINGS {/* #installations-fuelconsumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-operational-settings */}
 
 Operational settings of the system.
 
@@ -1839,7 +1653,7 @@ Operational settings of the system.
 
 </TabItem>
 
-<TabItem value="TABULATED" label="TABULATED">
+<TabItem value="YAMLENERGYUSAGEMODELTABULATED" label="YAMLENERGYUSAGEMODELTABULATED">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1848,9 +1662,9 @@ Operational settings of the system.
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `TABULATED` | Required |
 | `ENERGY_FUNCTION` | The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS | Required |
-| [`VARIABLES`](#installations-fuelconsumers-energy-usage-model-tabulated-variables) | Variables for the tabulated energy function | Required |
+| [`VARIABLES`](#installations-fuelconsumers-energy-usage-model-yamlenergyusagemodeltabulated-variables) | Variables for the tabulated energy function | Required |
 
-##### VARIABLES {/* #installations-fuelconsumers-energy-usage-model-tabulated-variables */}
+##### VARIABLES {/* #installations-fuelconsumers-energy-usage-model-yamlenergyusagemodeltabulated-variables */}
 
 Variables for the tabulated energy function
 
@@ -1861,111 +1675,7 @@ Variables for the tabulated energy function
 
 </TabItem>
 
-<TabItem value="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES" label="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` | Required |
-| `RATE_UNIT` | `SM3_PER_DAY` | Default: `SM3_PER_DAY` |
-| `COMPRESSOR_TRAIN_MODEL` | The compressor train model, reference to a compressor type model defined in MODELS | Required |
-| `RATE_PER_STREAM` | Fluid (gas) rate for each of the streams going into or out of the compressor train (excluding the outlet of the last compressor stage) in Sm3/day | Required |
-| `SUCTION_PRESSURE` | Fluid (gas) pressure at compressor train inlet in bars | Required |
-| `DISCHARGE_PRESSURE` | Fluid (gas) pressure at compressor train outlet in bars | Required |
-| `INTERSTAGE_CONTROL_PRESSURE` | Fluid (gas) pressure at an intermediate step in the compressor train | Optional |
-
-</TabItem>
-
-<TabItem value="DIRECT" label="DIRECT">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `DIRECT` | Required |
-| `CONSUMPTION_RATE_TYPE` | Defines the energy usage rate as stream day or calendar day. | Optional |
-| `FUEL_RATE` | Fixed power consumer with constant load. | Required |
-
-</TabItem>
-
-<TabItem value="COMPRESSOR" label="COMPRESSOR">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `COMPRESSOR` | Required |
-| `ENERGY_FUNCTION` | The compressor energy function, reference to a compressor type facility model defined in FACILITY_INPUTS | Required |
-| `RATE` | Fluid (gas) rate through the compressor in Sm3/day | Required |
-| `SUCTION_PRESSURE` | Fluid (gas) pressure at compressor inlet in bars | Optional |
-| `DISCHARGE_PRESSURE` | Fluid (gas) pressure at compressor outlet in bars | Optional |
-
-</TabItem>
-
-<TabItem value="COMPRESSOR_SYSTEM" label="COMPRESSOR_SYSTEM">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `COMPRESSOR_SYSTEM` | Required |
-| [`COMPRESSORS`](#installations-fuelconsumers-energy-usage-model-compressor-system-compressors) | The compressors in a compressor system. | Required |
-| `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-fuelconsumers-energy-usage-model-compressor-system-operational-settings) | Operational settings of the system. | Required |
-
-##### COMPRESSORS {/* #installations-fuelconsumers-energy-usage-model-compressor-system-compressors */}
-
-The compressors in a compressor system.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `NAME` | Name of the compressor | Required |
-| `COMPRESSOR_MODEL` | Reference to a compressor type facility model defined in FACILITY_INPUTS | Required |
-
-##### OPERATIONAL_SETTINGS {/* #installations-fuelconsumers-energy-usage-model-compressor-system-operational-settings */}
-
-Operational settings of the system.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CROSSOVER` | Set cross over rules in system operational setting. | Optional |
-| `RATES` | Set rate per consumer in a consumer system operational setting. | Optional |
-| `RATE_FRACTIONS` | List of expressions defining fractional rate (of total system rate) per consumer. | Optional |
-| `SUCTION_PRESSURES` | Set suction pressure per consumer in a consumer system operational setting. | Optional |
-| `DISCHARGE_PRESSURES` | Set discharge pressure per consumer in a consumer system operational setting. | Optional |
-| `DISCHARGE_PRESSURE` | Set discharge pressure equal for all consumers in a consumer system operational setting. | Optional |
-| `SUCTION_PRESSURE` | Set suction pressure equal for all consumers in a consumer system operational setting. | Optional |
-
-</TabItem>
-
-<TabItem value="TABULATED" label="TABULATED">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `CONDITION` | Logical condition for the consumer to be used. | Optional |
-| `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
-| `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
-| `TYPE` | `TABULATED` | Required |
-| `ENERGY_FUNCTION` | The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS | Required |
-| [`VARIABLES`](#installations-fuelconsumers-energy-usage-model-tabulated-variables) | Variables for the tabulated energy function | Required |
-
-##### VARIABLES {/* #installations-fuelconsumers-energy-usage-model-tabulated-variables */}
-
-Variables for the tabulated energy function
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `NAME` | Name of variable. Must correspond exactly to header/column name in the energy function | Required |
-| `EXPRESSION` | Expression defining the variable | Required |
-
-</TabItem>
-
-<TabItem value="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES" label="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES">
+<TabItem value="YAMLENERGYUSAGEMODELCOMPRESSORTRAINMULTIPLESTREAMS" label="YAMLENERGYUSAGEMODELCOMPRESSORTRAINMULTIPLESTREAMS">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -2072,8 +1782,8 @@ For more details, see: | Optional |
 
 ## START
 
-Global start date for eCalc calculations in <YYYY-MM-DD> format.
+Global start date for eCalc calculations in &lt;YYYY-MM-DD&gt; format.
 
 ## END
 
-Global end date for eCalc calculations in <YYYY-MM-DD> format.
+Global end date for eCalc calculations in &lt;YYYY-MM-DD&gt; format.

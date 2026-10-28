@@ -537,7 +537,9 @@ def _get_inner_models(annotation: Any) -> list[type[BaseModel]]:
         for arg in args:
             if arg is type(None):
                 continue
-            models.extend(_get_inner_models(arg))
+            for model in _get_inner_models(arg):
+                if model not in models:
+                    models.append(model)
         return models
 
     if origin is list:
@@ -564,15 +566,27 @@ def _is_discriminated_union(annotation: Any) -> bool:
     return len(models) > 1 and all(isinstance(m, type) and issubclass(m, BaseModel) for m in models)
 
 
-def _get_discriminator_value(model: type[BaseModel]) -> str | None:
+def _get_discriminator_field_name(annotation: Any) -> str | None:
+    """Extract the discriminator field name from a Field(discriminator=...) annotation."""
+    if get_origin(annotation) is Annotated:
+        for arg in get_args(annotation)[1:]:
+            discriminator = getattr(arg, "discriminator", None)
+            if discriminator:
+                return discriminator
+    return None
+
+
+def _get_discriminator_value(model: type[BaseModel], discriminator_field: str | None = None) -> str | None:
     """
     Extract the discriminator value from a model's Literal type field.
 
     For example, if the model has `type: Literal["COMPRESSOR"]`, returns "COMPRESSOR".
-    Looks for common discriminator field names: 'type', 'method'.
+    If discriminator_field is given, that field name is used; otherwise falls back to
+    the common discriminator field names: 'type', 'method'.
     """
-    for field_name in ("type", "method"):
-        if field_name not in model.model_fields:
+    field_names = (discriminator_field,) if discriminator_field else ("type", "method")
+    for field_name in field_names:
+        if not field_name or field_name not in model.model_fields:
             continue
         annotation = model.__annotations__.get(field_name)
         annotation = _unwrap_annotation(annotation)
@@ -643,12 +657,17 @@ def build_tree(
 
             if _is_discriminated_union(annotation):
                 # Create child nodes for each variant
+                discriminator_field = _get_discriminator_field_name(annotation)
+                seen_variant_names: set[str] = set()
                 for variant_model in inner_models:
                     variant_name = (
-                        _get_discriminator_value(variant_model)
+                        _get_discriminator_value(variant_model, discriminator_field)
                         or variant_model.model_config.get("title")
                         or variant_model.__name__
                     )
+                    if variant_name in seen_variant_names:
+                        variant_name = variant_model.__name__
+                    seen_variant_names.add(variant_name)
                     variant_node = DocNode(
                         name=variant_name,
                         field_info=None,
@@ -677,8 +696,8 @@ def build_yaml_asset_tree(include_fields: set[str]) -> list[DocNode]:
     return build_tree(YamlAsset, include_fields=include_fields)
 
 
-def build_yaml_asset_tree_for_version(version: Version) -> list[DocNode]:
-    """Build a documentation tree for all YamlAsset root elements available for the given yaml version."""
+def build_yaml_asset_tree_for_version(version: int) -> list[DocNode]:
+    """Build a documentation tree for all YamlAsset root elements available for the given yaml major version."""
     return build_yaml_asset_tree(get_root_field_names(YamlAsset, version))
 
 
@@ -1047,6 +1066,8 @@ def _clean_description(desc: str) -> str:
     desc = re.sub(r"\n\n\$ECALC_DOCS_KEYWORDS_URL\S*", "", desc)
     # Remove inline references
     desc = re.sub(r"\$ECALC_DOCS_KEYWORDS_URL\S*", "", desc)
+    # Escape angle brackets so MDX doesn't interpret them as JSX tags
+    desc = desc.replace("<", "&lt;").replace(">", "&gt;")
     return desc.strip()
 
 
@@ -1142,15 +1163,15 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
     )
 
 
-def generate_version_markdown(version: Version) -> str:
-    """Generate a reference document for all YamlAsset sections available for the given yaml version."""
+def generate_version_markdown(version: int) -> str:
+    """Generate a reference document for all YamlAsset sections available for the given yaml major version."""
     return _generate_markdown(
         include_fields=get_root_field_names(YamlAsset, version),
-        title=f"Schema {version} Reference",
+        title=f"Schema v{version} Reference",
         sidebar_position=8,
         description=f"Complete reference for yaml version {version}.",
         intro=f"""\
-# Schema {version} Reference
+# Schema v{version} Reference
 
 This page documents all YAML configuration keys available for yaml version `{version}`, filtered by VERSION
 rather than a fixed list of top-level sections.
@@ -1167,7 +1188,7 @@ def main():
     outputs = {
         output_dir / "process-reference.mdx": generate_process_markdown(),
         output_dir / "energy-reference.mdx": generate_energy_markdown(),
-        output_dir / "v2-reference.mdx": generate_version_markdown(V2),
+        output_dir / "v2-reference.mdx": generate_version_markdown(V2.major),
     }
     for output_path, content in outputs.items():
         output_path.write_text(content)
