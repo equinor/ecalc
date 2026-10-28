@@ -130,37 +130,7 @@ Converters, junctions, and consumers forming the energy network.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `GENERATOR` | Required |
-| [`MODEL`](#energy-network-units-generator-model) | Generator set model, given directly in place. | Required |
-
-##### MODEL {/* #energy-network-units-generator-model */}
-
-Generator set model, given directly in place.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| [`CURVE`](#energy-network-units-generator-model-curve) | Power and fuel values, given directly or in a FILE with POWER and FUEL columns. | Required |
-
-##### CURVE {/* #energy-network-units-generator-model-curve */}
-
-<Tabs>
-<TabItem value="GENERATORCURVE" label="GENERATORCURVE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `POWER` | Electrical power [MW], strictly increasing. In a FILE, this is the POWER column. | Required |
-| `FUEL` | Fuel gas rate [Sm3/day] for each power. In a FILE, this is the FUEL column. | Required |
-
-</TabItem>
-
-<TabItem value="YAMLFILE" label="YAMLFILE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
-
-</TabItem>
-
-</Tabs>
+| `MODEL` | Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
 
 </TabItem>
 
@@ -173,38 +143,7 @@ Generator set model, given directly in place.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `GAS_TURBINE` | Required |
-| [`MODEL`](#energy-network-units-gas-turbine-model) | Turbine model, given directly in place. | Required |
-
-##### MODEL {/* #energy-network-units-gas-turbine-model */}
-
-Turbine model, given directly in place.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `LOWER_HEATING_VALUE` | Lower heating value [MJ/Sm3] of the fuel. | Required |
-| [`CURVE`](#energy-network-units-gas-turbine-model-curve) | Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY columns. | Required |
-
-##### CURVE {/* #energy-network-units-gas-turbine-model-curve */}
-
-<Tabs>
-<TabItem value="TURBINECURVE" label="TURBINECURVE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `LOAD` | Turbine loads [MW], strictly increasing. In a FILE, this is the LOAD column. | Required |
-| `EFFICIENCY` | Turbine efficiency [fraction above 0 and up to 1] for each load. In a FILE, this is the EFFICIENCY column. | Required |
-
-</TabItem>
-
-<TabItem value="YAMLFILE" label="YAMLFILE">
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
-
-</TabItem>
-
-</Tabs>
+| `MODEL` | Turbine model, given directly in place or as a reference to DEFINITIONS.TURBINES. Inline definition or reference. See [DEFINITIONS.TURBINES](#turbines). | Required |
 
 </TabItem>
 
