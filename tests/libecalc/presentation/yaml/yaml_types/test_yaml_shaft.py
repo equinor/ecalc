@@ -13,6 +13,7 @@ from libecalc.testing.process_builders import (
     YamlCompressorBuilder,
     YamlDefinitionsBuilder,
     YamlProcessPipelineBuilder,
+    compressors_in,
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
 
@@ -27,6 +28,7 @@ def _asset_builder(
         YamlAssetBuilder()
         .with_end("2025-01-01")
         .with_shafts(shafts)
+        .with_compressors(compressors_in(pipeline))
         .with_definitions(definitions)
         .with_process_pipelines({pipeline.name: pipeline})
     )
@@ -54,8 +56,8 @@ def test_maps_same_shaft_to_multiple_compressor_process_units():
     pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("export_pipeline")
-        .with_shaft_driven_item(name="lp_compressor", target="compressor", shaft="export_shaft")
-        .with_shaft_driven_item(name="hp_compressor", target="compressor", shaft="export_shaft")
+        .with_shaft_driven_item(compressor="lp_compressor", target="compressor", shaft="export_shaft")
+        .with_shaft_driven_item(compressor="hp_compressor", target="compressor", shaft="export_shaft")
         .validate()
     )
     asset = _asset_builder(
@@ -75,7 +77,7 @@ def test_rejects_unknown_shaft_reference():
     pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("export_pipeline")
-        .with_shaft_driven_item(name="compressor", target="compressor", shaft="missing_shaft")
+        .with_shaft_driven_item(compressor="compressor", target="compressor", shaft="missing_shaft")
         .validate()
     )
 
@@ -94,8 +96,8 @@ def test_rejects_multiple_shafts_in_same_process_target():
         (
             YamlProcessPipelineBuilder()
             .with_name("export_pipeline")
-            .with_shaft_driven_item(name="lp_compressor", target="compressor", shaft="export_shaft")
-            .with_shaft_driven_item(name="hp_compressor", target="compressor", shaft="injection_shaft")
+            .with_shaft_driven_item(compressor="lp_compressor", target="compressor", shaft="export_shaft")
+            .with_shaft_driven_item(compressor="hp_compressor", target="compressor", shaft="injection_shaft")
             .validate()
         )
 
@@ -104,13 +106,13 @@ def test_rejects_same_shaft_in_multiple_process_pipelines():
     export_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("export_pipeline")
-        .with_shaft_driven_item(name="export_compressor", target="compressor", shaft="common_shaft")
+        .with_shaft_driven_item(compressor="export_compressor", target="compressor", shaft="common_shaft")
         .validate()
     )
     injection_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("injection_pipeline")
-        .with_shaft_driven_item(name="injection_compressor", target="compressor", shaft="common_shaft")
+        .with_shaft_driven_item(compressor="injection_compressor", target="compressor", shaft="common_shaft")
         .validate()
     )
 
@@ -122,6 +124,7 @@ def test_rejects_same_shaft_in_multiple_process_pipelines():
             YamlAssetBuilder()
             .with_end("2025-01-01")
             .with_shafts([YamlShaft(name="common_shaft")])
+            .with_compressors(compressors_in(export_pipeline, injection_pipeline))
             .with_definitions(_compressor_definitions())
             .with_process_pipelines({"export_pipeline": export_pipeline, "injection_pipeline": injection_pipeline})
             .validate()
@@ -133,7 +136,7 @@ def test_rejects_compressors_without_shaft(yaml_process_pipeline_builder_factory
         (
             yaml_process_pipeline_builder_factory()
             .with_name("export_pipeline")
-            .with_shaft_driven_item(name="lp_compressor", target="compressor", shaft="export_shaft")
+            .with_shaft_driven_item(compressor="lp_compressor", target="compressor", shaft="export_shaft")
             .with_item(name="hp_compressor", target=yaml_compressor_builder_factory().with_test_data().validate())
             .validate()
         )

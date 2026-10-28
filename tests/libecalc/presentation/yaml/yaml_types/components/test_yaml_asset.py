@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
@@ -50,7 +51,9 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
         yaml_process_pipeline_builder_factory()
         .with_name("train_1")
         .with_shaft_driven_item(
-            name="compressor_1", target=yaml_compressor_builder_factory().with_test_data().validate(), shaft="shaft_1"
+            compressor="compressor_1",
+            target=yaml_compressor_builder_factory().with_test_data().validate(),
+            shaft="shaft_1",
         )
         .validate()
     )
@@ -58,7 +61,9 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
         yaml_process_pipeline_builder_factory()
         .with_name("train_2")
         .with_shaft_driven_item(
-            name="compressor_2", target=yaml_compressor_builder_factory().with_test_data().validate(), shaft="shaft_2"
+            compressor="compressor_2",
+            target=yaml_compressor_builder_factory().with_test_data().validate(),
+            shaft="shaft_2",
         )
         .validate()
     )
@@ -82,6 +87,7 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
         yaml_asset_builder_factory()
         .with_test_data()
         .with_shafts([YamlShaft(name="shaft_1"), YamlShaft(name="shaft_2")])
+        .with_compressors([YamlCompressor(name="compressor_1"), YamlCompressor(name="compressor_2")])
         .with_process_pipelines({pipeline_1.name: pipeline_1, pipeline_2.name: pipeline_2})
         .with_process_simulations([simulation_1, simulation_2])
         .validate()

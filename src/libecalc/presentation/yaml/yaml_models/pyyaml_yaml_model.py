@@ -45,6 +45,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlReferenceableProcessUnitDefinition
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
@@ -64,6 +65,7 @@ _ECALC_EVENTS_KEY = "ECALC_EVENTS"
 _PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
 _PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
 _SHAFTS_KEY = "SHAFTS"
+_COMPRESSORS_KEY = "COMPRESSORS"
 dt_adapter = TypeAdapter(datetime.datetime)
 
 
@@ -509,6 +511,17 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             except PydanticValidationError:
                 pass
         return shafts
+
+    @property
+    def compressors(self) -> list[YamlCompressor]:
+        compressors: list[YamlCompressor] = []
+        adapter = TypeAdapter(YamlCompressor)
+        for compressor in self._get_yaml_list_or_empty(_COMPRESSORS_KEY):
+            try:
+                compressors.append(adapter.validate_python(compressor))
+            except PydanticValidationError:
+                pass
+        return compressors
 
     @property
     def process_pipelines(self) -> dict[str, YamlProcessPipeline]:

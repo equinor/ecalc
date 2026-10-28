@@ -365,7 +365,14 @@ class TestNetworkValidation:
 class TestSampledCompressor:
     def test_parses_with_file_and_lookup_variables(self):
         comp = _component_adapter.validate_python(
-            {"NAME": "c", "TYPE": "COMPRESSOR_SAMPLED", "INPUT": "fuel", "FILE": "c.csv", "RATE": 1000}
+            {
+                "NAME": "c",
+                "TYPE": "COMPRESSOR_SAMPLED",
+                "COMPRESSOR": "C-1",
+                "INPUT": "fuel",
+                "FILE": "c.csv",
+                "RATE": 1000,
+            }
         )
         assert isinstance(comp, YamlCompressorSampled)
         assert comp.file == "c.csv"
@@ -377,7 +384,14 @@ class TestSampledCompressor:
                 {
                     "SOURCES": [{"NAME": "src", "TYPE": source_type}],
                     "UNITS": [
-                        {"NAME": "c", "TYPE": "COMPRESSOR_SAMPLED", "INPUT": "src", "FILE": "c.csv", "RATE": 1000}
+                        {
+                            "NAME": "c",
+                            "TYPE": "COMPRESSOR_SAMPLED",
+                            "COMPRESSOR": "C-1",
+                            "INPUT": "src",
+                            "FILE": "c.csv",
+                            "RATE": 1000,
+                        }
                     ],
                 }
             )
@@ -388,7 +402,14 @@ class TestSampledCompressor:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "c", "TYPE": "COMPRESSOR_SAMPLED", "INPUT": "fuel", "FILE": "c.csv", "RATE": 1000},
+                        {
+                            "NAME": "c",
+                            "TYPE": "COMPRESSOR_SAMPLED",
+                            "COMPRESSOR": "C-1",
+                            "INPUT": "fuel",
+                            "FILE": "c.csv",
+                            "RATE": 1000,
+                        },
                         {"NAME": "load", "TYPE": "FUEL_GAS_CONSUMER", "INPUT": "c", "RATE": 5},
                     ],
                 }

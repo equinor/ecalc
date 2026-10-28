@@ -27,6 +27,7 @@ from pydantic_core import PydanticUndefined
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.testing.energy_builders import (
     YamlCompressorSampledBuilder,
@@ -78,6 +79,7 @@ PROCESS_INCLUDE_FIELDS = {
     "definitions.process_units",
     "definitions.fluids",
     "shafts",
+    "compressors",
     "process_pipelines",
     "inlet_streams",
     "process_simulations",
@@ -232,6 +234,11 @@ EXAMPLES: list[Example] = [
         "SHAFTS",
         lambda: YamlShaft(name="default_shaft"),
     ),
+    # --- COMPRESSORS ---
+    Example(
+        "COMPRESSORS",
+        lambda: YamlCompressor(name="default_compressor", alias="RIA"),
+    ),
     # --- PROCESS_PIPELINES ---
     Example(
         "PROCESS_PIPELINES",
@@ -244,7 +251,7 @@ EXAMPLES: list[Example] = [
             )
             .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
             .with_shaft_driven_item(
-                name="default_compressor",
+                compressor="default_compressor",
                 target=YamlCompressorBuilder().with_test_data().validate(),
                 shaft="default_shaft",
             )
@@ -752,6 +759,7 @@ SIDEBAR_DEPTH: dict[str, int] = {
     "definitions": 4,  # DEFINITIONS > PROCESS_UNITS > COMPRESSOR (h2, h3, h4)
     "inlet_streams": 2,  # INLET_STREAMS only (h2)
     "shafts": 2,  # SHAFTS only (h2)
+    "compressors": 2,  # COMPRESSORS only (h2)
     "process_pipelines": 2,  # PROCESS_PIPELINES only (h2)
     "process_simulations": 2,  # PROCESS_SIMULATIONS only (h2)
     "ecalc_events": 2,  # ECALC_EVENTS only (h2)
@@ -1173,6 +1181,7 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [DEFINITIONS](#definitions)
 - [INLET_STREAMS](#inlet_streams)
 - [SHAFTS](#shafts)
+- [COMPRESSORS](#compressors)
 - [PROCESS_PIPELINES](#process_pipelines)
 - [PROCESS_SIMULATIONS](#process_simulations)
 - [ECALC_EVENTS](#ecalc_events)

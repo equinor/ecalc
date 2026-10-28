@@ -15,7 +15,14 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import Yam
 
 
 def _unit(**overrides) -> YamlCompressorSampled:
-    data = {"NAME": "compressor", "TYPE": "COMPRESSOR_SAMPLED", "INPUT": "fuel", "FILE": "comp.csv", "RATE": 2500}
+    data = {
+        "NAME": "compressor",
+        "TYPE": "COMPRESSOR_SAMPLED",
+        "COMPRESSOR": "C-1",
+        "INPUT": "fuel",
+        "FILE": "comp.csv",
+        "RATE": 2500,
+    }
     data.update(overrides)
     return YamlCompressorSampled.model_validate(data)
 
@@ -154,7 +161,7 @@ class TestYamlCompressorSampled:
     def test_requires_a_lookup_variable(self):
         with pytest.raises(ValueError, match="at least one of RATE, SUCTION_PRESSURE or DISCHARGE_PRESSURE"):
             YamlCompressorSampled.model_validate(
-                {"NAME": "c", "TYPE": "COMPRESSOR_SAMPLED", "INPUT": "fuel", "FILE": "comp.csv"}
+                {"NAME": "c", "TYPE": "COMPRESSOR_SAMPLED", "COMPRESSOR": "C-1", "INPUT": "fuel", "FILE": "comp.csv"}
             )
 
     def test_negative_rate_rejected(self):

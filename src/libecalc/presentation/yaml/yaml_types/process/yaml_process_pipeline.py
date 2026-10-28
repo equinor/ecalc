@@ -12,6 +12,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressorDefinition,
     YamlProcessUnitDefinition,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 
 
@@ -21,18 +22,31 @@ class YamlProcessUnitInstance[TTarget](YamlBase):
     target: TTarget | DefinitionReference
     name: str | None = None
 
+    def get_instance_reference(self) -> InstanceReference | None:
+        """The name CHANGE_TARGET and CONSTRAINTS use to refer to this process unit, if any."""
+        return self.name
+
 
 class YamlCompressorProcessUnitInstance(YamlBase):
     model_config = ConfigDict(title="COMPRESSOR_PROCESS_UNIT")
 
     target: YamlCompressorDefinition | DefinitionReference
-    name: str
+    compressor: CompressorReference = Field(
+        ...,
+        title="COMPRESSOR",
+        description="Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT "
+        "refer to this process unit by the compressor's name.",
+    )
 
     shaft: ShaftReference = Field(
         ...,
         title="SHAFT",
         description="Reference to a shaft defined in SHAFTS.",
     )
+
+    def get_instance_reference(self) -> InstanceReference:
+        """The name CHANGE_TARGET and CONSTRAINTS use to refer to this process unit: the compressor's name."""
+        return self.compressor
 
 
 class PipelineEventAction(StrEnum):

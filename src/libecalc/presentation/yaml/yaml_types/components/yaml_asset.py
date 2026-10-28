@@ -7,6 +7,7 @@ from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    YamlCompressorSampled,
     YamlDriveTrain,
     YamlEnergyNetwork,
 )
@@ -31,6 +32,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
@@ -131,6 +133,12 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="SHAFTS",
         description="Defines named shafts representing mechanical connections between drivers and driven equipment.",
+    )
+    compressors: list[YamlCompressor] = Field(
+        default_factory=list,
+        title="COMPRESSORS",
+        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
+        "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
@@ -269,6 +277,103 @@ class YamlAsset(YamlBase):
             )
         return shafts
 
+    @field_validator("compressors", mode="after")
+    @classmethod
+    def validate_unique_compressor_names(
+        cls, compressors: list[YamlCompressor], info: ValidationInfo
+    ) -> list[YamlCompressor]:
+        duplicated_names = get_duplicates(compressor.name for compressor in compressors)
+        if duplicated_names:
+            field_name = info.field_name
+            alias = cls.model_fields[field_name].alias if field_name is not None else "COMPRESSORS"
+            raise ValueError(
+                f"{alias} names must be unique. Duplicated names are: {', '.join(sorted(duplicated_names))}"
+            )
+        return compressors
+
+    def _process_compressor_models(self) -> list[tuple[CompressorReference, str]]:
+        """Every model of a compressor in the process domain, as (compressor, human-readable location)."""
+        return [
+            (process_unit.compressor, f"process pipeline '{pipeline_name}'")
+            for pipeline_name, pipeline in self.process_pipelines.items()
+            for process_unit in pipeline.process_units
+            if isinstance(process_unit, YamlCompressorProcessUnitInstance)
+        ]
+
+    def _sampled_compressor_models(self) -> list[tuple[CompressorReference, str]]:
+        """Every COMPRESSOR_SAMPLED unit, as (compressor, human-readable location)."""
+        if self.energy_network is None:
+            return []
+        return [
+            (unit.compressor, f"COMPRESSOR_SAMPLED unit '{unit.name}'")
+            for unit in self.energy_network.units
+            if isinstance(unit, YamlCompressorSampled)
+        ]
+
+    def _energy_compressor_models(self) -> list[tuple[CompressorReference, str]]:
+        """
+        Every model of a compressor in the energy domain, as (compressor, human-readable location).
+
+        A DRIVE_TRAIN models each compressor on its shaft; a COMPRESSOR_SAMPLED unit models its compressor.
+        """
+        if self.energy_network is None:
+            return []
+        drive_trains_by_shaft = {
+            unit.shaft: unit.name for unit in self.energy_network.units if isinstance(unit, YamlDriveTrain)
+        }
+        models: list[tuple[CompressorReference, str]] = []
+        for pipeline in self.process_pipelines.values():
+            for process_unit in pipeline.process_units:
+                if (
+                    isinstance(process_unit, YamlCompressorProcessUnitInstance)
+                    and process_unit.shaft in drive_trains_by_shaft
+                ):
+                    drive_train_name = drive_trains_by_shaft[process_unit.shaft]
+                    models.append(
+                        (process_unit.compressor, f"DRIVE_TRAIN '{drive_train_name}' (shaft '{process_unit.shaft}')")
+                    )
+        return models + self._sampled_compressor_models()
+
+    @model_validator(mode="after")
+    def validate_compressor_references(self):
+        available_compressor_names = {compressor.name for compressor in self.compressors}
+        locations_by_unknown_compressor: dict[CompressorReference, list[str]] = defaultdict(list)
+        for compressor_reference, location in self._process_compressor_models() + self._sampled_compressor_models():
+            if compressor_reference not in available_compressor_names:
+                locations_by_unknown_compressor[compressor_reference].append(location)
+
+        if locations_by_unknown_compressor:
+            available = ", ".join(sorted(available_compressor_names)) or "none"
+            violations = [
+                f"Compressor '{compressor_name}' referenced in {', '.join(locations)} is not defined."
+                for compressor_name, locations in locations_by_unknown_compressor.items()
+            ]
+            raise ValueError("\n".join([*violations, f"Available compressors in COMPRESSORS: {available}."]))
+        return self
+
+    @model_validator(mode="after")
+    def validate_compressor_modelled_once_per_domain(self):
+        """The compressor id is used as process unit id and as energy unit id, so each domain can model it once."""
+        violations: list[str] = []
+        for domain, models in (
+            ("process", self._process_compressor_models()),
+            ("energy", self._energy_compressor_models()),
+        ):
+            locations_by_compressor: dict[CompressorReference, list[str]] = defaultdict(list)
+            for compressor_reference, location in models:
+                locations_by_compressor[compressor_reference].append(location)
+
+            violations.extend(
+                f"Compressor '{compressor_name}' is modelled more than once in the {domain} domain: "
+                f"{', '.join(locations)}."
+                for compressor_name, locations in locations_by_compressor.items()
+                if len(locations) > 1
+            )
+
+        if violations:
+            raise ValueError("\n".join([*violations, "Each domain can model a compressor at most once."]))
+        return self
+
     @model_validator(mode="after")
     def validate_unique_references(self):
         references = []
@@ -321,7 +426,7 @@ class YamlAsset(YamlBase):
                 if process_unit.shaft not in available_shaft_names:
                     available = ", ".join(sorted(available_shaft_names)) or "none"
                     raise ValueError(
-                        f"Process unit '{process_unit.name}' in process pipeline "
+                        f"Process unit '{process_unit.compressor}' in process pipeline "
                         f"'{pipeline_name}' references unknown shaft '{process_unit.shaft}'. "
                         f"Available shafts in SHAFTS: {available}."
                     )

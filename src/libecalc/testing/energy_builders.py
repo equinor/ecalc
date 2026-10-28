@@ -29,6 +29,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import
     YamlTurbineCurve,
     YamlTurbineDefinition,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.testing.yaml_builder import Builder
 
@@ -489,6 +490,7 @@ class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
     def __init__(self):
         self.type = "COMPRESSOR_SAMPLED"
         self.name = None
+        self.compressor = None
         self.input = None
         self.file = None
         self.rate = None
@@ -497,6 +499,10 @@ class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
 
     def with_name(self, name: str) -> Self:
         self.name = name
+        return self
+
+    def with_compressor(self, compressor: CompressorReference) -> Self:
+        self.compressor = compressor
         return self
 
     def with_input(self, input: str) -> Self:
@@ -521,6 +527,7 @@ class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
 
     def with_test_data(self) -> Self:
         self.name = "gas_compressor_sampled"
+        self.compressor = "default_sampled_compressor"
         self.input = "fuel_gas"
         self.file = "gas_compressor_sampled.csv"
         self.rate = 2500000
