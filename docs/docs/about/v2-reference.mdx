@@ -20,26 +20,19 @@ Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" ve
 
 <LifecycleFilter />
 
-<div data-lifecycle-section>
-
-## YAML_VERSION
+## YAML_VERSION \{#yaml_version}
 
 The eCalc YAML schema major version. Determines which root elements are available. Only the major version is tracked, e.g. YAML_VERSION: 2 allows any 2.x.y root elements. Defaults to 1 if not specified.
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## DEFINITIONS <LifecycleBadge kind="introduced" version="2" />
+## DEFINITIONS <LifecycleBadge kind="introduced" version="2" /> \{#definitions}
 
 Contains reusable definitions.
 
-### PROCESS_UNITS
+### PROCESS_UNITS \{#process_units}
 
 Defines process units used in PROCESS_PIPELINES.
 
-#### COMPRESSOR
+#### COMPRESSOR \{#compressor}
 
 A Compressor process unit
 
@@ -48,28 +41,28 @@ A Compressor process unit
 | Key | Description | Status |
 | --- | --- | --- |
 | `TYPE` | `COMPRESSOR` | Required |
-| [`COMPRESSOR_MODEL`](#definitions-process-units-compressor-compressor-model) |  | Required |
+| [`COMPRESSOR_MODEL`](#definitions-process_units-compressor-compressor_model) |  | Required |
 
-##### COMPRESSOR_MODEL {/* #definitions-process-units-compressor-compressor-model */}
+##### COMPRESSOR_MODEL \{#definitions-process_units-compressor-compressor_model}
 
 <YamlCodeBlock>{"TYPE: COMPRESSOR_CHART\nCHART: ...\nCONTROL_MARGIN:\n  UNIT: FRACTION\n  VALUE: 0.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `TYPE` | `COMPRESSOR_CHART` | Required |
-| [`CHART`](#definitions-process-units-compressor-compressor-model-chart) |  | Required |
-| [`CONTROL_MARGIN`](#definitions-process-units-compressor-compressor-model-control-margin) |  | Required |
+| [`CHART`](#definitions-process_units-compressor-compressor_model-chart) |  | Required |
+| [`CONTROL_MARGIN`](#definitions-process_units-compressor-compressor_model-control_margin) |  | Required |
 
-##### CHART {/* #definitions-process-units-compressor-compressor-model-chart */}
+##### CHART \{#definitions-process_units-compressor-compressor_model-chart}
 
 <YamlCodeBlock>{"CURVES: ...\nUNITS:\n  RATE: AM3_PER_HOUR\n  HEAD: M\n  EFFICIENCY: FRACTION"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`CURVES`](#definitions-process-units-compressor-compressor-model-chart-curves) | Compressor chart curves, one per speed. | Required |
-| [`UNITS`](#definitions-process-units-compressor-compressor-model-chart-units) | Defines the units | Optional |
+| [`CURVES`](#definitions-process_units-compressor-compressor_model-chart-curves) | Compressor chart curves, one per speed. | Required |
+| [`UNITS`](#definitions-process_units-compressor-compressor_model-chart-units) | Defines the units | Optional |
 
-##### CURVES {/* #definitions-process-units-compressor-compressor-model-chart-curves */}
+##### CURVES \{#definitions-process_units-compressor-compressor_model-chart-curves}
 
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
@@ -95,7 +88,7 @@ A Compressor process unit
 
 </Tabs>
 
-##### UNITS {/* #definitions-process-units-compressor-compressor-model-chart-units */}
+##### UNITS \{#definitions-process_units-compressor-compressor_model-chart-units}
 
 Defines the units
 
@@ -105,14 +98,14 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
-##### CONTROL_MARGIN {/* #definitions-process-units-compressor-compressor-model-control-margin */}
+##### CONTROL_MARGIN \{#definitions-process_units-compressor-compressor_model-control_margin}
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `UNIT` |  | Required |
 | `VALUE` |  | Required |
 
-#### PRESSURE_DROPPER
+#### PRESSURE_DROPPER \{#pressure_dropper}
 
 A pressure dropper unit — reduces stream pressure by a fixed amount.
 
@@ -123,7 +116,7 @@ A pressure dropper unit — reduces stream pressure by a fixed amount.
 | `TYPE` | `PRESSURE_DROPPER` | Required |
 | `PRESSURE_DROP` | Pressure drop across the unit [bar]. | Required |
 
-#### TEMPERATURE_SETTER
+#### TEMPERATURE_SETTER \{#temperature_setter}
 
 A temperature setter unit — forces the stream to a specified temperature.
 
@@ -134,7 +127,7 @@ A temperature setter unit — forces the stream to a specified temperature.
 | `TYPE` | `TEMPERATURE_SETTER` | Required |
 | `TEMPERATURE` | Target temperature [Celsius]. | Required |
 
-#### LIQUID_REMOVER
+#### LIQUID_REMOVER \{#liquid_remover}
 
 A liquid remover (scrubber) unit — removes any condensed liquid from
 the stream, leaving only the gas phase.
@@ -147,7 +140,7 @@ No-op if the stream is already pure vapor.
 | --- | --- | --- |
 | `TYPE` | `LIQUID_REMOVER` | Required |
 
-#### MIXER
+#### MIXER \{#mixer}
 
 Mixes an external sidestream into the through-stream at an
 intermediate point in the pipeline.
@@ -157,9 +150,9 @@ intermediate point in the pipeline.
 | Key | Description | Status |
 | --- | --- | --- |
 | `TYPE` | `MIXER` | Required |
-| [`INLET_STREAM`](#definitions-process-units-mixer-inlet-stream) | Sidestream to mix in. Either a reference to a named stream or an inline stream definition. | Required |
+| [`INLET_STREAM`](#definitions-process_units-mixer-inlet_stream) | Sidestream to mix in. Either a reference to a named stream or an inline stream definition. | Required |
 
-##### INLET_STREAM {/* #definitions-process-units-mixer-inlet-stream */}
+##### INLET_STREAM \{#definitions-process_units-mixer-inlet_stream}
 
 Sidestream to mix in. Either a reference to a named stream or an inline stream definition.
 
@@ -169,9 +162,9 @@ Sidestream to mix in. Either a reference to a named stream or an inline stream d
 | `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
 | `TEMPERATURE` | Temperature in K. | Required |
 | `PRESSURE` | Pressure in Bara | Required |
-| [`RATE`](#definitions-process-units-mixer-inlet-stream-rate) | Rate with unit + value. | Required |
+| [`RATE`](#definitions-process_units-mixer-inlet_stream-rate) | Rate with unit + value. | Required |
 
-##### RATE {/* #definitions-process-units-mixer-inlet-stream-rate */}
+##### RATE \{#definitions-process_units-mixer-inlet_stream-rate}
 
 Rate with unit + value.
 
@@ -183,7 +176,7 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-#### SPLITTER
+#### SPLITTER \{#splitter}
 
 Removes a fixed rate from the through-stream at an
 intermediate point in the pipeline (e.g. fuel gas offtake).
@@ -193,9 +186,9 @@ intermediate point in the pipeline (e.g. fuel gas offtake).
 | Key | Description | Status |
 | --- | --- | --- |
 | `TYPE` | `SPLITTER` | Required |
-| [`OFFTAKE_RATE`](#definitions-process-units-splitter-offtake-rate) | Standard rate to split off. | Required |
+| [`OFFTAKE_RATE`](#definitions-process_units-splitter-offtake_rate) | Standard rate to split off. | Required |
 
-##### OFFTAKE_RATE {/* #definitions-process-units-splitter-offtake-rate */}
+##### OFFTAKE_RATE \{#definitions-process_units-splitter-offtake_rate}
 
 Standard rate to split off.
 
@@ -207,11 +200,11 @@ Standard rate to split off.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-### FLUIDS
+### FLUIDS \{#fluids}
 
 Defines fluids that can be referenced in inlet streams.
 
-#### PREDEFINED
+#### PREDEFINED \{#predefined}
 
 <YamlCodeBlock>{"TYPE: PREDEFINED\nEOS_MODEL: SRK\nGAS_TYPE: MEDIUM"}</YamlCodeBlock>
 
@@ -221,7 +214,7 @@ Defines fluids that can be referenced in inlet streams.
 | `EOS_MODEL` |  | Default: `SRK` |
 | `GAS_TYPE` |  | Default: `MEDIUM` |
 
-#### COMPOSITION
+#### COMPOSITION \{#composition}
 
 <YamlCodeBlock>{"TYPE: COMPOSITION\nEOS_MODEL: SRK\nCOMPOSITION:\n  methane: 90.0\n  ethane: 10.0"}</YamlCodeBlock>
 
@@ -231,7 +224,7 @@ Defines fluids that can be referenced in inlet streams.
 | `EOS_MODEL` |  | Default: `SRK` |
 | [`COMPOSITION`](#definitions-fluids-composition-composition) |  | Required |
 
-##### COMPOSITION {/* #definitions-fluids-composition-composition */}
+##### COMPOSITION \{#definitions-fluids-composition-composition}
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -247,21 +240,21 @@ Defines fluids that can be referenced in inlet streams.
 | `N_PENTANE` |  | Default: `0.0` |
 | `N_HEXANE` |  | Default: `0.0` |
 
-### TURBINES
+### TURBINES \{#turbines}
 
 Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of a GAS_TURBINE.
 
 <YamlCodeBlock>{"LOWER_HEATING_VALUE: 38.0\nCURVE:\n  LOAD:\n  - 2.352\n  - 4.589\n  - 6.853\n  EFFICIENCY:\n  - 0.138\n  - 0.21\n  - 0.255"}</YamlCodeBlock>
 
-#### LOWER_HEATING_VALUE
+#### LOWER_HEATING_VALUE \{#lower_heating_value}
 
 Lower heating value [MJ/Sm3] of the fuel.
 
-#### CURVE
+#### CURVE \{#curve}
 
 Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY columns.
 
-##### CURVE {/* #definitions-turbines-curve */}
+##### CURVE \{#definitions-turbines-curve}
 
 <Tabs>
 <TabItem value="TURBINECURVE" label="TURBINECURVE">
@@ -287,17 +280,17 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 
 </Tabs>
 
-### GENERATORS
+### GENERATORS \{#generators}
 
 Defines generators that can be referenced from GENERATOR units in the ENERGY_NETWORK. Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a GENERATOR.
 
 <YamlCodeBlock>{"CURVE:\n  POWER:\n  - 0.0\n  - 5.0\n  - 10.0\n  - 15.0\n  FUEL:\n  - 0.0\n  - 25000.0\n  - 48000.0\n  - 70000.0"}</YamlCodeBlock>
 
-#### CURVE
+#### CURVE \{#curve}
 
 Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
-##### CURVE {/* #definitions-generators-curve */}
+##### CURVE \{#definitions-generators-curve}
 
 <Tabs>
 <TabItem value="GENERATORCURVE" label="GENERATORCURVE">
@@ -323,16 +316,11 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 </Tabs>
 
-
-</div>
-
-<div data-lifecycle-section>
-
-## TIME_SERIES
+## TIME_SERIES \{#time_series}
 
 Defines the inputs for time dependent variables, or 'reservoir variables'.
 
-##### TIME_SERIES {/* #time-series */}
+##### TIME_SERIES \{#time_series}
 
 <Tabs>
 <TabItem value="DEFAULT" label="DEFAULT">
@@ -361,16 +349,11 @@ Defines the inputs for time dependent variables, or 'reservoir variables'.
 
 </Tabs>
 
-
-</div>
-
-<div data-lifecycle-section>
-
-## FACILITY_INPUTS
+## FACILITY_INPUTS \{#facility_inputs}
 
 Defines input files which characterize various facility elements.
 
-##### FACILITY_INPUTS {/* #facility-inputs */}
+##### FACILITY_INPUTS \{#facility_inputs}
 
 <Tabs>
 <TabItem value="ELECTRICITY2FUEL" label="ELECTRICITY2FUEL">
@@ -410,10 +393,10 @@ Defines input files which characterize various facility elements.
 | `NAME` | Name of the facility input. | Required |
 | `FILE` | Specifies the name of an input file. | Required |
 | `HEAD_MARGIN` | Adjustment of the head margin for power calibration. | Default: `0.0` |
-| [`UNITS`](#facility-inputs-pump-chart-single-speed-units) | Defines the units | Optional |
+| [`UNITS`](#facility_inputs-pump_chart_single_speed-units) | Defines the units | Optional |
 | `TYPE` | `PUMP_CHART_SINGLE_SPEED` | Required |
 
-##### UNITS {/* #facility-inputs-pump-chart-single-speed-units */}
+##### UNITS \{#facility_inputs-pump_chart_single_speed-units}
 
 Defines the units
 
@@ -432,10 +415,10 @@ Defines the units
 | `NAME` | Name of the facility input. | Required |
 | `FILE` | Specifies the name of an input file. | Required |
 | `HEAD_MARGIN` | Adjustment of the head margin for power calibration. | Default: `0.0` |
-| [`UNITS`](#facility-inputs-pump-chart-variable-speed-units) | Defines the units | Optional |
+| [`UNITS`](#facility_inputs-pump_chart_variable_speed-units) | Defines the units | Optional |
 | `TYPE` | `PUMP_CHART_VARIABLE_SPEED` | Required |
 
-##### UNITS {/* #facility-inputs-pump-chart-variable-speed-units */}
+##### UNITS \{#facility_inputs-pump_chart_variable_speed-units}
 
 Defines the units
 
@@ -449,16 +432,11 @@ Defines the units
 
 </Tabs>
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-deprecated="2">
-
-## FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" />
+## FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" /> \{#fluid_models}
 
 Defines fluid models that can be referenced by inlet streams.
 
-##### FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" /> {/* #fluid-models */}
+##### FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" /> \{#fluid_models}
 
 <Tabs>
 <TabItem value="FLUID" label="FLUID">
@@ -477,13 +455,13 @@ Defines fluid models that can be referenced by inlet streams.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`COMPOSITION`](#fluid-models-yamlcompositionfluidmodel-composition) | Components in fluid and amount (relative to the others) in mole weights | Required |
+| [`COMPOSITION`](#fluid_models-yamlcompositionfluidmodel-composition) | Components in fluid and amount (relative to the others) in mole weights | Required |
 | `EOS_MODEL` |  | Default: `SRK` |
 | `FLUID_MODEL_TYPE` | `COMPOSITION` | Default: `COMPOSITION` |
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `TYPE` | `FLUID` | Default: `FLUID` |
 
-##### COMPOSITION {/* #fluid-models-yamlcompositionfluidmodel-composition */}
+##### COMPOSITION \{#fluid_models-yamlcompositionfluidmodel-composition}
 
 Components in fluid and amount (relative to the others) in mole weights
 
@@ -505,12 +483,7 @@ Components in fluid and amount (relative to the others) in mole weights
 
 </Tabs>
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## INLET_STREAMS <LifecycleBadge kind="introduced" version="2" />
+## INLET_STREAMS <LifecycleBadge kind="introduced" version="2" /> \{#inlet_streams}
 
 Defines inlet streams that can be referenced by process system and stream distribution.
 
@@ -522,9 +495,9 @@ Defines inlet streams that can be referenced by process system and stream distri
 | `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
 | `TEMPERATURE` | Temperature in K. | Required |
 | `PRESSURE` | Pressure in Bara | Required |
-| [`RATE`](#inlet-streams-rate) | Rate with unit + value. | Required |
+| [`RATE`](#inlet_streams-rate) | Rate with unit + value. | Required |
 
-##### RATE {/* #inlet-streams-rate */}
+##### RATE \{#inlet_streams-rate}
 
 Rate with unit + value.
 
@@ -538,16 +511,11 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-deprecated="2">
-
-## MODELS <LifecycleBadge kind="deprecated" version="2" />
+## MODELS <LifecycleBadge kind="deprecated" version="2" /> \{#models}
 
 Defines input files which characterize various facility elements.
 
-##### MODELS <LifecycleBadge kind="deprecated" version="2" /> {/* #models */}
+##### MODELS <LifecycleBadge kind="deprecated" version="2" /> \{#models}
 
 <Tabs>
 <TabItem value="COMPRESSOR_CHART" label="COMPRESSOR_CHART">
@@ -557,10 +525,10 @@ Defines input files which characterize various facility elements.
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `TYPE` | `COMPRESSOR_CHART` | Default: `COMPRESSOR_CHART` |
 | `CHART_TYPE` | `SINGLE_SPEED` | Default: `SINGLE_SPEED` |
-| [`CURVE`](#models-compressor-chart-curve) | One single compressor chart curve. | Required |
-| [`UNITS`](#models-compressor-chart-units) | Defines the units | Optional |
+| [`CURVE`](#models-compressor_chart-curve) | One single compressor chart curve. | Required |
+| [`UNITS`](#models-compressor_chart-units) | Defines the units | Optional |
 
-##### CURVE {/* #models-compressor-chart-curve */}
+##### CURVE \{#models-compressor_chart-curve}
 
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
@@ -584,7 +552,7 @@ Defines input files which characterize various facility elements.
 
 </Tabs>
 
-##### UNITS {/* #models-compressor-chart-units */}
+##### UNITS \{#models-compressor_chart-units}
 
 Defines the units
 
@@ -606,7 +574,7 @@ Defines the units
 | [`CURVES`](#models-yamlvariablespeedchart-curves) | Compressor chart curves, one per speed. | Required |
 | [`UNITS`](#models-yamlvariablespeedchart-units) | Defines the units | Optional |
 
-##### CURVES {/* #models-yamlvariablespeedchart-curves */}
+##### CURVES \{#models-yamlvariablespeedchart-curves}
 
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
@@ -630,7 +598,7 @@ Defines the units
 
 </Tabs>
 
-##### UNITS {/* #models-yamlvariablespeedchart-units */}
+##### UNITS \{#models-yamlvariablespeedchart-units}
 
 Defines the units
 
@@ -654,7 +622,7 @@ Defines the units
 | `DESIGN_HEAD` | Design head for generic compressor chart | Required |
 | [`UNITS`](#models-yamlgenericfromdesignpointchart-units) |  | Required |
 
-##### UNITS {/* #models-yamlgenericfromdesignpointchart-units */}
+##### UNITS \{#models-yamlgenericfromdesignpointchart-units}
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -674,7 +642,7 @@ Defines the units
 | `POLYTROPIC_EFFICIENCY` | Polytropic efficiency for compressor chart | Required |
 | [`UNITS`](#models-yamlgenericfrominputchart-units) | Defines the units | Optional |
 
-##### UNITS {/* #models-yamlgenericfrominputchart-units */}
+##### UNITS \{#models-yamlgenericfrominputchart-units}
 
 Defines the units
 
@@ -721,7 +689,7 @@ Defines the units
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `TYPE` | `FLUID` | Default: `FLUID` |
 
-##### COMPOSITION {/* #models-yamlcompositionfluidmodel-composition */}
+##### COMPOSITION \{#models-yamlcompositionfluidmodel-composition}
 
 Components in fluid and amount (relative to the others) in mole weights
 
@@ -762,22 +730,22 @@ Components in fluid and amount (relative to the others) in mole weights
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `MAXIMUM_POWER` | Optional constant MW maximum power the compressor train can require | Optional |
 | `TYPE` | `VARIABLE_SPEED_COMPRESSOR_TRAIN` | Required |
-| [`COMPRESSOR_TRAIN`](#models-variable-speed-compressor-train-compressor-train) | Compressor train definition | Required |
+| [`COMPRESSOR_TRAIN`](#models-variable_speed_compressor_train-compressor_train) | Compressor train definition | Required |
 | `PRESSURE_CONTROL` | Method for pressure control | Default: `YamlPressureControl.DOWNSTREAM_CHOKE` |
 | `CALCULATE_MAX_RATE` | Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. | Default: `False` |
 | `POWER_ADJUSTMENT_CONSTANT` | Constant to adjust power usage in MW | Default: `0.0` |
 | `POWER_ADJUSTMENT_FACTOR` | Factor to adjust power usage in MW | Default: `1.0` |
 | `FLUID_MODEL` | Reference to a fluid model | Required |
 
-##### COMPRESSOR_TRAIN {/* #models-variable-speed-compressor-train-compressor-train */}
+##### COMPRESSOR_TRAIN \{#models-variable_speed_compressor_train-compressor_train}
 
 Compressor train definition
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`STAGES`](#models-variable-speed-compressor-train-compressor-train-stages) | List of compressor stages | Required |
+| [`STAGES`](#models-variable_speed_compressor_train-compressor_train-stages) | List of compressor stages | Required |
 
-##### STAGES {/* #models-variable-speed-compressor-train-compressor-train-stages */}
+##### STAGES \{#models-variable_speed_compressor_train-compressor_train-stages}
 
 List of compressor stages
 
@@ -798,22 +766,22 @@ List of compressor stages
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `MAXIMUM_POWER` | Optional constant MW maximum power the compressor train can require | Optional |
 | `TYPE` | `SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN` | Required |
-| [`COMPRESSOR_TRAIN`](#models-simplified-variable-speed-compressor-train-compressor-train) | Compressor train definition | Required |
+| [`COMPRESSOR_TRAIN`](#models-simplified_variable_speed_compressor_train-compressor_train) | Compressor train definition | Required |
 | `CALCULATE_MAX_RATE` | Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. | Default: `False` |
 | `FLUID_MODEL` | Reference to a fluid model | Required |
 | `POWER_ADJUSTMENT_CONSTANT` | Constant to adjust power usage in MW | Default: `0.0` |
 | `POWER_ADJUSTMENT_FACTOR` | Factor to adjust power usage in MW | Default: `1.0` |
 
-##### COMPRESSOR_TRAIN {/* #models-simplified-variable-speed-compressor-train-compressor-train */}
+##### COMPRESSOR_TRAIN \{#models-simplified_variable_speed_compressor_train-compressor_train}
 
 <Tabs>
 <TabItem value="YAMLCOMPRESSORSTAGES[YAMLCOMPRESSORSTAGE]" label="YAMLCOMPRESSORSTAGES[YAMLCOMPRESSORSTAGE]">
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`STAGES`](#models-simplified-variable-speed-compressor-train-compressor-train-yamlcompressorstages[yamlcompressorstage]-stages) | List of compressor stages | Required |
+| [`STAGES`](#models-simplified_variable_speed_compressor_train-compressor_train-yamlcompressorstages[yamlcompressorstage]-stages) | List of compressor stages | Required |
 
-##### STAGES {/* #models-simplified-variable-speed-compressor-train-compressor-train-yamlcompressorstages[yamlcompressorstage]-stages */}
+##### STAGES \{#models-simplified_variable_speed_compressor_train-compressor_train-yamlcompressorstages[yamlcompressorstage]-stages}
 
 List of compressor stages
 
@@ -845,7 +813,7 @@ List of compressor stages
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `MAXIMUM_POWER` | Optional constant MW maximum power the compressor train can require | Optional |
 | `TYPE` | `SINGLE_SPEED_COMPRESSOR_TRAIN` | Required |
-| [`COMPRESSOR_TRAIN`](#models-single-speed-compressor-train-compressor-train) | Compressor train definition | Required |
+| [`COMPRESSOR_TRAIN`](#models-single_speed_compressor_train-compressor_train) | Compressor train definition | Required |
 | `PRESSURE_CONTROL` | Method for pressure control | Default: `YamlPressureControl.DOWNSTREAM_CHOKE` |
 | `MAXIMUM_DISCHARGE_PRESSURE` | Maximum discharge pressure in bar (can only use if pressure control is DOWNSTREAM_CHOKE) | Optional |
 | `CALCULATE_MAX_RATE` | Optional compressor train max standard rate [Sm3/day] in result if set to true. Default false. Use with caution. This will increase runtime significantly. | Default: `False` |
@@ -853,15 +821,15 @@ List of compressor stages
 | `POWER_ADJUSTMENT_FACTOR` | Factor to adjust power usage in MW | Default: `1.0` |
 | `FLUID_MODEL` | Reference to a fluid model | Required |
 
-##### COMPRESSOR_TRAIN {/* #models-single-speed-compressor-train-compressor-train */}
+##### COMPRESSOR_TRAIN \{#models-single_speed_compressor_train-compressor_train}
 
 Compressor train definition
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`STAGES`](#models-single-speed-compressor-train-compressor-train-stages) | List of compressor stages | Required |
+| [`STAGES`](#models-single_speed_compressor_train-compressor_train-stages) | List of compressor stages | Required |
 
-##### STAGES {/* #models-single-speed-compressor-train-compressor-train-stages */}
+##### STAGES \{#models-single_speed_compressor_train-compressor_train-stages}
 
 List of compressor stages
 
@@ -882,13 +850,13 @@ List of compressor stages
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `MAXIMUM_POWER` | Optional constant MW maximum power the compressor train can require | Optional |
 | `TYPE` | `VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES` | Required |
-| [`STREAMS`](#models-variable-speed-compressor-train-multiple-streams-and-pressures-streams) | A list of all in- and out-going streams for the compressor train. The same equation of state (EOS) must be used for each INGOING stream fluid models | Required |
-| [`STAGES`](#models-variable-speed-compressor-train-multiple-streams-and-pressures-stages) | A list of all stages in compressor model. | Required |
+| [`STREAMS`](#models-variable_speed_compressor_train_multiple_streams_and_pressures-streams) | A list of all in- and out-going streams for the compressor train. The same equation of state (EOS) must be used for each INGOING stream fluid models | Required |
+| [`STAGES`](#models-variable_speed_compressor_train_multiple_streams_and_pressures-stages) | A list of all stages in compressor model. | Required |
 | `PRESSURE_CONTROL` | Method for pressure control | Default: `YamlPressureControl.DOWNSTREAM_CHOKE` |
 | `POWER_ADJUSTMENT_CONSTANT` | Constant to adjust power usage in MW | Default: `0.0` |
 | `POWER_ADJUSTMENT_FACTOR` | Factor to adjust power usage in MW | Default: `1.0` |
 
-##### STREAMS {/* #models-variable-speed-compressor-train-multiple-streams-and-pressures-streams */}
+##### STREAMS \{#models-variable_speed_compressor_train_multiple_streams_and_pressures-streams}
 
 <Tabs>
 <TabItem value="INGOING" label="INGOING">
@@ -912,7 +880,7 @@ List of compressor stages
 
 </Tabs>
 
-##### STAGES {/* #models-variable-speed-compressor-train-multiple-streams-and-pressures-stages */}
+##### STAGES \{#models-variable_speed_compressor_train_multiple_streams_and_pressures-stages}
 
 A list of all stages in compressor model.
 
@@ -924,9 +892,9 @@ A list of all stages in compressor model.
 | `CONTROL_MARGIN` | Surge control margin, see documentation for more details. | Required |
 | `CONTROL_MARGIN_UNIT` | The unit of the surge control margin. | Required |
 | `STREAM` | Reference to stream from STREAMS. | Optional |
-| [`INTERSTAGE_CONTROL_PRESSURE`](#models-variable-speed-compressor-train-multiple-streams-and-pressures-stages-interstage-control-pressure) | Pressure control. Can only be specified for one (only one) of the stages 2, ..., N. | Optional |
+| [`INTERSTAGE_CONTROL_PRESSURE`](#models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-interstage_control_pressure) | Pressure control. Can only be specified for one (only one) of the stages 2, ..., N. | Optional |
 
-##### INTERSTAGE_CONTROL_PRESSURE {/* #models-variable-speed-compressor-train-multiple-streams-and-pressures-stages-interstage-control-pressure */}
+##### INTERSTAGE_CONTROL_PRESSURE \{#models-variable_speed_compressor_train_multiple_streams_and_pressures-stages-interstage_control_pressure}
 
 Pressure control. Can only be specified for one (only one) of the stages 2, ..., N.
 
@@ -939,12 +907,7 @@ Pressure control. Can only be specified for one (only one) of the stages 2, ...,
 
 </Tabs>
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-deprecated="2">
-
-## FUEL_TYPES <LifecycleBadge kind="deprecated" version="2" />
+## FUEL_TYPES <LifecycleBadge kind="deprecated" version="2" /> \{#fuel_types}
 
 Specifies the various fuel types and associated emissions used in the model.
 
@@ -952,10 +915,10 @@ Specifies the various fuel types and associated emissions used in the model.
 | --- | --- | --- |
 | `NAME` | Name of the fuel. | Required |
 | `CATEGORY` | Output category/tag. | Optional |
-| [`EMISSIONS`](#fuel-types-emissions) | Emission types and their attributes for this fuel. | Required |
+| [`EMISSIONS`](#fuel_types-emissions) | Emission types and their attributes for this fuel. | Required |
 | `LOWER_HEATING_VALUE` | Warning! Deprecated. Does not have any effect. Lower heating value [MJ/Sm3] of fuel. Lower heating value is also known as net calorific value | Optional |
 
-##### EMISSIONS {/* #fuel-types-emissions */}
+##### EMISSIONS \{#fuel_types-emissions}
 
 Emission types and their attributes for this fuel.
 
@@ -964,12 +927,7 @@ Emission types and their attributes for this fuel.
 | `NAME` | Name of the emission. | Required |
 | `FACTOR` | Emission factor for fuel in kg emission/Sm3 fuel. May be a constant number or an expression using vectors from a time series input. | Required |
 
-
-</div>
-
-<div data-lifecycle-section>
-
-## VARIABLES
+## VARIABLES \{#variables}
 
 Defines variables used in an energy usage model by means of expressions or constants.
 
@@ -977,12 +935,7 @@ Defines variables used in an energy usage model by means of expressions or const
 | --- | --- | --- |
 | `VALUE` |  | Required |
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## SHAFTS <LifecycleBadge kind="introduced" version="2" />
+## SHAFTS <LifecycleBadge kind="introduced" version="2" /> \{#shafts}
 
 Defines named shafts representing mechanical connections between drivers and driven equipment.
 
@@ -992,12 +945,7 @@ Defines named shafts representing mechanical connections between drivers and dri
 | --- | --- | --- |
 | `NAME` | Unique name of the shaft. | Required |
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## PROCESS_PIPELINES <LifecycleBadge kind="introduced" version="2" />
+## PROCESS_PIPELINES <LifecycleBadge kind="introduced" version="2" /> \{#process_pipelines}
 
 Defines process pipelines to use in process simulations.
 
@@ -1006,10 +954,10 @@ Defines process pipelines to use in process simulations.
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` |  | Required |
-| [`PROCESS_UNITS`](#process-pipelines-process-units) |  | Required |
-| [`EVENTS`](#process-pipelines-events) | Events that modify the pipeline over time, such as rebundling a compressor. | Default: `[]` |
+| [`PROCESS_UNITS`](#process_pipelines-process_units) |  | Required |
+| [`EVENTS`](#process_pipelines-events) | Events that modify the pipeline over time, such as rebundling a compressor. | Default: `[]` |
 
-##### PROCESS_UNITS {/* #process-pipelines-process-units */}
+##### PROCESS_UNITS \{#process_pipelines-process_units}
 
 <Tabs>
 <TabItem value="COMPRESSOR_PROCESS_UNIT" label="COMPRESSOR_PROCESS_UNIT">
@@ -1033,7 +981,7 @@ Defines process pipelines to use in process simulations.
 
 </Tabs>
 
-##### EVENTS {/* #process-pipelines-events */}
+##### EVENTS \{#process_pipelines-events}
 
 Events that modify the pipeline over time, such as rebundling a compressor.
 
@@ -1046,12 +994,7 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
 | `REF` | Reference to a PROCESS_EVENT by name. | Required |
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" />
+## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" /> \{#process_simulations}
 
 Defines one or more process simulations to be run.
 
@@ -1061,10 +1004,10 @@ Defines one or more process simulations to be run.
 | --- | --- | --- |
 | `NAME` |  | Required |
 | `TARGETS` |  | Required |
-| [`STREAM_DISTRIBUTION`](#process-simulations-stream-distribution) |  | Required |
-| [`CONSTRAINTS`](#process-simulations-constraints) | Constraints per target. Key is pipeline name, value is list of constraints. | Required |
+| [`STREAM_DISTRIBUTION`](#process_simulations-stream_distribution) |  | Required |
+| [`CONSTRAINTS`](#process_simulations-constraints) | Constraints per target. Key is pipeline name, value is list of constraints. | Required |
 
-##### STREAM_DISTRIBUTION {/* #process-simulations-stream-distribution */}
+##### STREAM_DISTRIBUTION \{#process_simulations-stream_distribution}
 
 <Tabs>
 <TabItem value="COMMON_STREAM" label="COMMON_STREAM">
@@ -1074,10 +1017,10 @@ Defines one or more process simulations to be run.
 | Key | Description | Status |
 | --- | --- | --- |
 | `METHOD` | `COMMON_STREAM` | Required |
-| [`INLET_STREAM`](#process-simulations-stream-distribution-common-stream-inlet-stream) |  | Required |
-| [`SETTINGS`](#process-simulations-stream-distribution-common-stream-settings) |  | Required |
+| [`INLET_STREAM`](#process_simulations-stream_distribution-common_stream-inlet_stream) |  | Required |
+| [`SETTINGS`](#process_simulations-stream_distribution-common_stream-settings) |  | Required |
 
-##### INLET_STREAM {/* #process-simulations-stream-distribution-common-stream-inlet-stream */}
+##### INLET_STREAM \{#process_simulations-stream_distribution-common_stream-inlet_stream}
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1085,9 +1028,9 @@ Defines one or more process simulations to be run.
 | `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
 | `TEMPERATURE` | Temperature in K. | Required |
 | `PRESSURE` | Pressure in Bara | Required |
-| [`RATE`](#process-simulations-stream-distribution-common-stream-inlet-stream-rate) | Rate with unit + value. | Required |
+| [`RATE`](#process_simulations-stream_distribution-common_stream-inlet_stream-rate) | Rate with unit + value. | Required |
 
-##### RATE {/* #process-simulations-stream-distribution-common-stream-inlet-stream-rate */}
+##### RATE \{#process_simulations-stream_distribution-common_stream-inlet_stream-rate}
 
 Rate with unit + value.
 
@@ -1099,14 +1042,14 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-##### SETTINGS {/* #process-simulations-stream-distribution-common-stream-settings */}
+##### SETTINGS \{#process_simulations-stream_distribution-common_stream-settings}
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `RATE_FRACTIONS` |  | Required |
-| [`OVERFLOW`](#process-simulations-stream-distribution-common-stream-settings-overflow) |  | Optional |
+| [`OVERFLOW`](#process_simulations-stream_distribution-common_stream-settings-overflow) |  | Optional |
 
-##### OVERFLOW {/* #process-simulations-stream-distribution-common-stream-settings-overflow */}
+##### OVERFLOW \{#process_simulations-stream_distribution-common_stream-settings-overflow}
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1122,9 +1065,9 @@ Rate with unit + value.
 | Key | Description | Status |
 | --- | --- | --- |
 | `METHOD` | `INDIVIDUAL_STREAMS` | Required |
-| [`INLET_STREAMS`](#process-simulations-stream-distribution-individual-streams-inlet-streams) |  | Required |
+| [`INLET_STREAMS`](#process_simulations-stream_distribution-individual_streams-inlet_streams) |  | Required |
 
-##### INLET_STREAMS {/* #process-simulations-stream-distribution-individual-streams-inlet-streams */}
+##### INLET_STREAMS \{#process_simulations-stream_distribution-individual_streams-inlet_streams}
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1132,9 +1075,9 @@ Rate with unit + value.
 | `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
 | `TEMPERATURE` | Temperature in K. | Required |
 | `PRESSURE` | Pressure in Bara | Required |
-| [`RATE`](#process-simulations-stream-distribution-individual-streams-inlet-streams-rate) | Rate with unit + value. | Required |
+| [`RATE`](#process_simulations-stream_distribution-individual_streams-inlet_streams-rate) | Rate with unit + value. | Required |
 
-##### RATE {/* #process-simulations-stream-distribution-individual-streams-inlet-streams-rate */}
+##### RATE \{#process_simulations-stream_distribution-individual_streams-inlet_streams-rate}
 
 Rate with unit + value.
 
@@ -1150,7 +1093,7 @@ Rate with unit + value.
 
 </Tabs>
 
-##### CONSTRAINTS {/* #process-simulations-constraints */}
+##### CONSTRAINTS \{#process_simulations-constraints}
 
 Constraints per target. Key is pipeline name, value is list of constraints.
 
@@ -1161,12 +1104,7 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" />
+## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" /> \{#ecalc_events}
 
 Defines eCalc events associated with temporal model changes
 
@@ -1179,18 +1117,13 @@ Defines eCalc events associated with temporal model changes
 | `NAME` | Short identifier for the event. | Required |
 | `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" />
+## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" /> \{#energy_network}
 
 Defines the energy network configuration.
 
 <YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  TYPE: GENERATOR\n  MODEL:\n    CURVE:\n      POWER:\n      - 0.0\n      - 5.0\n      - 10.0\n      - 15.0\n      FUEL:\n      - 0.0\n      - 25000.0\n      - 48000.0\n      - 70000.0\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
 
-### SOURCES
+### SOURCES \{#sources}
 
 External energy entering the system (fuel gas, electrical, diesel).
 
@@ -1202,11 +1135,11 @@ External energy entering the system (fuel gas, electrical, diesel).
 | `TYPE` | Type of external energy source. | Required |
 | `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
 
-### UNITS
+### UNITS \{#units}
 
 Converters, junctions, and consumers forming the energy network.
 
-##### UNITS {/* #energy-network-units */}
+##### UNITS \{#energy_network-units}
 
 <Tabs>
 <TabItem value="GENERATOR" label="GENERATOR">
@@ -1270,11 +1203,11 @@ Converters, junctions, and consumers forming the energy network.
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
-| [`INPUT`](#energy-network-units-electrical-bus-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
+| [`INPUT`](#energy_network-units-electrical_bus-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
 | `DISPATCH_STRATEGY` | How to allocate demand across the inputs. | Required |
 | `TYPE` | `ELECTRICAL_BUS` | Required |
 
-##### INPUT {/* #energy-network-units-electrical-bus-input */}
+##### INPUT \{#energy_network-units-electrical_bus-input}
 
 At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead.
 
@@ -1292,11 +1225,11 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
-| [`INPUT`](#energy-network-units-fuel-gas-manifold-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
+| [`INPUT`](#energy_network-units-fuel_gas_manifold-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
 | `DISPATCH_STRATEGY` | How to allocate demand across the inputs. | Required |
 | `TYPE` | `FUEL_GAS_MANIFOLD` | Required |
 
-##### INPUT {/* #energy-network-units-fuel-gas-manifold-input */}
+##### INPUT \{#energy_network-units-fuel_gas_manifold-input}
 
 At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead.
 
@@ -1402,12 +1335,7 @@ tabulated.
 
 </Tabs>
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" />
+## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" /> \{#process_events}
 
 Defines process-specific events that reference global eCalc events.
 
@@ -1420,12 +1348,7 @@ Defines process-specific events that reference global eCalc events.
 | `DESCRIPTION` | Human-readable description of the process event. | Optional |
 | `REF` | Reference to a global ECALC_EVENT by name. | Required |
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## PUMP_PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" />
+## PUMP_PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" /> \{#pump_process_simulations}
 
 Defines one or more liquid pump process simulations to be run.
 
@@ -1433,18 +1356,18 @@ Defines one or more liquid pump process simulations to be run.
 | --- | --- | --- |
 | `TYPE` | `PUMP` | Required |
 | `NAME` |  | Required |
-| [`PUMP_MODEL`](#pump-process-simulations-pump-model) |  | Required |
-| [`INLET`](#pump-process-simulations-inlet) |  | Required |
+| [`PUMP_MODEL`](#pump_process_simulations-pump_model) |  | Required |
+| [`INLET`](#pump_process_simulations-inlet) |  | Required |
 | `REQUIRED_DISCHARGE_PRESSURE` | Required pump discharge pressure in bara. | Required |
 
-##### PUMP_MODEL {/* #pump-process-simulations-pump-model */}
+##### PUMP_MODEL \{#pump_process_simulations-pump_model}
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `CHART` | Reference to a pump chart defined in FACILITY_INPUTS. Inline definition or reference to [DEFINITIONS](#definitions). | Required |
 | `MINIMUM_FLOW_RATE` | Minimum pump flow in m3/h. Defaults to the chart minimum. | Optional |
 
-##### INLET {/* #pump-process-simulations-inlet */}
+##### INLET \{#pump_process_simulations-inlet}
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1452,12 +1375,7 @@ Defines one or more liquid pump process simulations to be run.
 | `PRESSURE` | Pump suction pressure in bara. | Required |
 | `DENSITY` | Liquid density in kg/m3. | Required |
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-deprecated="2">
-
-## INSTALLATIONS <LifecycleBadge kind="deprecated" version="2" />
+## INSTALLATIONS <LifecycleBadge kind="deprecated" version="2" /> \{#installations}
 
 Description of the system of energy consumers.
 
@@ -1470,9 +1388,9 @@ Description of the system of energy consumers.
 | `REGULARITY` | Regularity of the installation can be specified by a single number or as an expression. USE WITH CARE. | Default: `1` |
 | [`GENERATORSETS`](#installations-generatorsets) | Defines one or more generator sets. | Optional |
 | [`FUELCONSUMERS`](#installations-fuelconsumers) | Defines fuel consumers on the installation which are not generators. | Optional |
-| [`VENTING_EMITTERS`](#installations-venting-emitters) | Covers the direct emissions on the installation that are not consuming energy | Optional |
+| [`VENTING_EMITTERS`](#installations-venting_emitters) | Covers the direct emissions on the installation that are not consuming energy | Optional |
 
-##### GENERATORSETS {/* #installations-generatorsets */}
+##### GENERATORSETS \{#installations-generatorsets}
 
 Defines one or more generator sets.
 
@@ -1486,7 +1404,7 @@ Defines one or more generator sets.
 | `MAX_USAGE_FROM_SHORE` | The peak load/effect that is expected for one hour, per year (MW) | Optional |
 | [`CONSUMERS`](#installations-generatorsets-consumers) | Consumers getting electrical power from the generator set. | Required |
 
-##### CONSUMERS {/* #installations-generatorsets-consumers */}
+##### CONSUMERS \{#installations-generatorsets-consumers}
 
 Consumers getting electrical power from the generator set.
 
@@ -1495,9 +1413,9 @@ Consumers getting electrical power from the generator set.
 | `Type` | `ELECTRICITY_CONSUMER` | Default: `ELECTRICITY_CONSUMER` |
 | `NAME` | Name of the consumer. | Required |
 | `CATEGORY` | Output category/tag. | Required |
-| [`ENERGY_USAGE_MODEL`](#installations-generatorsets-consumers-energy-usage-model) | Definition of the energy usage model for the consumer. | Required |
+| [`ENERGY_USAGE_MODEL`](#installations-generatorsets-consumers-energy_usage_model) | Definition of the energy usage model for the consumer. | Required |
 
-##### ENERGY_USAGE_MODEL {/* #installations-generatorsets-consumers-energy-usage-model */}
+##### ENERGY_USAGE_MODEL \{#installations-generatorsets-consumers-energy_usage_model}
 
 <Tabs>
 <TabItem value="YAMLENERGYUSAGEMODELDIRECTELECTRICITY" label="YAMLENERGYUSAGEMODELDIRECTELECTRICITY">
@@ -1552,11 +1470,11 @@ Consumers getting electrical power from the generator set.
 | `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `COMPRESSOR_SYSTEM` | Required |
-| [`COMPRESSORS`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-compressors) | The compressors in a compressor system. | Required |
+| [`COMPRESSORS`](#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodelcompressorsystem-compressors) | The compressors in a compressor system. | Required |
 | `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-operational-settings) | Operational settings of the system. | Required |
+| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodelcompressorsystem-operational_settings) | Operational settings of the system. | Required |
 
-##### COMPRESSORS {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-compressors */}
+##### COMPRESSORS \{#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodelcompressorsystem-compressors}
 
 The compressors in a compressor system.
 
@@ -1565,7 +1483,7 @@ The compressors in a compressor system.
 | `NAME` | Name of the compressor | Required |
 | `COMPRESSOR_MODEL` | Reference to a compressor type facility model defined in FACILITY_INPUTS | Required |
 
-##### OPERATIONAL_SETTINGS {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-operational-settings */}
+##### OPERATIONAL_SETTINGS \{#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodelcompressorsystem-operational_settings}
 
 Operational settings of the system.
 
@@ -1589,12 +1507,12 @@ Operational settings of the system.
 | `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `PUMP_SYSTEM` | Required |
-| [`PUMPS`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelpumpsystem-pumps) | The pumps in a pump system. | Required |
+| [`PUMPS`](#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodelpumpsystem-pumps) | The pumps in a pump system. | Required |
 | `FLUID_DENSITY` | Density of the fluid in kg/m3. | Optional |
 | `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelpumpsystem-operational-settings) | Operational settings of the system. | Required |
+| [`OPERATIONAL_SETTINGS`](#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodelpumpsystem-operational_settings) | Operational settings of the system. | Required |
 
-##### PUMPS {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelpumpsystem-pumps */}
+##### PUMPS \{#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodelpumpsystem-pumps}
 
 The pumps in a pump system.
 
@@ -1603,7 +1521,7 @@ The pumps in a pump system.
 | `NAME` | Name of the pump | Required |
 | `COMPRESSOR_MODEL` | Reference to a pump type facility model defined in FACILITY_INPUTS | Required |
 
-##### OPERATIONAL_SETTINGS {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodelpumpsystem-operational-settings */}
+##### OPERATIONAL_SETTINGS \{#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodelpumpsystem-operational_settings}
 
 Operational settings of the system.
 
@@ -1629,9 +1547,9 @@ Operational settings of the system.
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `TABULATED` | Required |
 | `ENERGY_FUNCTION` | The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS | Required |
-| [`VARIABLES`](#installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodeltabulated-variables) | Variables for the tabulated energy function | Required |
+| [`VARIABLES`](#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodeltabulated-variables) | Variables for the tabulated energy function | Required |
 
-##### VARIABLES {/* #installations-generatorsets-consumers-energy-usage-model-yamlenergyusagemodeltabulated-variables */}
+##### VARIABLES \{#installations-generatorsets-consumers-energy_usage_model-yamlenergyusagemodeltabulated-variables}
 
 Variables for the tabulated energy function
 
@@ -1661,7 +1579,7 @@ Variables for the tabulated energy function
 
 </Tabs>
 
-##### FUELCONSUMERS {/* #installations-fuelconsumers */}
+##### FUELCONSUMERS \{#installations-fuelconsumers}
 
 Defines fuel consumers on the installation which are not generators.
 
@@ -1670,10 +1588,10 @@ Defines fuel consumers on the installation which are not generators.
 | `Type` | `FUEL_CONSUMER` | Default: `FUEL_CONSUMER` |
 | `NAME` | Name of the consumer. | Required |
 | `CATEGORY` | Output category/tag. | Required |
-| [`ENERGY_USAGE_MODEL`](#installations-fuelconsumers-energy-usage-model) | Definition of the energy usage model for the consumer. | Required |
+| [`ENERGY_USAGE_MODEL`](#installations-fuelconsumers-energy_usage_model) | Definition of the energy usage model for the consumer. | Required |
 | `FUEL` | The fuel used by the consumer. | Optional |
 
-##### ENERGY_USAGE_MODEL {/* #installations-fuelconsumers-energy-usage-model */}
+##### ENERGY_USAGE_MODEL \{#installations-fuelconsumers-energy_usage_model}
 
 <Tabs>
 <TabItem value="YAMLENERGYUSAGEMODELDIRECTFUEL" label="YAMLENERGYUSAGEMODELDIRECTFUEL">
@@ -1712,11 +1630,11 @@ Defines fuel consumers on the installation which are not generators.
 | `CONDITIONS` | Logical conditions for the consumer to be used. | Optional |
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `COMPRESSOR_SYSTEM` | Required |
-| [`COMPRESSORS`](#installations-fuelconsumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-compressors) | The compressors in a compressor system. | Required |
+| [`COMPRESSORS`](#installations-fuelconsumers-energy_usage_model-yamlenergyusagemodelcompressorsystem-compressors) | The compressors in a compressor system. | Required |
 | `TOTAL_SYSTEM_RATE` | Total fluid rate through the system | Optional |
-| [`OPERATIONAL_SETTINGS`](#installations-fuelconsumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-operational-settings) | Operational settings of the system. | Required |
+| [`OPERATIONAL_SETTINGS`](#installations-fuelconsumers-energy_usage_model-yamlenergyusagemodelcompressorsystem-operational_settings) | Operational settings of the system. | Required |
 
-##### COMPRESSORS {/* #installations-fuelconsumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-compressors */}
+##### COMPRESSORS \{#installations-fuelconsumers-energy_usage_model-yamlenergyusagemodelcompressorsystem-compressors}
 
 The compressors in a compressor system.
 
@@ -1725,7 +1643,7 @@ The compressors in a compressor system.
 | `NAME` | Name of the compressor | Required |
 | `COMPRESSOR_MODEL` | Reference to a compressor type facility model defined in FACILITY_INPUTS | Required |
 
-##### OPERATIONAL_SETTINGS {/* #installations-fuelconsumers-energy-usage-model-yamlenergyusagemodelcompressorsystem-operational-settings */}
+##### OPERATIONAL_SETTINGS \{#installations-fuelconsumers-energy_usage_model-yamlenergyusagemodelcompressorsystem-operational_settings}
 
 Operational settings of the system.
 
@@ -1750,9 +1668,9 @@ Operational settings of the system.
 | `POWERLOSSFACTOR` | A factor that may be added to account for power line losses. | Optional |
 | `TYPE` | `TABULATED` | Required |
 | `ENERGY_FUNCTION` | The tabulated energy function, reference to a tabular type facility model defined in FACILITY_INPUTS | Required |
-| [`VARIABLES`](#installations-fuelconsumers-energy-usage-model-yamlenergyusagemodeltabulated-variables) | Variables for the tabulated energy function | Required |
+| [`VARIABLES`](#installations-fuelconsumers-energy_usage_model-yamlenergyusagemodeltabulated-variables) | Variables for the tabulated energy function | Required |
 
-##### VARIABLES {/* #installations-fuelconsumers-energy-usage-model-yamlenergyusagemodeltabulated-variables */}
+##### VARIABLES \{#installations-fuelconsumers-energy_usage_model-yamlenergyusagemodeltabulated-variables}
 
 Variables for the tabulated energy function
 
@@ -1782,7 +1700,7 @@ Variables for the tabulated energy function
 
 </Tabs>
 
-##### VENTING_EMITTERS {/* #installations-venting-emitters */}
+##### VENTING_EMITTERS \{#installations-venting_emitters}
 
 <Tabs>
 <TabItem value="OIL_VOLUME" label="OIL_VOLUME">
@@ -1792,18 +1710,18 @@ Variables for the tabulated energy function
 | `NAME` | Name of venting emitter | Required |
 | `CATEGORY` | Output category/tag. | Required |
 | `TYPE` | `OIL_VOLUME` | Required |
-| [`VOLUME`](#installations-venting-emitters-oil-volume-volume) | The volume rate and emissions for the emitter of type OIL_VOLUME | Required |
+| [`VOLUME`](#installations-venting_emitters-oil_volume-volume) | The volume rate and emissions for the emitter of type OIL_VOLUME | Required |
 
-##### VOLUME {/* #installations-venting-emitters-oil-volume-volume */}
+##### VOLUME \{#installations-venting_emitters-oil_volume-volume}
 
 The volume rate and emissions for the emitter of type OIL_VOLUME
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`RATE`](#installations-venting-emitters-oil-volume-volume-rate) | The oil loading/storage volume or volume/rate | Required |
-| [`EMISSIONS`](#installations-venting-emitters-oil-volume-volume-emissions) | The emission types and volume-emission-factors associated with oil loading/storage | Required |
+| [`RATE`](#installations-venting_emitters-oil_volume-volume-rate) | The oil loading/storage volume or volume/rate | Required |
+| [`EMISSIONS`](#installations-venting_emitters-oil_volume-volume-emissions) | The emission types and volume-emission-factors associated with oil loading/storage | Required |
 
-##### RATE {/* #installations-venting-emitters-oil-volume-volume-rate */}
+##### RATE \{#installations-venting_emitters-oil_volume-volume-rate}
 
 The oil loading/storage volume or volume/rate
 
@@ -1819,7 +1737,7 @@ For more details, see: | Optional |
 
 For more details, see: | Optional |
 
-##### EMISSIONS {/* #installations-venting-emitters-oil-volume-volume-emissions */}
+##### EMISSIONS \{#installations-venting_emitters-oil_volume-volume-emissions}
 
 The emission types and volume-emission-factors associated with oil loading/storage
 
@@ -1837,18 +1755,18 @@ The emission types and volume-emission-factors associated with oil loading/stora
 | `NAME` | Name of venting emitter | Required |
 | `CATEGORY` | Output category/tag. | Required |
 | `TYPE` | `DIRECT_EMISSION` | Required |
-| [`EMISSIONS`](#installations-venting-emitters-direct-emission-emissions) | The emissions for the emitter of type DIRECT_EMISSION | Required |
+| [`EMISSIONS`](#installations-venting_emitters-direct_emission-emissions) | The emissions for the emitter of type DIRECT_EMISSION | Required |
 
-##### EMISSIONS {/* #installations-venting-emitters-direct-emission-emissions */}
+##### EMISSIONS \{#installations-venting_emitters-direct_emission-emissions}
 
 The emissions for the emitter of type DIRECT_EMISSION
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Name of emission | Required |
-| [`RATE`](#installations-venting-emitters-direct-emission-emissions-rate) | The emission rate | Required |
+| [`RATE`](#installations-venting_emitters-direct_emission-emissions-rate) | The emission rate | Required |
 
-##### RATE {/* #installations-venting-emitters-direct-emission-emissions-rate */}
+##### RATE \{#installations-venting_emitters-direct_emission-emissions-rate}
 
 The emission rate
 
@@ -1868,23 +1786,10 @@ For more details, see: | Optional |
 
 </Tabs>
 
-
-</div>
-
-<div data-lifecycle-section>
-
-## START
+## START \{#start}
 
 Global start date for eCalc calculations in &lt;YYYY-MM-DD&gt; format.
 
-
-</div>
-
-<div data-lifecycle-section>
-
-## END
+## END \{#end}
 
 Global end date for eCalc calculations in &lt;YYYY-MM-DD&gt; format.
-
-
-</div>

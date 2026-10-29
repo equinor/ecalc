@@ -134,18 +134,9 @@
   cursor: pointer;
 }
 
-/* Toggled by <LifecycleFilter> on <html>. Sections are wrapped with
-   `<div data-lifecycle-section data-lifecycle-introduced=... data-lifecycle-deprecated=...
-   data-lifecycle-removed=...>` by generate_yaml_asset_docs.py. */
-html.ecalc-hide-deprecated [data-lifecycle-deprecated] {
-  display: none;
-}
-
-html.ecalc-hide-removed [data-lifecycle-removed] {
-  display: none;
-}
-
-html.ecalc-only-introduced [data-lifecycle-section]:not([data-lifecycle-introduced]) {
-  display: none;
+/* Toggled by <LifecycleFilter> via JS on headings/sections, table rows, and
+   matching entries in the table-of-contents sidebar. */
+.lifecycle-hidden {
+  display: none !important;
 }
 

@@ -22,27 +22,25 @@ Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" ve
 
 <LifecycleFilter />
 
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## DEFINITIONS <LifecycleBadge kind="introduced" version="2" />
+## DEFINITIONS <LifecycleBadge kind="introduced" version="2" /> \{#definitions}
 
 Contains reusable definitions.
 
-### TURBINES
+### TURBINES \{#turbines}
 
 Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of a GAS_TURBINE.
 
 <YamlCodeBlock>{"LOWER_HEATING_VALUE: 38.0\nCURVE:\n  LOAD:\n  - 2.352\n  - 4.589\n  - 6.853\n  EFFICIENCY:\n  - 0.138\n  - 0.21\n  - 0.255"}</YamlCodeBlock>
 
-#### LOWER_HEATING_VALUE
+#### LOWER_HEATING_VALUE \{#lower_heating_value}
 
 Lower heating value [MJ/Sm3] of the fuel.
 
-#### CURVE
+#### CURVE \{#curve}
 
 Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY columns.
 
-##### CURVE {/* #definitions-turbines-curve */}
+##### CURVE \{#definitions-turbines-curve}
 
 <Tabs>
 <TabItem value="TURBINECURVE" label="TURBINECURVE">
@@ -68,17 +66,17 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 
 </Tabs>
 
-### GENERATORS
+### GENERATORS \{#generators}
 
 Defines generators that can be referenced from GENERATOR units in the ENERGY_NETWORK. Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a GENERATOR.
 
 <YamlCodeBlock>{"CURVE:\n  POWER:\n  - 0.0\n  - 5.0\n  - 10.0\n  - 15.0\n  FUEL:\n  - 0.0\n  - 25000.0\n  - 48000.0\n  - 70000.0"}</YamlCodeBlock>
 
-#### CURVE
+#### CURVE \{#curve}
 
 Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
-##### CURVE {/* #definitions-generators-curve */}
+##### CURVE \{#definitions-generators-curve}
 
 <Tabs>
 <TabItem value="GENERATORCURVE" label="GENERATORCURVE">
@@ -104,18 +102,13 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 </Tabs>
 
-
-</div>
-
-<div data-lifecycle-section data-lifecycle-introduced="2">
-
-## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" />
+## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" /> \{#energy_network}
 
 Defines the energy network configuration.
 
 <YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  TYPE: GENERATOR\n  MODEL:\n    CURVE:\n      POWER:\n      - 0.0\n      - 5.0\n      - 10.0\n      - 15.0\n      FUEL:\n      - 0.0\n      - 25000.0\n      - 48000.0\n      - 70000.0\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
 
-### SOURCES
+### SOURCES \{#sources}
 
 External energy entering the system (fuel gas, electrical, diesel).
 
@@ -127,11 +120,11 @@ External energy entering the system (fuel gas, electrical, diesel).
 | `TYPE` | Type of external energy source. | Required |
 | `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
 
-### UNITS
+### UNITS \{#units}
 
 Converters, junctions, and consumers forming the energy network.
 
-##### UNITS {/* #energy-network-units */}
+##### UNITS \{#energy_network-units}
 
 <Tabs>
 <TabItem value="GENERATOR" label="GENERATOR">
@@ -195,11 +188,11 @@ Converters, junctions, and consumers forming the energy network.
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
-| [`INPUT`](#energy-network-units-electrical-bus-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
+| [`INPUT`](#energy_network-units-electrical_bus-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
 | `DISPATCH_STRATEGY` | How to allocate demand across the inputs. | Required |
 | `TYPE` | `ELECTRICAL_BUS` | Required |
 
-##### INPUT {/* #energy-network-units-electrical-bus-input */}
+##### INPUT \{#energy_network-units-electrical_bus-input}
 
 At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead.
 
@@ -217,11 +210,11 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
-| [`INPUT`](#energy-network-units-fuel-gas-manifold-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
+| [`INPUT`](#energy_network-units-fuel_gas_manifold-input) | At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead. | Required |
 | `DISPATCH_STRATEGY` | How to allocate demand across the inputs. | Required |
 | `TYPE` | `FUEL_GAS_MANIFOLD` | Required |
 
-##### INPUT {/* #energy-network-units-fuel-gas-manifold-input */}
+##### INPUT \{#energy_network-units-fuel_gas_manifold-input}
 
 At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead.
 
@@ -326,6 +319,3 @@ tabulated.
 </TabItem>
 
 </Tabs>
-
-
-</div>

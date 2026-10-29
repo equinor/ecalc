@@ -9,6 +9,7 @@ from pydantic import BaseModel, BeforeValidator, WithJsonSchema
 from pydantic.fields import FieldInfo
 
 from libecalc.common.version import Version
+from libecalc.version import current_yaml_version
 
 MAJOR_VERSION_PATTERN = r"^\d+$"
 
@@ -29,7 +30,7 @@ def _parse_major_version(value: int | str) -> int:
 YamlMajorVersion = Annotated[
     int,
     BeforeValidator(_parse_major_version),
-    WithJsonSchema({"type": "integer", "minimum": 1}),
+    WithJsonSchema({"type": "integer", "minimum": 1, "maximum": current_yaml_version().major}),
 ]
 """
 A pydantic-compatible field type for the declared document YAML_VERSION.
@@ -47,6 +48,8 @@ does not represent minor or patch.
 # and to easy find all changes related to a version later, manually or automatically
 V1 = Version(1, 0, 0)
 V2 = Version(2, 0, 0)
+V3 = Version(3, 0, 0)
+V4 = Version(4, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
 

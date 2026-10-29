@@ -730,8 +730,12 @@ class MarkdownBuilder:
     def __init__(self):
         self._lines: list[str] = []
 
-    def heading(self, level: int, text: str, suffix: str = "") -> MarkdownBuilder:
+    def heading(self, level: int, text: str, suffix: str = "", anchor: str | None = None) -> MarkdownBuilder:
         heading_text = f"{text} {suffix}" if suffix else text
+        if anchor:
+            # MDX v2+ requires escaping the opening brace of a custom heading id: \{#id}
+            # See https://mdxjs.com/docs/troubleshooting-mdx/#could-not-parse-expression-with-acorn-error
+            heading_text = f"{heading_text} \\{{#{anchor}}}"
         self._lines.append(f"{'#' * level} {heading_text}")
         self._lines.append("")
         return self
@@ -862,8 +866,10 @@ def _resolve_definition_section(annotation: Any) -> str | None:
 
 
 def _make_field_anchor(path: str) -> str:
-    """Generate a URL-friendly anchor from a path."""
-    return path.lower().replace(".", "-").replace("_", "-")
+    """Generate a URL-friendly anchor from a path, used as an explicit Docusaurus heading id
+    (`{#anchor}`) so headings keep a stable, predictable id regardless of their content,
+    including inline <LifecycleBadge> JSX, which otherwise breaks automatic heading-id slugging."""
+    return path.lower().replace(".", "-")
 
 
 def _lifecycle_badges_markdown(lifecycle: YamlElementLifecycle | None) -> str:
@@ -878,22 +884,6 @@ def _lifecycle_badges_markdown(lifecycle: YamlElementLifecycle | None) -> str:
     if lifecycle.removed_since is not None:
         badges.append(f'<LifecycleBadge kind="removed" version="{lifecycle.removed_since.major}" />')
     return " ".join(badges)
-
-
-def _lifecycle_section_attrs(lifecycle: YamlElementLifecycle | None) -> str:
-    """
-    Build data-lifecycle-* attributes for the section wrapper div, used by
-    <LifecycleFilter> to show/hide sections by lifecycle status.
-    """
-    attrs = ["data-lifecycle-section"]
-    if lifecycle is not None:
-        if lifecycle.available_since > V1:
-            attrs.append(f'data-lifecycle-introduced="{lifecycle.available_since.major}"')
-        if lifecycle.deprecated_since is not None:
-            attrs.append(f'data-lifecycle-deprecated="{lifecycle.deprecated_since.major}"')
-        if lifecycle.removed_since is not None:
-            attrs.append(f'data-lifecycle-removed="{lifecycle.removed_since.major}"')
-    return " ".join(attrs)
 
 
 def _render_fields_table(nodes: list[DocNode], parent_path: str = "") -> list[list[str]]:
@@ -937,6 +927,10 @@ def _render_fields_table(nodes: list[DocNode], parent_path: str = "") -> list[li
         else:
             key_cell = f"`{node.title}`"
 
+        badges = _lifecycle_badges_markdown(node.lifecycle)
+        if badges:
+            key_cell = f"{key_cell} {badges}"
+
         rows.append([key_cell, desc, status])
     return rows
 
@@ -957,7 +951,7 @@ def _render_variants_as_tabs(
         anchor = _make_field_anchor(parent_path)
         badges = _lifecycle_badges_markdown(parent_lifecycle)
         suffix = f" {badges}" if badges else ""
-        md.line(f"##### {parent_title}{suffix} {{/* #{anchor} */}}")
+        md.line(f"##### {parent_title}{suffix} \\{{#{anchor}}}")
         md.line("")
 
     md.tabs_start()
@@ -1010,7 +1004,7 @@ def _render_nested_fields(
             anchor = _make_field_anchor(node_path)
             badges = _lifecycle_badges_markdown(node.lifecycle)
             suffix = f" {badges}" if badges else ""
-            md.line(f"##### {node.title}{suffix} {{/* #{anchor} */}}")
+            md.line(f"##### {node.title}{suffix} \\{{#{anchor}}}")
             md.line("")
 
             if node.description:
@@ -1057,8 +1051,15 @@ def render_tree(
         node_path = f"{path}.{node.title}" if path else node.title
         effective_depth = depth if depth <= max_sidebar_depth else 5
 
-        # Heading
-        md.heading(min(effective_depth, 6), node.title, suffix=_lifecycle_badges_markdown(node.lifecycle))
+        # Heading. Anchor matches Docusaurus's default auto-slug (lowercased title) so
+        # existing cross-references (e.g. "#process_units", "#definitions") keep working;
+        # it must be explicit because inline <LifecycleBadge> JSX breaks auto-slugging.
+        md.heading(
+            min(effective_depth, 6),
+            node.title,
+            suffix=_lifecycle_badges_markdown(node.lifecycle),
+            anchor=node.title.lower(),
+        )
 
         # Description (from FieldInfo or model docstring for variants)
         if node.is_discriminated_variant:
@@ -1171,8 +1172,7 @@ import LifecycleFilter from '@site/src/components/LifecycleFilter';
     for node in tree:
         max_depth = SIDEBAR_DEPTH.get(node.name, 2)
         section = render_tree([node], depth=2, max_sidebar_depth=max_depth, registry=registry)
-        attrs = _lifecycle_section_attrs(node.lifecycle)
-        body_parts.append(f"<div {attrs}>\n\n{section}\n\n</div>\n")
+        body_parts.append(section)
 
     body = "\n".join(body_parts)
 
