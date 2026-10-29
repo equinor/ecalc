@@ -62,7 +62,12 @@ class TestEcalcEventService:
         service = self._make_service()
         assert service.get_event_by_process_name("NONEXISTENT") is None
 
+    def test_get_time_steps(self):
+        service = self._make_service()
+        assert service.get_time_steps() == {datetime(2025, 1, 1), datetime(2028, 6, 1)}
+
     def test_empty_service(self):
         service = EcalcEventService(ecalc_events=[])
         assert service.get_event_by_name("ANY") is None
         assert service.get_event_by_process_name("ANY") is None
+        assert service.get_time_steps() == set()
