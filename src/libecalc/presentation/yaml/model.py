@@ -269,6 +269,7 @@ class YamlModel:
                 time_series_resources=time_series_name_map,
                 start=self._configuration.start,
                 end=end,
+                additional_dates=ecalc_event_service.get_time_steps(),
             )
 
             mapper = ProcessSimulationMapper(

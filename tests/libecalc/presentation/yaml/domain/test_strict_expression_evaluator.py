@@ -197,6 +197,67 @@ class TestFromExpressionReferences:
         result = evaluator.evaluate(Expression.setup_from_expression(value="SIM;col1"))
         np.testing.assert_array_equal(result, [2.0, 3.0])
 
+    def test_additional_dates_are_merged_as_time_steps(self):
+        tv = [datetime(2020, 1, 1), datetime(2022, 1, 1)]
+        tsr = self._make_tsr(tv, {"col1": [1.0, 2.0]})
+
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"SIM;col1"},
+            variables={},
+            time_series_resources={"SIM": tsr},
+            start=datetime(2020, 1, 1),
+            end=datetime(2023, 1, 1),
+            additional_dates={datetime(2021, 1, 1)},
+        )
+
+        assert evaluator.get_time_vector() == [
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2022, 1, 1),
+            datetime(2023, 1, 1),
+        ]
+        assert evaluator.evaluate(Expression.setup_from_expression("SIM;col1")).tolist() == [1.0, 1.0, 2.0]
+
+    def test_additional_dates_outside_start_end_are_ignored(self):
+        tv = [datetime(2020, 1, 1), datetime(2022, 1, 1)]
+        tsr = self._make_tsr(tv, {"col1": [1.0, 2.0]})
+
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"SIM;col1"},
+            variables={},
+            time_series_resources={"SIM": tsr},
+            start=datetime(2020, 1, 1),
+            end=datetime(2023, 1, 1),
+            additional_dates={
+                datetime(2019, 1, 1),  # before start
+                datetime(2020, 1, 1),  # equal to start
+                datetime(2023, 1, 1),  # equal to end
+                datetime(2024, 1, 1),  # after end
+            },
+        )
+
+        assert evaluator.get_time_vector() == [
+            datetime(2020, 1, 1),
+            datetime(2022, 1, 1),
+            datetime(2023, 1, 1),
+        ]
+
+    def test_additional_dates_without_time_series(self):
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references=set(),
+            variables={},
+            time_series_resources={},
+            start=datetime(2020, 1, 1),
+            end=datetime(2023, 1, 1),
+            additional_dates={datetime(2021, 1, 1)},
+        )
+
+        assert evaluator.get_time_vector() == [
+            datetime(2020, 1, 1),
+            datetime(2021, 1, 1),
+            datetime(2023, 1, 1),
+        ]
+
     def test_with_variable_references(self):
         """Test that $var.* references are resolved transitively."""
         tv = [datetime(2020, 1, 1), datetime(2021, 1, 1)]

@@ -31,6 +31,7 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
         ],  # str is time series name, should match reference in expressions.
         start: datetime | None,
         end: datetime,
+        additional_dates: set[datetime] | None = None,
     ) -> Self:
 
         # Resolve $var.* references transitively to discover indirect time series dependencies
@@ -71,11 +72,14 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
                 for date in tsr.get_time_vector()
                 if start < date < end
             }
-            time_vector = sorted({start, *dates_within_start_and_end})
         else:
             if start is None:
                 raise EcalcError(title="Invalid time series", message="No time steps to calculate")
-            time_vector = [start]
+            dates_within_start_and_end = set()
+
+        if additional_dates is not None:
+            dates_within_start_and_end |= {date for date in additional_dates if start < date < end}
+        time_vector = sorted({start, *dates_within_start_and_end})
 
         # END closes the last period
         periods = Periods.create_periods([*time_vector, end], include_before=False, include_after=False)
