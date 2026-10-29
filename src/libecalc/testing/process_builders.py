@@ -60,7 +60,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
     YamlStreamRateUnit,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
-from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.testing.yaml_builder import Builder
@@ -244,14 +244,23 @@ class YamlSplitterBuilder(Builder[YamlSplitterDefinition]):
 DEFAULT_SHAFT_NAME = "default_shaft"
 
 
-def compressors_in(*pipelines: YamlProcessPipeline) -> list[YamlCompressor]:
-    """A COMPRESSORS entry for every compressor placed in the given pipelines."""
+def _compressor_names_in(*pipelines: YamlProcessPipeline) -> list[CompressorReference]:
     return [
-        YamlCompressor(name=process_unit.compressor)
+        process_unit.compressor
         for pipeline in pipelines
         for process_unit in pipeline.process_units
         if isinstance(process_unit, YamlCompressorProcessUnitInstance)
     ]
+
+
+def compressors_in(*pipelines: YamlProcessPipeline) -> list[YamlCompressor]:
+    """A COMPRESSORS entry for every compressor placed in the given pipelines."""
+    return [YamlCompressor(name=name) for name in _compressor_names_in(*pipelines)]
+
+
+def shaft_for(*pipelines: YamlProcessPipeline, name: str = DEFAULT_SHAFT_NAME) -> YamlShaft:
+    """A SHAFTS entry with every compressor placed in the given pipelines on it."""
+    return YamlShaft(name=name, compressors=_compressor_names_in(*pipelines))
 
 
 class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
@@ -270,13 +279,12 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self.process_units.append(YamlProcessUnitInstance(name=name, target=target))
         return self
 
-    def with_shaft_driven_item(
+    def with_compressor_item(
         self,
         target: YamlCompressorDefinition | DefinitionReference,
-        shaft: ShaftReference,
         compressor: CompressorReference,
     ) -> Self:
-        self.process_units.append(YamlCompressorProcessUnitInstance(compressor=compressor, target=target, shaft=shaft))
+        self.process_units.append(YamlCompressorProcessUnitInstance(compressor=compressor, target=target))
         return self
 
     def with_items(self, items: list[tuple[str | None, YamlProcessUnitDefinition | DefinitionReference]]) -> Self:
@@ -305,10 +313,9 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
                 name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
             )
             .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
-            .with_shaft_driven_item(
+            .with_compressor_item(
                 compressor="default_compressor",
                 target=YamlCompressorBuilder().with_test_data().validate(),
-                shaft=DEFAULT_SHAFT_NAME,
             )
         )
 
