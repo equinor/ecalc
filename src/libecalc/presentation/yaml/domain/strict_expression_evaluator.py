@@ -72,13 +72,14 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
                 for date in tsr.get_time_vector()
                 if start < date < end
             }
-            time_vector = sorted(
-                {start, *dates_within_start_and_end, *_dates_within_range(additional_dates, start, end)}
-            )
         else:
             if start is None:
                 raise EcalcError(title="Invalid time series", message="No time steps to calculate")
-            time_vector = sorted({start, *_dates_within_range(additional_dates, start, end)})
+            dates_within_start_and_end = set()
+
+        if additional_dates is not None:
+            dates_within_start_and_end |= {date for date in additional_dates if start < date < end}
+        time_vector = sorted({start, *dates_within_start_and_end})
 
         # END closes the last period
         periods = Periods.create_periods([*time_vector, end], include_before=False, include_after=False)
@@ -124,12 +125,6 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
 
     def evaluate(self, expression: Expression | TemporalModel | dict[Period, Expression]) -> NDArray[np.float64]:
         return self._variables_map.evaluate(expression)
-
-
-def _dates_within_range(dates: set[datetime] | None, start: datetime, end: datetime) -> set[datetime]:
-    if not dates:
-        return set()
-    return {date for date in dates if start < date < end}
 
 
 def _forward_fill_resource_row_indices(time_vector: list[datetime], resource_time_vector: list[datetime]) -> list[int]:
