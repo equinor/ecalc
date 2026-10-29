@@ -36,7 +36,11 @@ Forward-fill fits inputs that hold steady between dates, such as rates or on/off
 
 > `INTERPOLATION_TYPE`, `EXTRAPOLATION` and `INFLUENCE_TIME_VECTOR` have no effect on time series referenced here.
 
-## DEFINITIONS
+Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="2" /><LifecycleBadge kind="deprecated" version="2" /><LifecycleBadge kind="removed" version="2" />. Use the filters below to focus on what you need.
+
+<LifecycleFilter />
+
+## DEFINITIONS <LifecycleBadge kind="introduced" version="2" /> \{#definitions}
 
 Contains reusable definitions.
 
@@ -290,7 +294,7 @@ Defines named shafts representing mechanical connections between drivers and dri
 | --- | --- | --- |
 | `NAME` | Unique name of the shaft. | Required |
 
-## COMPRESSORS
+## COMPRESSORS <LifecycleBadge kind="introduced" version="2" /> \{#compressors}
 
 Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.
 
@@ -301,7 +305,7 @@ Defines the physical compressors in the model. Compressor process units in PROCE
 | `NAME` | Unique name of the physical compressor, e.g. its equipment tag. | Required |
 | `ALIAS` | Optional alias for the compressor, e.g. 'RIA'. | Optional |
 
-## PROCESS_PIPELINES
+## PROCESS_PIPELINES <LifecycleBadge kind="introduced" version="2" /> \{#process_pipelines}
 
 Defines process pipelines to use in process simulations.
 

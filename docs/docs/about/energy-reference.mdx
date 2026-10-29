@@ -30,7 +30,11 @@ Forward-fill fits inputs that hold steady between dates, such as rates or on/off
 
 > `INTERPOLATION_TYPE`, `EXTRAPOLATION` and `INFLUENCE_TIME_VECTOR` have no effect on time series referenced here.
 
-## DEFINITIONS
+Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="2" /><LifecycleBadge kind="deprecated" version="2" /><LifecycleBadge kind="removed" version="2" />. Use the filters below to focus on what you need.
+
+<LifecycleFilter />
+
+## DEFINITIONS <LifecycleBadge kind="introduced" version="2" /> \{#definitions}
 
 Contains reusable definitions.
 
@@ -242,18 +246,18 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `ELECTRICAL_CONSUMER` | Required |
-| [`LOAD`](#energy-network-units-electrical-consumer-load) | Electrical power demand (MW), as an expression or a curve lookup. | Required |
+| [`LOAD`](#energy_network-units-electrical_consumer-load) | Electrical power demand (MW), as an expression or a curve lookup. | Required |
 
-##### LOAD {/* #energy-network-units-electrical-consumer-load */}
+##### LOAD \{#energy_network-units-electrical_consumer-load}
 
 Electrical power demand (MW), as an expression or a curve lookup.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`CURVE`](#energy-network-units-electrical-consumer-load-curve) | Variable and power values, given directly or in a FILE with a POWER column and one other column for the variable. | Required |
+| [`CURVE`](#energy_network-units-electrical_consumer-load-curve) | Variable and power values, given directly or in a FILE with a POWER column and one other column for the variable. | Required |
 | `VARIABLE` | Value looked up in CURVE. | Required |
 
-##### CURVE {/* #energy-network-units-electrical-consumer-load-curve */}
+##### CURVE \{#energy_network-units-electrical_consumer-load-curve}
 
 <Tabs>
 <TabItem value="POWERCURVE" label="POWERCURVE">
@@ -290,18 +294,18 @@ Electrical power demand (MW), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `MECHANICAL_CONSUMER` | Required |
-| [`LOAD`](#energy-network-units-mechanical-consumer-load) | Shaft power demand (MW), as an expression or a curve lookup. | Required |
+| [`LOAD`](#energy_network-units-mechanical_consumer-load) | Shaft power demand (MW), as an expression or a curve lookup. | Required |
 
-##### LOAD {/* #energy-network-units-mechanical-consumer-load */}
+##### LOAD \{#energy_network-units-mechanical_consumer-load}
 
 Shaft power demand (MW), as an expression or a curve lookup.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`CURVE`](#energy-network-units-mechanical-consumer-load-curve) | Variable and power values, given directly or in a FILE with a POWER column and one other column for the variable. | Required |
+| [`CURVE`](#energy_network-units-mechanical_consumer-load-curve) | Variable and power values, given directly or in a FILE with a POWER column and one other column for the variable. | Required |
 | `VARIABLE` | Value looked up in CURVE. | Required |
 
-##### CURVE {/* #energy-network-units-mechanical-consumer-load-curve */}
+##### CURVE \{#energy_network-units-mechanical_consumer-load-curve}
 
 <Tabs>
 <TabItem value="POWERCURVE" label="POWERCURVE">
@@ -351,18 +355,18 @@ Shaft power demand (MW), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `FUEL_GAS_CONSUMER` | Required |
-| [`RATE`](#energy-network-units-fuel-gas-consumer-rate) | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
+| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
 
-##### RATE {/* #energy-network-units-fuel-gas-consumer-rate */}
+##### RATE \{#energy_network-units-fuel_gas_consumer-rate}
 
 Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`CURVE`](#energy-network-units-fuel-gas-consumer-rate-curve) | Variable and fuel values, given directly or in a FILE with a FUEL column and one other column for the variable. | Required |
+| [`CURVE`](#energy_network-units-fuel_gas_consumer-rate-curve) | Variable and fuel values, given directly or in a FILE with a FUEL column and one other column for the variable. | Required |
 | `VARIABLE` | Value looked up in CURVE. | Required |
 
-##### CURVE {/* #energy-network-units-fuel-gas-consumer-rate-curve */}
+##### CURVE \{#energy_network-units-fuel_gas_consumer-rate-curve}
 
 <Tabs>
 <TabItem value="FUELTABLE" label="FUELTABLE">
@@ -399,18 +403,18 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `DIESEL_CONSUMER` | Required |
-| [`RATE`](#energy-network-units-diesel-consumer-rate) | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
+| [`RATE`](#energy_network-units-diesel_consumer-rate) | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
 
-##### RATE {/* #energy-network-units-diesel-consumer-rate */}
+##### RATE \{#energy_network-units-diesel_consumer-rate}
 
 Diesel consumption rate (l/d), as an expression or a curve lookup.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`CURVE`](#energy-network-units-diesel-consumer-rate-curve) | Variable and fuel values, given directly or in a FILE with a FUEL column and one other column for the variable. | Required |
+| [`CURVE`](#energy_network-units-diesel_consumer-rate-curve) | Variable and fuel values, given directly or in a FILE with a FUEL column and one other column for the variable. | Required |
 | `VARIABLE` | Value looked up in CURVE. | Required |
 
-##### CURVE {/* #energy-network-units-diesel-consumer-rate-curve */}
+##### CURVE \{#energy_network-units-diesel_consumer-rate-curve}
 
 <Tabs>
 <TabItem value="FUELTABLE" label="FUELTABLE">
