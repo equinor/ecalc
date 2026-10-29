@@ -734,7 +734,7 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
 
 class YamlAssetBuilder(Builder[YamlAsset]):
     def __init__(self):
-        self.yaml_version = 2
+        self.yaml_version = 2  # We default to v2 here, since we have a mix of v1 and v2 in the tests.
         self.time_series = []
         self.facility_inputs = []
         self.models = []

@@ -13,7 +13,8 @@ from libecalc.testing.yaml_builder import YamlAssetBuilder
 
 
 def test_ecalc_events_requires_yaml_version_v2_or_later():
-    """ECALC_EVENTS was introduced in yaml version 2 and must not be usable in v1 documents."""
+    """ECALC_EVENTS was introduced in yaml version 2 and must not be usable in v1 documents. Serves as an example
+    of how to test version restrictions on root elements."""
     dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
     asset_data = YamlAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
     event_data = YamlEcalcEventBuilder().with_test_data().validate().model_dump(**dump_kwargs)

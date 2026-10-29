@@ -15,16 +15,22 @@ MAJOR_VERSION_PATTERN = r"^\d+$"
 
 
 def _parse_major_version(value: int | str) -> int:
-    if isinstance(value, bool):
-        raise ValueError(f"Invalid yaml version '{value}'. Expected a major version integer, e.g. 1, 2, 3.")
-    if isinstance(value, int):
-        return value
-    if isinstance(value, str) and re.fullmatch(MAJOR_VERSION_PATTERN, value.strip()):
-        return int(value.strip())
-    raise ValueError(
-        f"Invalid yaml version '{value}'. Expected a major version integer, e.g. 1, 2, 3. "
-        "Only the major version is tracked for the declared document YAML_VERSION."
-    )
+    major_version: int = 0
+
+    match value:
+        case bool():
+            raise ValueError(f"Invalid yaml version '{value}'. Expected a major version integer, e.g. 1, 2, 3.")
+        case int():
+            major_version = value
+        case str():
+            if re.fullmatch(MAJOR_VERSION_PATTERN, value.strip()):
+                major_version = int(value.strip())
+
+    if major_version < 1 or major_version > current_yaml_version().major:
+        raise ValueError(
+            f"Invalid yaml version '{major_version}'. Expected a major version integer, greater than 0 and less than or equal to {current_yaml_version().major}. "
+        )
+    return major_version
 
 
 YamlMajorVersion = Annotated[
@@ -43,13 +49,11 @@ does not represent minor or patch.
 """
 
 # Schema generations referred to elsewhere as "legacy" (v1), "transitional" (v2, where legacy and
-# new root elements can both be used), and "nextgen" (v3, where legacy root elements are removed).
+# new root elements can both be used)
 # To make it easy to spot changes, add all versions here in order to easily refer to it correctly,
 # and to easy find all changes related to a version later, manually or automatically
 V1 = Version(1, 0, 0)
 V2 = Version(2, 0, 0)
-V3 = Version(3, 0, 0)
-V4 = Version(4, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
 
@@ -58,13 +62,7 @@ DEPRECATED_SINCE_KEY = "deprecated_since"
 REMOVED_SINCE_KEY = "removed_since"
 
 
-def version_field_json_schema_extra(default: int) -> dict[str, JsonValue]:
-    """Build json_schema_extra for the document VERSION field, rendering its default major version."""
-    return {"default": default}
-
-
 def yaml_element_lifecycle(
-    *,
     available_since: Version | None = None,
     deprecated_since: Version | None = None,
     removed_since: Version | None = None,

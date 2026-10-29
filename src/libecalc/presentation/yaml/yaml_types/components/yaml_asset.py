@@ -39,7 +39,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V2,
     YamlMajorVersion,
     get_unavailable_field_names,
-    version_field_json_schema_extra,
     yaml_element_lifecycle,
 )
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
@@ -96,7 +95,9 @@ class YamlAsset(YamlBase):
         description="The eCalc YAML schema major version. Determines which root elements are available. "
         "Only the major version is tracked, e.g. YAML_VERSION: 2 allows any 2.x.y root elements. "
         f"Defaults to {DEFAULT_YAML_VERSION} if not specified.",
-        json_schema_extra=version_field_json_schema_extra(DEFAULT_YAML_VERSION),
+        json_schema_extra={
+            "default": DEFAULT_YAML_VERSION
+        },  # No lifecycle metadata (yet). Pretend it has been implicitly available since v1
     )
     definitions: YamlDefinitions = Field(
         default_factory=YamlDefinitions,
