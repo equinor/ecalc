@@ -43,10 +43,10 @@ does not represent minor or patch.
 
 # Schema generations referred to elsewhere as "legacy" (v1), "transitional" (v2, where legacy and
 # new root elements can both be used), and "nextgen" (v3, where legacy root elements are removed).
+# To make it easy to spot changes, add all versions here in order to easily refer to it correctly,
+# and to easy find all changes related to a version later, manually or automatically
 V1 = Version(1, 0, 0)
 V2 = Version(2, 0, 0)
-V3 = Version(3, 0, 0)
-V4 = Version(4, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
 
