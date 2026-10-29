@@ -16,7 +16,7 @@ def _pump_yaml_model(
         simple_yaml.main_file.read()
         + f"""
 
-VERSION: 2
+YAML_VERSION: 2
 PUMP_PROCESS_SIMULATIONS:
   - TYPE: PUMP
     NAME: produced_water_reinjection

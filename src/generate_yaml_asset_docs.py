@@ -1173,7 +1173,7 @@ def generate_version_markdown(version: int) -> str:
         intro=f"""\
 # Schema v{version} Reference
 
-This page documents all YAML configuration keys available for yaml version `{version}`, filtered by VERSION
+This page documents all YAML configuration keys available for yaml version `{version}`, filtered by YAML_VERSION
 rather than a fixed list of top-level sections.
 
 """,

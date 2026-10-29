@@ -22,7 +22,7 @@ def _parse_major_version(value: int | str) -> int:
         return int(value.strip())
     raise ValueError(
         f"Invalid yaml version '{value}'. Expected a major version integer, e.g. 1, 2, 3. "
-        "Only the major version is tracked for the declared document VERSION."
+        "Only the major version is tracked for the declared document YAML_VERSION."
     )
 
 
@@ -32,12 +32,12 @@ YamlMajorVersion = Annotated[
     WithJsonSchema({"type": "integer", "minimum": 1}),
 ]
 """
-A pydantic-compatible field type for the declared document VERSION.
+A pydantic-compatible field type for the declared document YAML_VERSION.
 
-Only the major version is tracked here: VERSION: 2 means "any 2.x.y", matching how root
+Only the major version is tracked here: YAML_VERSION: 2 means "any 2.x.y", matching how root
 element availability is defined below. The exact X.Y.Z semantic versions used for
 available_since/deprecated_since/removed_since are set once by the library maintainer per
-root element, whereas the document VERSION is a range a user declares, so it intentionally
+root element, whereas the document YAML_VERSION is a range a user declares, so it intentionally
 does not represent minor or patch.
 """
 

@@ -19,21 +19,21 @@ def test_ecalc_events_requires_yaml_version_v2_or_later():
     event_data = YamlEcalcEventBuilder().with_test_data().validate().model_dump(**dump_kwargs)
 
     with pytest.raises(ValidationError, match="ECALC_EVENTS"):
-        YamlAsset.model_validate({**asset_data, "VERSION": 1, "ECALC_EVENTS": [event_data]})
+        YamlAsset.model_validate({**asset_data, "YAML_VERSION": 1, "ECALC_EVENTS": [event_data]})
 
-    asset = YamlAsset.model_validate({**asset_data, "VERSION": 2, "ECALC_EVENTS": [event_data]})
-    assert asset.version == 2
+    asset = YamlAsset.model_validate({**asset_data, "YAML_VERSION": 2, "ECALC_EVENTS": [event_data]})
+    assert asset.yaml_version == 2
     assert len(asset.ecalc_events) == 1
 
 
 def test_default_yaml_version_is_v1():
     dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
     asset_data = YamlAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
-    del asset_data["VERSION"]
+    del asset_data["YAML_VERSION"]
     del asset_data["SHAFTS"]
 
     asset = YamlAsset.model_validate(asset_data)
-    assert asset.version == 1
+    assert asset.yaml_version == 1
 
 
 def test_pipeline_can_only_be_targeted_by_one_simulation():

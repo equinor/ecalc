@@ -734,7 +734,7 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
 
 class YamlAssetBuilder(Builder[YamlAsset]):
     def __init__(self):
-        self.version = 2
+        self.yaml_version = 2
         self.time_series = []
         self.facility_inputs = []
         self.models = []
@@ -775,8 +775,8 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
         return self
 
-    def with_version(self, version: int) -> Self:
-        self.version = version
+    def with_yaml_version(self, version: int) -> Self:
+        self.yaml_version = version
         return self
 
     def with_time_series(self, time_series: list[YamlTimeSeriesCollection]):
