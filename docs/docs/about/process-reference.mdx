@@ -8,6 +8,8 @@ description: Complete reference for the process configuration.
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
+import LifecycleBadge from '@site/src/components/LifecycleBadge';
+import LifecycleFilter from '@site/src/components/LifecycleFilter';
 
 # Process Reference
 
@@ -21,7 +23,13 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [ECALC_EVENTS](#ecalc_events)
 - [PROCESS_EVENTS](#process_events)
 
-## DEFINITIONS
+Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="2" /><LifecycleBadge kind="deprecated" version="2" /><LifecycleBadge kind="removed" version="2" />. Use the filters below to focus on what you need.
+
+<LifecycleFilter />
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## DEFINITIONS <LifecycleBadge kind="introduced" version="2" />
 
 Contains reusable definitions.
 
@@ -237,7 +245,12 @@ Defines fluids that can be referenced in inlet streams.
 | `N_PENTANE` |  | Default: `0.0` |
 | `N_HEXANE` |  | Default: `0.0` |
 
-## INLET_STREAMS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## INLET_STREAMS <LifecycleBadge kind="introduced" version="2" />
 
 Defines inlet streams that can be referenced by process system and stream distribution.
 
@@ -265,7 +278,12 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-## SHAFTS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## SHAFTS <LifecycleBadge kind="introduced" version="2" />
 
 Defines named shafts representing mechanical connections between drivers and driven equipment.
 
@@ -275,7 +293,12 @@ Defines named shafts representing mechanical connections between drivers and dri
 | --- | --- | --- |
 | `NAME` | Unique name of the shaft. | Required |
 
-## PROCESS_PIPELINES
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## PROCESS_PIPELINES <LifecycleBadge kind="introduced" version="2" />
 
 Defines process pipelines to use in process simulations.
 
@@ -324,7 +347,12 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
 | `REF` | Reference to a PROCESS_EVENT by name. | Required |
 
-## PROCESS_SIMULATIONS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" />
 
 Defines one or more process simulations to be run.
 
@@ -434,7 +462,12 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
 
-## ECALC_EVENTS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" />
 
 Defines eCalc events associated with temporal model changes
 
@@ -447,7 +480,12 @@ Defines eCalc events associated with temporal model changes
 | `NAME` | Short identifier for the event. | Required |
 | `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |
 
-## PROCESS_EVENTS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" />
 
 Defines process-specific events that reference global eCalc events.
 
@@ -459,3 +497,6 @@ Defines process-specific events that reference global eCalc events.
 | `NAME` | Short identifier for the process event. | Required |
 | `DESCRIPTION` | Human-readable description of the process event. | Optional |
 | `REF` | Reference to a global ECALC_EVENT by name. | Required |
+
+
+</div>

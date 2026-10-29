@@ -8,6 +8,8 @@ description: Complete reference for the energy network configuration.
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
+import LifecycleBadge from '@site/src/components/LifecycleBadge';
+import LifecycleFilter from '@site/src/components/LifecycleFilter';
 
 # Energy Reference
 
@@ -16,7 +18,13 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
 - [DEFINITIONS](#definitions)
 - [ENERGY_NETWORK](#energy_network)
 
-## DEFINITIONS
+Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="2" /><LifecycleBadge kind="deprecated" version="2" /><LifecycleBadge kind="removed" version="2" />. Use the filters below to focus on what you need.
+
+<LifecycleFilter />
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## DEFINITIONS <LifecycleBadge kind="introduced" version="2" />
 
 Contains reusable definitions.
 
@@ -96,7 +104,12 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 </Tabs>
 
-## ENERGY_NETWORK
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" />
 
 Defines the energy network configuration.
 
@@ -313,3 +326,6 @@ tabulated.
 </TabItem>
 
 </Tabs>
+
+
+</div>

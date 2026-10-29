@@ -32,6 +32,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
     V2,
+    YamlElementLifecycle,
     get_root_field_names,
     get_yaml_element_lifecycle,
 )
@@ -511,6 +512,13 @@ class DocNode:
             return V1
         return get_yaml_element_lifecycle(self.field_info).available_since
 
+    @property
+    def lifecycle(self) -> YamlElementLifecycle | None:
+        """The element's lifecycle (available/deprecated/removed since), if it has one."""
+        if self.field_info is None:
+            return None
+        return get_yaml_element_lifecycle(self.field_info)
+
     def __repr__(self) -> str:
         return f"DocNode({self.title}, children={len(self.children)})"
 
@@ -722,8 +730,9 @@ class MarkdownBuilder:
     def __init__(self):
         self._lines: list[str] = []
 
-    def heading(self, level: int, text: str) -> MarkdownBuilder:
-        self._lines.append(f"{'#' * level} {text}")
+    def heading(self, level: int, text: str, suffix: str = "") -> MarkdownBuilder:
+        heading_text = f"{text} {suffix}" if suffix else text
+        self._lines.append(f"{'#' * level} {heading_text}")
         self._lines.append("")
         return self
 
@@ -857,6 +866,36 @@ def _make_field_anchor(path: str) -> str:
     return path.lower().replace(".", "-").replace("_", "-")
 
 
+def _lifecycle_badges_markdown(lifecycle: YamlElementLifecycle | None) -> str:
+    """Render inline <LifecycleBadge> tags for a node's lifecycle, to append to its heading."""
+    if lifecycle is None:
+        return ""
+    badges = []
+    if lifecycle.available_since > V1:
+        badges.append(f'<LifecycleBadge kind="introduced" version="{lifecycle.available_since.major}" />')
+    if lifecycle.deprecated_since is not None:
+        badges.append(f'<LifecycleBadge kind="deprecated" version="{lifecycle.deprecated_since.major}" />')
+    if lifecycle.removed_since is not None:
+        badges.append(f'<LifecycleBadge kind="removed" version="{lifecycle.removed_since.major}" />')
+    return " ".join(badges)
+
+
+def _lifecycle_section_attrs(lifecycle: YamlElementLifecycle | None) -> str:
+    """
+    Build data-lifecycle-* attributes for the section wrapper div, used by
+    <LifecycleFilter> to show/hide sections by lifecycle status.
+    """
+    attrs = ["data-lifecycle-section"]
+    if lifecycle is not None:
+        if lifecycle.available_since > V1:
+            attrs.append(f'data-lifecycle-introduced="{lifecycle.available_since.major}"')
+        if lifecycle.deprecated_since is not None:
+            attrs.append(f'data-lifecycle-deprecated="{lifecycle.deprecated_since.major}"')
+        if lifecycle.removed_since is not None:
+            attrs.append(f'data-lifecycle-removed="{lifecycle.removed_since.major}"')
+    return " ".join(attrs)
+
+
 def _render_fields_table(nodes: list[DocNode], parent_path: str = "") -> list[list[str]]:
     """Build table rows for a list of child DocNodes."""
     rows = []
@@ -908,6 +947,7 @@ def _render_variants_as_tabs(
     registry: ExampleRegistry,
     parent_path: str,
     parent_title: str | None = None,
+    parent_lifecycle: YamlElementLifecycle | None = None,
 ) -> None:
     """Render discriminated union variants inside Docusaurus Tabs."""
     if not variant_children:
@@ -915,7 +955,9 @@ def _render_variants_as_tabs(
 
     if parent_title:
         anchor = _make_field_anchor(parent_path)
-        md.line(f"##### {parent_title} {{/* #{anchor} */}}")
+        badges = _lifecycle_badges_markdown(parent_lifecycle)
+        suffix = f" {badges}" if badges else ""
+        md.line(f"##### {parent_title}{suffix} {{/* #{anchor} */}}")
         md.line("")
 
     md.tabs_start()
@@ -966,7 +1008,9 @@ def _render_nested_fields(
 
         if non_variant_children:
             anchor = _make_field_anchor(node_path)
-            md.line(f"##### {node.title} {{/* #{anchor} */}}")
+            badges = _lifecycle_badges_markdown(node.lifecycle)
+            suffix = f" {badges}" if badges else ""
+            md.line(f"##### {node.title}{suffix} {{/* #{anchor} */}}")
             md.line("")
 
             if node.description:
@@ -986,7 +1030,9 @@ def _render_nested_fields(
 
         # Render discriminated union variants with tabs
         if variant_children:
-            _render_variants_as_tabs(variant_children, md, registry, node_path, parent_title=node.title)
+            _render_variants_as_tabs(
+                variant_children, md, registry, node_path, parent_title=node.title, parent_lifecycle=node.lifecycle
+            )
 
 
 def render_tree(
@@ -1012,7 +1058,7 @@ def render_tree(
         effective_depth = depth if depth <= max_sidebar_depth else 5
 
         # Heading
-        md.heading(min(effective_depth, 6), node.title)
+        md.heading(min(effective_depth, 6), node.title, suffix=_lifecycle_badges_markdown(node.lifecycle))
 
         # Description (from FieldInfo or model docstring for variants)
         if node.is_discriminated_variant:
@@ -1044,7 +1090,9 @@ def render_tree(
                 _render_nested_fields(non_variant_children, md, registry, node_path)
 
                 # Render discriminated variant children with tabs
-                _render_variants_as_tabs(variant_children, md, registry, node_path, parent_title=node.title)
+                _render_variants_as_tabs(
+                    variant_children, md, registry, node_path, parent_title=node.title, parent_lifecycle=node.lifecycle
+                )
             else:
                 # Render children as headings (within sidebar visibility)
                 md.line(
@@ -1103,19 +1151,32 @@ description: {description}
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
+import LifecycleBadge from '@site/src/components/LifecycleBadge';
+import LifecycleFilter from '@site/src/components/LifecycleFilter';
 
 """
+
+    legend = (
+        "Elements are labelled with their lifecycle: "
+        '<LifecycleBadge kind="introduced" version="2" />'
+        '<LifecycleBadge kind="deprecated" version="2" />'
+        '<LifecycleBadge kind="removed" version="2" />. '
+        "Use the filters below to focus on what you need.\n\n"
+        "<LifecycleFilter />\n\n"
+    )
 
     registry = ExampleRegistry(examples)
 
     body_parts = []
     for node in tree:
         max_depth = SIDEBAR_DEPTH.get(node.name, 2)
-        body_parts.append(render_tree([node], depth=2, max_sidebar_depth=max_depth, registry=registry))
+        section = render_tree([node], depth=2, max_sidebar_depth=max_depth, registry=registry)
+        attrs = _lifecycle_section_attrs(node.lifecycle)
+        body_parts.append(f"<div {attrs}>\n\n{section}\n\n</div>\n")
 
     body = "\n".join(body_parts)
 
-    return frontmatter + "\n" + imports + intro + body
+    return frontmatter + "\n" + imports + intro + legend + body
 
 
 def generate_process_markdown() -> str:
@@ -1167,7 +1228,7 @@ def generate_version_markdown(version: int) -> str:
     """Generate a reference document for all YamlAsset sections available for the given yaml major version."""
     return _generate_markdown(
         include_fields=get_root_field_names(YamlAsset, version),
-        title=f"Schema v{version} Reference",
+        title=f"eCalc NextGen YAML v{version} Reference",
         sidebar_position=8,
         description=f"Complete reference for yaml version {version}.",
         intro=f"""\

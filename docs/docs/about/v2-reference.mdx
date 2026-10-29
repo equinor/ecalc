@@ -1,5 +1,5 @@
 ---
-title: Schema v2 Reference (Experimental)
+title: eCalc NextGen YAML v2 Reference (Experimental)
 sidebar_position: 8
 toc_max_heading_level: 4
 description: Complete reference for yaml version 2.
@@ -8,17 +8,30 @@ description: Complete reference for yaml version 2.
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
+import LifecycleBadge from '@site/src/components/LifecycleBadge';
+import LifecycleFilter from '@site/src/components/LifecycleFilter';
 
 # Schema v2 Reference
 
 This page documents all YAML configuration keys available for yaml version `2`, filtered by YAML_VERSION
 rather than a fixed list of top-level sections.
 
+Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="2" /><LifecycleBadge kind="deprecated" version="2" /><LifecycleBadge kind="removed" version="2" />. Use the filters below to focus on what you need.
+
+<LifecycleFilter />
+
+<div data-lifecycle-section>
+
 ## YAML_VERSION
 
 The eCalc YAML schema major version. Determines which root elements are available. Only the major version is tracked, e.g. YAML_VERSION: 2 allows any 2.x.y root elements. Defaults to 1 if not specified.
 
-## DEFINITIONS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## DEFINITIONS <LifecycleBadge kind="introduced" version="2" />
 
 Contains reusable definitions.
 
@@ -310,6 +323,11 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 </Tabs>
 
+
+</div>
+
+<div data-lifecycle-section>
+
 ## TIME_SERIES
 
 Defines the inputs for time dependent variables, or 'reservoir variables'.
@@ -342,6 +360,11 @@ Defines the inputs for time dependent variables, or 'reservoir variables'.
 </TabItem>
 
 </Tabs>
+
+
+</div>
+
+<div data-lifecycle-section>
 
 ## FACILITY_INPUTS
 
@@ -426,11 +449,16 @@ Defines the units
 
 </Tabs>
 
-## FLUID_MODELS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-deprecated="2">
+
+## FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" />
 
 Defines fluid models that can be referenced by inlet streams.
 
-##### FLUID_MODELS {/* #fluid-models */}
+##### FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" /> {/* #fluid-models */}
 
 <Tabs>
 <TabItem value="FLUID" label="FLUID">
@@ -477,7 +505,12 @@ Components in fluid and amount (relative to the others) in mole weights
 
 </Tabs>
 
-## INLET_STREAMS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## INLET_STREAMS <LifecycleBadge kind="introduced" version="2" />
 
 Defines inlet streams that can be referenced by process system and stream distribution.
 
@@ -505,11 +538,16 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-## MODELS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-deprecated="2">
+
+## MODELS <LifecycleBadge kind="deprecated" version="2" />
 
 Defines input files which characterize various facility elements.
 
-##### MODELS {/* #models */}
+##### MODELS <LifecycleBadge kind="deprecated" version="2" /> {/* #models */}
 
 <Tabs>
 <TabItem value="COMPRESSOR_CHART" label="COMPRESSOR_CHART">
@@ -901,7 +939,12 @@ Pressure control. Can only be specified for one (only one) of the stages 2, ...,
 
 </Tabs>
 
-## FUEL_TYPES
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-deprecated="2">
+
+## FUEL_TYPES <LifecycleBadge kind="deprecated" version="2" />
 
 Specifies the various fuel types and associated emissions used in the model.
 
@@ -921,6 +964,11 @@ Emission types and their attributes for this fuel.
 | `NAME` | Name of the emission. | Required |
 | `FACTOR` | Emission factor for fuel in kg emission/Sm3 fuel. May be a constant number or an expression using vectors from a time series input. | Required |
 
+
+</div>
+
+<div data-lifecycle-section>
+
 ## VARIABLES
 
 Defines variables used in an energy usage model by means of expressions or constants.
@@ -929,7 +977,12 @@ Defines variables used in an energy usage model by means of expressions or const
 | --- | --- | --- |
 | `VALUE` |  | Required |
 
-## SHAFTS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## SHAFTS <LifecycleBadge kind="introduced" version="2" />
 
 Defines named shafts representing mechanical connections between drivers and driven equipment.
 
@@ -939,7 +992,12 @@ Defines named shafts representing mechanical connections between drivers and dri
 | --- | --- | --- |
 | `NAME` | Unique name of the shaft. | Required |
 
-## PROCESS_PIPELINES
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## PROCESS_PIPELINES <LifecycleBadge kind="introduced" version="2" />
 
 Defines process pipelines to use in process simulations.
 
@@ -988,7 +1046,12 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
 | `REF` | Reference to a PROCESS_EVENT by name. | Required |
 
-## PROCESS_SIMULATIONS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" />
 
 Defines one or more process simulations to be run.
 
@@ -1098,7 +1161,12 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
 
-## ECALC_EVENTS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" />
 
 Defines eCalc events associated with temporal model changes
 
@@ -1111,7 +1179,12 @@ Defines eCalc events associated with temporal model changes
 | `NAME` | Short identifier for the event. | Required |
 | `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |
 
-## ENERGY_NETWORK
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" />
 
 Defines the energy network configuration.
 
@@ -1329,7 +1402,12 @@ tabulated.
 
 </Tabs>
 
-## PROCESS_EVENTS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" />
 
 Defines process-specific events that reference global eCalc events.
 
@@ -1342,7 +1420,12 @@ Defines process-specific events that reference global eCalc events.
 | `DESCRIPTION` | Human-readable description of the process event. | Optional |
 | `REF` | Reference to a global ECALC_EVENT by name. | Required |
 
-## PUMP_PROCESS_SIMULATIONS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-introduced="2">
+
+## PUMP_PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" />
 
 Defines one or more liquid pump process simulations to be run.
 
@@ -1369,7 +1452,12 @@ Defines one or more liquid pump process simulations to be run.
 | `PRESSURE` | Pump suction pressure in bara. | Required |
 | `DENSITY` | Liquid density in kg/m3. | Required |
 
-## INSTALLATIONS
+
+</div>
+
+<div data-lifecycle-section data-lifecycle-deprecated="2">
+
+## INSTALLATIONS <LifecycleBadge kind="deprecated" version="2" />
 
 Description of the system of energy consumers.
 
@@ -1780,10 +1868,23 @@ For more details, see: | Optional |
 
 </Tabs>
 
+
+</div>
+
+<div data-lifecycle-section>
+
 ## START
 
 Global start date for eCalc calculations in &lt;YYYY-MM-DD&gt; format.
 
+
+</div>
+
+<div data-lifecycle-section>
+
 ## END
 
 Global end date for eCalc calculations in &lt;YYYY-MM-DD&gt; format.
+
+
+</div>

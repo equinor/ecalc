@@ -81,3 +81,71 @@
 [data-theme='dark'] .yaml-indent-guide {
   --yaml-indent-guide-color: rgba(255, 255, 255, 0.1);
 }
+
+/* <LifecycleBadge>: inline pill next to a heading, marking when it was introduced,
+   deprecated, or removed. */
+.lifecycle-badge {
+  display: inline-block;
+  font-size: 0.65em;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 1px 8px;
+  border-radius: 999px;
+  margin-left: 8px;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.lifecycle-badge--introduced {
+  color: #1a7431;
+  background-color: rgba(14, 201, 41, 0.18);
+  border: 1px solid rgba(14, 201, 41, 0.5);
+}
+
+.lifecycle-badge--deprecated {
+  color: #b35900;
+  background-color: rgba(255, 165, 0, 0.18);
+  border: 1px solid rgba(255, 165, 0, 0.5);
+}
+
+.lifecycle-badge--removed {
+  color: #c92a2a;
+  background-color: rgba(255, 0, 0, 0.12);
+  border: 1px solid rgba(255, 0, 0, 0.45);
+}
+
+/* <LifecycleFilter>: toolbar for hiding sections by lifecycle status. */
+.lifecycle-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  padding: 10px 14px;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--ifm-color-emphasis-300);
+  border-radius: 8px;
+  background-color: var(--ifm-color-emphasis-100);
+}
+
+.lifecycle-filter__option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+/* Toggled by <LifecycleFilter> on <html>. Sections are wrapped with
+   `<div data-lifecycle-section data-lifecycle-introduced=... data-lifecycle-deprecated=...
+   data-lifecycle-removed=...>` by generate_yaml_asset_docs.py. */
+html.ecalc-hide-deprecated [data-lifecycle-deprecated] {
+  display: none;
+}
+
+html.ecalc-hide-removed [data-lifecycle-removed] {
+  display: none;
+}
+
+html.ecalc-only-introduced [data-lifecycle-section]:not([data-lifecycle-introduced]) {
+  display: none;
+}
+
