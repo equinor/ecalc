@@ -114,6 +114,7 @@ ENERGY_NETWORK:
     # Sampled from a FUEL+POWER table: a turbine feeding the compressor is generated automatically
     - NAME: gas_compressor_sampled
       TYPE: COMPRESSOR_SAMPLED
+      COMPRESSOR: 23KA001 Gas Compressor
       INPUT: fuel_gas
       FILE: gas_compressor_sampled.csv
       RATE: 2500000  # Sm3/d

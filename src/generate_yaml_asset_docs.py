@@ -28,6 +28,7 @@ from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
@@ -86,6 +87,7 @@ PROCESS_INCLUDE_FIELDS = {
     "definitions.process_units",
     "definitions.fluids",
     "shafts",
+    "compressors",
     "process_pipelines",
     "inlet_streams",
     "process_simulations",
@@ -240,6 +242,11 @@ EXAMPLES: list[Example] = [
         "SHAFTS",
         lambda: YamlShaft(name="default_shaft"),
     ),
+    # --- COMPRESSORS ---
+    Example(
+        "COMPRESSORS",
+        lambda: YamlCompressor(name="default_compressor", alias="RIA"),
+    ),
     # --- PROCESS_PIPELINES ---
     Example(
         "PROCESS_PIPELINES",
@@ -252,7 +259,7 @@ EXAMPLES: list[Example] = [
             )
             .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
             .with_shaft_driven_item(
-                name="default_compressor",
+                compressor="default_compressor",
                 target=YamlCompressorBuilder().with_test_data().validate(),
                 shaft="default_shaft",
             )
@@ -379,8 +386,48 @@ ENERGY_EXAMPLES: list[Example] = [
         lambda: YamlElectricalConsumerBuilder().with_test_data().validate(),
     ),
     Example(
+        "ENERGY_NETWORK.UNITS.ELECTRICAL_CONSUMER.LOAD.CURVE.POWERCURVE",
+        lambda: (
+            YamlElectricalConsumerBuilder()
+            .with_test_data()
+            .with_load_curve({"variable": [0, 1000, 5000], "power": [0, 0.8, 3.4]}, "SIM;RATE")
+            .validate()
+            .load
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.ELECTRICAL_CONSUMER.LOAD.CURVE.YAMLFILE",
+        lambda: (
+            YamlElectricalConsumerBuilder()
+            .with_test_data()
+            .with_load_curve({"file": "pump_sampled.csv"}, "SIM;RATE")
+            .validate()
+            .load
+        ),
+    ),
+    Example(
         "ENERGY_NETWORK.UNITS.MECHANICAL_CONSUMER",
         lambda: YamlMechanicalConsumerBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.MECHANICAL_CONSUMER.LOAD.CURVE.POWERCURVE",
+        lambda: (
+            YamlMechanicalConsumerBuilder()
+            .with_test_data()
+            .with_load_curve({"variable": [0, 1000, 5000], "power": [0, 0.8, 3.4]}, "SIM;RATE")
+            .validate()
+            .load
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.MECHANICAL_CONSUMER.LOAD.CURVE.YAMLFILE",
+        lambda: (
+            YamlMechanicalConsumerBuilder()
+            .with_test_data()
+            .with_load_curve({"file": "pump_sampled.csv"}, "SIM;RATE")
+            .validate()
+            .load
+        ),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.DRIVE_TRAIN",
@@ -391,8 +438,48 @@ ENERGY_EXAMPLES: list[Example] = [
         lambda: YamlFuelGasConsumerBuilder().with_test_data().validate(),
     ),
     Example(
+        "ENERGY_NETWORK.UNITS.FUEL_GAS_CONSUMER.RATE.CURVE.FUELTABLE",
+        lambda: (
+            YamlFuelGasConsumerBuilder()
+            .with_test_data()
+            .with_rate_curve({"variable": [0, 1000, 5000], "fuel": [0, 8000, 35000]}, "SIM;RATE")
+            .validate()
+            .rate
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.FUEL_GAS_CONSUMER.RATE.CURVE.YAMLFILE",
+        lambda: (
+            YamlFuelGasConsumerBuilder()
+            .with_test_data()
+            .with_rate_curve({"file": "flare_sampled.csv"}, "SIM;RATE")
+            .validate()
+            .rate
+        ),
+    ),
+    Example(
         "ENERGY_NETWORK.UNITS.DIESEL_CONSUMER",
         lambda: YamlDieselConsumerBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.DIESEL_CONSUMER.RATE.CURVE.FUELTABLE",
+        lambda: (
+            YamlDieselConsumerBuilder()
+            .with_test_data()
+            .with_rate_curve({"variable": [0, 1000, 5000], "fuel": [0, 8000, 35000]}, "SIM;RATE")
+            .validate()
+            .rate
+        ),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.DIESEL_CONSUMER.RATE.CURVE.YAMLFILE",
+        lambda: (
+            YamlDieselConsumerBuilder()
+            .with_test_data()
+            .with_rate_curve({"file": "flare_sampled.csv"}, "SIM;RATE")
+            .validate()
+            .rate
+        ),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.COMPRESSOR_SAMPLED",
@@ -718,6 +805,7 @@ SIDEBAR_DEPTH: dict[str, int] = {
     "definitions": 4,  # DEFINITIONS > PROCESS_UNITS > COMPRESSOR (h2, h3, h4)
     "inlet_streams": 2,  # INLET_STREAMS only (h2)
     "shafts": 2,  # SHAFTS only (h2)
+    "compressors": 2,  # COMPRESSORS only (h2)
     "process_pipelines": 2,  # PROCESS_PIPELINES only (h2)
     "process_simulations": 2,  # PROCESS_SIMULATIONS only (h2)
     "ecalc_events": 2,  # ECALC_EVENTS only (h2)
@@ -1179,6 +1267,23 @@ import LifecycleFilter from '@site/src/components/LifecycleFilter';
     return frontmatter + "\n" + imports + intro + legend + body
 
 
+def _time_series_section(opening: str) -> str:
+    return f"""\
+## Time steps and time series
+
+{opening} These time steps come from the time series files it uses: their time vectors are merged into one time vector.
+
+A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Each file must have a value at `START`, otherwise the run fails.
+
+**When to resample yourself**
+
+Forward-fill fits inputs that hold steady between dates, such as rates or on/off states. Inputs that change gradually between dates, such as pressures, should carry the intermediate values in the file itself.
+
+> `INTERPOLATION_TYPE`, `EXTRAPOLATION` and `INFLUENCE_TIME_VECTOR` have no effect on time series referenced here.
+
+"""
+
+
 def generate_process_markdown() -> str:
     """Generate the process reference document."""
     return _generate_markdown(
@@ -1194,12 +1299,16 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [DEFINITIONS](#definitions)
 - [INLET_STREAMS](#inlet_streams)
 - [SHAFTS](#shafts)
+- [COMPRESSORS](#compressors)
 - [PROCESS_PIPELINES](#process_pipelines)
 - [PROCESS_SIMULATIONS](#process_simulations)
 - [ECALC_EVENTS](#ecalc_events)
 - [PROCESS_EVENTS](#process_events)
 
-""",
+"""
+        + _time_series_section(
+            "Each process simulation is calculated on its own time steps, between `START` and `END`."
+        ),
         examples=EXAMPLES,
     )
 
@@ -1219,7 +1328,8 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
 - [DEFINITIONS](#definitions)
 - [ENERGY_NETWORK](#energy_network)
 
-""",
+"""
+        + _time_series_section("The energy network is calculated on time steps between `START` and `END`."),
         examples=ENERGY_EXAMPLES,
     )
 

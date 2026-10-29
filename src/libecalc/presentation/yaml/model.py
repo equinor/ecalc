@@ -34,6 +34,7 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
+from libecalc.ecalc_model.compressor_equipment import CompressorEquipment, CompressorId
 from libecalc.ecalc_model.ecalc_event import (
     EcalcEvent,
     EcalcEventService,
@@ -49,7 +50,7 @@ from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesConsumer,
     TimeSeriesEnergyUnitFactory,
 )
-from libecalc.presentation.yaml.domain.energy.drive_train import TimeSeriesDriveTrain
+from libecalc.presentation.yaml.domain.energy.compressor import TimeSeriesProcessCompressor
 from libecalc.presentation.yaml.domain.energy_container_energy_model_builder import EnergyContainerEnergyModel
 from libecalc.presentation.yaml.domain.reference_service import InvalidReferenceException, ReferenceService
 from libecalc.presentation.yaml.domain.strict_expression_evaluator import StrictExpressionEvaluator
@@ -76,6 +77,7 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_reference_service import YamlReferenceService
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_validation_context import (
     ModelContext,
     ModelName,
@@ -150,6 +152,10 @@ class YamlModel:
     ) -> None:
         self._configuration = configuration
         self._shafts = {shaft.name: VariableSpeedShaft() for shaft in self._configuration.shafts}
+        self._compressors = {
+            compressor.name: CompressorEquipment(name=compressor.name, alias=compressor.alias)
+            for compressor in self._configuration.compressors
+        }
         self._resource_service = resource_service
 
         self._is_validated = False
@@ -162,6 +168,13 @@ class YamlModel:
         self._mapping_context = MappingContext(target_period=self.period)
 
         self._id = uuid.uuid4()  # ID used for "asset" energy container, which is the same as model?
+
+    def get_compressors(self) -> list[CompressorEquipment]:
+        """The physical compressors in COMPRESSORS. Their ids are used by both process and energy results."""
+        return list(self._compressors.values())
+
+    def _get_compressor_ids(self) -> dict[CompressorReference, CompressorId]:
+        return {name: compressor.get_id() for name, compressor in self._compressors.items()}
 
     def _get_definitions(self) -> dict[str, Any]:
         definitions = self._configuration.definitions
@@ -256,6 +269,7 @@ class YamlModel:
                 time_series_resources=time_series_name_map,
                 start=self._configuration.start,
                 end=end,
+                additional_dates=ecalc_event_service.get_time_steps(),
             )
 
             mapper = ProcessSimulationMapper(
@@ -265,6 +279,7 @@ class YamlModel:
                 references=reference_objects,
                 ecalc_event_service=ecalc_event_service,
                 shafts=self._shafts,
+                compressor_ids=self._get_compressor_ids(),
             )
 
             try:
@@ -292,7 +307,7 @@ class YamlModel:
     ) -> tuple[
         EnergyNetworkTopology | None,
         Sequence[TimeSeriesEnergyUnitFactory],
-        Sequence[TimeSeriesConsumer | TimeSeriesDriveTrain],
+        Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor],
         list[Period],
     ]:
         self.validate_for_run()
@@ -317,7 +332,9 @@ class YamlModel:
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
             topology, energy_unit_factories, consumers = EnergyNetworkMapper(
-                shafts=self._shafts, definitions=self._get_definitions()
+                shafts=self._shafts,
+                compressor_ids=self._get_compressor_ids(),
+                definitions=self._get_definitions(),
             ).map_energy_network(yaml_energy_network, expression_evaluator, resources=facility_resources)
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
         except EcalcValidationException as e:

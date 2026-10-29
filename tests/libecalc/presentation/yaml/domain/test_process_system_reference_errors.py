@@ -28,6 +28,7 @@ from libecalc.testing.process_builders import (
     YamlPressureDropperBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
+    compressors_in,
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
 
@@ -51,7 +52,7 @@ class TestDefinitionReferenceNotFound:
         pipeline = (
             YamlProcessPipelineBuilder()
             .with_name("train_1")
-            .with_shaft_driven_item(target="nonexistent_compressor", name="stage_1", shaft=DEFAULT_SHAFT_NAME)
+            .with_shaft_driven_item(target="nonexistent_compressor", compressor="stage_1", shaft=DEFAULT_SHAFT_NAME)
             .validate()
         )
 
@@ -69,6 +70,7 @@ class TestDefinitionReferenceNotFound:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(definitions)
@@ -82,7 +84,7 @@ class TestDefinitionReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 45
+	Object starting on line 46
 	Location: PROCESS_PIPELINES.train_1
 	Message: Definition reference 'nonexistent_compressor' not found. Available definitions: ['real_compressor']
 """)
@@ -114,6 +116,7 @@ class TestDefinitionReferenceWrongType:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(definitions)
@@ -152,7 +155,7 @@ Validation error
         pipeline = (
             YamlProcessPipelineBuilder()
             .with_name("train_1")
-            .with_shaft_driven_item(target=compressor_def, name="stage_1", shaft=DEFAULT_SHAFT_NAME)
+            .with_shaft_driven_item(target=compressor_def, compressor="stage_1", shaft=DEFAULT_SHAFT_NAME)
             .with_events([event])
             .validate()
         )
@@ -170,6 +173,7 @@ Validation error
         asset = (
             YamlAssetBuilder()
             .with_test_data()
+            .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
             .with_definitions(definitions)
@@ -183,7 +187,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 19
+	Object starting on line 20
 	Location: PROCESS_PIPELINES.train_1
 	Message: Definition reference 'my_pressure_dropper' resolved to type 'YamlPressureDropperDefinition', but expected one of: YamlCompressorDefinition
 """)

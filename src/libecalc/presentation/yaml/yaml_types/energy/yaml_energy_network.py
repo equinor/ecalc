@@ -11,11 +11,15 @@ from pydantic import (
     model_validator,
 )
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
+from libecalc.energy.models.curve_interpolator import validate_curve_interpolator
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
+from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
@@ -277,22 +281,143 @@ class YamlConsumerBase(YamlBase):
     ]
 
 
+class YamlPowerCurve(YamlBase):
+    model_config = ConfigDict(title="PowerCurve")
+
+    variable: Annotated[
+        list[float],
+        Field(
+            title="VARIABLE",
+            description="Values of the variable the curve is keyed on, strictly increasing. In a FILE, "
+            "this is whichever column isn't POWER.",
+        ),
+    ]
+    power: Annotated[
+        list[float],
+        Field(
+            title="POWER",
+            description="Power [MW] for each VARIABLE value. In a FILE, this is the POWER column.",
+        ),
+    ]
+
+
+class YamlLoadCurve(YamlBase):
+    """Alternative to a direct LOAD expression: looks POWER up in a curve keyed on VARIABLE."""
+
+    model_config = ConfigDict(
+        title="LoadCurve",
+        json_schema_extra={
+            "examples": [
+                {"CURVE": {"VARIABLE": [0, 1000, 5000], "POWER": [0, 0.8, 3.4]}, "VARIABLE": "SIM;RATE"},
+                {"CURVE": {"FILE": "pump_sampled.csv"}, "VARIABLE": "SIM;RATE"},
+            ],
+        },
+    )
+
+    curve: Annotated[
+        DataOrFile[YamlPowerCurve],
+        Field(
+            title="CURVE",
+            description="Variable and power values, given directly or in a FILE with a POWER column and "
+            "one other column for the variable.",
+        ),
+    ]
+    variable: Annotated[
+        YamlExpressionType,
+        Field(
+            title="VARIABLE",
+            description="Value looked up in CURVE.",
+        ),
+    ]
+
+    @model_validator(mode="after")
+    def validate_inline_curve(self):
+        if isinstance(self.curve, YamlPowerCurve):
+            try:
+                validate_curve_interpolator(self.curve.variable, self.curve.power)
+            except EcalcValidationException as e:
+                raise ValueError(str(e)) from e
+        return self
+
+
+class YamlFuelTable(YamlBase):
+    model_config = ConfigDict(title="FuelTable")
+
+    variable: Annotated[
+        list[float],
+        Field(
+            title="VARIABLE",
+            description="Values of the variable the curve is keyed on, strictly increasing. In a FILE, "
+            "this is whichever column isn't FUEL.",
+        ),
+    ]
+    fuel: Annotated[
+        list[float],
+        Field(
+            title="FUEL",
+            description="Consumption rate for each VARIABLE value. In a FILE, this is the FUEL column "
+            "(matching the legacy TABULAR/TABULATED convention, so existing files can be reused as-is).",
+        ),
+    ]
+
+
+class YamlRateCurve(YamlBase):
+    """Alternative to a direct RATE expression: looks FUEL up in a curve keyed on VARIABLE."""
+
+    model_config = ConfigDict(
+        title="RateCurve",
+        json_schema_extra={
+            "examples": [
+                {"CURVE": {"VARIABLE": [0, 1000, 5000], "FUEL": [0, 8000, 35000]}, "VARIABLE": "SIM;RATE"},
+                {"CURVE": {"FILE": "flare_sampled.csv"}, "VARIABLE": "SIM;RATE"},
+            ],
+        },
+    )
+
+    curve: Annotated[
+        DataOrFile[YamlFuelTable],
+        Field(
+            title="CURVE",
+            description="Variable and fuel values, given directly or in a FILE with a FUEL column and "
+            "one other column for the variable.",
+        ),
+    ]
+    variable: Annotated[
+        YamlExpressionType,
+        Field(
+            title="VARIABLE",
+            description="Value looked up in CURVE.",
+        ),
+    ]
+
+    @model_validator(mode="after")
+    def validate_inline_curve(self):
+        if isinstance(self.curve, YamlFuelTable):
+            try:
+                validate_curve_interpolator(self.curve.variable, self.curve.fuel)
+            except EcalcValidationException as e:
+                raise ValueError(str(e)) from e
+        return self
+
+
 class YamlElectricalConsumer(YamlConsumerBase):
     model_config = ConfigDict(title="ElectricalConsumer")
 
     type: Literal["ELECTRICAL_CONSUMER"]
     load: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | YamlLoadCurve,
         Field(
             title="LOAD",
-            description="Electrical power demand (MW).",
+            description="Electrical power demand (MW), as an expression or a curve lookup.",
         ),
     ]
 
     @field_validator("load", mode="after")
     @classmethod
-    def _load_non_negative(cls, v: YamlExpressionType) -> YamlExpressionType:
-        return _check_non_negative(v, "LOAD")  # type: ignore[return-value]
+    def _load_non_negative(cls, v: YamlExpressionType | YamlLoadCurve) -> YamlExpressionType | YamlLoadCurve:
+        if isinstance(v, YamlLoadCurve):
+            return v
+        return _check_non_negative(v, "LOAD")
 
 
 class YamlMechanicalConsumer(YamlConsumerBase):
@@ -300,16 +425,18 @@ class YamlMechanicalConsumer(YamlConsumerBase):
 
     type: Literal["MECHANICAL_CONSUMER"]
     load: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | YamlLoadCurve,
         Field(
             title="LOAD",
-            description="Shaft power demand (MW).",
+            description="Shaft power demand (MW), as an expression or a curve lookup.",
         ),
     ]
 
     @field_validator("load", mode="after")
     @classmethod
-    def _load_non_negative(cls, v: YamlExpressionType) -> YamlExpressionType:
+    def _load_non_negative(cls, v: YamlExpressionType | YamlLoadCurve) -> YamlExpressionType | YamlLoadCurve:
+        if isinstance(v, YamlLoadCurve):
+            return v
         return _check_non_negative(v, "LOAD")
 
 
@@ -329,17 +456,19 @@ class YamlFuelGasConsumer(YamlConsumerBase):
 
     type: Literal["FUEL_GAS_CONSUMER"]
     rate: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | YamlRateCurve,
         Field(
             title="RATE",
-            description="Fuel gas consumption rate (Sm³/d).",
+            description="Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.",
         ),
     ]
 
     @field_validator("rate", mode="after")
     @classmethod
-    def _rate_non_negative(cls, v: YamlExpressionType) -> YamlExpressionType:
-        return _check_non_negative(v, "RATE")  # type: ignore[return-value]
+    def _rate_non_negative(cls, v: YamlExpressionType | YamlRateCurve) -> YamlExpressionType | YamlRateCurve:
+        if isinstance(v, YamlRateCurve):
+            return v
+        return _check_non_negative(v, "RATE")
 
 
 class YamlDieselConsumer(YamlConsumerBase):
@@ -347,17 +476,19 @@ class YamlDieselConsumer(YamlConsumerBase):
 
     type: Literal["DIESEL_CONSUMER"]
     rate: Annotated[
-        YamlExpressionType,
+        YamlExpressionType | YamlRateCurve,
         Field(
             title="RATE",
-            description="Diesel consumption rate (l/d).",
+            description="Diesel consumption rate (l/d), as an expression or a curve lookup.",
         ),
     ]
 
     @field_validator("rate", mode="after")
     @classmethod
-    def _rate_non_negative(cls, v: YamlExpressionType) -> YamlExpressionType:
-        return _check_non_negative(v, "RATE")  # type: ignore[return-value]
+    def _rate_non_negative(cls, v: YamlExpressionType | YamlRateCurve) -> YamlExpressionType | YamlRateCurve:
+        if isinstance(v, YamlRateCurve):
+            return v
+        return _check_non_negative(v, "RATE")
 
 
 class YamlCompressorSampled(YamlConsumerBase):
@@ -378,6 +509,13 @@ class YamlCompressorSampled(YamlConsumerBase):
     model_config = ConfigDict(title="CompressorSampled")
 
     type: Literal["COMPRESSOR_SAMPLED"]
+    compressor: Annotated[
+        CompressorReference,
+        Field(
+            title="COMPRESSOR",
+            description="Reference to a compressor defined in COMPRESSORS.",
+        ),
+    ]
     file: Annotated[
         str,
         Field(

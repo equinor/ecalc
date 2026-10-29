@@ -52,3 +52,6 @@ class EcalcEventService:
                 if process_event.name == name:
                     return ecalc_event
         return None
+
+    def get_time_steps(self) -> set[datetime]:
+        return {ecalc_event.start for ecalc_event in self._ecalc_events}

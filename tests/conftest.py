@@ -18,6 +18,7 @@ from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
+from libecalc.ecalc_model.compressor_equipment import CompressorEquipment
 from libecalc.ecalc_model.ecalc_event import EcalcEventService
 from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
@@ -43,6 +44,10 @@ from libecalc.presentation.yaml.resource_service import ResourceService, TupleWi
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorProcessUnitInstance,
+    YamlProcessPipeline,
+)
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.testing.energy_builders import YamlEnergyNetworkBuilder
@@ -722,7 +727,9 @@ def process_simulation_mapper_factory(
     """
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    def _create(references: dict | None = None, shafts: dict | None = None):
+    def _create(references: dict | None = None, shafts: dict | None = None, compressor_ids: dict | None = None):
+        if compressor_ids is None:
+            compressor_ids = _compressor_ids_for_pipelines(references or {})
         return ProcessSimulationMapper(
             expression_evaluator=expression_evaluator,
             fluid_service=fluid_service,
@@ -730,9 +737,21 @@ def process_simulation_mapper_factory(
             resources={},
             ecalc_event_service=EcalcEventService(ecalc_events=[]),
             shafts=shafts or {},
+            compressor_ids=compressor_ids,
         )
 
     return _create
+
+
+def _compressor_ids_for_pipelines(references: dict) -> dict:
+    """Generate a compressor id for every compressor placed in the referenced pipelines, as YamlModel would."""
+    return {
+        process_unit.compressor: CompressorEquipment(name=process_unit.compressor).get_id()
+        for reference in references.values()
+        if isinstance(reference, YamlProcessPipeline)
+        for process_unit in reference.process_units
+        if isinstance(process_unit, YamlCompressorProcessUnitInstance)
+    }
 
 
 @pytest.fixture
@@ -742,7 +761,7 @@ def energy_network_mapper_factory():
     Call with shafts to register shafts for drive trains. Default is no shafts.
     """
 
-    def _create(shafts: dict | None = None, definitions=None):
-        return EnergyNetworkMapper(shafts=shafts or {}, definitions=definitions)
+    def _create(shafts: dict | None = None, compressor_ids: dict | None = None, definitions=None):
+        return EnergyNetworkMapper(shafts=shafts or {}, compressor_ids=compressor_ids or {}, definitions=definitions)
 
     return _create

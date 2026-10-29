@@ -38,12 +38,12 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
         .with_name("train_with_mixer")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .with_item(target=yaml_mixer)
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_shaft_driven_item(
-            name="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
+            compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate(), shaft=SHAFT_NAME
         )
         .validate()
     )

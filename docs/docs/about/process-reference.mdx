@@ -18,16 +18,25 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [DEFINITIONS](#definitions)
 - [INLET_STREAMS](#inlet_streams)
 - [SHAFTS](#shafts)
+- [COMPRESSORS](#compressors)
 - [PROCESS_PIPELINES](#process_pipelines)
 - [PROCESS_SIMULATIONS](#process_simulations)
 - [ECALC_EVENTS](#ecalc_events)
 - [PROCESS_EVENTS](#process_events)
 
-Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="2" /><LifecycleBadge kind="deprecated" version="2" /><LifecycleBadge kind="removed" version="2" />. Use the filters below to focus on what you need.
+## Time steps and time series
 
-<LifecycleFilter />
+Each process simulation is calculated on its own time steps, between `START` and `END`. These time steps come from the time series files it uses: their time vectors are merged into one time vector.
 
-## DEFINITIONS <LifecycleBadge kind="introduced" version="2" /> \{#definitions}
+A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Each file must have a value at `START`, otherwise the run fails.
+
+**When to resample yourself**
+
+Forward-fill fits inputs that hold steady between dates, such as rates or on/off states. Inputs that change gradually between dates, such as pressures, should carry the intermediate values in the file itself.
+
+> `INTERPOLATION_TYPE`, `EXTRAPOLATION` and `INFLUENCE_TIME_VECTOR` have no effect on time series referenced here.
+
+## DEFINITIONS
 
 Contains reusable definitions.
 
@@ -175,7 +184,7 @@ Rate with unit + value.
 | --- | --- | --- |
 | `VALUE` |  | Required |
 | `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
@@ -199,7 +208,7 @@ Standard rate to split off.
 | --- | --- | --- |
 | `VALUE` |  | Required |
 | `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
@@ -267,7 +276,7 @@ Rate with unit + value.
 | --- | --- | --- |
 | `VALUE` |  | Required |
 | `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
@@ -281,11 +290,22 @@ Defines named shafts representing mechanical connections between drivers and dri
 | --- | --- | --- |
 | `NAME` | Unique name of the shaft. | Required |
 
-## PROCESS_PIPELINES <LifecycleBadge kind="introduced" version="2" /> \{#process_pipelines}
+## COMPRESSORS
+
+Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.
+
+<YamlCodeBlock>{"NAME: default_compressor\nALIAS: RIA"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the physical compressor, e.g. its equipment tag. | Required |
+| `ALIAS` | Optional alias for the compressor, e.g. 'RIA'. | Optional |
+
+## PROCESS_PIPELINES
 
 Defines process pipelines to use in process simulations.
 
-<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- TARGET:\n    TYPE: COMPRESSOR\n    COMPRESSOR_MODEL:\n      TYPE: COMPRESSOR_CHART\n      CHART:\n        CURVES:\n        - SPEED: 10000.0\n          RATE:\n          - 500.0\n          - 3000.0\n          - 5000.0\n          - 8000.0\n          HEAD:\n          - 30000.0\n          - 25000.0\n          - 20000.0\n          - 15000.0\n          EFFICIENCY:\n          - 0.68\n          - 0.72\n          - 0.74\n          - 0.7\n        UNITS:\n          RATE: AM3_PER_HOUR\n          HEAD: M\n          EFFICIENCY: FRACTION\n      CONTROL_MARGIN:\n        UNIT: FRACTION\n        VALUE: 0.0\n  NAME: default_compressor\n  SHAFT: default_shaft\nEVENTS: []"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- TARGET:\n    TYPE: COMPRESSOR\n    COMPRESSOR_MODEL:\n      TYPE: COMPRESSOR_CHART\n      CHART:\n        CURVES:\n        - SPEED: 10000.0\n          RATE:\n          - 500.0\n          - 3000.0\n          - 5000.0\n          - 8000.0\n          HEAD:\n          - 30000.0\n          - 25000.0\n          - 20000.0\n          - 15000.0\n          EFFICIENCY:\n          - 0.68\n          - 0.72\n          - 0.74\n          - 0.7\n        UNITS:\n          RATE: AM3_PER_HOUR\n          HEAD: M\n          EFFICIENCY: FRACTION\n      CONTROL_MARGIN:\n        UNIT: FRACTION\n        VALUE: 0.0\n  COMPRESSOR: default_compressor\n  SHAFT: default_shaft\nEVENTS: []"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -301,7 +321,7 @@ Defines process pipelines to use in process simulations.
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
-| `NAME` |  | Required |
+| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. | Required |
 | `SHAFT` | Reference to a shaft defined in SHAFTS. | Required |
 
 </TabItem>
@@ -374,7 +394,7 @@ Rate with unit + value.
 | --- | --- | --- |
 | `VALUE` |  | Required |
 | `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
@@ -421,7 +441,7 @@ Rate with unit + value.
 | --- | --- | --- |
 | `VALUE` |  | Required |
 | `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` \| `CALENDAR_DAY` | Default: `STREAM_DAY` |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 

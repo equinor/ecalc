@@ -18,11 +18,19 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
 - [DEFINITIONS](#definitions)
 - [ENERGY_NETWORK](#energy_network)
 
-Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="2" /><LifecycleBadge kind="deprecated" version="2" /><LifecycleBadge kind="removed" version="2" />. Use the filters below to focus on what you need.
+## Time steps and time series
 
-<LifecycleFilter />
+The energy network is calculated on time steps between `START` and `END`. These time steps come from the time series files it uses: their time vectors are merged into one time vector.
 
-## DEFINITIONS <LifecycleBadge kind="introduced" version="2" /> \{#definitions}
+A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Each file must have a value at `START`, otherwise the run fails.
+
+**When to resample yourself**
+
+Forward-fill fits inputs that hold steady between dates, such as rates or on/off states. Inputs that change gradually between dates, such as pressures, should carry the intermediate values in the file itself.
+
+> `INTERPOLATION_TYPE`, `EXTRAPOLATION` and `INFLUENCE_TIME_VECTOR` have no effect on time series referenced here.
+
+## DEFINITIONS
 
 Contains reusable definitions.
 
@@ -227,27 +235,97 @@ At least two sources or units feeding into this junction, in dispatch priority o
 
 <TabItem value="ELECTRICAL_CONSUMER" label="ELECTRICAL_CONSUMER">
 
-<YamlCodeBlock>{"NAME: base_load\nINPUT: main_bus\nTYPE: ELECTRICAL_CONSUMER\nLOAD: 5"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: base_load\nINPUT: main_bus\nTYPE: ELECTRICAL_CONSUMER\nLOAD: ..."}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `ELECTRICAL_CONSUMER` | Required |
-| `LOAD` | Electrical power demand (MW). | Required |
+| [`LOAD`](#energy-network-units-electrical-consumer-load) | Electrical power demand (MW), as an expression or a curve lookup. | Required |
+
+##### LOAD {/* #energy-network-units-electrical-consumer-load */}
+
+Electrical power demand (MW), as an expression or a curve lookup.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`CURVE`](#energy-network-units-electrical-consumer-load-curve) | Variable and power values, given directly or in a FILE with a POWER column and one other column for the variable. | Required |
+| `VARIABLE` | Value looked up in CURVE. | Required |
+
+##### CURVE {/* #energy-network-units-electrical-consumer-load-curve */}
+
+<Tabs>
+<TabItem value="POWERCURVE" label="POWERCURVE">
+
+<YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VARIABLE` | Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't POWER. | Required |
+| `POWER` | Power [MW] for each VARIABLE value. In a FILE, this is the POWER column. | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+<YamlCodeBlock>{"CURVE:\n  FILE: pump_sampled.csv\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
 
 </TabItem>
 
 <TabItem value="MECHANICAL_CONSUMER" label="MECHANICAL_CONSUMER">
 
-<YamlCodeBlock>{"NAME: pump\nINPUT: electrical_motor\nTYPE: MECHANICAL_CONSUMER\nLOAD: 2"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: pump\nINPUT: electrical_motor\nTYPE: MECHANICAL_CONSUMER\nLOAD: ..."}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `MECHANICAL_CONSUMER` | Required |
-| `LOAD` | Shaft power demand (MW). | Required |
+| [`LOAD`](#energy-network-units-mechanical-consumer-load) | Shaft power demand (MW), as an expression or a curve lookup. | Required |
+
+##### LOAD {/* #energy-network-units-mechanical-consumer-load */}
+
+Shaft power demand (MW), as an expression or a curve lookup.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`CURVE`](#energy-network-units-mechanical-consumer-load-curve) | Variable and power values, given directly or in a FILE with a POWER column and one other column for the variable. | Required |
+| `VARIABLE` | Value looked up in CURVE. | Required |
+
+##### CURVE {/* #energy-network-units-mechanical-consumer-load-curve */}
+
+<Tabs>
+<TabItem value="POWERCURVE" label="POWERCURVE">
+
+<YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VARIABLE` | Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't POWER. | Required |
+| `POWER` | Power [MW] for each VARIABLE value. In a FILE, this is the POWER column. | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+<YamlCodeBlock>{"CURVE:\n  FILE: pump_sampled.csv\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
 
 </TabItem>
 
@@ -266,27 +344,97 @@ At least two sources or units feeding into this junction, in dispatch priority o
 
 <TabItem value="FUEL_GAS_CONSUMER" label="FUEL_GAS_CONSUMER">
 
-<YamlCodeBlock>{"NAME: flare\nINPUT: fuel_gas\nTYPE: FUEL_GAS_CONSUMER\nRATE: 10000"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: flare\nINPUT: fuel_gas\nTYPE: FUEL_GAS_CONSUMER\nRATE: ..."}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `FUEL_GAS_CONSUMER` | Required |
-| `RATE` | Fuel gas consumption rate (Sm³/d). | Required |
+| [`RATE`](#energy-network-units-fuel-gas-consumer-rate) | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
+
+##### RATE {/* #energy-network-units-fuel-gas-consumer-rate */}
+
+Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`CURVE`](#energy-network-units-fuel-gas-consumer-rate-curve) | Variable and fuel values, given directly or in a FILE with a FUEL column and one other column for the variable. | Required |
+| `VARIABLE` | Value looked up in CURVE. | Required |
+
+##### CURVE {/* #energy-network-units-fuel-gas-consumer-rate-curve */}
+
+<Tabs>
+<TabItem value="FUELTABLE" label="FUELTABLE">
+
+<YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VARIABLE` | Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't FUEL. | Required |
+| `FUEL` | Consumption rate for each VARIABLE value. In a FILE, this is the FUEL column (matching the legacy TABULAR/TABULATED convention, so existing files can be reused as-is). | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+<YamlCodeBlock>{"CURVE:\n  FILE: flare_sampled.csv\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
 
 </TabItem>
 
 <TabItem value="DIESEL_CONSUMER" label="DIESEL_CONSUMER">
 
-<YamlCodeBlock>{"NAME: diesel_engine\nINPUT: diesel\nTYPE: DIESEL_CONSUMER\nRATE: 5000"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: diesel_engine\nINPUT: diesel\nTYPE: DIESEL_CONSUMER\nRATE: ..."}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `DIESEL_CONSUMER` | Required |
-| `RATE` | Diesel consumption rate (l/d). | Required |
+| [`RATE`](#energy-network-units-diesel-consumer-rate) | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
+
+##### RATE {/* #energy-network-units-diesel-consumer-rate */}
+
+Diesel consumption rate (l/d), as an expression or a curve lookup.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`CURVE`](#energy-network-units-diesel-consumer-rate-curve) | Variable and fuel values, given directly or in a FILE with a FUEL column and one other column for the variable. | Required |
+| `VARIABLE` | Value looked up in CURVE. | Required |
+
+##### CURVE {/* #energy-network-units-diesel-consumer-rate-curve */}
+
+<Tabs>
+<TabItem value="FUELTABLE" label="FUELTABLE">
+
+<YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VARIABLE` | Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't FUEL. | Required |
+| `FUEL` | Consumption rate for each VARIABLE value. In a FILE, this is the FUEL column (matching the legacy TABULAR/TABULATED convention, so existing files can be reused as-is). | Required |
+
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+<YamlCodeBlock>{"CURVE:\n  FILE: flare_sampled.csv\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+</TabItem>
+
+</Tabs>
 
 </TabItem>
 
@@ -304,13 +452,14 @@ A compressor whose energy usage is tabulated in `FILE` against `RATE`, `SUCTION_
 Every variable tabulated in `FILE` must be given as an expression, and every given expression must be
 tabulated.
 
-<YamlCodeBlock>{"NAME: gas_compressor_sampled\nINPUT: fuel_gas\nTYPE: COMPRESSOR_SAMPLED\nFILE: gas_compressor_sampled.csv\nRATE: 2500000\nSUCTION_PRESSURE: 40\nDISCHARGE_PRESSURE: 120"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: gas_compressor_sampled\nINPUT: fuel_gas\nTYPE: COMPRESSOR_SAMPLED\nCOMPRESSOR: default_sampled_compressor\nFILE: gas_compressor_sampled.csv\nRATE: 2500000\nSUCTION_PRESSURE: 40\nDISCHARGE_PRESSURE: 120"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `COMPRESSOR_SAMPLED` | Required |
+| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. | Required |
 | `FILE` | Resource tabulating FUEL and/or POWER against RATE, SUCTION_PRESSURE and/or DISCHARGE_PRESSURE. | Required |
 | `RATE` | Rate through the compressor (Sm³/d), looked up in FILE. | Optional |
 | `SUCTION_PRESSURE` | Compressor inlet pressure (bara), looked up in FILE. | Optional |

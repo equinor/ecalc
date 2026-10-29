@@ -29,6 +29,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import
     YamlTurbineCurve,
     YamlTurbineDefinition,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.testing.yaml_builder import Builder
 
@@ -358,6 +359,10 @@ class YamlElectricalConsumerBuilder(Builder[YamlElectricalConsumer]):
         self.load = load
         return self
 
+    def with_load_curve(self, curve: dict, variable: YamlExpressionType) -> Self:
+        self.load = {"curve": curve, "variable": variable}
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "base_load"
         self.input = "main_bus"
@@ -382,6 +387,10 @@ class YamlMechanicalConsumerBuilder(Builder[YamlMechanicalConsumer]):
 
     def with_load(self, load: YamlExpressionType) -> Self:
         self.load = load
+        return self
+
+    def with_load_curve(self, curve: dict, variable: YamlExpressionType) -> Self:
+        self.load = {"curve": curve, "variable": variable}
         return self
 
     def with_test_data(self) -> Self:
@@ -436,6 +445,10 @@ class YamlFuelGasConsumerBuilder(Builder[YamlFuelGasConsumer]):
         self.rate = rate
         return self
 
+    def with_rate_curve(self, curve: dict, variable: YamlExpressionType) -> Self:
+        self.rate = {"curve": curve, "variable": variable}
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "flare"
         self.input = "fuel_gas"
@@ -462,6 +475,10 @@ class YamlDieselConsumerBuilder(Builder[YamlDieselConsumer]):
         self.rate = rate
         return self
 
+    def with_rate_curve(self, curve: dict, variable: YamlExpressionType) -> Self:
+        self.rate = {"curve": curve, "variable": variable}
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "diesel_engine"
         self.input = "diesel"
@@ -473,6 +490,7 @@ class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
     def __init__(self):
         self.type = "COMPRESSOR_SAMPLED"
         self.name = None
+        self.compressor = None
         self.input = None
         self.file = None
         self.rate = None
@@ -481,6 +499,10 @@ class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
 
     def with_name(self, name: str) -> Self:
         self.name = name
+        return self
+
+    def with_compressor(self, compressor: CompressorReference) -> Self:
+        self.compressor = compressor
         return self
 
     def with_input(self, input: str) -> Self:
@@ -505,6 +527,7 @@ class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
 
     def with_test_data(self) -> Self:
         self.name = "gas_compressor_sampled"
+        self.compressor = "default_sampled_compressor"
         self.input = "fuel_gas"
         self.file = "gas_compressor_sampled.csv"
         self.rate = 2500000
