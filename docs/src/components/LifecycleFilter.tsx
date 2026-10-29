@@ -6,7 +6,7 @@ interface ToggleConfig {
   matches: (badgeKinds: Set<string>) => boolean;
 }
 
-const HEADING_SELECTOR = 'h1, h2, h3, h4, h5, h6';
+const HEADING_SELECTOR = 'h2, h3, h4, h5, h6';
 const BADGE_SELECTOR = '.lifecycle-badge';
 const HIDDEN_CLASS = 'lifecycle-hidden';
 
