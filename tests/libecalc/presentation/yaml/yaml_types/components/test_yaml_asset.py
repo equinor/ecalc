@@ -1,6 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.testing.process_builders import (
