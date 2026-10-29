@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Annotated
 
-from pydantic import BaseModel, BeforeValidator, WithJsonSchema
+from pydantic import BaseModel, BeforeValidator, JsonValue, WithJsonSchema
 from pydantic.fields import FieldInfo
 
 from libecalc.common.version import Version
@@ -58,7 +58,7 @@ DEPRECATED_SINCE_KEY = "deprecated_since"
 REMOVED_SINCE_KEY = "removed_since"
 
 
-def version_field_json_schema_extra(default: int) -> dict[str, int]:
+def version_field_json_schema_extra(default: int) -> dict[str, JsonValue]:
     """Build json_schema_extra for the document VERSION field, rendering its default major version."""
     return {"default": default}
 
@@ -68,14 +68,14 @@ def yaml_element_lifecycle(
     available_since: Version | None = None,
     deprecated_since: Version | None = None,
     removed_since: Version | None = None,
-) -> dict[str, str]:
+) -> dict[str, JsonValue]:
     """
     Build the json_schema_extra for a root element Field(...) call, marking its lifecycle.
 
     Root elements without an available_since marker are implicitly available since V1.
     Versions are stored as plain X.Y.Z strings so the extra dict stays JSON-friendly.
     """
-    extra: dict[str, str] = {}
+    extra: dict[str, JsonValue] = {}
     if available_since is not None:
         extra[AVAILABLE_SINCE_KEY] = str(available_since)
     if deprecated_since is not None:

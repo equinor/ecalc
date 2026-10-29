@@ -37,8 +37,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     DEFAULT_YAML_VERSION,
     V2,
-    V3,
-    V4,
     YamlMajorVersion,
     get_unavailable_field_names,
     version_field_json_schema_extra,
