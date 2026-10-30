@@ -310,7 +310,7 @@ class TestNetworkValidation:
             )
 
     def test_incompatible_energy_type_rejected(self):
-        with pytest.raises(ValueError, match="expects FUEL_GAS input.*provides ELECTRICAL"):
+        with pytest.raises(ValueError, match=r"expects one of \['DIESEL', 'FUEL_GAS'\] input.*provides ELECTRICAL"):
             YamlEnergyNetwork.model_validate(
                 {
                     "SOURCES": [{"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE", "CAPACITY": 10}],
@@ -332,16 +332,16 @@ class TestNetworkValidation:
                 }
             )
 
-    def test_diesel_genset_rejected(self):
-        with pytest.raises(ValueError, match="expects FUEL_GAS input"):
-            YamlEnergyNetwork.model_validate(
-                {
-                    "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
-                    "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "diesel", "MODEL": GENERATOR},
-                    ],
-                }
-            )
+    def test_diesel_genset_accepted(self):
+        network = YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
+                "UNITS": [
+                    {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "diesel", "MODEL": GENERATOR},
+                ],
+            }
+        )
+        assert len(network.units) == 1
 
     def test_compatible_chain_accepted(self):
         network = YamlEnergyNetwork.model_validate(
