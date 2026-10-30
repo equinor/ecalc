@@ -1,53 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
 
-interface ToggleConfig {
-  key: string;
-  label: string;
-  matches: (badgeKinds: Set<string>) => boolean;
-}
-
 const HEADING_SELECTOR = 'h2, h3, h4, h5, h6';
 const BADGE_SELECTOR = '.lifecycle-badge';
 const HIDDEN_CLASS = 'lifecycle-hidden';
 const ALL_VERSIONS = 'all';
 const VERSIONS = ['1', '2', '3'];
 
-const TOGGLES: ToggleConfig[] = [
-  {
-    key: 'hideDeprecated',
-    label: 'Hide deprecated',
-    matches: (kinds) => kinds.has('deprecated'),
-  },
-  {
-    key: 'hideRemoved',
-    label: 'Hide removed',
-    matches: (kinds) => kinds.has('removed'),
-  },
-  {
-    key: 'onlyIntroduced',
-    label: 'Only show new elements',
-    matches: (kinds) => !kinds.has('introduced'),
-  },
-];
-
 interface SectionLifecycle {
   level: number;
-  introduced: boolean;
   availableSince: number;
   removedSince: number | null;
-}
-
-function badgeKindsOf(container: Element): Set<string> {
-  const kinds = new Set<string>();
-  container.querySelectorAll(BADGE_SELECTOR).forEach((badge) => {
-    Array.from(badge.classList).forEach((className) => {
-      const match = /^lifecycle-badge--(.+)$/.exec(className);
-      if (match) {
-        kinds.add(match[1]);
-      }
-    });
-  });
-  return kinds;
 }
 
 /** Read a container's own introduced/removed versions from its <LifecycleBadge> `data-version`s. */
@@ -107,14 +69,7 @@ function collectSection(heading: Element): Element[] {
   return elements;
 }
 
-function shouldHide(
-  active: Record<string, boolean>,
-  kinds: Set<string>,
-): boolean {
-  return TOGGLES.some((toggle) => active[toggle.key] && toggle.matches(kinds));
-}
-
-function applyFilters(active: Record<string, boolean>, version: string) {
+function applyFilters(version: string) {
   const content =
     document.querySelector<HTMLElement>('article .markdown') ??
     document.querySelector('article');
@@ -127,10 +82,7 @@ function applyFilters(active: Record<string, boolean>, version: string) {
     el.classList.remove(HIDDEN_CLASS);
   });
 
-  const anyToggleActive = TOGGLES.some((toggle) => active[toggle.key]);
-  const versionFilterActive = version !== ALL_VERSIONS;
-
-  if (anyToggleActive || versionFilterActive) {
+  if (version !== ALL_VERSIONS) {
     // Headings own their whole section (heading + following siblings until the next
     // heading of equal or shallower level). Lifecycle is inherited from the nearest
     // ancestor heading, so fields nested under e.g. a v2-new section aren't wrongly
@@ -139,11 +91,9 @@ function applyFilters(active: Record<string, boolean>, version: string) {
     content
       .querySelectorAll<HTMLElement>(`${HEADING_SELECTOR}, tr`)
       .forEach((element) => {
-        const parent =
-          element.tagName === 'TR' ? stack[stack.length - 1] : undefined;
         const isHeading = element.tagName !== 'TR';
+        const parent = isHeading ? undefined : stack[stack.length - 1];
 
-        const kinds = badgeKindsOf(element);
         const { introducedIn, removedIn } = badgeVersionsOf(element);
 
         let ancestor: SectionLifecycle | undefined = parent;
@@ -155,29 +105,18 @@ function applyFilters(active: Record<string, boolean>, version: string) {
           ancestor = stack[stack.length - 1];
         }
 
-        const introduced =
-          kinds.has('introduced') || (ancestor?.introduced ?? false);
         const availableSince = introducedIn ?? ancestor?.availableSince ?? 1;
         const removedSince = removedIn ?? ancestor?.removedSince ?? null;
 
         if (isHeading) {
           stack.push({
             level: headingLevel(element),
-            introduced,
             availableSince,
             removedSince,
           });
         }
 
-        const effectiveKinds = introduced
-          ? new Set([...kinds, 'introduced'])
-          : kinds;
-        const hideByToggle =
-          anyToggleActive && shouldHide(active, effectiveKinds);
-        const hideByVersion =
-          versionFilterActive &&
-          !isAvailableForVersion(availableSince, removedSince, version);
-        if (!hideByToggle && !hideByVersion) {
+        if (isAvailableForVersion(availableSince, removedSince, version)) {
           return;
         }
 
@@ -220,28 +159,26 @@ function syncTableOfContents(content: Element) {
 }
 
 /**
- * Toolbar that toggles visibility of headings/sections and table rows marked
- * with a `<LifecycleBadge>` (see generate_yaml_asset_docs.py), and keeps the
- * table-of-contents sidebar in sync with whatever ends up hidden.
+ * Toolbar that filters visibility of headings/sections and table rows marked
+ * with a `<LifecycleBadge>` (see generate_yaml_asset_docs.py) down to a single
+ * chosen YAML_VERSION, and keeps the table-of-contents sidebar in sync with
+ * whatever ends up hidden.
  */
 export default function LifecycleFilter() {
-  const [active, setActive] = useState<Record<string, boolean>>({});
   const [version, setVersion] = useState<string>(ALL_VERSIONS);
-  const filterStateRef = useRef({ active, version });
-  filterStateRef.current = { active, version };
+  const versionRef = useRef(version);
+  versionRef.current = version;
 
   useEffect(() => {
-    applyFilters(active, version);
-  }, [active, version]);
+    applyFilters(version);
+  }, [version]);
 
   useEffect(() => {
     // The table of contents can re-render after navigation/highlighting;
     // keep it in sync whenever that happens. Reads the latest filter state via
     // a ref so this observer doesn't need to be re-subscribed on every change.
     const observer = new MutationObserver(() => {
-      const { active: currentActive, version: currentVersion } =
-        filterStateRef.current;
-      applyFilters(currentActive, currentVersion);
+      applyFilters(versionRef.current);
     });
     const toc = document.querySelector('.table-of-contents')?.parentElement;
     if (toc) {
@@ -251,25 +188,11 @@ export default function LifecycleFilter() {
   }, []);
 
   useEffect(() => {
-    return () => applyFilters({}, ALL_VERSIONS);
+    return () => applyFilters(ALL_VERSIONS);
   }, []);
-
-  function toggle(key: string) {
-    setActive((prev) => ({ ...prev, [key]: !prev[key] }));
-  }
 
   return (
     <div className="lifecycle-filter">
-      {TOGGLES.map((t) => (
-        <label key={t.key} className="lifecycle-filter__option">
-          <input
-            type="checkbox"
-            checked={Boolean(active[t.key])}
-            onChange={() => toggle(t.key)}
-          />
-          {t.label}
-        </label>
-      ))}
       <div
         className="lifecycle-filter__versions"
         role="radiogroup"

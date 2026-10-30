@@ -18,7 +18,7 @@
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
+[data-theme="dark"] {
   --ifm-color-primary: #25c2a0;
   --ifm-color-primary-dark: #21af90;
   --ifm-color-primary-darker: #1fa588;
@@ -78,7 +78,7 @@
   --yaml-indent-guide-color: rgba(0, 0, 0, 0.08);
 }
 
-[data-theme='dark'] .yaml-indent-guide {
+[data-theme="dark"] .yaml-indent-guide {
   --yaml-indent-guide-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -140,9 +140,6 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 12px 20px;
-  padding-left: 20px;
-  margin-left: 4px;
-  border-left: 1px solid var(--ifm-color-emphasis-300);
 }
 
 .lifecycle-filter__versions-label {
@@ -155,4 +152,3 @@
 .lifecycle-hidden {
   display: none !important;
 }
-
