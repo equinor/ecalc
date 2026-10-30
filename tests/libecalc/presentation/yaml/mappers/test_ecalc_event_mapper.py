@@ -5,11 +5,13 @@ import pytest
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.ecalc_model.ecalc_event import (
     EcalcEventType,
+    EnergyEventType,
     ProcessEventType,
 )
 from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapper
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlEcalcEvent,
+    YamlEnergyEvent,
     YamlProcessEvent,
 )
 
@@ -32,12 +34,22 @@ def _yaml_process_event(
     return YamlProcessEvent(type=event_type, name=name, description=description, ref=ref)
 
 
+def _yaml_energy_event(
+    name: str = "DIESEL_SWITCH",
+    event_type: EnergyEventType = EnergyEventType.FUEL_SWITCH,
+    ref: str = "HIGH_RATE_EVENT",
+    description: str | None = "Switch to diesel",
+) -> YamlEnergyEvent:
+    return YamlEnergyEvent(type=event_type, name=name, description=description, ref=ref)
+
+
 class TestEcalcEventMapper:
     def test_maps_single_ecalc_event_without_process_events(self):
         mapper = EcalcEventMapper()
         ecalc_events = mapper.map_events(
             yaml_ecalc_events=[_yaml_ecalc_event()],
             yaml_process_events=[],
+            yaml_energy_events=[],
         )
 
         assert len(ecalc_events) == 1
@@ -53,6 +65,7 @@ class TestEcalcEventMapper:
         ecalc_events = mapper.map_events(
             yaml_ecalc_events=[_yaml_ecalc_event()],
             yaml_process_events=[_yaml_process_event()],
+            yaml_energy_events=[],
         )
 
         assert len(ecalc_events) == 1
@@ -72,6 +85,7 @@ class TestEcalcEventMapper:
                 _yaml_process_event(name="PE_A", ref="PHASE_2"),
                 _yaml_process_event(name="PE_B", ref="PHASE_2", event_type=ProcessEventType.INCREASED_WATER_INJECTION),
             ],
+            yaml_energy_events=[],
         )
 
         assert len(ecalc_events) == 1
@@ -91,6 +105,7 @@ class TestEcalcEventMapper:
                 _yaml_process_event(name="PE_FOR_1", ref="EVENT_1"),
                 _yaml_process_event(name="PE_FOR_2", ref="EVENT_2"),
             ],
+            yaml_energy_events=[],
         )
 
         assert len(ecalc_events) == 2
@@ -104,7 +119,7 @@ class TestEcalcEventMapper:
 
     def test_empty_events_returns_empty_list(self):
         mapper = EcalcEventMapper()
-        ecalc_events = mapper.map_events(yaml_ecalc_events=[], yaml_process_events=[])
+        ecalc_events = mapper.map_events(yaml_ecalc_events=[], yaml_process_events=[], yaml_energy_events=[])
         assert ecalc_events == []
 
     def test_description_is_optional(self):
@@ -112,6 +127,7 @@ class TestEcalcEventMapper:
         events = mapper.map_events(
             yaml_ecalc_events=[_yaml_ecalc_event(description=None)],
             yaml_process_events=[_yaml_process_event(description=None)],
+            yaml_energy_events=[],
         )
 
         assert events[0].description is None
@@ -126,6 +142,7 @@ class TestEcalcEventMapper:
                     _yaml_ecalc_event(name="SAME_NAME"),
                 ],
                 yaml_process_events=[],
+                yaml_energy_events=[],
             )
 
     def test_process_event_referencing_nonexistent_ecalc_event_raises(self):
@@ -134,6 +151,7 @@ class TestEcalcEventMapper:
             mapper.map_events(
                 yaml_ecalc_events=[_yaml_ecalc_event(name="EXISTING")],
                 yaml_process_events=[_yaml_process_event(ref="NONEXISTENT")],
+                yaml_energy_events=[],
             )
 
     def test_process_event_error_message_lists_available_events(self):
@@ -145,4 +163,31 @@ class TestEcalcEventMapper:
                     _yaml_ecalc_event(name="EVENT_B"),
                 ],
                 yaml_process_events=[_yaml_process_event(ref="WRONG_REF")],
+                yaml_energy_events=[],
+            )
+
+    def test_maps_ecalc_event_with_nested_energy_events(self):
+        mapper = EcalcEventMapper()
+        ecalc_events = mapper.map_events(
+            yaml_ecalc_events=[_yaml_ecalc_event()],
+            yaml_process_events=[],
+            yaml_energy_events=[_yaml_energy_event()],
+        )
+
+        assert len(ecalc_events) == 1
+        event = ecalc_events[0]
+        assert len(event.energy_events) == 1
+
+        ee = event.energy_events[0]
+        assert ee.name == "DIESEL_SWITCH"
+        assert ee.type == EnergyEventType.FUEL_SWITCH
+        assert ee.description == "Switch to diesel"
+
+    def test_energy_event_referencing_nonexistent_ecalc_event_raises(self):
+        mapper = EcalcEventMapper()
+        with pytest.raises(EcalcValidationException, match="does not exist"):
+            mapper.map_events(
+                yaml_ecalc_events=[_yaml_ecalc_event(name="EXISTING")],
+                yaml_process_events=[],
+                yaml_energy_events=[_yaml_energy_event(ref="NONEXISTENT")],
             )

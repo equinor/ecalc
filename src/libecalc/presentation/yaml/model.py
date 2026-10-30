@@ -367,7 +367,9 @@ class YamlModel:
 
     def get_events(self) -> list[EcalcEvent]:
         return EcalcEventMapper().map_events(
-            yaml_ecalc_events=self._configuration.ecalc_events, yaml_process_events=self._configuration.process_events
+            yaml_ecalc_events=self._configuration.ecalc_events,
+            yaml_process_events=self._configuration.process_events,
+            yaml_energy_events=self._configuration.energy_events,
         )
 
     def get_pump_process_simulations(

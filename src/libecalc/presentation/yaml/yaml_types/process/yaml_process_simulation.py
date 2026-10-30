@@ -2,7 +2,7 @@ from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
-from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
+from libecalc.ecalc_model.ecalc_event import EcalcEventType, EnergyEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
@@ -70,6 +70,37 @@ class YamlProcessEvent(YamlBase):
         Field(
             title="DESCRIPTION",
             description="Human-readable description of the process event.",
+        ),
+    ] = None
+    ref: Annotated[
+        InstanceReference,
+        Field(
+            title="REF",
+            description="Reference to a global ECALC_EVENT by name.",
+        ),
+    ]
+
+
+class YamlEnergyEvent(YamlBase):
+    type: Annotated[
+        EnergyEventType,
+        Field(
+            title="TYPE",
+            description="Type of energy event: FUEL_SWITCH or OTHER.",
+        ),
+    ]
+    name: Annotated[
+        str,
+        Field(
+            title="NAME",
+            description="Short identifier for the energy event.",
+        ),
+    ]
+    description: Annotated[
+        str | None,
+        Field(
+            title="DESCRIPTION",
+            description="Human-readable description of the energy event.",
         ),
     ] = None
     ref: Annotated[
