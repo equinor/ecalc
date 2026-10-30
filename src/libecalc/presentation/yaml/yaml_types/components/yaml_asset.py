@@ -39,7 +39,9 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, Yam
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     DEFAULT_YAML_VERSION,
+    V1,
     V2,
+    V3,
     YamlMajorVersion,
     get_unavailable_field_names,
     yaml_element_lifecycle,
@@ -113,18 +115,20 @@ class YamlAsset(YamlBase):
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
+        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
     facility_inputs: list[YamlFacilityModel] = Field(
         default_factory=list,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
+        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     fluid_models: dict[str, YamlFluidModel] = Field(
         default_factory=dict,
         title="FLUID_MODELS",
         description="Defines fluid models that can be referenced by inlet streams.",
-        json_schema_extra=yaml_element_lifecycle(deprecated_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     inlet_streams: dict[str, YamlInletStream] = Field(
         default_factory=dict,
@@ -137,20 +141,21 @@ class YamlAsset(YamlBase):
         title="MODELS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
-        json_schema_extra=yaml_element_lifecycle(deprecated_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     fuel_types: list[YamlFuelType] = Field(
         ...,
         title="FUEL_TYPES",
         description="Specifies the various fuel types and associated emissions used in the model."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
-        json_schema_extra=yaml_element_lifecycle(deprecated_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     variables: YamlVariables = Field(
         default_factory=dict,
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
+        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
     shafts: list[YamlShaft] = Field(
         default_factory=list,
@@ -211,18 +216,20 @@ class YamlAsset(YamlBase):
         ...,
         title="INSTALLATIONS",
         description="Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
-        json_schema_extra=yaml_element_lifecycle(deprecated_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
-    start: YamlDefaultDatetime = Field(
+    start: YamlDefaultDatetime | None = Field(
         None,
         title="START",
         description="Global start date for eCalc calculations in <YYYY-MM-DD> format."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/START",
+        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
     end: YamlDefaultDatetime = Field(
         ...,
         title="END",
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
+        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
 
     @model_validator(mode="after")

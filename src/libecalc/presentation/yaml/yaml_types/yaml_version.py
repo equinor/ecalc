@@ -54,6 +54,7 @@ does not represent minor or patch.
 # and to easy find all changes related to a version later, manually or automatically
 V1 = Version(1, 0, 0)
 V2 = Version(2, 0, 0)
+V3 = Version(3, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
 

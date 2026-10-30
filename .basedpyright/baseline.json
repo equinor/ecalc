@@ -3582,16 +3582,6 @@
                 }
             }
         ],
-        "./src/libecalc/presentation/yaml/yaml_types/components/yaml_asset.py": [
-            {
-                "code": "reportAssignmentType",
-                "range": {
-                    "startColumn": 33,
-                    "endColumn": 5,
-                    "lineCount": 6
-                }
-            }
-        ],
         "./src/libecalc/presentation/yaml/yaml_types/components/yaml_category_field.py": [
             {
                 "code": "reportGeneralTypeIssues",
