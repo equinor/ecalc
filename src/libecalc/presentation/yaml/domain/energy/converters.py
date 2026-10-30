@@ -24,9 +24,11 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
         fuel_model: GeneratorFuelModel,
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
+        input_energy_type: type[Energy],
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
         self.fuel_model = fuel_model
+        self.input_energy_type = input_energy_type
 
     @property
     def power_to_fuel(self) -> Callable[[float], float]:
@@ -43,6 +45,7 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
         return Generator(
             name=self.get_name(),
             power_to_fuel=self.power_to_fuel,
+            input_energy_type=self.input_energy_type,
             energy_unit_id=self.get_id(),
             output_energy=demand,
             input_connection_id=incoming_connection.id,

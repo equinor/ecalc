@@ -599,7 +599,6 @@ class EnergyType(StrEnum):
 
 
 INPUT_ENERGY: dict[str, EnergyType] = {
-    "GENERATOR": EnergyType.FUEL_GAS,
     "GAS_TURBINE": EnergyType.FUEL_GAS,
     "ELECTRICAL_MOTOR": EnergyType.ELECTRICAL,
     "ELECTRICAL_CABLE": EnergyType.ELECTRICAL,
@@ -611,6 +610,9 @@ INPUT_ENERGY: dict[str, EnergyType] = {
     "FUEL_GAS_CONSUMER": EnergyType.FUEL_GAS,
     "DIESEL_CONSUMER": EnergyType.DIESEL,
 }
+
+# Allowed input types for GENERATOR; the actual type is inferred from its connected source.
+GENERATOR_INPUT_ENERGY = {EnergyType.FUEL_GAS, EnergyType.DIESEL}
 
 OUTPUT_ENERGY: dict[str, EnergyType] = {
     "GENERATOR": EnergyType.ELECTRICAL,
@@ -710,13 +712,21 @@ class YamlEnergyNetwork(YamlBase):
         for c in self.units:
             if c.type in FILE_DEFINED_INPUT_TYPES:
                 continue
-            if c.type not in INPUT_ENERGY:
-                raise ValueError(f"'{c.name}': unknown component type '{c.type}' — not in energy type map.")
-            expected_input = INPUT_ENERGY[c.type]
+            if c.type == "GENERATOR":
+                allowed_inputs = GENERATOR_INPUT_ENERGY
+            else:
+                if c.type not in INPUT_ENERGY:
+                    raise ValueError(f"'{c.name}': unknown component type '{c.type}' — not in energy type map.")
+                allowed_inputs = {INPUT_ENERGY[c.type]}
             for ref in get_input_names(c):
                 provided = output_types.get(ref)
-                if provided is not None and provided != expected_input:
+                if provided is not None and provided not in allowed_inputs:
+                    expected = (
+                        next(iter(allowed_inputs)).value
+                        if len(allowed_inputs) == 1
+                        else f"one of {sorted(t.value for t in allowed_inputs)}"
+                    )
                     raise ValueError(
-                        f"'{c.name}' ({c.type}) expects {expected_input} input, but '{ref}' provides {provided}."
+                        f"'{c.name}' ({c.type}) expects {expected} input, but '{ref}' provides {provided}."
                     )
         return self

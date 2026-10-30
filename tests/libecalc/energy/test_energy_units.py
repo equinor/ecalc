@@ -66,8 +66,20 @@ class TestConverters:
             output_energy=ElectricalPower(10.0),
             input_connection_id=INPUT,
             power_to_fuel=lambda mw: 5000 + mw * 4500,
+            input_energy_type=FuelGasRate,
         )
         assert genset.get_input_energies() == {INPUT: FuelGasRate(5000 + 10 * 4500)}
+
+    def test_generator_can_run_on_diesel(self):
+        genset = Generator(
+            "gs1",
+            output_energy=ElectricalPower(10.0),
+            input_connection_id=INPUT,
+            power_to_fuel=lambda mw: 5000 + mw * 4500,
+            input_energy_type=DieselRate,
+        )
+        assert genset.get_input_energy_type() is DieselRate
+        assert genset.get_input_energies() == {INPUT: DieselRate(5000 + 10 * 4500)}
 
     def test_gas_turbine_applies_fuel_curve(self):
         turbine = GasTurbine(
@@ -147,7 +159,13 @@ class TestCapacityType:
         [
             (lambda capacity: Source("fuel", output_energy=FuelGasRate(0), capacity=capacity), MechanicalPower(1)),
             (
-                lambda capacity: Generator("gen", ElectricalPower(0), input_connection_id=INPUT, capacity=capacity),
+                lambda capacity: Generator(
+                    "gen",
+                    ElectricalPower(0),
+                    input_connection_id=INPUT,
+                    input_energy_type=FuelGasRate,
+                    capacity=capacity,
+                ),
                 MechanicalPower(1),
             ),
             (
