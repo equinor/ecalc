@@ -1,5 +1,33 @@
 # Changelog
 
+## [15.5.0](https://github.com/equinor/ecalc/compare/v15.4.0...v15.5.0) (2026-10-30)
+
+
+### Features
+
+* add ECALC_EVENTS start dates to process time vector ([#1899](https://github.com/equinor/ecalc/issues/1899)) ([3b75783](https://github.com/equinor/ecalc/commit/3b75783c55632f742d6682686527ed55ec2ec9e8))
+* add ENERGY_EVENTS catalog mirroring PROCESS_EVENTS ([#1904](https://github.com/equinor/ecalc/issues/1904)) ([1924266](https://github.com/equinor/ecalc/commit/1924266e8fa9c059d32747bab49a0761b6a16b24))
+* add top-level compressors shared by process and energy ([#1897](https://github.com/equinor/ecalc/issues/1897)) ([c3299fb](https://github.com/equinor/ecalc/commit/c3299fb16948a535fb56474b9ed2c4ee2b2f047d))
+* handle individual compressors in energy ([#1891](https://github.com/equinor/ecalc/issues/1891)) ([738e561](https://github.com/equinor/ecalc/commit/738e56175599ac81b446b5544414f7e6010c21c6))
+* introduce versioning to yaml models ([43a8798](https://github.com/equinor/ecalc/commit/43a87980ad45287e424c09c91b57ddcca73fe90a))
+* **libecalc:** LOAD and RATE can be a curve lookup on power/rate consumers ([#1895](https://github.com/equinor/ecalc/issues/1895)) ([d29fcd7](https://github.com/equinor/ecalc/commit/d29fcd7f22e8b0c4c7323076bc13b5caaee61a08))
+* list compressors on top-level shafts ([#1901](https://github.com/equinor/ecalc/issues/1901)) ([1f51b88](https://github.com/equinor/ecalc/commit/1f51b8848657ff2e01dbd16a95d8f7acc6cb1389))
+* support time series with different time vectors in NextGen ([#1893](https://github.com/equinor/ecalc/issues/1893)) ([fa57dd4](https://github.com/equinor/ecalc/commit/fa57dd4d9a265de933ebd2f20c92cec4151022f4))
+
+
+### Documentation
+
+* regenerate energy/process reference from current schema ([#1896](https://github.com/equinor/ecalc/issues/1896)) ([16542a3](https://github.com/equinor/ecalc/commit/16542a39f3b15db59d85dee13f0e7c177508b712))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump astral-sh/setup-uv from 10.3.0 to 10.3.1 ([9870837](https://github.com/equinor/ecalc/commit/98708373d2623018fba23529f47729725803f3bf))
+* **deps:** bump astral-sh/setup-uv from 10.3.1 to 10.3.2 ([b74dc5c](https://github.com/equinor/ecalc/commit/b74dc5c44efadd1a33157a7401df4f9d4ea46281))
+* **deps:** bump pypa/gh-action-pypi-publish from 1.14.2 to 1.14.3 ([09a51e4](https://github.com/equinor/ecalc/commit/09a51e441954b34839a36c08b836941c57621114))
+* **deps:** bump zizmorcore/zizmor-action from 0.6.4 to 0.7.1 ([59c0cac](https://github.com/equinor/ecalc/commit/59c0cac94dde20dfd1923bf200276cf32a1f249b))
+* **deps:** bump zizmorcore/zizmor-action from 0.7.1 to 0.8.0 ([54fdb09](https://github.com/equinor/ecalc/commit/54fdb0971cb68b3cf8f833e6e08008e2494477cb))
+
 ## [15.4.0](https://github.com/equinor/ecalc/compare/v15.3.0...v15.4.0) (2026-10-27)
 
 
