@@ -240,7 +240,7 @@ EXAMPLES: list[Example] = [
     # --- SHAFTS ---
     Example(
         "SHAFTS",
-        lambda: YamlShaft(name="default_shaft"),
+        lambda: YamlShaft(name="default_shaft", compressors=["default_compressor"]),
     ),
     # --- COMPRESSORS ---
     Example(
@@ -258,10 +258,9 @@ EXAMPLES: list[Example] = [
                 name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
             )
             .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
-            .with_shaft_driven_item(
+            .with_compressor_item(
                 compressor="default_compressor",
                 target=YamlCompressorBuilder().with_test_data().validate(),
-                shaft="default_shaft",
             )
             .validate()
         ),

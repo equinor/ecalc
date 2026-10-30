@@ -36,12 +36,14 @@ from libecalc.testing.process_builders import (
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
     compressors_in,
+    shaft_for,
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
 
-SHAFT_NAME = "shaft_1"
-SHAFT_NAME_2 = "shaft_2"
-SHAFTS = [YamlShaft(name=SHAFT_NAME), YamlShaft(name=SHAFT_NAME_2)]
+
+def _shafts_for(*pipelines) -> list[YamlShaft]:
+    """One shaft per pipeline, with the pipeline's compressors on it."""
+    return [shaft_for(pipeline, name=f"{pipeline.name} shaft") for pipeline in pipelines]
 
 
 def _asset_to_stream(asset) -> ResourceStream:
@@ -51,13 +53,13 @@ def _asset_to_stream(asset) -> ResourceStream:
     return ResourceStream(name="test_model", stream=StringIO(yaml_string))
 
 
-def _build_pipeline(name="train_1", shaft=SHAFT_NAME):
+def _build_pipeline(name="train_1"):
     return (
         YamlProcessPipelineBuilder()
         .with_name(name)
         .with_item(target=YamlPressureDropperBuilder().with_test_data().validate(), name="dropper")
-        .with_shaft_driven_item(
-            target=YamlCompressorBuilder().with_test_data().validate(), compressor=f"{name} compressor", shaft=shaft
+        .with_compressor_item(
+            target=YamlCompressorBuilder().with_test_data().validate(), compressor=f"{name} compressor"
         )
         .validate()
     )
@@ -86,7 +88,7 @@ class TestTargetReferencesNonexistentPipeline:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
-            .with_shafts(SHAFTS)
+            .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
@@ -134,7 +136,7 @@ class TestConstraintReferencesInvalid:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
-            .with_shafts(SHAFTS)
+            .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
@@ -159,7 +161,7 @@ Validation error
     def test_target_pipeline_missing_constraint(self, yaml_model_factory):
         """A target pipeline with no matching constraint entry should produce a clear error."""
         pipeline_1 = _build_pipeline("train_1")
-        pipeline_2 = _build_pipeline("train_2", shaft=SHAFT_NAME_2)
+        pipeline_2 = _build_pipeline("train_2")
 
         simulation = (
             YamlProcessSimulationBuilder()
@@ -174,7 +176,7 @@ Validation error
         asset = (
             YamlAssetBuilder()
             .with_test_data()
-            .with_shafts(SHAFTS)
+            .with_shafts(_shafts_for(pipeline_1, pipeline_2))
             .with_compressors(compressors_in(pipeline_1, pipeline_2))
             .with_process_pipelines({"train_1": pipeline_1, "train_2": pipeline_2})
             .with_process_simulations([simulation])
@@ -189,7 +191,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 99
+	Object starting on line 100
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Missing constraint for process system 'train_2'
 """)
@@ -219,7 +221,7 @@ class TestInletStreamReferenceNotFound:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
-            .with_shafts(SHAFTS)
+            .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
@@ -263,7 +265,7 @@ class TestPipelineEventRefNotFound:
             YamlProcessPipelineBuilder()
             .with_name("train_1")
             .with_item(target=YamlPressureDropperBuilder().with_test_data().validate(), name="dropper")
-            .with_shaft_driven_item(target=compressor_def, compressor="stage_1", shaft=SHAFT_NAME)
+            .with_compressor_item(target=compressor_def, compressor="stage_1")
             .with_events([event])
             .validate()
         )
@@ -278,7 +280,7 @@ class TestPipelineEventRefNotFound:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
-            .with_shafts(SHAFTS)
+            .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
@@ -324,7 +326,7 @@ class TestOverflowReferenceNotFound:
         asset = (
             YamlAssetBuilder()
             .with_test_data()
-            .with_shafts(SHAFTS)
+            .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])
@@ -366,7 +368,7 @@ Validation error
         asset = (
             YamlAssetBuilder()
             .with_test_data()
-            .with_shafts(SHAFTS)
+            .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
             .with_process_pipelines({"train_1": pipeline})
             .with_process_simulations([simulation])

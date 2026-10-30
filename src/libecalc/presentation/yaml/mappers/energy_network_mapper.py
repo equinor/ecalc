@@ -2,11 +2,11 @@ from collections.abc import Mapping, Sequence
 from typing import Any, overload
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.resource import Resource
 from libecalc.ecalc_model.compressor_equipment import CompressorId
+from libecalc.ecalc_model.shaft_equipment import ShaftEquipment
 from libecalc.energy.dispatch import DispatchStrategy, PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
@@ -75,7 +75,6 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
-from libecalc.process.shaft import Shaft
 
 _ENERGY_CLASSES: dict[EnergyType, type[Energy]] = {
     EnergyType.FUEL_GAS: FuelGasRate,
@@ -88,7 +87,7 @@ _ENERGY_CLASSES: dict[EnergyType, type[Energy]] = {
 class EnergyNetworkMapper:
     def __init__(
         self,
-        shafts: Mapping[ShaftReference, Shaft],
+        shafts: Mapping[ShaftReference, ShaftEquipment],
         compressor_ids: Mapping[CompressorReference, CompressorId],
         definitions: dict[str, Any] | None = None,
     ):
@@ -158,14 +157,12 @@ class EnergyNetworkMapper:
                     (node_ids_by_key[from_key], node_ids_by_key[to_key]) for from_key, to_key in expansion.connections
                 )
             elif isinstance(unit, YamlDriveTrain):
-                key = unit_key(unit.name)
-                shaft = self._shafts[unit.shaft]
-
                 input_id = node_ids_by_key[unit_key(unit.input)]
 
-                for compressor_id in shaft.get_compressor_ids():
+                for compressor_id in self._shafts[unit.shaft].compressor_ids:
+                    # The process mapper uses the compressor id as the process Compressor's id.
                     node = TimeSeriesProcessCompressor(
-                        process_unit_id=compressor_id,
+                        process_unit_id=ProcessUnitId(compressor_id),
                         name=self._get_compressor_name(compressor_id),
                         energy_unit_id=EnergyUnitId(compressor_id),
                     )
@@ -196,13 +193,8 @@ class EnergyNetworkMapper:
         ]
         return topology, energy_unit_factories, consumers
 
-    def _get_compressor_name(self, process_unit_id: ProcessUnitId) -> str:
-        name = self._compressor_names_by_id.get(CompressorId(process_unit_id))
-        if name is None:
-            raise ProgrammingError(
-                f"Process compressor '{process_unit_id}' on a shaft does not match any compressor in COMPRESSORS."
-            )
-        return name
+    def _get_compressor_name(self, compressor_id: CompressorId) -> str:
+        return self._compressor_names_by_id[compressor_id]
 
     @staticmethod
     def _check_no_duplicate_generated_names(

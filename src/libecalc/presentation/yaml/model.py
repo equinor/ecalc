@@ -40,6 +40,7 @@ from libecalc.ecalc_model.ecalc_event import (
     EcalcEventService,
 )
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
+from libecalc.ecalc_model.shaft_equipment import ShaftEquipment
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
@@ -89,7 +90,6 @@ from libecalc.process.pump.pump_process_simulation import (
     PumpOperatingInput,
     PumpProcessSimulation,
 )
-from libecalc.process.shaft import VariableSpeedShaft
 
 DEFAULT_START_TIME = datetime(1900, 1, 1)
 
@@ -151,10 +151,19 @@ class YamlModel:
         resource_service: ResourceService,
     ) -> None:
         self._configuration = configuration
-        self._shafts = {shaft.name: VariableSpeedShaft() for shaft in self._configuration.shafts}
         self._compressors = {
             compressor.name: CompressorEquipment(name=compressor.name, alias=compressor.alias)
             for compressor in self._configuration.compressors
+        }
+        # Unknown compressor names are skipped here and reported by validation (YamlAsset).
+        self._shafts = {
+            shaft.name: ShaftEquipment(
+                name=shaft.name,
+                compressor_ids=[
+                    self._compressors[name].get_id() for name in shaft.compressors if name in self._compressors
+                ],
+            )
+            for shaft in self._configuration.shafts
         }
         self._resource_service = resource_service
 
@@ -172,6 +181,10 @@ class YamlModel:
     def get_compressors(self) -> list[CompressorEquipment]:
         """The physical compressors in COMPRESSORS. Their ids are used by both process and energy results."""
         return list(self._compressors.values())
+
+    def get_shafts(self) -> list[ShaftEquipment]:
+        """The shafts in SHAFTS, with the ids of the compressors on them. Needs no process or energy mapping."""
+        return list(self._shafts.values())
 
     def _get_compressor_ids(self) -> dict[CompressorReference, CompressorId]:
         return {name: compressor.get_id() for name, compressor in self._compressors.items()}
@@ -192,6 +205,9 @@ class YamlModel:
         time_series_resources, _ = self._resource_service.get_time_series_resources()
 
         reference_service = self._get_reference_service()
+        shaft_by_compressor = {
+            compressor: shaft.name for shaft in self._configuration.shafts for compressor in shaft.compressors
+        }
 
         yaml_process_simulations = self._configuration.process_simulations
         mapped_process_simulations = []
@@ -278,7 +294,7 @@ class YamlModel:
                 resources=facility_resources,
                 references=reference_objects,
                 ecalc_event_service=ecalc_event_service,
-                shafts=self._shafts,
+                shaft_by_compressor=shaft_by_compressor,
                 compressor_ids=self._get_compressor_ids(),
             )
 

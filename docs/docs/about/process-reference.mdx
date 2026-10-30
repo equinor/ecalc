@@ -286,17 +286,18 @@ Rate with unit + value.
 
 ## SHAFTS <LifecycleBadge kind="introduced" version="2" /> \{#shafts}
 
-Defines named shafts representing mechanical connections between drivers and driven equipment.
+Defines named shafts and the compressors on each. Compressors on one shaft run at the same speed, and a DRIVE_TRAIN in ENERGY_NETWORK drives all compressors on its shaft.
 
-<YamlCodeBlock>{"NAME: default_shaft"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: default_shaft\nCOMPRESSORS:\n- default_compressor"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name of the shaft. | Required |
+| `COMPRESSORS` | Names of the compressors in COMPRESSORS that sit on this shaft and run at its speed. A compressor placed in a process pipeline must be on a shaft. A DRIVE_TRAIN on this shaft drives all of them. | Optional |
 
 ## COMPRESSORS <LifecycleBadge kind="introduced" version="2" /> \{#compressors}
 
-Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.
+Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES, COMPRESSOR_SAMPLED units in ENERGY_NETWORK and SHAFTS refer to a compressor by name.
 
 <YamlCodeBlock>{"NAME: default_compressor\nALIAS: RIA"}</YamlCodeBlock>
 
@@ -309,7 +310,7 @@ Defines the physical compressors in the model. Compressor process units in PROCE
 
 Defines process pipelines to use in process simulations.
 
-<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- TARGET:\n    TYPE: COMPRESSOR\n    COMPRESSOR_MODEL:\n      TYPE: COMPRESSOR_CHART\n      CHART:\n        CURVES:\n        - SPEED: 10000.0\n          RATE:\n          - 500.0\n          - 3000.0\n          - 5000.0\n          - 8000.0\n          HEAD:\n          - 30000.0\n          - 25000.0\n          - 20000.0\n          - 15000.0\n          EFFICIENCY:\n          - 0.68\n          - 0.72\n          - 0.74\n          - 0.7\n        UNITS:\n          RATE: AM3_PER_HOUR\n          HEAD: M\n          EFFICIENCY: FRACTION\n      CONTROL_MARGIN:\n        UNIT: FRACTION\n        VALUE: 0.0\n  COMPRESSOR: default_compressor\n  SHAFT: default_shaft\nEVENTS: []"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- TARGET:\n    TYPE: COMPRESSOR\n    COMPRESSOR_MODEL:\n      TYPE: COMPRESSOR_CHART\n      CHART:\n        CURVES:\n        - SPEED: 10000.0\n          RATE:\n          - 500.0\n          - 3000.0\n          - 5000.0\n          - 8000.0\n          HEAD:\n          - 30000.0\n          - 25000.0\n          - 20000.0\n          - 15000.0\n          EFFICIENCY:\n          - 0.68\n          - 0.72\n          - 0.74\n          - 0.7\n        UNITS:\n          RATE: AM3_PER_HOUR\n          HEAD: M\n          EFFICIENCY: FRACTION\n      CONTROL_MARGIN:\n        UNIT: FRACTION\n        VALUE: 0.0\n  COMPRESSOR: default_compressor\nEVENTS: []"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -325,8 +326,7 @@ Defines process pipelines to use in process simulations.
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
-| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. | Required |
-| `SHAFT` | Reference to a shaft defined in SHAFTS. | Required |
+| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
 
 </TabItem>
 

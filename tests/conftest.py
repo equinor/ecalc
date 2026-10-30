@@ -727,7 +727,7 @@ def process_simulation_mapper_factory(
     """
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    def _create(references: dict | None = None, shafts: dict | None = None, compressor_ids: dict | None = None):
+    def _create(references: dict | None = None, compressor_ids: dict | None = None):
         if compressor_ids is None:
             compressor_ids = _compressor_ids_for_pipelines(references or {})
         return ProcessSimulationMapper(
@@ -736,11 +736,22 @@ def process_simulation_mapper_factory(
             references=references or {},
             resources={},
             ecalc_event_service=EcalcEventService(ecalc_events=[]),
-            shafts=shafts or {},
+            shaft_by_compressor=_shaft_by_compressor_for_pipelines(references or {}),
             compressor_ids=compressor_ids,
         )
 
     return _create
+
+
+def _shaft_by_compressor_for_pipelines(references: dict) -> dict:
+    """One shaft per referenced pipeline, with all its compressors on it, as a valid model would give."""
+    return {
+        process_unit.compressor: f"{reference.name} shaft"
+        for reference in references.values()
+        if isinstance(reference, YamlProcessPipeline)
+        for process_unit in reference.process_units
+        if isinstance(process_unit, YamlCompressorProcessUnitInstance)
+    }
 
 
 def _compressor_ids_for_pipelines(references: dict) -> dict:
@@ -758,10 +769,14 @@ def _compressor_ids_for_pipelines(references: dict) -> dict:
 def energy_network_mapper_factory():
     """
     Factory fixture that returns an EnergyNetworkMapper.
-    Call with shafts to register shafts for drive trains. Default is no shafts.
+    Call with shafts (name to ShaftEquipment) to give drive trains their compressors. Default is no shafts.
     """
 
     def _create(shafts: dict | None = None, compressor_ids: dict | None = None, definitions=None):
-        return EnergyNetworkMapper(shafts=shafts or {}, compressor_ids=compressor_ids or {}, definitions=definitions)
+        return EnergyNetworkMapper(
+            shafts=shafts or {},
+            compressor_ids=compressor_ids or {},
+            definitions=definitions,
+        )
 
     return _create
