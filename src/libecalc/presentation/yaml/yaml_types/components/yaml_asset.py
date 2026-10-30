@@ -132,13 +132,14 @@ class YamlAsset(YamlBase):
     shafts: list[YamlShaft] = Field(
         default_factory=list,
         title="SHAFTS",
-        description="Defines named shafts representing mechanical connections between drivers and driven equipment.",
+        description="Defines named shafts and the compressors on each. Compressors on one shaft run at the same "
+        "speed, and a DRIVE_TRAIN in ENERGY_NETWORK drives all compressors on its shaft.",
     )
     compressors: list[YamlCompressor] = Field(
         default_factory=list,
         title="COMPRESSORS",
-        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
-        "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
+        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES, "
+        "COMPRESSOR_SAMPLED units in ENERGY_NETWORK and SHAFTS refer to a compressor by name.",
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
@@ -318,27 +319,42 @@ class YamlAsset(YamlBase):
         """
         if self.energy_network is None:
             return []
-        drive_trains_by_shaft = {
-            unit.shaft: unit.name for unit in self.energy_network.units if isinstance(unit, YamlDriveTrain)
+        compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
+        drive_train_models = [
+            (compressor, f"DRIVE_TRAIN '{unit.name}' (shaft '{unit.shaft}')")
+            for unit in self.energy_network.units
+            if isinstance(unit, YamlDriveTrain)
+            for compressor in compressors_by_shaft.get(unit.shaft, [])
+        ]
+        return drive_train_models + self._sampled_compressor_models()
+
+    def _shaft_compressor_references(self) -> list[tuple[CompressorReference, str]]:
+        """Every compressor listed in SHAFTS, as (compressor, human-readable location)."""
+        return [(compressor, f"shaft '{shaft.name}'") for shaft in self.shafts for compressor in shaft.compressors]
+
+    def _shaft_by_compressor(self) -> dict[CompressorReference, ShaftReference]:
+        return {compressor: shaft.name for shaft in self.shafts for compressor in shaft.compressors}
+
+    def _shafts_by_pipeline(self) -> dict[str, set[ShaftReference]]:
+        """The shafts of the compressors in each process pipeline. A compressor on no shaft is reported elsewhere."""
+        shaft_by_compressor = self._shaft_by_compressor()
+        return {
+            pipeline_name: {
+                shaft_by_compressor[process_unit.compressor]
+                for process_unit in pipeline.process_units
+                if isinstance(process_unit, YamlCompressorProcessUnitInstance)
+                and process_unit.compressor in shaft_by_compressor
+            }
+            for pipeline_name, pipeline in self.process_pipelines.items()
         }
-        models: list[tuple[CompressorReference, str]] = []
-        for pipeline in self.process_pipelines.values():
-            for process_unit in pipeline.process_units:
-                if (
-                    isinstance(process_unit, YamlCompressorProcessUnitInstance)
-                    and process_unit.shaft in drive_trains_by_shaft
-                ):
-                    drive_train_name = drive_trains_by_shaft[process_unit.shaft]
-                    models.append(
-                        (process_unit.compressor, f"DRIVE_TRAIN '{drive_train_name}' (shaft '{process_unit.shaft}')")
-                    )
-        return models + self._sampled_compressor_models()
 
     @model_validator(mode="after")
     def validate_compressor_references(self):
         available_compressor_names = {compressor.name for compressor in self.compressors}
         locations_by_unknown_compressor: dict[CompressorReference, list[str]] = defaultdict(list)
-        for compressor_reference, location in self._process_compressor_models() + self._sampled_compressor_models():
+        for compressor_reference, location in (
+            self._process_compressor_models() + self._sampled_compressor_models() + self._shaft_compressor_references()
+        ):
             if compressor_reference not in available_compressor_names:
                 locations_by_unknown_compressor[compressor_reference].append(location)
 
@@ -349,6 +365,22 @@ class YamlAsset(YamlBase):
                 for compressor_name, locations in locations_by_unknown_compressor.items()
             ]
             raise ValueError("\n".join([*violations, f"Available compressors in COMPRESSORS: {available}."]))
+        return self
+
+    @model_validator(mode="after")
+    def validate_compressor_on_single_shaft(self):
+        shafts_by_compressor: dict[CompressorReference, list[ShaftReference]] = defaultdict(list)
+        for shaft in self.shafts:
+            for compressor in shaft.compressors:
+                shafts_by_compressor[compressor].append(shaft.name)
+
+        violations = [
+            f"Compressor '{compressor_name}' is listed more than once in SHAFTS, on shafts: {', '.join(shaft_names)}."
+            for compressor_name, shaft_names in shafts_by_compressor.items()
+            if len(shaft_names) > 1
+        ]
+        if violations:
+            raise ValueError("\n".join([*violations, "A compressor can be listed on one shaft only."]))
         return self
 
     @model_validator(mode="after")
@@ -416,36 +448,50 @@ class YamlAsset(YamlBase):
         return self
 
     @model_validator(mode="after")
-    def validate_process_pipeline_shaft_references(self):
-        available_shaft_names = {shaft.name for shaft in self.shafts}
+    def validate_process_compressors_on_shaft(self):
+        """The process simulation finds a compressor's speed through its shaft."""
+        shaft_by_compressor = self._shaft_by_compressor()
+        violations = [
+            f"Compressor '{compressor_name}' in {location} is not on a shaft."
+            for compressor_name, location in self._process_compressor_models()
+            if compressor_name not in shaft_by_compressor
+        ]
+        if violations:
+            raise ValueError(
+                "\n".join(
+                    [
+                        *violations,
+                        "Add each compressor placed in a process pipeline to COMPRESSORS of a shaft in SHAFTS.",
+                    ]
+                )
+            )
+        return self
 
-        for pipeline_name, pipeline in self.process_pipelines.items():
-            for process_unit in pipeline.process_units:
-                if not isinstance(process_unit, YamlCompressorProcessUnitInstance):
-                    continue
-                if process_unit.shaft not in available_shaft_names:
-                    available = ", ".join(sorted(available_shaft_names)) or "none"
-                    raise ValueError(
-                        f"Process unit '{process_unit.compressor}' in process pipeline "
-                        f"'{pipeline_name}' references unknown shaft '{process_unit.shaft}'. "
-                        f"Available shafts in SHAFTS: {available}."
-                    )
+    @model_validator(mode="after")
+    def validate_pipeline_on_single_shaft(self):
+        violations = [
+            f"Process pipeline '{pipeline_name}' has compressors on multiple shafts: {', '.join(sorted(shaft_names))}."
+            for pipeline_name, shaft_names in self._shafts_by_pipeline().items()
+            if len(shaft_names) > 1
+        ]
+        if violations:
+            raise ValueError("\n".join([*violations, "Multiple shafts in one process pipeline are not supported yet."]))
         return self
 
     @model_validator(mode="after")
     def validate_shaft_used_by_single_pipeline(self):
         pipelines_by_shaft: dict[ShaftReference, set[str]] = defaultdict(set)
-        for pipeline_name, pipeline in self.process_pipelines.items():
-            for process_unit in pipeline.process_units:
-                if isinstance(process_unit, YamlCompressorProcessUnitInstance):
-                    pipelines_by_shaft[process_unit.shaft].add(pipeline_name)
+        for pipeline_name, shaft_names in self._shafts_by_pipeline().items():
+            for shaft_name in shaft_names:
+                pipelines_by_shaft[shaft_name].add(pipeline_name)
 
-        for shaft_name, pipeline_names in pipelines_by_shaft.items():
-            if len(pipeline_names) > 1:
-                raise ValueError(
-                    f"Shaft '{shaft_name}' is referenced by multiple process pipelines: "
-                    f"{', '.join(sorted(pipeline_names))}. A shaft can only be used in one process pipeline."
-                )
+        violations = [
+            f"Shaft '{shaft_name}' has compressors in multiple process pipelines: {', '.join(sorted(pipeline_names))}."
+            for shaft_name, pipeline_names in pipelines_by_shaft.items()
+            if len(pipeline_names) > 1
+        ]
+        if violations:
+            raise ValueError("\n".join([*violations, "A shaft can only be used in one process pipeline."]))
         return self
 
     @model_validator(mode="after")
@@ -480,4 +526,57 @@ class YamlAsset(YamlBase):
                     f"Shaft '{shaft_name}' is referenced by multiple drive trains: "
                     f"{', '.join(sorted(drive_train_names))}. A shaft can only be used in one drive train."
                 )
+        return self
+
+    @model_validator(mode="after")
+    def validate_driven_shafts(self):
+        """
+        A DRIVE_TRAIN's demand is the shaft power of the compressors on its shaft, taken from their process
+        simulation. A driven shaft with no compressors, or with a compressor no simulation solves, would silently lose
+        demand.
+        """
+        if self.energy_network is None:
+            return self
+
+        compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
+        targeted_pipelines = {target for simulation in self.process_simulations for target in simulation.targets}
+        pipeline_by_compressor = {
+            process_unit.compressor: pipeline_name
+            for pipeline_name, pipeline in self.process_pipelines.items()
+            for process_unit in pipeline.process_units
+            if isinstance(process_unit, YamlCompressorProcessUnitInstance)
+        }
+
+        violations: list[str] = []
+        for unit in self.energy_network.units:
+            if not isinstance(unit, YamlDriveTrain):
+                continue
+            compressors = compressors_by_shaft.get(unit.shaft, [])
+            if not compressors:
+                violations.append(
+                    f"Drive train '{unit.name}' drives shaft '{unit.shaft}', which has no compressors. "
+                    f"List the compressors on the shaft in COMPRESSORS of the shaft in SHAFTS."
+                )
+            for compressor_name in compressors:
+                pipeline_name = pipeline_by_compressor.get(compressor_name)
+                if pipeline_name in targeted_pipelines:
+                    continue
+                placement = (
+                    "is not placed in any process pipeline"
+                    if pipeline_name is None
+                    else f"is placed in process pipeline '{pipeline_name}', which no process simulation targets"
+                )
+                violations.append(
+                    f"Compressor '{compressor_name}' on shaft '{unit.shaft}', driven by drive train '{unit.name}', "
+                    f"{placement}."
+                )
+        if violations:
+            raise ValueError(
+                "\n".join(
+                    [
+                        *violations,
+                        "A drive train gets its demand from the process simulation of each compressor on its shaft.",
+                    ]
+                )
+            )
         return self

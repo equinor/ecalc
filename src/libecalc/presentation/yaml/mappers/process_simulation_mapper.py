@@ -96,7 +96,7 @@ from libecalc.process.process_units.outlet import Outlet
 from libecalc.process.process_units.pressure_dropper import PressureDropper
 from libecalc.process.process_units.splitter import Splitter
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
-from libecalc.process.shaft import Shaft
+from libecalc.process.shaft import Shaft, VariableSpeedShaft
 from libecalc.process.stream_distribution.common_stream_distribution import (
     HasExcessRate,
     Overflow,
@@ -136,7 +136,7 @@ class ProcessSimulationMapper:
         references: dict[InstanceReference, Any],
         resources: Resources,
         ecalc_event_service: EcalcEventService,
-        shafts: Mapping[ShaftReference, Shaft],
+        shaft_by_compressor: Mapping[CompressorReference, ShaftReference],
         compressor_ids: Mapping[CompressorReference, CompressorId],
     ):
         self._expression_evaluator = expression_evaluator
@@ -144,7 +144,7 @@ class ProcessSimulationMapper:
         self._references = references
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
-        self._shafts = shafts
+        self._shaft_by_compressor = shaft_by_compressor
         self._compressor_ids = compressor_ids
 
     def _resolve_pipeline_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
@@ -325,6 +325,8 @@ class ProcessSimulationMapper:
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
         section_builder = ProcessSectionBuilder()
+        # Created on each call, not shared: a solver shaft holds state (speed and its connected compressors).
+        solver_shafts: dict[ShaftReference, Shaft] = {}
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers = []
             item = self._resolve_pipeline_reference(yaml_compressor_train_item)
@@ -351,7 +353,10 @@ class ProcessSimulationMapper:
                             yaml_process_unit,
                             process_unit_id=ProcessUnitId(self._compressor_ids[yaml_pipeline_item.compressor]),
                         )
-                        shaft = self._shafts[yaml_pipeline_item.shaft]
+                        shaft_name = self._shaft_by_compressor[yaml_pipeline_item.compressor]
+                        if shaft_name not in solver_shafts:
+                            solver_shafts[shaft_name] = VariableSpeedShaft()
+                        shaft = solver_shafts[shaft_name]
                         shaft.connect(unit)
 
                         if shaft not in problem_configuration_handlers:

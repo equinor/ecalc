@@ -1,7 +1,7 @@
 from enum import StrEnum
 from typing import Annotated
 
-from pydantic import ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
@@ -13,7 +13,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlProcessUnitDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
-from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 
 
 class YamlProcessUnitInstance[TTarget](YamlBase):
@@ -35,13 +34,7 @@ class YamlCompressorProcessUnitInstance(YamlBase):
         ...,
         title="COMPRESSOR",
         description="Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT "
-        "refer to this process unit by the compressor's name.",
-    )
-
-    shaft: ShaftReference = Field(
-        ...,
-        title="SHAFT",
-        description="Reference to a shaft defined in SHAFTS.",
+        "refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS.",
     )
 
     def get_instance_reference(self) -> InstanceReference:
@@ -114,17 +107,3 @@ class YamlProcessPipeline(YamlBase):
             description="Events that modify the pipeline over time, such as rebundling a compressor.",
         ),
     ] = []
-
-    @model_validator(mode="after")
-    def validate_single_shaft(self):
-        shaft_names = {
-            process_unit.shaft
-            for process_unit in self.process_units
-            if isinstance(process_unit, YamlCompressorProcessUnitInstance)
-        }
-        if len(shaft_names) > 1:
-            raise ValueError(
-                f"Process pipeline '{self.name}' references multiple shafts: {', '.join(sorted(shaft_names))}. "
-                f"Multiple shafts in one process pipeline are not supported yet."
-            )
-        return self
