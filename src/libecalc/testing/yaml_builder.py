@@ -735,6 +735,7 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
 
 class YamlAssetBuilder(Builder[YamlAsset]):
     def __init__(self):
+        self.yaml_version = 2  # We default to v2 here, since we have a mix of v1 and v2 in the tests.
         self.time_series = []
         self.facility_inputs = []
         self.models = []
@@ -774,6 +775,10 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.start = "2019-01-01"
         self.end = "2024-01-01"
 
+        return self
+
+    def with_yaml_version(self, version: int) -> Self:
+        self.yaml_version = version
         return self
 
     def with_time_series(self, time_series: list[YamlTimeSeriesCollection]):

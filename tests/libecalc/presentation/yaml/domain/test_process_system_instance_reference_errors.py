@@ -103,7 +103,7 @@ class TestTargetReferencesNonexistentPipeline:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 58
+	Object starting on line 59
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -151,7 +151,7 @@ class TestConstraintReferencesInvalid:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 58
+	Object starting on line 59
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -191,7 +191,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 100
+	Object starting on line 101
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Missing constraint for process system 'train_2'
 """)
@@ -236,7 +236,7 @@ class TestInletStreamReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 58
+	Object starting on line 59
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_stream'. Available references: fuel, train_1, my_sim
 """)
@@ -295,7 +295,7 @@ class TestPipelineEventRefNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 120
+	Object starting on line 121
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Pipeline event 'nonexistent_event' does not match any known process event.
 """)
@@ -341,7 +341,7 @@ class TestOverflowReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 58
+	Object starting on line 59
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -383,7 +383,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 58
+	Object starting on line 59
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)

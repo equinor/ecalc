@@ -24,11 +24,19 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
+from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_version import (
+    V1,
+    V2,
+    YamlElementLifecycle,
+    get_root_field_names,
+    get_yaml_element_lifecycle,
+)
 from libecalc.testing.energy_builders import (
     YamlCompressorSampledBuilder,
     YamlDieselConsumerBuilder,
@@ -583,6 +591,20 @@ class DocNode:
             return False
         return self.field_info.default_factory is not None
 
+    @property
+    def available_since(self) -> Version:
+        """The yaml schema version this root element became available in, defaulting to V1."""
+        if self.field_info is None:
+            return V1
+        return get_yaml_element_lifecycle(self.field_info).available_since
+
+    @property
+    def lifecycle(self) -> YamlElementLifecycle | None:
+        """The element's lifecycle (available/deprecated/removed since), if it has one."""
+        if self.field_info is None:
+            return None
+        return get_yaml_element_lifecycle(self.field_info)
+
     def __repr__(self) -> str:
         return f"DocNode({self.title}, children={len(self.children)})"
 
@@ -609,7 +631,9 @@ def _get_inner_models(annotation: Any) -> list[type[BaseModel]]:
         for arg in args:
             if arg is type(None):
                 continue
-            models.extend(_get_inner_models(arg))
+            for model in _get_inner_models(arg):
+                if model not in models:
+                    models.append(model)
         return models
 
     if origin is list:
@@ -636,15 +660,27 @@ def _is_discriminated_union(annotation: Any) -> bool:
     return len(models) > 1 and all(isinstance(m, type) and issubclass(m, BaseModel) for m in models)
 
 
-def _get_discriminator_value(model: type[BaseModel]) -> str | None:
+def _get_discriminator_field_name(annotation: Any) -> str | None:
+    """Extract the discriminator field name from a Field(discriminator=...) annotation."""
+    if get_origin(annotation) is Annotated:
+        for arg in get_args(annotation)[1:]:
+            discriminator = getattr(arg, "discriminator", None)
+            if discriminator:
+                return discriminator
+    return None
+
+
+def _get_discriminator_value(model: type[BaseModel], discriminator_field: str | None = None) -> str | None:
     """
     Extract the discriminator value from a model's Literal type field.
 
     For example, if the model has `type: Literal["COMPRESSOR"]`, returns "COMPRESSOR".
-    Looks for common discriminator field names: 'type', 'method'.
+    If discriminator_field is given, that field name is used; otherwise falls back to
+    the common discriminator field names: 'type', 'method'.
     """
-    for field_name in ("type", "method"):
-        if field_name not in model.model_fields:
+    field_names = (discriminator_field,) if discriminator_field else ("type", "method")
+    for field_name in field_names:
+        if not field_name or field_name not in model.model_fields:
             continue
         annotation = model.__annotations__.get(field_name)
         annotation = _unwrap_annotation(annotation)
@@ -715,12 +751,17 @@ def build_tree(
 
             if _is_discriminated_union(annotation):
                 # Create child nodes for each variant
+                discriminator_field = _get_discriminator_field_name(annotation)
+                seen_variant_names: set[str] = set()
                 for variant_model in inner_models:
                     variant_name = (
-                        _get_discriminator_value(variant_model)
+                        _get_discriminator_value(variant_model, discriminator_field)
                         or variant_model.model_config.get("title")
                         or variant_model.__name__
                     )
+                    if variant_name in seen_variant_names:
+                        variant_name = variant_model.__name__
+                    seen_variant_names.add(variant_name)
                     variant_node = DocNode(
                         name=variant_name,
                         field_info=None,
@@ -749,6 +790,11 @@ def build_yaml_asset_tree(include_fields: set[str]) -> list[DocNode]:
     return build_tree(YamlAsset, include_fields=include_fields)
 
 
+def build_yaml_asset_tree_for_version(version: int) -> list[DocNode]:
+    """Build a documentation tree for all YamlAsset root elements available for the given yaml major version."""
+    return build_yaml_asset_tree(get_root_field_names(YamlAsset, version))
+
+
 # --- Step 2: Render tree to markdown ---
 
 
@@ -771,8 +817,13 @@ class MarkdownBuilder:
     def __init__(self):
         self._lines: list[str] = []
 
-    def heading(self, level: int, text: str) -> MarkdownBuilder:
-        self._lines.append(f"{'#' * level} {text}")
+    def heading(self, level: int, text: str, suffix: str = "", anchor: str | None = None) -> MarkdownBuilder:
+        heading_text = f"{text} {suffix}" if suffix else text
+        if anchor:
+            # MDX v2+ requires escaping the opening brace of a custom heading id: \{#id}
+            # See https://mdxjs.com/docs/troubleshooting-mdx/#could-not-parse-expression-with-acorn-error
+            heading_text = f"{heading_text} \\{{#{anchor}}}"
+        self._lines.append(f"{'#' * level} {heading_text}")
         self._lines.append("")
         return self
 
@@ -902,8 +953,24 @@ def _resolve_definition_section(annotation: Any) -> str | None:
 
 
 def _make_field_anchor(path: str) -> str:
-    """Generate a URL-friendly anchor from a path."""
-    return path.lower().replace(".", "-").replace("_", "-")
+    """Generate a URL-friendly anchor from a path, used as an explicit Docusaurus heading id
+    (`{#anchor}`) so headings keep a stable, predictable id regardless of their content,
+    including inline <LifecycleBadge> JSX, which otherwise breaks automatic heading-id slugging."""
+    return path.lower().replace(".", "-")
+
+
+def _lifecycle_badges_markdown(lifecycle: YamlElementLifecycle | None) -> str:
+    """Render inline <LifecycleBadge> tags for a node's lifecycle, to append to its heading."""
+    if lifecycle is None:
+        return ""
+    badges = []
+    if lifecycle.available_since > V1:
+        badges.append(f'<LifecycleBadge kind="introduced" version="{lifecycle.available_since.major}" />')
+    if lifecycle.deprecated_since is not None:
+        badges.append(f'<LifecycleBadge kind="deprecated" version="{lifecycle.deprecated_since.major}" />')
+    if lifecycle.removed_since is not None:
+        badges.append(f'<LifecycleBadge kind="removed" version="{lifecycle.removed_since.major}" />')
+    return " ".join(badges)
 
 
 def _render_fields_table(nodes: list[DocNode], parent_path: str = "") -> list[list[str]]:
@@ -947,6 +1014,10 @@ def _render_fields_table(nodes: list[DocNode], parent_path: str = "") -> list[li
         else:
             key_cell = f"`{node.title}`"
 
+        badges = _lifecycle_badges_markdown(node.lifecycle)
+        if badges:
+            key_cell = f"{key_cell} {badges}"
+
         rows.append([key_cell, desc, status])
     return rows
 
@@ -957,6 +1028,7 @@ def _render_variants_as_tabs(
     registry: ExampleRegistry,
     parent_path: str,
     parent_title: str | None = None,
+    parent_lifecycle: YamlElementLifecycle | None = None,
 ) -> None:
     """Render discriminated union variants inside Docusaurus Tabs."""
     if not variant_children:
@@ -964,7 +1036,9 @@ def _render_variants_as_tabs(
 
     if parent_title:
         anchor = _make_field_anchor(parent_path)
-        md.line(f"##### {parent_title} {{/* #{anchor} */}}")
+        badges = _lifecycle_badges_markdown(parent_lifecycle)
+        suffix = f" {badges}" if badges else ""
+        md.line(f"##### {parent_title}{suffix} \\{{#{anchor}}}")
         md.line("")
 
     md.tabs_start()
@@ -1015,7 +1089,9 @@ def _render_nested_fields(
 
         if non_variant_children:
             anchor = _make_field_anchor(node_path)
-            md.line(f"##### {node.title} {{/* #{anchor} */}}")
+            badges = _lifecycle_badges_markdown(node.lifecycle)
+            suffix = f" {badges}" if badges else ""
+            md.line(f"##### {node.title}{suffix} \\{{#{anchor}}}")
             md.line("")
 
             if node.description:
@@ -1035,7 +1111,9 @@ def _render_nested_fields(
 
         # Render discriminated union variants with tabs
         if variant_children:
-            _render_variants_as_tabs(variant_children, md, registry, node_path, parent_title=node.title)
+            _render_variants_as_tabs(
+                variant_children, md, registry, node_path, parent_title=node.title, parent_lifecycle=node.lifecycle
+            )
 
 
 def render_tree(
@@ -1060,8 +1138,15 @@ def render_tree(
         node_path = f"{path}.{node.title}" if path else node.title
         effective_depth = depth if depth <= max_sidebar_depth else 5
 
-        # Heading
-        md.heading(min(effective_depth, 6), node.title)
+        # Heading. Anchor matches Docusaurus's default auto-slug (lowercased title) so
+        # existing cross-references (e.g. "#process_units", "#definitions") keep working;
+        # it must be explicit because inline <LifecycleBadge> JSX breaks auto-slugging.
+        md.heading(
+            min(effective_depth, 6),
+            node.title,
+            suffix=_lifecycle_badges_markdown(node.lifecycle),
+            anchor=node.title.lower(),
+        )
 
         # Description (from FieldInfo or model docstring for variants)
         if node.is_discriminated_variant:
@@ -1093,7 +1178,9 @@ def render_tree(
                 _render_nested_fields(non_variant_children, md, registry, node_path)
 
                 # Render discriminated variant children with tabs
-                _render_variants_as_tabs(variant_children, md, registry, node_path, parent_title=node.title)
+                _render_variants_as_tabs(
+                    variant_children, md, registry, node_path, parent_title=node.title, parent_lifecycle=node.lifecycle
+                )
             else:
                 # Render children as headings (within sidebar visibility)
                 md.line(
@@ -1115,6 +1202,8 @@ def _clean_description(desc: str) -> str:
     desc = re.sub(r"\n\n\$ECALC_DOCS_KEYWORDS_URL\S*", "", desc)
     # Remove inline references
     desc = re.sub(r"\$ECALC_DOCS_KEYWORDS_URL\S*", "", desc)
+    # Escape angle brackets so MDX doesn't interpret them as JSX tags
+    desc = desc.replace("<", "&lt;").replace(">", "&gt;")
     return desc.strip()
 
 
@@ -1150,19 +1239,31 @@ description: {description}
 import Tabs from '@theme/Tabs';
 import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
+import LifecycleBadge from '@site/src/components/LifecycleBadge';
+import LifecycleFilter from '@site/src/components/LifecycleFilter';
 
 """
+
+    legend = (
+        "Elements are labelled with their lifecycle: "
+        '<LifecycleBadge kind="introduced" version="2" />'
+        '<LifecycleBadge kind="deprecated" version="2" />'
+        '<LifecycleBadge kind="removed" version="2" />. '
+        "Use the filters below to focus on what you need.\n\n"
+        "<LifecycleFilter />\n\n"
+    )
 
     registry = ExampleRegistry(examples)
 
     body_parts = []
     for node in tree:
         max_depth = SIDEBAR_DEPTH.get(node.name, 2)
-        body_parts.append(render_tree([node], depth=2, max_sidebar_depth=max_depth, registry=registry))
+        section = render_tree([node], depth=2, max_sidebar_depth=max_depth, registry=registry)
+        body_parts.append(section)
 
     body = "\n".join(body_parts)
 
-    return frontmatter + "\n" + imports + intro + body
+    return frontmatter + "\n" + imports + intro + legend + body
 
 
 def _time_series_section(opening: str) -> str:
@@ -1232,6 +1333,24 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
     )
 
 
+def generate_version_markdown(version: int) -> str:
+    """Generate a reference document for all YamlAsset sections available for the given yaml major version."""
+    return _generate_markdown(
+        include_fields=get_root_field_names(YamlAsset, version),
+        title=f"eCalc NextGen YAML v{version} Reference",
+        sidebar_position=8,
+        description=f"Complete reference for yaml version {version}.",
+        intro=f"""\
+# Schema v{version} Reference
+
+This page documents all YAML configuration keys available for yaml version `{version}`, filtered by YAML_VERSION
+rather than a fixed list of top-level sections.
+
+""",
+        examples=EXAMPLES + ENERGY_EXAMPLES,
+    )
+
+
 def main():
     output_dir = Path(__file__).parent.parent / "docs" / "docs" / "about"
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -1239,6 +1358,7 @@ def main():
     outputs = {
         output_dir / "process-reference.mdx": generate_process_markdown(),
         output_dir / "energy-reference.mdx": generate_energy_markdown(),
+        output_dir / "v2-reference.mdx": generate_version_markdown(V2.major),
     }
     for output_path, content in outputs.items():
         output_path.write_text(content)
