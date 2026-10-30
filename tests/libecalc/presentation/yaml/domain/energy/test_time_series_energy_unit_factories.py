@@ -62,7 +62,7 @@ RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
     pytest.param(
-        partial(TimeSeriesGeneratorFactory, fuel_model=IdentityFuelModel()),
+        partial(TimeSeriesGeneratorFactory, fuel_model=IdentityFuelModel(), input_energy_type=FuelGasRate),
         ElectricalPower,
         FuelGasRate,
         id="generator",

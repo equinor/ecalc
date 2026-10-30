@@ -43,9 +43,8 @@ class Converter(EnergyUnit, abc.ABC):
     def get_failures(self) -> list[EnergyFailure]:
         return capacity_failures(self._output_energy, self._capacity)
 
-    @classmethod
     @abc.abstractmethod
-    def get_input_energy_type(cls) -> type[Energy]: ...
+    def get_input_energy_type(self) -> type[Energy]: ...
 
     @classmethod
     @abc.abstractmethod

@@ -6,7 +6,7 @@ from libecalc.energy.ids import EnergyConnectionId, EnergyUnitId
 
 
 class Generator(Converter):
-    """Gas-fired generator set converting fuel gas to electrical power.
+    """Generator converting a fuel (gas or diesel) to electrical power.
 
     The power_to_fuel curve determines the fuel consumption characteristic.
     A smooth curve represents a single generator unit; a stepped curve with
@@ -21,6 +21,7 @@ class Generator(Converter):
         *,
         input_connection_id: EnergyConnectionId,
         power_to_fuel: Callable[[float], float] = lambda power: power,
+        input_energy_type: type[Energy],
         capacity: Energy | None = None,
         energy_unit_id: EnergyUnitId | None = None,
     ) -> None:
@@ -32,17 +33,17 @@ class Generator(Converter):
             energy_unit_id=energy_unit_id,
         )
         self._power_to_fuel = power_to_fuel
+        self._input_energy_type = input_energy_type
 
-    @classmethod
-    def get_input_energy_type(cls) -> type[FuelGasRate]:
-        return FuelGasRate
+    def get_input_energy_type(self) -> type[Energy]:
+        return self._input_energy_type
 
     @classmethod
     def get_output_energy_type(cls) -> type[ElectricalPower]:
         return ElectricalPower
 
     def get_input_energies(self) -> dict[EnergyConnectionId, Energy]:
-        return {self._input_connection_id: FuelGasRate(self._power_to_fuel(self._output_energy.value))}
+        return {self._input_connection_id: self._input_energy_type(self._power_to_fuel(self._output_energy.value))}
 
 
 class GasTurbine(Converter):

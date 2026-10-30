@@ -171,7 +171,7 @@ class EnergyNetworkMapper:
             else:
                 key = unit_key(unit.name)
                 node, input_type, output_type = self._map_unit(
-                    unit, node_ids_by_key[key], node_ids_by_key, resources, expression_evaluator
+                    unit, node_ids_by_key[key], node_ids_by_key, resources, expression_evaluator, output_types
                 )
                 mapped_nodes.append((node, input_type, output_type))
                 connections.extend(
@@ -367,20 +367,23 @@ class EnergyNetworkMapper:
         node_ids_by_key: Mapping[NodeKey, EnergyUnitId],
         resources: Mapping[str, Resource],
         expression_evaluator: ExpressionEvaluator,
+        output_types: Mapping[str, type[Energy]],
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
             case YamlGenerator():
                 unit = self._resolve_definitions(unit)
                 assert isinstance(unit.model, YamlGeneratorDefinition)
                 fuel_model = map_generator_fuel_model(unit.name, unit.model, resources)
+                input_energy_type = output_types[unit.input]
                 return (
                     TimeSeriesGeneratorFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
                         capacity=self._time_series(fuel_model.max_power, expression_evaluator),
                         fuel_model=fuel_model,
+                        input_energy_type=input_energy_type,
                     ),
-                    FuelGasRate,
+                    input_energy_type,
                     ElectricalPower,
                 )
             case YamlGasTurbine():

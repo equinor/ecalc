@@ -52,6 +52,23 @@ def test_generator_capacity_is_the_curve_maximum(energy_network_mapper_factory, 
     assert genset.capacity.get_evaluated_expression() == [10]
 
 
+def test_generator_input_energy_type_follows_connected_source(
+    energy_network_mapper_factory, expression_evaluator_factory, period
+):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
+            "UNITS": [{"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "diesel", "MODEL": GENERATOR}],
+        }
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+
+    (genset,) = (factory for factory in factories if factory.get_name() == "genset")
+    assert genset.input_energy_type is DieselRate
+
+
 def test_generator_does_not_accept_capacity():
     with pytest.raises(ValueError, match="CAPACITY"):
         YamlEnergyNetwork.model_validate(
