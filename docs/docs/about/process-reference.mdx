@@ -286,7 +286,7 @@ Rate with unit + value.
 
 ## SHAFTS <LifecycleBadge kind="introduced" version="2" /> \{#shafts}
 
-Defines named shafts and the compressors on each. Compressors on one shaft run at the same speed, and a DRIVE_TRAIN in ENERGY_NETWORK drives all compressors on its shaft.
+Defines named shafts representing mechanical connections between drivers and driven equipment.
 
 <YamlCodeBlock>{"NAME: default_shaft\nCOMPRESSORS:\n- default_compressor"}</YamlCodeBlock>
 
@@ -297,7 +297,7 @@ Defines named shafts and the compressors on each. Compressors on one shaft run a
 
 ## COMPRESSORS <LifecycleBadge kind="introduced" version="2" /> \{#compressors}
 
-Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES, COMPRESSOR_SAMPLED units in ENERGY_NETWORK and SHAFTS refer to a compressor by name.
+Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.
 
 <YamlCodeBlock>{"NAME: default_compressor\nALIAS: RIA"}</YamlCodeBlock>
 
