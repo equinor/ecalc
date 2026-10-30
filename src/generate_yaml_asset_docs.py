@@ -33,6 +33,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
     YamlElementLifecycle,
+    get_model_lifecycle,
     get_yaml_element_lifecycle,
 )
 from libecalc.testing.energy_builders import (
@@ -591,17 +592,24 @@ class DocNode:
 
     @property
     def available_since(self) -> Version:
-        """The yaml schema version this root element became available in, defaulting to V1."""
-        if self.field_info is None:
-            return V1
-        return get_yaml_element_lifecycle(self.field_info).available_since
+        """The yaml schema version this element became available in, defaulting to V1."""
+        lifecycle = self.lifecycle
+        return lifecycle.available_since if lifecycle is not None else V1
 
     @property
     def lifecycle(self) -> YamlElementLifecycle | None:
-        """The element's lifecycle (available/deprecated/removed since), if it has one."""
-        if self.field_info is None:
-            return None
-        return get_yaml_element_lifecycle(self.field_info)
+        """The element's lifecycle (available/deprecated/removed since), if it has one.
+
+        Root elements and ordinary nested fields carry their lifecycle on the pydantic
+        Field(...) itself. Discriminated union variants (e.g. a TYPE-based Tabs entry)
+        aren't a Field, so their lifecycle is read from the variant model's own
+        model_config instead — see get_model_lifecycle().
+        """
+        if self.field_info is not None:
+            return get_yaml_element_lifecycle(self.field_info)
+        if self.is_discriminated_variant and isinstance(self.type_annotation, type):
+            return get_model_lifecycle(self.type_annotation)
+        return None
 
     def __repr__(self) -> str:
         return f"DocNode({self.title}, children={len(self.children)})"
@@ -1039,6 +1047,16 @@ def _render_variants_as_tabs(
         variant_path = f"{parent_path}.{variant.title}"
         md.tab_item_start(label=variant.title)
 
+        # Scope div: lets the browser-side LifecycleFilter know this variant's own
+        # lifecycle (if any), so fields inside it without their own badge still filter
+        # correctly by inheriting from the variant rather than only the group heading.
+        # `display: contents` (see custom.css) keeps it invisible as a layout box.
+        md.line('<div className="lifecycle-variant">')
+        md.line("")
+        badges = _lifecycle_badges_markdown(variant.lifecycle)
+        if badges:
+            md.paragraph(badges)
+
         docstring = _get_model_docstring(variant.type_annotation)
         if docstring:
             md.paragraph(docstring)
@@ -1055,6 +1073,8 @@ def _render_variants_as_tabs(
                 md.table(["Key", "Description", "Status"], table_rows)
             _render_nested_fields(variant_non_variant, md, registry, variant_path)
 
+        md.line("")
+        md.line("</div>")
         md.tab_item_end()
     md.tabs_end()
 

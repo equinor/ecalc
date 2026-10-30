@@ -91,10 +91,7 @@ class YamlElementLifecycle:
     removed_since: Version | None
 
 
-def get_yaml_element_lifecycle(field_info: FieldInfo) -> YamlElementLifecycle:
-    """Get the lifecycle of a root element field, defaulting to available since V1."""
-    extra = field_info.json_schema_extra if isinstance(field_info.json_schema_extra, dict) else {}
-
+def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
     def _parse(key: str) -> Version | None:
         value = extra.get(key)
         return Version.from_string(value) if isinstance(value, str) else None
@@ -104,6 +101,26 @@ def get_yaml_element_lifecycle(field_info: FieldInfo) -> YamlElementLifecycle:
         deprecated_since=_parse(DEPRECATED_SINCE_KEY),
         removed_since=_parse(REMOVED_SINCE_KEY),
     )
+
+
+def get_yaml_element_lifecycle(field_info: FieldInfo) -> YamlElementLifecycle:
+    """Get the lifecycle of a root element field, defaulting to available since V1."""
+    extra = field_info.json_schema_extra if isinstance(field_info.json_schema_extra, dict) else {}
+    return _parse_lifecycle_extra(extra)
+
+
+def get_model_lifecycle(model: type[BaseModel]) -> YamlElementLifecycle:
+    """
+    Get the lifecycle of a discriminated union variant model (e.g. one tab of a TYPE-discriminated
+    root element), defaulting to available since V1.
+
+    Unlike a root element, a variant isn't a Field — it's set directly on the model's own
+    model_config, e.g.:
+        model_config = ConfigDict(json_schema_extra=yaml_element_lifecycle(available_since=V2))
+    """
+    extra = model.model_config.get("json_schema_extra")
+    extra = extra if isinstance(extra, dict) else {}
+    return _parse_lifecycle_extra(extra)
 
 
 def is_available_for_version(field_info: FieldInfo, version: int) -> bool:

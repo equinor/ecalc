@@ -152,3 +152,10 @@
 .lifecycle-hidden {
   display: none !important;
 }
+
+/* Wraps a discriminated union variant's (e.g. a Tabs entry) own content, so
+   LifecycleFilter can scope fields without their own badge to the variant's
+   lifecycle instead of only the group heading's. Must not affect layout. */
+.lifecycle-variant {
+  display: contents;
+}

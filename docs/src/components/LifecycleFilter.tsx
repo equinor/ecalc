@@ -2,14 +2,18 @@ import React, { useEffect, useRef, useState } from 'react';
 
 const HEADING_SELECTOR = 'h2, h3, h4, h5, h6';
 const BADGE_SELECTOR = '.lifecycle-badge';
+const VARIANT_SELECTOR = '.lifecycle-variant';
 const HIDDEN_CLASS = 'lifecycle-hidden';
 const ALL_VERSIONS = 'all';
 const VERSIONS = ['1', '2', '3'];
 
-interface SectionLifecycle {
-  level: number;
+interface Lifecycle {
   availableSince: number;
   removedSince: number | null;
+}
+
+interface SectionLifecycle extends Lifecycle {
+  level: number;
 }
 
 /** Read a container's own introduced/removed versions from its <LifecycleBadge> `data-version`s. */
@@ -87,44 +91,59 @@ function applyFilters(version: string) {
     // heading of equal or shallower level). Lifecycle is inherited from the nearest
     // ancestor heading, so fields nested under e.g. a v2-new section aren't wrongly
     // shown/hidden just because they don't carry their own badge.
+    //
+    // A `.lifecycle-variant` div (one per discriminated union variant, e.g. a Tabs
+    // entry — see generate_yaml_asset_docs.py) behaves like a lightweight heading: it
+    // scopes lifecycle for rows/headings nested in that one variant, without being an
+    // actual heading itself. It's reset by the next heading or the next variant div.
     const stack: SectionLifecycle[] = [];
-    content
-      .querySelectorAll<HTMLElement>(`${HEADING_SELECTOR}, tr`)
-      .forEach((element) => {
-        const isHeading = element.tagName !== 'TR';
-        const parent = isHeading ? undefined : stack[stack.length - 1];
+    let variantScope: Lifecycle | null = null;
 
+    content
+      .querySelectorAll<HTMLElement>(
+        `${HEADING_SELECTOR}, tr, ${VARIANT_SELECTOR}`,
+      )
+      .forEach((element) => {
+        const isHeading = element.matches(HEADING_SELECTOR);
+        const isVariant = !isHeading && element.matches(VARIANT_SELECTOR);
         const { introducedIn, removedIn } = badgeVersionsOf(element);
 
-        let ancestor: SectionLifecycle | undefined = parent;
         if (isHeading) {
           const level = headingLevel(element);
           while (stack.length > 0 && stack[stack.length - 1].level >= level) {
             stack.pop();
           }
-          ancestor = stack[stack.length - 1];
-        }
+          const ancestor = variantScope ?? stack[stack.length - 1];
+          const availableSince = introducedIn ?? ancestor?.availableSince ?? 1;
+          const removedSince = removedIn ?? ancestor?.removedSince ?? null;
+          stack.push({ level, availableSince, removedSince });
+          variantScope = null;
 
-        const availableSince = introducedIn ?? ancestor?.availableSince ?? 1;
-        const removedSince = removedIn ?? ancestor?.removedSince ?? null;
-
-        if (isHeading) {
-          stack.push({
-            level: headingLevel(element),
-            availableSince,
-            removedSince,
-          });
-        }
-
-        if (isAvailableForVersion(availableSince, removedSince, version)) {
+          if (!isAvailableForVersion(availableSince, removedSince, version)) {
+            collectSection(element).forEach((el) => {
+              el.classList.add(HIDDEN_CLASS);
+            });
+          }
           return;
         }
 
-        if (isHeading) {
-          collectSection(element).forEach((el) => {
-            el.classList.add(HIDDEN_CLASS);
-          });
-        } else {
+        if (isVariant) {
+          const ancestor = stack[stack.length - 1];
+          const availableSince = introducedIn ?? ancestor?.availableSince ?? 1;
+          const removedSince = removedIn ?? ancestor?.removedSince ?? null;
+          variantScope = { availableSince, removedSince };
+
+          if (!isAvailableForVersion(availableSince, removedSince, version)) {
+            element.classList.add(HIDDEN_CLASS);
+          }
+          return;
+        }
+
+        // Table row (leaf field).
+        const ancestor = variantScope ?? stack[stack.length - 1];
+        const availableSince = introducedIn ?? ancestor?.availableSince ?? 1;
+        const removedSince = removedIn ?? ancestor?.removedSince ?? null;
+        if (!isAvailableForVersion(availableSince, removedSince, version)) {
           element.classList.add(HIDDEN_CLASS);
         }
       });

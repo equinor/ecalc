@@ -48,7 +48,7 @@ Contains reusable definitions.
 
 Defines process units used in PROCESS_PIPELINES.
 
-#### COMPRESSOR \{#compressor}
+#### COMPRESSOR <LifecycleBadge kind="introduced" version="2" /> \{#compressor}
 
 A Compressor process unit
 
@@ -83,6 +83,8 @@ A Compressor process unit
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
 
+<div className="lifecycle-variant">
+
 <YamlCodeBlock>{"SPEED: 10000.0\nRATE:\n- 500.0\n- 3000.0\n- 5000.0\n- 8000.0\nHEAD:\n- 30000.0\n- 25000.0\n- 20000.0\n- 15000.0\nEFFICIENCY:\n- 0.68\n- 0.72\n- 0.74\n- 0.7"}</YamlCodeBlock>
 
 | Key | Description | Status |
@@ -92,14 +94,20 @@ A Compressor process unit
 | `HEAD` |  | Required |
 | `EFFICIENCY` |  | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -121,7 +129,7 @@ Defines the units
 | `UNIT` |  | Required |
 | `VALUE` |  | Required |
 
-#### PRESSURE_DROPPER \{#pressure_dropper}
+#### PRESSURE_DROPPER <LifecycleBadge kind="introduced" version="2" /> \{#pressure_dropper}
 
 A pressure dropper unit — reduces stream pressure by a fixed amount.
 
@@ -132,7 +140,7 @@ A pressure dropper unit — reduces stream pressure by a fixed amount.
 | `TYPE` | `PRESSURE_DROPPER` | Required |
 | `PRESSURE_DROP` | Pressure drop across the unit [bar]. | Required |
 
-#### TEMPERATURE_SETTER \{#temperature_setter}
+#### TEMPERATURE_SETTER <LifecycleBadge kind="introduced" version="2" /> \{#temperature_setter}
 
 A temperature setter unit — forces the stream to a specified temperature.
 
@@ -143,7 +151,7 @@ A temperature setter unit — forces the stream to a specified temperature.
 | `TYPE` | `TEMPERATURE_SETTER` | Required |
 | `TEMPERATURE` | Target temperature [Celsius]. | Required |
 
-#### LIQUID_REMOVER \{#liquid_remover}
+#### LIQUID_REMOVER <LifecycleBadge kind="introduced" version="2" /> \{#liquid_remover}
 
 A liquid remover (scrubber) unit — removes any condensed liquid from
 the stream, leaving only the gas phase.
@@ -156,7 +164,7 @@ No-op if the stream is already pure vapor.
 | --- | --- | --- |
 | `TYPE` | `LIQUID_REMOVER` | Required |
 
-#### MIXER \{#mixer}
+#### MIXER <LifecycleBadge kind="introduced" version="2" /> \{#mixer}
 
 Mixes an external sidestream into the through-stream at an
 intermediate point in the pipeline.
@@ -192,7 +200,7 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-#### SPLITTER \{#splitter}
+#### SPLITTER <LifecycleBadge kind="introduced" version="2" /> \{#splitter}
 
 Removes a fixed rate from the through-stream at an
 intermediate point in the pipeline (e.g. fuel gas offtake).
@@ -323,20 +331,28 @@ Defines process pipelines to use in process simulations.
 <Tabs>
 <TabItem value="COMPRESSOR_PROCESS_UNIT" label="COMPRESSOR_PROCESS_UNIT">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="PROCESS_UNIT" label="PROCESS_UNIT">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `NAME` |  | Optional |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -371,6 +387,8 @@ Defines one or more process simulations to be run.
 
 <Tabs>
 <TabItem value="COMMON_STREAM" label="COMMON_STREAM">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"METHOD: COMMON_STREAM\nINLET_STREAM:\n  NAME: DefaultInletStream\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 1000000.0\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY\nSETTINGS:\n- RATE_FRACTIONS:\n  - 1.0\n  OVERFLOW: null"}</YamlCodeBlock>
 
@@ -416,9 +434,13 @@ Rate with unit + value.
 | `FROM_REFERENCE` |  | Required |
 | `TO_REFERENCE` |  | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="INDIVIDUAL_STREAMS" label="INDIVIDUAL_STREAMS">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"METHOD: INDIVIDUAL_STREAMS\nINLET_STREAMS:\n- NAME: DefaultInletStream\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 1000000.0\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY"}</YamlCodeBlock>
 
@@ -449,6 +471,8 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
+
+</div>
 </TabItem>
 
 </Tabs>
