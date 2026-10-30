@@ -191,7 +191,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 100
+	Object starting on line 101
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Missing constraint for process system 'train_2'
 """)
