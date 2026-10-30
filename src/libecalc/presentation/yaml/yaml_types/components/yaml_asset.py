@@ -23,6 +23,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlEcalcEvent,
+    YamlEnergyEvent,
     YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
@@ -192,6 +193,12 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="PROCESS_EVENTS",
         description="Defines process-specific events that reference global eCalc events.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+    )
+    energy_events: list[YamlEnergyEvent] = Field(
+        default_factory=list,
+        title="ENERGY_EVENTS",
+        description="Defines energy-network-specific events that reference global eCalc events.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(

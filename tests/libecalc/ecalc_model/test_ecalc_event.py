@@ -4,6 +4,8 @@ from libecalc.ecalc_model.ecalc_event import (
     EcalcEvent,
     EcalcEventService,
     EcalcEventType,
+    EnergyEvent,
+    EnergyEventType,
     ProcessEvent,
     ProcessEventType,
 )
@@ -21,6 +23,9 @@ class TestEcalcEventService:
                     ProcessEvent(name="PE_A", type=ProcessEventType.INCREASED_GAS_RATE, description=None),
                     ProcessEvent(name="PE_B", type=ProcessEventType.OTHER, description=None),
                 ],
+                energy_events=[
+                    EnergyEvent(name="EE_A", type=EnergyEventType.FUEL_SWITCH, description=None),
+                ],
             ),
             EcalcEvent(
                 name="EVENT_2",
@@ -30,6 +35,7 @@ class TestEcalcEventService:
                 process_events=[
                     ProcessEvent(name="PE_C", type=ProcessEventType.INCREASED_WATER_INJECTION, description=None),
                 ],
+                energy_events=[],
             ),
         ]
         return EcalcEventService(ecalc_events=events)
@@ -71,3 +77,14 @@ class TestEcalcEventService:
         assert service.get_event_by_name("ANY") is None
         assert service.get_event_by_process_name("ANY") is None
         assert service.get_time_steps() == set()
+        assert service.get_event_by_energy_name("ANY") is None
+
+    def test_get_event_by_energy_name_found(self):
+        service = self._make_service()
+        event = service.get_event_by_energy_name("EE_A")
+        assert event is not None
+        assert event.name == "EVENT_1"
+
+    def test_get_event_by_energy_name_not_found(self):
+        service = self._make_service()
+        assert service.get_event_by_energy_name("NONEXISTENT") is None

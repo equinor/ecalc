@@ -20,10 +20,22 @@ class ProcessEventType(StrEnum):
     OTHER = "OTHER"
 
 
+class EnergyEventType(StrEnum):
+    FUEL_SWITCH = "FUEL_SWITCH"
+    OTHER = "OTHER"
+
+
 @value_object
 class ProcessEvent:
     name: str
     type: ProcessEventType
+    description: str | None
+
+
+@value_object
+class EnergyEvent:
+    name: str
+    type: EnergyEventType
     description: str | None
 
 
@@ -34,6 +46,7 @@ class EcalcEvent:
     start: datetime
     description: str | None
     process_events: list[ProcessEvent]
+    energy_events: list[EnergyEvent]
 
 
 class EcalcEventService:
@@ -55,3 +68,10 @@ class EcalcEventService:
 
     def get_time_steps(self) -> set[datetime]:
         return {ecalc_event.start for ecalc_event in self._ecalc_events}
+
+    def get_event_by_energy_name(self, name: str) -> EcalcEvent | None:
+        for ecalc_event in self._ecalc_events:
+            for energy_event in ecalc_event.energy_events:
+                if energy_event.name == name:
+                    return ecalc_event
+        return None

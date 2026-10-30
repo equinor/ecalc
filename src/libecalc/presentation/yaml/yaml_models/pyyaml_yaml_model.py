@@ -38,6 +38,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
     YamlEcalcEvent,
+    YamlEnergyEvent,
     YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
@@ -63,6 +64,7 @@ _GENERATORS_KEY = "GENERATORS"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _ECALC_EVENTS_KEY = "ECALC_EVENTS"
 _PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
+_ENERGY_EVENTS_KEY = "ENERGY_EVENTS"
 _PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
 _SHAFTS_KEY = "SHAFTS"
 _COMPRESSORS_KEY = "COMPRESSORS"
@@ -575,6 +577,17 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             except PydanticValidationError:
                 pass
         return process_events
+
+    @property
+    def energy_events(self) -> list[YamlEnergyEvent]:
+        energy_events: list[YamlEnergyEvent] = []
+        adapter = TypeAdapter(YamlEnergyEvent)
+        for energy_event in self._get_yaml_list_or_empty(_ENERGY_EVENTS_KEY):
+            try:
+                energy_events.append(adapter.validate_python(energy_event))
+            except PydanticValidationError:
+                pass
+        return energy_events
 
     @property
     def pump_process_simulations(self) -> list[YamlPumpProcessSimulation]:
