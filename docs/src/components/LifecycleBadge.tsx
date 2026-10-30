@@ -15,7 +15,10 @@ const LABELS: Record<LifecycleKind, string> = {
 
 export default function LifecycleBadge({ kind, version }: LifecycleBadgeProps) {
   return (
-    <span className={`lifecycle-badge lifecycle-badge--${kind}`}>
+    <span
+      className={`lifecycle-badge lifecycle-badge--${kind}`}
+      data-version={version}
+    >
       {LABELS[kind]}
       {version}
     </span>

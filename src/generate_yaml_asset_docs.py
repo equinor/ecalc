@@ -32,9 +32,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
-    V2,
     YamlElementLifecycle,
-    get_root_field_names,
     get_yaml_element_lifecycle,
 )
 from libecalc.testing.energy_builders import (
@@ -785,14 +783,9 @@ def build_tree(
     return nodes
 
 
-def build_yaml_asset_tree(include_fields: set[str]) -> list[DocNode]:
-    """Build a documentation tree for selected YamlAsset sections."""
+def build_yaml_asset_tree(include_fields: set[str] | None) -> list[DocNode]:
+    """Build a documentation tree for selected YamlAsset sections, or the whole model if include_fields is None."""
     return build_tree(YamlAsset, include_fields=include_fields)
-
-
-def build_yaml_asset_tree_for_version(version: int) -> list[DocNode]:
-    """Build a documentation tree for all YamlAsset root elements available for the given yaml major version."""
-    return build_yaml_asset_tree(get_root_field_names(YamlAsset, version))
 
 
 # --- Step 2: Render tree to markdown ---
@@ -1216,14 +1209,14 @@ def _get_model_docstring(model: Any) -> str | None:
 
 def _generate_markdown(
     *,
-    include_fields: set[str],
+    include_fields: set[str] | None,
     title: str,
     sidebar_position: int,
     description: str,
     intro: str,
     examples: list[Example],
 ) -> str:
-    """Generate a reference document for selected YamlAsset sections."""
+    """Generate a reference document for selected YamlAsset sections, or the whole model if include_fields is None."""
     tree = build_yaml_asset_tree(include_fields)
 
     frontmatter = f"""\
@@ -1249,7 +1242,7 @@ import LifecycleFilter from '@site/src/components/LifecycleFilter';
         '<LifecycleBadge kind="introduced" version="2" />'
         '<LifecycleBadge kind="deprecated" version="2" />'
         '<LifecycleBadge kind="removed" version="2" />. '
-        "Use the filters below to focus on what you need.\n\n"
+        "Use the filters below to focus on what you need, including filtering down to a single YAML_VERSION.\n\n"
         "<LifecycleFilter />\n\n"
     )
 
@@ -1333,18 +1326,19 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
     )
 
 
-def generate_version_markdown(version: int) -> str:
-    """Generate a reference document for all YamlAsset sections available for the given yaml major version."""
+def generate_full_reference_markdown() -> str:
+    """Generate a single reference document covering every YamlAsset root element, across all yaml versions."""
     return _generate_markdown(
-        include_fields=get_root_field_names(YamlAsset, version),
-        title=f"eCalc NextGen YAML v{version} Reference",
+        include_fields=None,
+        title="YAML Reference",
         sidebar_position=8,
-        description=f"Complete reference for yaml version {version}.",
-        intro=f"""\
-# Schema v{version} Reference
+        description="Complete reference for all YAML configuration keys, across every schema version.",
+        intro="""\
+# YAML Reference
 
-This page documents all YAML configuration keys available for yaml version `{version}`, filtered by YAML_VERSION
-rather than a fixed list of top-level sections.
+This page documents every YAML configuration key for the eCalc Asset model, regardless of `YAML_VERSION`.
+
+Use the version filter below to show only the elements available for a chosen `YAML_VERSION`.
 
 """,
         examples=EXAMPLES + ENERGY_EXAMPLES,
@@ -1358,7 +1352,7 @@ def main():
     outputs = {
         output_dir / "process-reference.mdx": generate_process_markdown(),
         output_dir / "energy-reference.mdx": generate_energy_markdown(),
-        output_dir / "v2-reference.mdx": generate_version_markdown(V2.major),
+        output_dir / "yaml-reference.mdx": generate_full_reference_markdown(),
     }
     for output_path, content in outputs.items():
         output_path.write_text(content)
