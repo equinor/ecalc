@@ -16,6 +16,7 @@ import json
 import re
 import types
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any, Literal, Union, get_args, get_origin
 
@@ -32,6 +33,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
+    V3,
     YamlElementLifecycle,
     get_model_lifecycle,
     get_yaml_element_lifecycle,
@@ -1365,15 +1367,151 @@ Use the version filter below to show only the elements available for a chosen `Y
     )
 
 
+# ---------------------------------------------------------------------------
+# YAML changelog
+#
+# One page per yaml major version, listing which elements were added,
+# deprecated or removed in that version specifically, to help users migrate
+# their own models. V1 and V2 predate this changelog and are intentionally
+# left out — add new versions here as they're introduced.
+# ---------------------------------------------------------------------------
+
+YAML_CHANGELOG_VERSIONS: list[Version] = [
+    V3,
+]
+
+ChangeKind = Literal["added", "deprecated", "removed"]
+
+
+@dataclass
+class ChangelogEntry:
+    path: list[str]
+    kind: ChangeKind
+
+
+def _node_event_major(node: DocNode, kind: ChangeKind) -> int | None:
+    """The major version a node's lifecycle event (added/deprecated/removed) happened in, if any."""
+    lifecycle = node.lifecycle
+    if lifecycle is None:
+        return None
+    if kind == "added":
+        return lifecycle.available_since.major
+    if kind == "deprecated":
+        return lifecycle.deprecated_since.major if lifecycle.deprecated_since else None
+    return lifecycle.removed_since.major if lifecycle.removed_since else None
+
+
+def _collect_changelog_entries(
+    nodes: list[DocNode],
+    version: int,
+    path: list[str],
+    covered: frozenset[ChangeKind] = frozenset(),
+) -> list[ChangelogEntry]:
+    """
+    Walk the full documentation tree, collecting the lifecycle events (added/deprecated/removed)
+    that happened in the given yaml major version.
+
+    If a whole element was itself added/deprecated/removed in this version, its descendants
+    aren't listed individually for that same kind of event — it's implied by the parent.
+    """
+    entries: list[ChangelogEntry] = []
+    for node in nodes:
+        node_path = [*path, node.title]
+        node_covered = set(covered)
+        for kind in ("added", "deprecated", "removed"):
+            if kind in covered:
+                continue
+            if _node_event_major(node, kind) == version:
+                entries.append(ChangelogEntry(path=node_path, kind=kind))
+                node_covered.add(kind)
+        entries.extend(_collect_changelog_entries(node.children, version, node_path, frozenset(node_covered)))
+    return entries
+
+
+def _render_changelog_section(title: str, entries: list[ChangelogEntry]) -> str:
+    if not entries:
+        return ""
+    lines = [f"## {title}", ""]
+    for entry in entries:
+        breadcrumb = " › ".join(f"`{segment}`" for segment in entry.path)
+        lines.append(f"- {breadcrumb}")
+    lines.append("")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def generate_yaml_changelog_markdown(version: Version) -> str:
+    """Generate the yaml changelog page for a single yaml major version."""
+    tree = build_yaml_asset_tree(include_fields=None)
+    entries = _collect_changelog_entries(tree, version.major, path=[])
+    added = [e for e in entries if e.kind == "added"]
+    deprecated = [e for e in entries if e.kind == "deprecated"]
+    removed = [e for e in entries if e.kind == "removed"]
+
+    frontmatter = f"""\
+---
+title: YAML_VERSION {version.major}
+sidebar_position: {version.major}
+description: YAML configuration changes introduced in YAML_VERSION {version.major}.
+---
+"""
+
+    body = f"""\
+# YAML_VERSION {version.major}
+
+This page lists the YAML configuration changes introduced in `YAML_VERSION: {version.major}`, compared to the
+previous version. See the [YAML Reference](../about/yaml-reference.mdx) for the full, current schema across all
+versions.
+
+"""
+    sections = (
+        _render_changelog_section("Added", added)
+        + _render_changelog_section("Deprecated", deprecated)
+        + _render_changelog_section("Removed", removed)
+    )
+    if not sections.strip():
+        sections = "No changes recorded for this version yet.\n"
+
+    return frontmatter + "\n" + body + sections
+
+
+def generate_yaml_changelog_index_markdown() -> str:
+    """Generate the yaml changelog landing page, listing all covered versions."""
+    links = "\n".join(f"- [YAML_VERSION {version.major}](./v{version.major}.md)" for version in YAML_CHANGELOG_VERSIONS)
+    return f"""\
+---
+title: YAML Changelog
+sidebar_position: 0
+description: YAML configuration changes, by YAML_VERSION.
+---
+
+# YAML Changelog
+
+This section lists the YAML configuration changes for each `YAML_VERSION`, to help you migrate your own model from
+a previous version. Each page covers the additions, deprecations and removals introduced in that version, compared
+to the previous one.
+
+See the [YAML Reference](../about/yaml-reference.mdx) for the full, current schema across all versions.
+
+{links}
+"""
+
+
 def main():
-    output_dir = Path(__file__).parent.parent / "docs" / "docs" / "about"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    about_dir = Path(__file__).parent.parent / "docs" / "docs" / "about"
+    about_dir.mkdir(parents=True, exist_ok=True)
+    changelog_dir = Path(__file__).parent.parent / "docs" / "docs" / "yaml-changelog"
+    changelog_dir.mkdir(parents=True, exist_ok=True)
 
     outputs = {
-        output_dir / "process-reference.mdx": generate_process_markdown(),
-        output_dir / "energy-reference.mdx": generate_energy_markdown(),
-        output_dir / "yaml-reference.mdx": generate_full_reference_markdown(),
+        about_dir / "process-reference.mdx": generate_process_markdown(),
+        about_dir / "energy-reference.mdx": generate_energy_markdown(),
+        about_dir / "yaml-reference.mdx": generate_full_reference_markdown(),
+        changelog_dir / "index.md": generate_yaml_changelog_index_markdown(),
     }
+    for version in YAML_CHANGELOG_VERSIONS:
+        outputs[changelog_dir / f"v{version.major}.md"] = generate_yaml_changelog_markdown(version)
+
     for output_path, content in outputs.items():
         output_path.write_text(content)
         print(f"Generated: {output_path}")

@@ -91,6 +91,12 @@ const config: Config = {
             label: 'Changelog',
           },
           {
+            type: 'docSidebar',
+            sidebarId: 'yamlChangelog',
+            position: 'left',
+            label: 'YAML Changelog (Experimental)',
+          },
+          {
             href: 'https://github.com/equinor/ecalc',
             label: 'GitHub',
             position: 'right',
