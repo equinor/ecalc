@@ -284,7 +284,11 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         target: YamlCompressorDefinition | DefinitionReference,
         compressor: CompressorReference,
     ) -> Self:
-        self.process_units.append(YamlCompressorProcessUnitInstance(compressor=compressor, target=target))
+        # pyright misreads the preceding required `compressor` field's Field(...) call and then
+        # thinks `shaft` (optional, default None) has no default either — false positive.
+        self.process_units.append(
+            YamlCompressorProcessUnitInstance(compressor=compressor, target=target)  # pyright: ignore[reportCallIssue]
+        )
         return self
 
     def with_items(self, items: list[tuple[str | None, YamlProcessUnitDefinition | DefinitionReference]]) -> Self:
