@@ -22,13 +22,22 @@ class YamlCompressorChart(YamlBase):
         DataOrFile[list[YamlCurve]],
         Field(description="Compressor chart curves, one per speed.", title="CURVES"),
     ]
-    units: YamlUnits = UnitsField()
+    # Not using the plain UnitsField() default here: UNITS has only been available
+    # since V2 for this process unit's compressor chart.
+    units: YamlUnits = UnitsField(lifecycle=yaml_element_lifecycle(available_since=V2))
 
 
 class YamlCompressorModelChart(YamlBase):
     type: Literal["COMPRESSOR_CHART"]
     chart: YamlCompressorChart
-    control_margin: YamlControlMargin
+    control_margin: Annotated[
+        YamlControlMargin,
+        Field(
+            description="Margin added to the compressor's surge control line.",
+            title="CONTROL_MARGIN",
+            json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        ),
+    ]
 
 
 class YamlCompressorDefinition(YamlBase):

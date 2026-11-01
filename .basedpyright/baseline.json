@@ -3622,24 +3622,6 @@
                 }
             }
         ],
-        "./src/libecalc/presentation/yaml/yaml_types/models/yaml_compressor_chart.py": [
-            {
-                "code": "reportGeneralTypeIssues",
-                "range": {
-                    "startColumn": 20,
-                    "endColumn": 25,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportCallIssue",
-                "range": {
-                    "startColumn": 41,
-                    "endColumn": 52,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/libecalc/presentation/yaml/yaml_types/models/yaml_compressor_trains.py": [
             {
                 "code": "reportAssignmentType",

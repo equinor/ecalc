@@ -52,7 +52,7 @@ A Compressor process unit
 | --- | --- | --- |
 | `TYPE` | `COMPRESSOR_CHART` | Required |
 | [`CHART`](#definitions-process_units-compressor-compressor_model-chart) |  | Required |
-| [`CONTROL_MARGIN`](#definitions-process_units-compressor-compressor_model-control_margin) |  | Required |
+| [`CONTROL_MARGIN`](#definitions-process_units-compressor-compressor_model-control_margin) <LifecycleBadge kind="introduced" version="2" /> | Margin added to the compressor's surge control line. | Required |
 
 ##### CHART \{#definitions-process_units-compressor-compressor_model-chart}
 
@@ -61,7 +61,7 @@ A Compressor process unit
 | Key | Description | Status |
 | --- | --- | --- |
 | [`CURVES`](#definitions-process_units-compressor-compressor_model-chart-curves) | Compressor chart curves, one per speed. | Required |
-| [`UNITS`](#definitions-process_units-compressor-compressor_model-chart-units) | Defines the units | Optional |
+| [`UNITS`](#definitions-process_units-compressor-compressor_model-chart-units) <LifecycleBadge kind="introduced" version="2" /> | Defines the units | Optional |
 
 ##### CURVES \{#definitions-process_units-compressor-compressor_model-chart-curves}
 
@@ -97,7 +97,7 @@ A Compressor process unit
 
 </Tabs>
 
-##### UNITS \{#definitions-process_units-compressor-compressor_model-chart-units}
+##### UNITS <LifecycleBadge kind="introduced" version="2" /> \{#definitions-process_units-compressor-compressor_model-chart-units}
 
 Defines the units
 
@@ -107,7 +107,9 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
-##### CONTROL_MARGIN \{#definitions-process_units-compressor-compressor_model-control_margin}
+##### CONTROL_MARGIN <LifecycleBadge kind="introduced" version="2" /> \{#definitions-process_units-compressor-compressor_model-control_margin}
+
+Margin added to the compressor's surge control line.
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1085,7 +1087,7 @@ Defines named shafts representing mechanical connections between drivers and dri
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name of the shaft. | Required |
-| `COMPRESSORS` | Names of the compressors in COMPRESSORS that sit on this shaft and run at its speed. A compressor placed in a process pipeline must be on a shaft. A DRIVE_TRAIN on this shaft drives all of them. | Optional |
+| `COMPRESSORS` <LifecycleBadge kind="introduced" version="3" /> | Names of the compressors in COMPRESSORS that sit on this shaft and run at its speed. A compressor placed in a process pipeline must be on a shaft. A DRIVE_TRAIN on this shaft drives all of them. | Optional |
 
 ## COMPRESSORS <LifecycleBadge kind="introduced" version="2" /> \{#compressors}
 
