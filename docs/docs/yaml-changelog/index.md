@@ -12,4 +12,4 @@ to the previous one.
 
 See the [YAML Reference](../about/yaml-reference.mdx) for the full, current schema across all versions.
 
-- [YAML_VERSION 3](../yaml-changelog/v3.md)
+- [YAML_VERSION 3](./v3.md)
