@@ -204,7 +204,7 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="ENERGY_EVENTS",
         description="Defines energy-network-specific events that reference global eCalc events.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
         default_factory=list,
