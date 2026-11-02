@@ -26,9 +26,9 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 
 ## Time steps and time series
 
-Each process simulation is calculated on its own time steps, between `START` and `END`. These time steps come from the time series files it uses: their time vectors are merged into one time vector.
+Each process simulation is calculated on its own time steps, between `START` and `END`. These time steps come from the time series files and dated `VARIABLES` it uses, and from the start dates in `ECALC_EVENTS`: all dates are merged into one time vector.
 
-A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Each file must have a value at `START`, otherwise the run fails.
+A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Dated `VARIABLES` work the same way. Each file and dated variable must have a value at `START`, otherwise the run fails.
 
 **When to resample yourself**
 

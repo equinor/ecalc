@@ -54,28 +54,46 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
             tsr_name: tsr for tsr_name, tsr in time_series_resources.items() if tsr_name in expression_references_map
         }
 
-        # Build the merged time vector from the referenced time series
-        if len(time_series_resources_used) > 0:
-            # Without START, begin at the earliest date
-            if start is None:
-                start = min(min(tsr.get_time_vector()) for tsr in time_series_resources_used.values())
-            # Every time series must have a value at start
-            for tsr_name, tsr in time_series_resources_used.items():
-                if min(tsr.get_time_vector()) > start:
-                    raise EcalcError(
-                        title="Invalid time series",
-                        message=f"Time series {tsr_name} has no value at start {start}. It must have a date on or before start.",
-                    )
-            dates_within_start_and_end = {
-                date
-                for tsr in time_series_resources_used.values()
-                for date in tsr.get_time_vector()
-                if start < date < end
-            }
-        else:
-            if start is None:
+        referenced_variables = {
+            ref.removeprefix("$var."): variables[ref.removeprefix("$var.")]
+            for ref in all_refs
+            if ref.startswith("$var.")
+        }
+        time_variable_dates = {
+            var_name: sorted(variable)
+            for var_name, variable in referenced_variables.items()
+            if isinstance(variable, dict)
+        }
+
+        # Build the merged time vector from the referenced time series and time-dependent variables
+        if start is None:
+            first_dates = [min(tsr.get_time_vector()) for tsr in time_series_resources_used.values()]
+            first_dates += [dates[0] for dates in time_variable_dates.values()]
+            if len(first_dates) == 0:
                 raise EcalcError(title="Invalid time series", message="No time steps to calculate")
-            dates_within_start_and_end = set()
+            # Without START, begin at the earliest date
+            start = min(first_dates)
+
+        # Every time series and time-dependent variable must have a value at start
+        for tsr_name, tsr in time_series_resources_used.items():
+            if min(tsr.get_time_vector()) > start:
+                raise EcalcError(
+                    title="Invalid time series",
+                    message=f"Time series {tsr_name} has no value at start {start}. It must have a date on or before start.",
+                )
+        for var_name, dates in time_variable_dates.items():
+            if dates[0] > start:
+                raise EcalcError(
+                    title="Invalid variable",
+                    message=f"Variable {var_name} has no value at start {start}. It must have a date on or before start.",
+                )
+
+        dates_within_start_and_end = {
+            date for tsr in time_series_resources_used.values() for date in tsr.get_time_vector() if start < date < end
+        }
+        dates_within_start_and_end |= {
+            date for dates in time_variable_dates.values() for date in dates if start < date < end
+        }
 
         if additional_dates is not None:
             dates_within_start_and_end |= {date for date in additional_dates if start < date < end}
@@ -97,12 +115,6 @@ class StrictExpressionEvaluator(ExpressionEvaluator):
                 time_series_columns[f"{tsr_name};{tsr_column}"] = [column[row_index] for row_index in row_indices]
 
         # Evaluate referenced variables on the same periods, using the time series values above
-        referenced_variables = {}
-        for ref in all_refs:
-            if ref.startswith("$var."):
-                var_name = ref.removeprefix("$var.")
-                referenced_variables[var_name] = variables[var_name]
-
         processed_variables = evaluate_variables(
             variables=referenced_variables, processed_variables=time_series_columns, periods=periods
         )
