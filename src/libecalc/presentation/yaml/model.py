@@ -344,6 +344,7 @@ class YamlModel:
             time_series_resources=time_series_name_map,
             start=self._configuration.start,
             end=end,
+            additional_dates=EcalcEventService(ecalc_events=self.get_events()).get_time_steps(),
         )
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
