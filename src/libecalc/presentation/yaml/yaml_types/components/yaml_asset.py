@@ -155,14 +155,15 @@ class YamlAsset(YamlBase):
     shafts: list[YamlShaft] = Field(
         default_factory=list,
         title="SHAFTS",
-        description="Defines named shafts representing mechanical connections between drivers and driven equipment.",
+        description="Defines named shafts and the compressors on each. Compressors on one shaft run at the same "
+        "speed, and a DRIVE_TRAIN in ENERGY_NETWORK drives all compressors on its shaft.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     compressors: list[YamlCompressor] = Field(
         default_factory=list,
         title="COMPRESSORS",
-        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
-        "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
+        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES, "
+        "COMPRESSOR_SAMPLED units in ENERGY_NETWORK and SHAFTS refer to a compressor by name.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
