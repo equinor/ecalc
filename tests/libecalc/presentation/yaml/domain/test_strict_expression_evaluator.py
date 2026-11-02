@@ -277,6 +277,124 @@ class TestFromExpressionReferences:
 
         assert evaluator.get_time_vector() == [datetime(2020, 1, 1), datetime(2021, 1, 1)]
 
+    def test_time_variable_dates_are_merged_as_time_steps(self):
+        tv = [datetime(2020, 1, 1), datetime(2020, 2, 1)]
+        tsr = self._make_tsr(tv, {"col1": [1.0, 2.0]})
+        variables = {
+            "load": {
+                datetime(2020, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("10")),
+                datetime(2020, 1, 15): YamlSingleVariable(value=Expression.setup_from_expression("20")),
+            },
+        }
+
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"SIM;col1", "$var.load"},
+            variables=variables,
+            time_series_resources={"SIM": tsr},
+            start=datetime(2020, 1, 1),
+            end=datetime(2020, 3, 1),
+        )
+
+        assert evaluator.get_time_vector() == [
+            datetime(2020, 1, 1),
+            datetime(2020, 1, 15),
+            datetime(2020, 2, 1),
+            datetime(2020, 3, 1),
+        ]
+        assert evaluator.evaluate(Expression.setup_from_expression("$var.load")).tolist() == [10.0, 20.0, 20.0]
+        assert evaluator.evaluate(Expression.setup_from_expression("SIM;col1")).tolist() == [1.0, 1.0, 2.0]
+
+    def test_time_variable_dates_are_resolved_transitively(self):
+        variables = {
+            "total": YamlSingleVariable(value=Expression.setup_from_expression("$var.load {+} 1")),
+            "load": {
+                datetime(2020, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("10")),
+                datetime(2021, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("20")),
+            },
+        }
+
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"$var.total"},
+            variables=variables,
+            time_series_resources={},
+            start=datetime(2020, 1, 1),
+            end=datetime(2022, 1, 1),
+        )
+
+        assert evaluator.get_time_vector() == [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
+        assert evaluator.evaluate(Expression.setup_from_expression("$var.total")).tolist() == [11.0, 21.0]
+
+    def test_time_variable_dates_outside_start_end_are_ignored(self):
+        variables = {
+            "load": {
+                datetime(2019, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("10")),
+                datetime(2023, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("20")),
+            },
+        }
+
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"$var.load"},
+            variables=variables,
+            time_series_resources={},
+            start=datetime(2020, 1, 1),
+            end=datetime(2022, 1, 1),
+        )
+
+        assert evaluator.get_time_vector() == [datetime(2020, 1, 1), datetime(2022, 1, 1)]
+        assert evaluator.evaluate(Expression.setup_from_expression("$var.load")).tolist() == [10.0]
+
+    def test_unreferenced_time_variable_dates_are_ignored(self):
+        variables = {
+            "load": {
+                datetime(2020, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("10")),
+                datetime(2021, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("20")),
+            },
+        }
+
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references=set(),
+            variables=variables,
+            time_series_resources={},
+            start=datetime(2020, 1, 1),
+            end=datetime(2022, 1, 1),
+        )
+
+        assert evaluator.get_time_vector() == [datetime(2020, 1, 1), datetime(2022, 1, 1)]
+
+    def test_time_variable_without_value_at_start_raises(self):
+        variables = {
+            "load": {
+                datetime(2021, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("10")),
+            },
+        }
+
+        with pytest.raises(EcalcError, match="Variable load has no value at start"):
+            StrictExpressionEvaluator.from_expression_references(
+                expression_references={"$var.load"},
+                variables=variables,
+                time_series_resources={},
+                start=datetime(2020, 1, 1),
+                end=datetime(2022, 1, 1),
+            )
+
+    def test_start_none_uses_first_time_variable_date(self):
+        variables = {
+            "load": {
+                datetime(2020, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("10")),
+                datetime(2021, 1, 1): YamlSingleVariable(value=Expression.setup_from_expression("20")),
+            },
+        }
+
+        evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references={"$var.load"},
+            variables=variables,
+            time_series_resources={},
+            start=None,
+            end=datetime(2022, 1, 1),
+        )
+
+        assert evaluator.get_time_vector() == [datetime(2020, 1, 1), datetime(2021, 1, 1), datetime(2022, 1, 1)]
+
 
 def _date(year: int) -> datetime:
     return datetime(year, 1, 1)
