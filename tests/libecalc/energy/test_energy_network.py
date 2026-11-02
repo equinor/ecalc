@@ -40,7 +40,9 @@ class TestEnergyNetworkEnergyCalculation:
         self, energy_network_simulation_factory, energy_unit_factory_factory
     ):
         source = energy_unit_factory_factory(Source, "source", output_energy_type=FuelGasRate)
-        generator = energy_unit_factory_factory(Generator, "generator", power_to_fuel=lambda output: output * 1_000)
+        generator = energy_unit_factory_factory(
+            Generator, "generator", power_to_fuel=lambda output: output * 1_000, input_energy_type=FuelGasRate
+        )
         motor = energy_unit_factory_factory(ElectricalMotor, "motor", efficiency=0.8)
         pump = energy_unit_factory_factory(Consumer, "pump", input_energy_type=MechanicalPower)
         base_load = energy_unit_factory_factory(Consumer, "base_load", input_energy_type=ElectricalPower)
@@ -196,7 +198,11 @@ class TestJunctionDispatch:
             Source, "grid", output_energy_type=ElectricalPower, capacity=ElectricalPower(5)
         )
         genset = energy_unit_factory_factory(
-            Generator, "genset", power_to_fuel=lambda power: power * 1_000, capacity=ElectricalPower(10)
+            Generator,
+            "genset",
+            power_to_fuel=lambda power: power * 1_000,
+            capacity=ElectricalPower(10),
+            input_energy_type=FuelGasRate,
         )
         bus = junction_factory_factory(
             ElectricalPower,
@@ -226,9 +232,14 @@ class TestJunctionDispatch:
     ):
         """Per-generator curves replace the jumps encoded in a single legacy curve."""
         fuel_source = energy_unit_factory_factory(Source, "fuel_source", output_energy_type=FuelGasRate)
-        first = energy_unit_factory_factory(Generator, "first_genset", power_to_fuel=lambda power: power * 1_000)
+        first = energy_unit_factory_factory(
+            Generator, "first_genset", power_to_fuel=lambda power: power * 1_000, input_energy_type=FuelGasRate
+        )
         second = energy_unit_factory_factory(
-            Generator, "second_genset", power_to_fuel=lambda power: 10_000 + power * 2_000
+            Generator,
+            "second_genset",
+            power_to_fuel=lambda power: 10_000 + power * 2_000,
+            input_energy_type=FuelGasRate,
         )
         bus = junction_factory_factory(
             ElectricalPower,

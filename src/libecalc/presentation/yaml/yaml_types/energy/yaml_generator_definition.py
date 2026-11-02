@@ -22,7 +22,8 @@ class YamlGeneratorCurve(YamlBase):
         list[float],
         Field(
             title="FUEL",
-            description="Fuel gas rate [Sm3/day] for each power. In a FILE, this is the FUEL column.",
+            description="Fuel rate for each power. In a FILE, this is the FUEL column. Unit follows the "
+            "connected source: Sm3/day for a FUEL_GAS_SOURCE, L/day for a DIESEL_SOURCE.",
         ),
     ]
 
