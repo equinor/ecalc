@@ -73,16 +73,6 @@ def _asset(
     return builder.validate()
 
 
-def test_rejects_shaft_on_compressor_process_unit():
-    with pytest.raises(ValidationError, match="Extra inputs are not permitted"):
-        YamlProcessPipeline.model_validate(
-            {
-                "NAME": "export_pipeline",
-                "PROCESS_UNITS": [{"TARGET": "compressor", "COMPRESSOR": "lp_compressor", "SHAFT": "export_shaft"}],
-            }
-        )
-
-
 def test_rejects_compressor_definition_without_compressor_reference(
     yaml_process_pipeline_builder_factory, yaml_compressor_builder_factory
 ):

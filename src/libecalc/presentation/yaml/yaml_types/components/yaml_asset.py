@@ -43,6 +43,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V2,
     V3,
     YamlMajorVersion,
+    get_required_field_names,
     get_unavailable_field_names,
     yaml_element_lifecycle,
 )
@@ -148,7 +149,9 @@ class YamlAsset(YamlBase):
         title="FUEL_TYPES",
         description="Specifies the various fuel types and associated emissions used in the model."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
+        json_schema_extra=yaml_element_lifecycle(
+            available_since=V1, deprecated_since=V2, removed_since=V3, required=True
+        ),
     )
     variables: YamlVariables = Field(
         default_factory=dict,
@@ -216,7 +219,9 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="INSTALLATIONS",
         description="Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
+        json_schema_extra=yaml_element_lifecycle(
+            available_since=V1, deprecated_since=V2, removed_since=V3, required=True
+        ),
     )
     start: YamlDefaultDatetime | None = Field(
         None,
@@ -242,6 +247,18 @@ class YamlAsset(YamlBase):
         aliases = sorted(YamlAsset.model_fields[field_name].alias or field_name.upper() for field_name in unavailable)
         raise ValueError(
             f"The following root elements are not available for yaml version {self.yaml_version}: {', '.join(aliases)}."
+        )
+
+    @model_validator(mode="after")
+    def validate_required_root_elements_present(self):
+        """Ensure root elements required for the declared YAML_VERSION are explicitly present in the yaml."""
+        missing = get_required_field_names(type(self), self.yaml_version) - self.model_fields_set
+        if not missing:
+            return self
+
+        aliases = sorted(YamlAsset.model_fields[field_name].alias or field_name.upper() for field_name in missing)
+        raise ValueError(
+            f"The following root elements are required for yaml version {self.yaml_version}: {', '.join(aliases)}."
         )
 
     @model_validator(mode="after")

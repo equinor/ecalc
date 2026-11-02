@@ -7,15 +7,18 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     DEFAULT_YAML_VERSION,
     DEPRECATED_SINCE_KEY,
     REMOVED_SINCE_KEY,
+    REQUIRED_KEY,
     V1,
     V2,
     YamlElementLifecycle,
     YamlMajorVersion,
     _parse_major_version,
+    get_required_field_names,
     get_root_field_names,
     get_unavailable_field_names,
     get_yaml_element_lifecycle,
     is_available_for_version,
+    is_required_for_version,
     yaml_element_lifecycle,
 )
 from libecalc.version import current_yaml_version
@@ -96,6 +99,12 @@ class TestYamlElementLifecycleBuilder:
             REMOVED_SINCE_KEY: "3.0.0",
         }
 
+    def test_includes_required_when_true(self):
+        assert yaml_element_lifecycle(required=True) == {REQUIRED_KEY: True}
+
+    def test_omits_required_when_false(self):
+        assert yaml_element_lifecycle(required=False) == {}
+
 
 class TestGetYamlElementLifecycle:
     def test_defaults_to_available_since_v1_when_no_extra(self):
@@ -146,6 +155,9 @@ class _LifecycleModel(BaseModel):
     introduced_in_v2: str = Field(default="", json_schema_extra=yaml_element_lifecycle(available_since=V2))
     deprecated_in_v2: str = Field(default="", json_schema_extra=yaml_element_lifecycle(deprecated_since=V2))
     removed_in_v2: str = Field(default="", json_schema_extra=yaml_element_lifecycle(removed_since=V2))
+    required_until_v2: str = Field(
+        default="", json_schema_extra=yaml_element_lifecycle(removed_since=V2, required=True)
+    )
     no_lifecycle: str = ""
 
 
@@ -158,6 +170,7 @@ class TestGetRootFieldNames:
             "no_lifecycle",
             "deprecated_in_v2",
             "removed_in_v2",
+            "required_until_v2",
         }
 
     def test_for_v2_includes_new_and_deprecated_but_not_removed_fields(self):
@@ -181,4 +194,30 @@ class TestGetUnavailableFieldNames:
         assert unavailable == {"introduced_in_v2"}
 
     def test_for_v2_returns_fields_removed_at_v2(self):
-        assert get_unavailable_field_names(_LifecycleModel, 2, _LifecycleModel.model_fields.keys()) == {"removed_in_v2"}
+        assert get_unavailable_field_names(_LifecycleModel, 2, _LifecycleModel.model_fields.keys()) == {
+            "removed_in_v2",
+            "required_until_v2",
+        }
+
+
+class TestIsRequiredForVersion:
+    def test_not_required_without_required_flag(self):
+        field_info = Field(json_schema_extra=yaml_element_lifecycle(available_since=V1))
+        assert is_required_for_version(field_info, 1) is False
+
+    def test_required_while_available(self):
+        field_info = Field(json_schema_extra=yaml_element_lifecycle(required=True))
+        assert is_required_for_version(field_info, 1) is True
+
+    def test_not_required_once_unavailable(self):
+        field_info = Field(json_schema_extra=yaml_element_lifecycle(removed_since=V2, required=True))
+        assert is_required_for_version(field_info, 1) is True
+        assert is_required_for_version(field_info, 2) is False
+
+
+class TestGetRequiredFieldNames:
+    def test_for_v1_returns_the_required_until_v2_field(self):
+        assert get_required_field_names(_LifecycleModel, 1) == {"required_until_v2"}
+
+    def test_for_v2_excludes_fields_no_longer_available(self):
+        assert get_required_field_names(_LifecycleModel, 2) == set()

@@ -61,18 +61,26 @@ DEFAULT_YAML_VERSION = V1.major
 AVAILABLE_SINCE_KEY = "available_since"
 DEPRECATED_SINCE_KEY = "deprecated_since"
 REMOVED_SINCE_KEY = "removed_since"
+REQUIRED_KEY = "required"
 
 
 def yaml_element_lifecycle(
     available_since: Version | None = None,
     deprecated_since: Version | None = None,
     removed_since: Version | None = None,
+    required: bool = False,
 ) -> dict[str, JsonValue]:
     """
     Build the json_schema_extra for a root element Field(...) call, marking its lifecycle.
 
     Root elements without an available_since marker are implicitly available since V1.
     Versions are stored as plain X.Y.Z strings so the extra dict stays JSON-friendly.
+
+    required marks a root element that must be explicitly present in the yaml for every version it's
+    available in, e.g. FUEL_TYPES and INSTALLATIONS in V1/V2. This is separate from available_since/
+    removed_since so an element can be required while available, then disallowed entirely once removed,
+    without pydantic itself ever treating the field as required (it still needs a default for versions
+    where it's absent, e.g. V3).
     """
     extra: dict[str, JsonValue] = {}
     if available_since is not None:
@@ -81,6 +89,8 @@ def yaml_element_lifecycle(
         extra[DEPRECATED_SINCE_KEY] = str(deprecated_since)
     if removed_since is not None:
         extra[REMOVED_SINCE_KEY] = str(removed_since)
+    if required:
+        extra[REQUIRED_KEY] = True
     return extra
 
 
@@ -89,6 +99,7 @@ class YamlElementLifecycle:
     available_since: Version
     deprecated_since: Version | None
     removed_since: Version | None
+    required: bool = False
 
 
 def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
@@ -100,6 +111,7 @@ def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
         available_since=_parse(AVAILABLE_SINCE_KEY) or V1,
         deprecated_since=_parse(DEPRECATED_SINCE_KEY),
         removed_since=_parse(REMOVED_SINCE_KEY),
+        required=bool(extra.get(REQUIRED_KEY, False)),
     )
 
 
@@ -148,4 +160,19 @@ def get_unavailable_field_names(model: type[BaseModel], version: int, field_name
         field_name
         for field_name in field_names
         if field_name in model.model_fields and not is_available_for_version(model.model_fields[field_name], version)
+    }
+
+
+def is_required_for_version(field_info: FieldInfo, version: int) -> bool:
+    """Whether a root element field must be explicitly present in the yaml for the given declared document version."""
+    lifecycle = get_yaml_element_lifecycle(field_info)
+    return lifecycle.required and is_available_for_version(field_info, version)
+
+
+def get_required_field_names(model: type[BaseModel], version: int) -> set[str]:
+    """Get the names of root elements that must be explicitly present in the yaml for the given document version."""
+    return {
+        field_name
+        for field_name, field_info in model.model_fields.items()
+        if is_required_for_version(field_info, version)
     }
