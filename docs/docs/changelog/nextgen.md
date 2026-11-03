@@ -11,6 +11,10 @@ sidebar_position: 0
 Changes to the NextGen YAML types: `FLUIDS`, `PROCESS_SIMULATIONS`, `PUMP_PROCESS_SIMULATIONS` and `ENERGY_NETWORK`.
 These are not available in legacy models, so they are not part of the release changelogs.
 
+## v15.6 {/* #v15-6 */}
+
+- `DEFINITIONS`: compressor models are defined in `COMPRESSOR_MODELS`, which replaces `TYPE: COMPRESSOR` process units in `DEFINITIONS.PROCESS_UNITS`. A compressor process unit gives its model with `MODEL` instead of `TARGET`, and a `REBUNDLE` event gives the new model with `CHANGE_TO`. Both take a model in place or the name of one in `COMPRESSOR_MODELS`. `CHANGE_FROM` is removed, since the model before the event is known.
+
 ## v15.5 {/* #v15-5 */}
 
 - `ENERGY_NETWORK`: `ELECTRICAL_CONSUMER` and `MECHANICAL_CONSUMER` `LOAD`, and `FUEL_GAS_CONSUMER` and `DIESEL_CONSUMER` `RATE`, can each be a 1D curve (inline or FILE) looked up by a variable, instead of a direct expression. This replaces the current usage of the legacy `TABULAR` facility model, which is 1D (mostly rate vs. power) in practice.

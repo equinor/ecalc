@@ -28,7 +28,8 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlPumpProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlReferenceableProcessUnitDefinition,
+    YamlCompressorModelChart,
+    YamlProcessUnitDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
@@ -56,10 +57,17 @@ class YamlDefinitions(YamlBase):
         title="Definitions",
     )
 
-    process_units: dict[str, YamlReferenceableProcessUnitDefinition] = Field(
+    process_units: dict[str, YamlProcessUnitDefinition] = Field(
         default_factory=dict,
         title="PROCESS_UNITS",
         description="Defines process units used in PROCESS_PIPELINES.",
+    )
+
+    compressor_models: dict[str, YamlCompressorModelChart] = Field(
+        default_factory=dict,
+        title="COMPRESSOR_MODELS",
+        description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
+        "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.",
     )
 
     fluids: dict[str, YamlFluidDefinition] = Field(
@@ -493,6 +501,7 @@ class YamlAsset(YamlBase):
         references.extend(self.process_pipelines.keys())
 
         references.extend(self.definitions.process_units.keys())
+        references.extend(self.definitions.compressor_models.keys())
         references.extend(self.definitions.fluids.keys())
         references.extend(self.definitions.turbines.keys())
         references.extend(self.definitions.generators.keys())

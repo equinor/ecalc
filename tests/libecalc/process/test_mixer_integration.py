@@ -9,7 +9,6 @@ from libecalc.ecalc_model.time_series_configuration import (
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
 from libecalc.process.shaft import Shaft
 from libecalc.testing.process_builders import (
-    YamlCompressorBuilder,
     YamlIndividualStreamDistributionBuilder,
     YamlMixerBuilder,
     YamlProcessPipelineBuilder,
@@ -35,10 +34,10 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_1")
         .with_item(target=yaml_mixer)
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_2")
         .validate()
     )
 

@@ -51,7 +51,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.testing.energy_builders import YamlEnergyNetworkBuilder
-from libecalc.testing.process_builders import YamlCompressorBuilder, YamlProcessPipelineBuilder
+from libecalc.testing.process_builders import YamlCompressorModelChartBuilder, YamlProcessPipelineBuilder
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,
@@ -352,8 +352,8 @@ def energy_network_builder_factory():
 
 
 @pytest.fixture
-def yaml_compressor_builder_factory():
-    return lambda: YamlCompressorBuilder()
+def yaml_compressor_model_builder_factory():
+    return lambda: YamlCompressorModelChartBuilder()
 
 
 @pytest.fixture
@@ -727,7 +727,11 @@ def process_simulation_mapper_factory(
     """
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    def _create(references: dict | None = None, compressor_ids: dict | None = None):
+    def _create(
+        references: dict | None = None,
+        compressor_ids: dict | None = None,
+        ecalc_event_service: EcalcEventService | None = None,
+    ):
         if compressor_ids is None:
             compressor_ids = _compressor_ids_for_pipelines(references or {})
         return ProcessSimulationMapper(
@@ -735,7 +739,7 @@ def process_simulation_mapper_factory(
             fluid_service=fluid_service,
             references=references or {},
             resources={},
-            ecalc_event_service=EcalcEventService(ecalc_events=[]),
+            ecalc_event_service=ecalc_event_service or EcalcEventService(ecalc_events=[]),
             shaft_by_compressor=_shaft_by_compressor_for_pipelines(references or {}),
             compressor_ids=compressor_ids,
         )

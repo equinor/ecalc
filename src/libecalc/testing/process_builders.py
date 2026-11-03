@@ -37,14 +37,12 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressorChart,
-    YamlCompressorDefinition,
     YamlCompressorModelChart,
     YamlControlMargin,
     YamlLiquidRemoverDefinition,
     YamlMixerDefinition,
     YamlPressureDropperDefinition,
     YamlProcessUnitDefinition,
-    YamlReferenceableProcessUnitDefinition,
     YamlSplitterDefinition,
     YamlTemperatureSetterDefinition,
 )
@@ -147,20 +145,6 @@ class YamlCompressorModelChartBuilder(Builder[YamlCompressorModelChart]):
 # ---------------------------------------------------------------------------
 # Process unit builders
 # ---------------------------------------------------------------------------
-
-
-class YamlCompressorBuilder(Builder[YamlCompressorDefinition]):
-    def __init__(self):
-        self.type = "COMPRESSOR"
-        self.compressor_model = None
-
-    def with_compressor_model(self, compressor_model: YamlCompressorModelChart) -> Self:
-        self.compressor_model = compressor_model
-        return self
-
-    def with_test_data(self) -> Self:
-        self.compressor_model = YamlCompressorModelChartBuilder().with_test_data().validate()
-        return self
 
 
 class YamlPressureDropperBuilder(Builder[YamlPressureDropperDefinition]):
@@ -281,13 +265,16 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
 
     def with_compressor_item(
         self,
-        target: YamlCompressorDefinition | DefinitionReference,
         compressor: CompressorReference,
+        model: YamlCompressorModelChart | DefinitionReference | None = None,
     ) -> Self:
+        """Without a model, the compressor gets the test data compressor model in place."""
+        if model is None:
+            model = YamlCompressorModelChartBuilder().with_test_data().validate()
         # pyright misreads the preceding required `compressor` field's Field(...) call and then
         # thinks `shaft` (optional, default None) has no default either — false positive.
         self.process_units.append(
-            YamlCompressorProcessUnitInstance(compressor=compressor, target=target)  # pyright: ignore[reportCallIssue]
+            YamlCompressorProcessUnitInstance(compressor=compressor, model=model)  # pyright: ignore[reportCallIssue]
         )
         return self
 
@@ -317,10 +304,7 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
                 name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
             )
             .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
-            .with_compressor_item(
-                compressor="default_compressor",
-                target=YamlCompressorBuilder().with_test_data().validate(),
-            )
+            .with_compressor_item(compressor="default_compressor")
         )
 
 
@@ -633,15 +617,20 @@ class YamlProcessEventBuilder(Builder[YamlProcessEvent]):
 
 class YamlDefinitionsBuilder(Builder[YamlDefinitions]):
     def __init__(self):
-        self.process_units: dict[str, YamlReferenceableProcessUnitDefinition] = {}
+        self.process_units: dict[str, YamlProcessUnitDefinition] = {}
+        self.compressor_models: dict[str, YamlCompressorModelChart] = {}
         self.fluids: dict[str, YamlFluidDefinition] = {}
 
-    def with_process_unit(self, name: str, definition: YamlReferenceableProcessUnitDefinition) -> Self:
+    def with_process_unit(self, name: str, definition: YamlProcessUnitDefinition) -> Self:
         self.process_units[name] = definition
         return self
 
-    def with_process_units(self, process_units: dict[str, YamlReferenceableProcessUnitDefinition]) -> Self:
+    def with_process_units(self, process_units: dict[str, YamlProcessUnitDefinition]) -> Self:
         self.process_units = process_units
+        return self
+
+    def with_compressor_model(self, name: str, model: YamlCompressorModelChart) -> Self:
+        self.compressor_models[name] = model
         return self
 
     def with_fluid(self, name: str, definition: YamlFluidDefinition) -> Self:
