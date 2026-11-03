@@ -9,6 +9,7 @@ collected.
 
 from __future__ import annotations
 
+import logging
 import types
 import typing
 from typing import Any
@@ -17,6 +18,8 @@ from pydantic import BaseModel
 
 from libecalc.expression.expression import Expression, ExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import EXPRESSION_MARKER
+
+logger = logging.getLogger(__name__)
 
 
 def _is_expression_type(annotation: Any) -> bool:
@@ -81,6 +84,29 @@ def _has_expression_marker(metadata: list[Any]) -> bool:
     return any(m is EXPRESSION_MARKER for m in metadata)
 
 
+def _collect_from_expression_value(value: Any) -> list[ExpressionType]:
+    if isinstance(value, list):
+        return [v for item in value for v in _collect_from_expression_value(item)]
+    if isinstance(value, dict):
+        return [v for item in value.values() for v in _collect_from_expression_value(item)]
+    if isinstance(value, (str, int, float)):
+        return [value]
+    if isinstance(value, BaseModel):
+        return _collect_expression_values(value)
+    logger.warning("Unhandled expression value type %s while collecting expressions", type(value))
+    return []
+
+
+def _collect_from_model_value(value: Any) -> list[ExpressionType]:
+    if isinstance(value, list):
+        return [v for item in value for v in _collect_from_model_value(item)]
+    if isinstance(value, dict):
+        return [v for item in value.values() for v in _collect_from_model_value(item)]
+    if isinstance(value, BaseModel):
+        return _collect_expression_values(value)
+    return []
+
+
 def _collect_expression_values(model: BaseModel) -> list[ExpressionType]:
     """Recursively collect all expression-typed field values from *model*."""
     values: list[ExpressionType] = []
@@ -94,45 +120,9 @@ def _collect_expression_values(model: BaseModel) -> list[ExpressionType]:
         is_expression = _has_expression_marker(field_info.metadata) or _contains_expression_type(annotation)
 
         if is_expression:
-            # The value is either a single expression or a list of expressions
-            if isinstance(field_value, list):
-                for item in field_value:
-                    if isinstance(item, (str, int, float)):
-                        values.append(item)
-                    elif isinstance(item, BaseModel):
-                        values.extend(_collect_expression_values(item))
-            elif isinstance(field_value, dict):
-                for v in field_value.values():
-                    if isinstance(v, (str, int, float)):
-                        values.append(v)
-                    elif isinstance(v, BaseModel):
-                        values.extend(_collect_expression_values(v))
-                    elif isinstance(v, list):
-                        for item in v:
-                            if isinstance(item, (str, int, float)):
-                                values.append(item)
-                            elif isinstance(item, BaseModel):
-                                values.extend(_collect_expression_values(item))
-            elif isinstance(field_value, (str, int, float)):
-                values.append(field_value)
-        else:
-            # Recurse into nested pydantic models
-            model_types = _unwrap_to_model_types(annotation)
-            if model_types:
-                if isinstance(field_value, BaseModel):
-                    values.extend(_collect_expression_values(field_value))
-                elif isinstance(field_value, list):
-                    for item in field_value:
-                        if isinstance(item, BaseModel):
-                            values.extend(_collect_expression_values(item))
-                elif isinstance(field_value, dict):
-                    for v in field_value.values():
-                        if isinstance(v, BaseModel):
-                            values.extend(_collect_expression_values(v))
-                        elif isinstance(v, list):
-                            for item in v:
-                                if isinstance(item, BaseModel):
-                                    values.extend(_collect_expression_values(item))
+            values.extend(_collect_from_expression_value(field_value))
+        elif _unwrap_to_model_types(annotation):
+            values.extend(_collect_from_model_value(field_value))
 
     return values
 
