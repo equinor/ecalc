@@ -63,19 +63,15 @@ class TestYamlModelValidation:
 
         errors = exc_info.value.errors()
 
-        assert len(errors) == 4
+        assert len(errors) == 2
 
         assert errors[0].message == snapshot("The keyword 'type' | 'TYPE' is missing, it is required.")
         assert errors[0].location.keys == ["TIME_SERIES", 0]
 
         assert errors[1].message == snapshot("This keyword is missing, it is required")
-        assert errors[1].location.keys == ["FUEL_TYPES"]
+        assert errors[1].location.keys == ["END"]
 
-        assert errors[2].message == snapshot("This keyword is missing, it is required")
-        assert errors[2].location.keys == ["INSTALLATIONS"]
-
-        assert errors[3].message == snapshot("This keyword is missing, it is required")
-        assert errors[3].location.keys == ["END"]
+        # NOTE: fuel_types, installations are now set as required in schema
 
     @pytest.mark.inlinesnapshot
     @pytest.mark.snapshot

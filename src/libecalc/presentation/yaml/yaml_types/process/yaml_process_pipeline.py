@@ -13,6 +13,8 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlProcessUnitDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
+from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
+from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, yaml_element_lifecycle
 
 
 class YamlProcessUnitInstance[TTarget](YamlBase):
@@ -35,6 +37,15 @@ class YamlCompressorProcessUnitInstance(YamlBase):
         title="COMPRESSOR",
         description="Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT "
         "refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS.",
+    )
+
+    # TODO: Available just to mark it as removed.
+    shaft: ShaftReference | None = Field(
+        None,
+        title="SHAFT",
+        description="Reference to a shaft defined in SHAFTS. "
+        "This field is deprecated and has been removed in YAML_VERSION 3. Use the SHAFT > COMPRESSORS instead.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V3, for_documentation_only=True),
     )
 
     def get_instance_reference(self) -> InstanceReference:

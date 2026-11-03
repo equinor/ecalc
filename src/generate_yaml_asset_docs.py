@@ -16,6 +16,7 @@ import json
 import re
 import types
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Annotated, Any, Literal, Union, get_args, get_origin
 
@@ -32,9 +33,9 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
-    V2,
+    V3,
     YamlElementLifecycle,
-    get_root_field_names,
+    get_model_lifecycle,
     get_yaml_element_lifecycle,
 )
 from libecalc.testing.energy_builders import (
@@ -593,17 +594,24 @@ class DocNode:
 
     @property
     def available_since(self) -> Version:
-        """The yaml schema version this root element became available in, defaulting to V1."""
-        if self.field_info is None:
-            return V1
-        return get_yaml_element_lifecycle(self.field_info).available_since
+        """The yaml schema version this element became available in, defaulting to V1."""
+        lifecycle = self.lifecycle
+        return lifecycle.available_since if lifecycle is not None else V1
 
     @property
     def lifecycle(self) -> YamlElementLifecycle | None:
-        """The element's lifecycle (available/deprecated/removed since), if it has one."""
-        if self.field_info is None:
-            return None
-        return get_yaml_element_lifecycle(self.field_info)
+        """The element's lifecycle (available/deprecated/removed since), if it has one.
+
+        Root elements and ordinary nested fields carry their lifecycle on the pydantic
+        Field(...) itself. Discriminated union variants (e.g. a TYPE-based Tabs entry)
+        aren't a Field, so their lifecycle is read from the variant model's own
+        model_config instead — see get_model_lifecycle().
+        """
+        if self.field_info is not None:
+            return get_yaml_element_lifecycle(self.field_info)
+        if self.is_discriminated_variant and isinstance(self.type_annotation, type):
+            return get_model_lifecycle(self.type_annotation)
+        return None
 
     def __repr__(self) -> str:
         return f"DocNode({self.title}, children={len(self.children)})"
@@ -785,14 +793,9 @@ def build_tree(
     return nodes
 
 
-def build_yaml_asset_tree(include_fields: set[str]) -> list[DocNode]:
-    """Build a documentation tree for selected YamlAsset sections."""
+def build_yaml_asset_tree(include_fields: set[str] | None) -> list[DocNode]:
+    """Build a documentation tree for selected YamlAsset sections, or the whole model if include_fields is None."""
     return build_tree(YamlAsset, include_fields=include_fields)
-
-
-def build_yaml_asset_tree_for_version(version: int) -> list[DocNode]:
-    """Build a documentation tree for all YamlAsset root elements available for the given yaml major version."""
-    return build_yaml_asset_tree(get_root_field_names(YamlAsset, version))
 
 
 # --- Step 2: Render tree to markdown ---
@@ -1029,6 +1032,7 @@ def _render_variants_as_tabs(
     parent_path: str,
     parent_title: str | None = None,
     parent_lifecycle: YamlElementLifecycle | None = None,
+    anchor_registry: dict[str, str] | None = None,
 ) -> None:
     """Render discriminated union variants inside Docusaurus Tabs."""
     if not variant_children:
@@ -1036,6 +1040,8 @@ def _render_variants_as_tabs(
 
     if parent_title:
         anchor = _make_field_anchor(parent_path)
+        if anchor_registry is not None:
+            anchor_registry[parent_path] = anchor
         badges = _lifecycle_badges_markdown(parent_lifecycle)
         suffix = f" {badges}" if badges else ""
         md.line(f"##### {parent_title}{suffix} \\{{#{anchor}}}")
@@ -1045,6 +1051,16 @@ def _render_variants_as_tabs(
     for variant in variant_children:
         variant_path = f"{parent_path}.{variant.title}"
         md.tab_item_start(label=variant.title)
+
+        # Scope div: lets the browser-side LifecycleFilter know this variant's own
+        # lifecycle (if any), so fields inside it without their own badge still filter
+        # correctly by inheriting from the variant rather than only the group heading.
+        # `display: contents` (see custom.css) keeps it invisible as a layout box.
+        md.line('<div className="lifecycle-variant">')
+        md.line("")
+        badges = _lifecycle_badges_markdown(variant.lifecycle)
+        if badges:
+            md.paragraph(badges)
 
         docstring = _get_model_docstring(variant.type_annotation)
         if docstring:
@@ -1060,14 +1076,20 @@ def _render_variants_as_tabs(
             table_rows = _render_fields_table(variant_non_variant, parent_path=variant_path)
             if table_rows:
                 md.table(["Key", "Description", "Status"], table_rows)
-            _render_nested_fields(variant_non_variant, md, registry, variant_path)
+            _render_nested_fields(variant_non_variant, md, registry, variant_path, anchor_registry=anchor_registry)
 
+        md.line("")
+        md.line("</div>")
         md.tab_item_end()
     md.tabs_end()
 
 
 def _render_nested_fields(
-    nodes: list[DocNode], md: MarkdownBuilder, registry: ExampleRegistry, parent_path: str
+    nodes: list[DocNode],
+    md: MarkdownBuilder,
+    registry: ExampleRegistry,
+    parent_path: str,
+    anchor_registry: dict[str, str] | None = None,
 ) -> None:
     """
     Recursively render nested complex fields below a table.
@@ -1089,6 +1111,8 @@ def _render_nested_fields(
 
         if non_variant_children:
             anchor = _make_field_anchor(node_path)
+            if anchor_registry is not None:
+                anchor_registry[node_path] = anchor
             badges = _lifecycle_badges_markdown(node.lifecycle)
             suffix = f" {badges}" if badges else ""
             md.line(f"##### {node.title}{suffix} \\{{#{anchor}}}")
@@ -1107,12 +1131,18 @@ def _render_nested_fields(
                 md.table(["Key", "Description", "Status"], table_rows)
 
             # Recurse into children that themselves have children
-            _render_nested_fields(non_variant_children, md, registry, node_path)
+            _render_nested_fields(non_variant_children, md, registry, node_path, anchor_registry=anchor_registry)
 
         # Render discriminated union variants with tabs
         if variant_children:
             _render_variants_as_tabs(
-                variant_children, md, registry, node_path, parent_title=node.title, parent_lifecycle=node.lifecycle
+                variant_children,
+                md,
+                registry,
+                node_path,
+                parent_title=node.title,
+                parent_lifecycle=node.lifecycle,
+                anchor_registry=anchor_registry,
             )
 
 
@@ -1122,6 +1152,7 @@ def render_tree(
     path: str = "",
     max_sidebar_depth: int = 6,
     registry: ExampleRegistry | None = None,
+    anchor_registry: dict[str, str] | None = None,
 ) -> str:
     """
     Render a list of DocNode into markdown text with heading hierarchy.
@@ -1141,11 +1172,14 @@ def render_tree(
         # Heading. Anchor matches Docusaurus's default auto-slug (lowercased title) so
         # existing cross-references (e.g. "#process_units", "#definitions") keep working;
         # it must be explicit because inline <LifecycleBadge> JSX breaks auto-slugging.
+        anchor = node.title.lower()
+        if anchor_registry is not None:
+            anchor_registry[node_path] = anchor
         md.heading(
             min(effective_depth, 6),
             node.title,
             suffix=_lifecycle_badges_markdown(node.lifecycle),
-            anchor=node.title.lower(),
+            anchor=anchor,
         )
 
         # Description (from FieldInfo or model docstring for variants)
@@ -1175,11 +1209,17 @@ def render_tree(
                     md.table(["Key", "Description", "Status"], table_rows)
 
                 # Recursively render nested complex fields below the table
-                _render_nested_fields(non_variant_children, md, registry, node_path)
+                _render_nested_fields(non_variant_children, md, registry, node_path, anchor_registry=anchor_registry)
 
                 # Render discriminated variant children with tabs
                 _render_variants_as_tabs(
-                    variant_children, md, registry, node_path, parent_title=node.title, parent_lifecycle=node.lifecycle
+                    variant_children,
+                    md,
+                    registry,
+                    node_path,
+                    parent_title=node.title,
+                    parent_lifecycle=node.lifecycle,
+                    anchor_registry=anchor_registry,
                 )
             else:
                 # Render children as headings (within sidebar visibility)
@@ -1190,6 +1230,7 @@ def render_tree(
                         path=node_path,
                         max_sidebar_depth=max_sidebar_depth,
                         registry=registry,
+                        anchor_registry=anchor_registry,
                     )
                 )
 
@@ -1216,14 +1257,15 @@ def _get_model_docstring(model: Any) -> str | None:
 
 def _generate_markdown(
     *,
-    include_fields: set[str],
+    include_fields: set[str] | None,
     title: str,
     sidebar_position: int,
     description: str,
     intro: str,
     examples: list[Example],
+    anchor_registry: dict[str, str] | None = None,
 ) -> str:
-    """Generate a reference document for selected YamlAsset sections."""
+    """Generate a reference document for selected YamlAsset sections, or the whole model if include_fields is None."""
     tree = build_yaml_asset_tree(include_fields)
 
     frontmatter = f"""\
@@ -1246,10 +1288,10 @@ import LifecycleFilter from '@site/src/components/LifecycleFilter';
 
     legend = (
         "Elements are labelled with their lifecycle: "
-        '<LifecycleBadge kind="introduced" version="2" />'
-        '<LifecycleBadge kind="deprecated" version="2" />'
-        '<LifecycleBadge kind="removed" version="2" />. '
-        "Use the filters below to focus on what you need.\n\n"
+        '<LifecycleBadge kind="introduced" version="N" />'
+        '<LifecycleBadge kind="deprecated" version="N" />'
+        '<LifecycleBadge kind="removed" version="N" />. '
+        "Use the filter below to show only the elements available for a single YAML_VERSION.\n\n"
         "<LifecycleFilter />\n\n"
     )
 
@@ -1258,7 +1300,9 @@ import LifecycleFilter from '@site/src/components/LifecycleFilter';
     body_parts = []
     for node in tree:
         max_depth = SIDEBAR_DEPTH.get(node.name, 2)
-        section = render_tree([node], depth=2, max_sidebar_depth=max_depth, registry=registry)
+        section = render_tree(
+            [node], depth=2, max_sidebar_depth=max_depth, registry=registry, anchor_registry=anchor_registry
+        )
         body_parts.append(section)
 
     body = "\n".join(body_parts)
@@ -1333,33 +1377,199 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
     )
 
 
-def generate_version_markdown(version: int) -> str:
-    """Generate a reference document for all YamlAsset sections available for the given yaml major version."""
-    return _generate_markdown(
-        include_fields=get_root_field_names(YamlAsset, version),
-        title=f"eCalc NextGen YAML v{version} Reference",
-        sidebar_position=8,
-        description=f"Complete reference for yaml version {version}.",
-        intro=f"""\
-# Schema v{version} Reference
+def generate_full_reference_markdown(anchor_registry: dict[str, str] | None = None) -> str:
+    """Generate a single reference document covering every YamlAsset root element, across all yaml versions.
 
-This page documents all YAML configuration keys available for yaml version `{version}`, filtered by YAML_VERSION
-rather than a fixed list of top-level sections.
+    If given, anchor_registry is populated with a dot-separated element path -> in-page anchor
+    mapping, so other pages (e.g. the yaml changelog) can link straight to the relevant section.
+    """
+    return _generate_markdown(
+        include_fields=None,
+        title="YAML Reference",
+        sidebar_position=8,
+        description="Complete reference for all YAML configuration keys, across every schema version.",
+        intro="""\
+# YAML Reference
+
+This page documents every YAML configuration key for the eCalc Asset model, regardless of `YAML_VERSION`.
+
+Use the version filter below to show only the elements available for a chosen `YAML_VERSION`.
 
 """,
         examples=EXAMPLES + ENERGY_EXAMPLES,
+        anchor_registry=anchor_registry,
     )
 
 
+# ---------------------------------------------------------------------------
+# YAML changelog
+#
+# One page per yaml major version, listing which elements were added,
+# deprecated or removed in that version specifically, to help users migrate
+# their own models. V1 and V2 predate this changelog and are intentionally
+# left out — add new versions here as they're introduced.
+# ---------------------------------------------------------------------------
+
+YAML_CHANGELOG_VERSIONS: list[Version] = [
+    V3,
+]
+
+ChangeKind = Literal["added", "deprecated", "removed"]
+
+
+@dataclass
+class ChangelogEntry:
+    path: list[str]
+    kind: ChangeKind
+
+
+def _node_event_major(node: DocNode, kind: ChangeKind) -> int | None:
+    """The major version a node's lifecycle event (added/deprecated/removed) happened in, if any."""
+    lifecycle = node.lifecycle
+    if lifecycle is None:
+        return None
+    if kind == "added":
+        return lifecycle.available_since.major
+    if kind == "deprecated":
+        return lifecycle.deprecated_since.major if lifecycle.deprecated_since else None
+    return lifecycle.removed_since.major if lifecycle.removed_since else None
+
+
+def _collect_changelog_entries(
+    nodes: list[DocNode],
+    version: int,
+    path: list[str],
+    covered: frozenset[ChangeKind] = frozenset(),
+) -> list[ChangelogEntry]:
+    """
+    Walk the full documentation tree, collecting the lifecycle events (added/deprecated/removed)
+    that happened in the given yaml major version.
+
+    If a whole element was itself added/deprecated/removed in this version, its descendants
+    aren't listed individually for that same kind of event — it's implied by the parent.
+    """
+    entries: list[ChangelogEntry] = []
+    for node in nodes:
+        node_path = [*path, node.title]
+        node_covered = set(covered)
+        for kind in ("added", "deprecated", "removed"):
+            if kind in covered:
+                continue
+            if _node_event_major(node, kind) == version:
+                entries.append(ChangelogEntry(path=node_path, kind=kind))
+                node_covered.add(kind)
+        entries.extend(_collect_changelog_entries(node.children, version, node_path, frozenset(node_covered)))
+    return entries
+
+
+def _resolve_reference_anchor(path: list[str], anchor_registry: dict[str, str]) -> str | None:
+    """
+    Resolve the yaml-reference.mdx anchor for a changelog entry's element path.
+
+    Tries the exact path first, then progressively shorter prefixes, since not every element
+    (e.g. a plain leaf field, or a discriminated union variant) gets its own heading/anchor —
+    falling back to the nearest ancestor that does is still a useful link.
+    """
+    for end in range(len(path), 0, -1):
+        anchor = anchor_registry.get(".".join(path[:end]))
+        if anchor is not None:
+            return anchor
+    return None
+
+
+def _render_changelog_section(
+    title: str, entries: list[ChangelogEntry], anchor_registry: dict[str, str] | None = None
+) -> str:
+    if not entries:
+        return ""
+    lines = [f"## {title}", ""]
+    for entry in entries:
+        breadcrumb = " › ".join(f"`{segment}`" for segment in entry.path)
+        anchor = _resolve_reference_anchor(entry.path, anchor_registry) if anchor_registry is not None else None
+        if anchor is not None:
+            breadcrumb = f"[{breadcrumb}](../about/yaml-reference.mdx#{anchor})"
+        lines.append(f"- {breadcrumb}")
+    lines.append("")
+    lines.append("")
+    return "\n".join(lines)
+
+
+def generate_yaml_changelog_markdown(version: Version, anchor_registry: dict[str, str] | None = None) -> str:
+    """Generate the yaml changelog page for a single yaml major version."""
+    tree = build_yaml_asset_tree(include_fields=None)
+    entries = _collect_changelog_entries(tree, version.major, path=[])
+    added = [e for e in entries if e.kind == "added"]
+    deprecated = [e for e in entries if e.kind == "deprecated"]
+    removed = [e for e in entries if e.kind == "removed"]
+
+    frontmatter = f"""\
+---
+title: YAML_VERSION {version.major}
+sidebar_position: {version.major}
+description: YAML configuration changes introduced in YAML_VERSION {version.major}.
+---
+"""
+
+    body = f"""\
+# YAML_VERSION {version.major}
+
+This page lists the YAML configuration changes introduced in `YAML_VERSION: {version.major}`, compared to the
+previous version. See the [YAML Reference](../about/yaml-reference.mdx) for the full, current schema across all
+versions.
+
+"""
+    sections = (
+        _render_changelog_section("Added", added, anchor_registry)
+        + _render_changelog_section("Deprecated", deprecated, anchor_registry)
+        + _render_changelog_section("Removed", removed, anchor_registry)
+    )
+    if not sections.strip():
+        sections = "No changes recorded for this version yet.\n"
+
+    return frontmatter + "\n" + body + sections
+
+
+def generate_yaml_changelog_index_markdown() -> str:
+    """Generate the yaml changelog landing page, listing all covered versions."""
+    links = "\n".join(f"- [YAML_VERSION {version.major}](./v{version.major}.md)" for version in YAML_CHANGELOG_VERSIONS)
+    return f"""\
+---
+title: YAML Changelog
+sidebar_position: 0
+description: YAML configuration changes, by YAML_VERSION.
+---
+
+# YAML Changelog
+
+This section lists the YAML configuration changes for each `YAML_VERSION`, to help you migrate your own model from
+a previous version. Each page covers the additions, deprecations and removals introduced in that version, compared
+to the previous one.
+
+See the [YAML Reference](../about/yaml-reference.mdx) for the full, current schema across all versions.
+
+{links}
+"""
+
+
 def main():
-    output_dir = Path(__file__).parent.parent / "docs" / "docs" / "about"
-    output_dir.mkdir(parents=True, exist_ok=True)
+    about_dir = Path(__file__).parent.parent / "docs" / "docs" / "about"
+    about_dir.mkdir(parents=True, exist_ok=True)
+    changelog_dir = Path(__file__).parent.parent / "docs" / "docs" / "yaml-changelog"
+    changelog_dir.mkdir(parents=True, exist_ok=True)
+
+    anchor_registry: dict[str, str] = {}
 
     outputs = {
-        output_dir / "process-reference.mdx": generate_process_markdown(),
-        output_dir / "energy-reference.mdx": generate_energy_markdown(),
-        output_dir / "v2-reference.mdx": generate_version_markdown(V2.major),
+        about_dir / "process-reference.mdx": generate_process_markdown(),
+        about_dir / "energy-reference.mdx": generate_energy_markdown(),
+        about_dir / "yaml-reference.mdx": generate_full_reference_markdown(anchor_registry=anchor_registry),
+        changelog_dir / "index.md": generate_yaml_changelog_index_markdown(),
     }
+    for version in YAML_CHANGELOG_VERSIONS:
+        outputs[changelog_dir / f"v{version.major}.md"] = generate_yaml_changelog_markdown(
+            version, anchor_registry=anchor_registry
+        )
+
     for output_path, content in outputs.items():
         output_path.write_text(content)
         print(f"Generated: {output_path}")

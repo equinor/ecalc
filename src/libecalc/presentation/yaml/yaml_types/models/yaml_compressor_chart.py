@@ -52,8 +52,13 @@ class YamlUnits(YamlBase):
     )
 
 
-def UnitsField() -> Field:
-    return Field(default_factory=lambda: YamlUnits(), title="UNITS", description="Defines the units")
+def UnitsField(lifecycle: dict | None = None):
+    return Field(
+        default_factory=lambda: YamlUnits(),  # pyright: ignore
+        title="UNITS",
+        description="Defines the units",
+        json_schema_extra=lifecycle,
+    )
 
 
 class YamlSingleSpeedChart(YamlBase):

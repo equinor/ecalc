@@ -18,7 +18,7 @@
 }
 
 /* For readability concerns, you should choose a lighter palette in dark mode. */
-[data-theme='dark'] {
+[data-theme="dark"] {
   --ifm-color-primary: #25c2a0;
   --ifm-color-primary-dark: #21af90;
   --ifm-color-primary-darker: #1fa588;
@@ -78,7 +78,7 @@
   --yaml-indent-guide-color: rgba(0, 0, 0, 0.08);
 }
 
-[data-theme='dark'] .yaml-indent-guide {
+[data-theme="dark"] .yaml-indent-guide {
   --yaml-indent-guide-color: rgba(255, 255, 255, 0.1);
 }
 
@@ -134,9 +134,28 @@
   cursor: pointer;
 }
 
+/* Radio group within <LifecycleFilter> for filtering down to a single YAML_VERSION. */
+.lifecycle-filter__versions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 20px;
+}
+
+.lifecycle-filter__versions-label {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 /* Toggled by <LifecycleFilter> via JS on headings/sections, table rows, and
    matching entries in the table-of-contents sidebar. */
 .lifecycle-hidden {
   display: none !important;
 }
 
+/* Wraps a discriminated union variant's (e.g. a Tabs entry) own content, so
+   LifecycleFilter can scope fields without their own badge to the variant's
+   lifecycle instead of only the group heading's. Must not affect layout. */
+.lifecycle-variant {
+  display: contents;
+}

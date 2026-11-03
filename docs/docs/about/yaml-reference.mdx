@@ -1,8 +1,8 @@
 ---
-title: eCalc NextGen YAML v2 Reference (Experimental)
+title: YAML Reference (Experimental)
 sidebar_position: 8
 toc_max_heading_level: 4
-description: Complete reference for yaml version 2.
+description: Complete reference for all YAML configuration keys, across every schema version.
 ---
 
 import Tabs from '@theme/Tabs';
@@ -11,12 +11,13 @@ import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 import LifecycleBadge from '@site/src/components/LifecycleBadge';
 import LifecycleFilter from '@site/src/components/LifecycleFilter';
 
-# Schema v2 Reference
+# YAML Reference
 
-This page documents all YAML configuration keys available for yaml version `2`, filtered by YAML_VERSION
-rather than a fixed list of top-level sections.
+This page documents every YAML configuration key for the eCalc Asset model, regardless of `YAML_VERSION`.
 
-Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="2" /><LifecycleBadge kind="deprecated" version="2" /><LifecycleBadge kind="removed" version="2" />. Use the filters below to focus on what you need.
+Use the version filter below to show only the elements available for a chosen `YAML_VERSION`.
+
+Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="N" /><LifecycleBadge kind="deprecated" version="N" /><LifecycleBadge kind="removed" version="N" />. Use the filter below to show only the elements available for a single YAML_VERSION.
 
 <LifecycleFilter />
 
@@ -32,7 +33,7 @@ Contains reusable definitions.
 
 Defines process units used in PROCESS_PIPELINES.
 
-#### COMPRESSOR \{#compressor}
+#### COMPRESSOR <LifecycleBadge kind="introduced" version="2" /> \{#compressor}
 
 A Compressor process unit
 
@@ -51,7 +52,7 @@ A Compressor process unit
 | --- | --- | --- |
 | `TYPE` | `COMPRESSOR_CHART` | Required |
 | [`CHART`](#definitions-process_units-compressor-compressor_model-chart) |  | Required |
-| [`CONTROL_MARGIN`](#definitions-process_units-compressor-compressor_model-control_margin) |  | Required |
+| [`CONTROL_MARGIN`](#definitions-process_units-compressor-compressor_model-control_margin) <LifecycleBadge kind="introduced" version="2" /> | Margin added to the compressor's surge control line. | Required |
 
 ##### CHART \{#definitions-process_units-compressor-compressor_model-chart}
 
@@ -60,12 +61,14 @@ A Compressor process unit
 | Key | Description | Status |
 | --- | --- | --- |
 | [`CURVES`](#definitions-process_units-compressor-compressor_model-chart-curves) | Compressor chart curves, one per speed. | Required |
-| [`UNITS`](#definitions-process_units-compressor-compressor_model-chart-units) | Defines the units | Optional |
+| [`UNITS`](#definitions-process_units-compressor-compressor_model-chart-units) <LifecycleBadge kind="introduced" version="2" /> | Defines the units | Optional |
 
 ##### CURVES \{#definitions-process_units-compressor-compressor_model-chart-curves}
 
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"SPEED: 10000.0\nRATE:\n- 500.0\n- 3000.0\n- 5000.0\n- 8000.0\nHEAD:\n- 30000.0\n- 25000.0\n- 20000.0\n- 15000.0\nEFFICIENCY:\n- 0.68\n- 0.72\n- 0.74\n- 0.7"}</YamlCodeBlock>
 
@@ -76,19 +79,25 @@ A Compressor process unit
 | `HEAD` |  | Required |
 | `EFFICIENCY` |  | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
-##### UNITS \{#definitions-process_units-compressor-compressor_model-chart-units}
+##### UNITS <LifecycleBadge kind="introduced" version="2" /> \{#definitions-process_units-compressor-compressor_model-chart-units}
 
 Defines the units
 
@@ -98,14 +107,16 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
-##### CONTROL_MARGIN \{#definitions-process_units-compressor-compressor_model-control_margin}
+##### CONTROL_MARGIN <LifecycleBadge kind="introduced" version="2" /> \{#definitions-process_units-compressor-compressor_model-control_margin}
+
+Margin added to the compressor's surge control line.
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `UNIT` |  | Required |
 | `VALUE` |  | Required |
 
-#### PRESSURE_DROPPER \{#pressure_dropper}
+#### PRESSURE_DROPPER <LifecycleBadge kind="introduced" version="2" /> \{#pressure_dropper}
 
 A pressure dropper unit — reduces stream pressure by a fixed amount.
 
@@ -116,7 +127,7 @@ A pressure dropper unit — reduces stream pressure by a fixed amount.
 | `TYPE` | `PRESSURE_DROPPER` | Required |
 | `PRESSURE_DROP` | Pressure drop across the unit [bar]. | Required |
 
-#### TEMPERATURE_SETTER \{#temperature_setter}
+#### TEMPERATURE_SETTER <LifecycleBadge kind="introduced" version="2" /> \{#temperature_setter}
 
 A temperature setter unit — forces the stream to a specified temperature.
 
@@ -127,7 +138,7 @@ A temperature setter unit — forces the stream to a specified temperature.
 | `TYPE` | `TEMPERATURE_SETTER` | Required |
 | `TEMPERATURE` | Target temperature [Celsius]. | Required |
 
-#### LIQUID_REMOVER \{#liquid_remover}
+#### LIQUID_REMOVER <LifecycleBadge kind="introduced" version="2" /> \{#liquid_remover}
 
 A liquid remover (scrubber) unit — removes any condensed liquid from
 the stream, leaving only the gas phase.
@@ -140,7 +151,7 @@ No-op if the stream is already pure vapor.
 | --- | --- | --- |
 | `TYPE` | `LIQUID_REMOVER` | Required |
 
-#### MIXER \{#mixer}
+#### MIXER <LifecycleBadge kind="introduced" version="2" /> \{#mixer}
 
 Mixes an external sidestream into the through-stream at an
 intermediate point in the pipeline.
@@ -176,7 +187,7 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-#### SPLITTER \{#splitter}
+#### SPLITTER <LifecycleBadge kind="introduced" version="2" /> \{#splitter}
 
 Removes a fixed rate from the through-stream at an
 intermediate point in the pipeline (e.g. fuel gas offtake).
@@ -259,6 +270,8 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 <Tabs>
 <TabItem value="TURBINECURVE" label="TURBINECURVE">
 
+<div className="lifecycle-variant">
+
 <YamlCodeBlock>{"LOAD:\n- 2.352\n- 4.589\n- 6.853\nEFFICIENCY:\n- 0.138\n- 0.21\n- 0.255"}</YamlCodeBlock>
 
 | Key | Description | Status |
@@ -266,9 +279,13 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 | `LOAD` | Turbine loads [MW], strictly increasing. In a FILE, this is the LOAD column. | Required |
 | `EFFICIENCY` | Turbine efficiency [fraction above 0 and up to 1] for each load. In a FILE, this is the EFFICIENCY column. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"FILE: turbine_curve.csv"}</YamlCodeBlock>
 
@@ -276,6 +293,8 @@ Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -295,6 +314,8 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 <Tabs>
 <TabItem value="GENERATORCURVE" label="GENERATORCURVE">
 
+<div className="lifecycle-variant">
+
 <YamlCodeBlock>{"POWER:\n- 0.0\n- 5.0\n- 10.0\n- 15.0\nFUEL:\n- 0.0\n- 25000.0\n- 48000.0\n- 70000.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
@@ -302,9 +323,13 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 | `POWER` | Electrical power [MW], strictly increasing. In a FILE, this is the POWER column. | Required |
 | `FUEL` | Fuel gas rate [Sm3/day] for each power. In a FILE, this is the FUEL column. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"FILE: generator_curve.csv"}</YamlCodeBlock>
 
@@ -312,6 +337,8 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -325,6 +352,8 @@ Defines the inputs for time dependent variables, or 'reservoir variables'.
 <Tabs>
 <TabItem value="DEFAULT" label="DEFAULT">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Name of the time series. | Required |
@@ -332,9 +361,13 @@ Defines the inputs for time dependent variables, or 'reservoir variables'.
 | `TYPE` | `DEFAULT` | Required |
 | `INFLUENCE_TIME_VECTOR` | Determines if the time steps in this input source will contribute to the global time vector. | Default: `True` |
 
+
+</div>
 </TabItem>
 
 <TabItem value="MISCELLANEOUS" label="MISCELLANEOUS">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -345,18 +378,22 @@ Defines the inputs for time dependent variables, or 'reservoir variables'.
 | `EXTRAPOLATION` | Defines whether the rates in the source should be set to 0 after last time step or constant equal to value at last time step after time interval. | Default: `False` |
 | `INTERPOLATION_TYPE` | `LEFT` \| `RIGHT` \| `LINEAR` | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
-## FACILITY_INPUTS \{#facility_inputs}
+## FACILITY_INPUTS <LifecycleBadge kind="deprecated" version="2" /> <LifecycleBadge kind="removed" version="3" /> \{#facility_inputs}
 
 Defines input files which characterize various facility elements.
 
-##### FACILITY_INPUTS \{#facility_inputs}
+##### FACILITY_INPUTS <LifecycleBadge kind="deprecated" version="2" /> <LifecycleBadge kind="removed" version="3" /> \{#facility_inputs}
 
 <Tabs>
 <TabItem value="ELECTRICITY2FUEL" label="ELECTRICITY2FUEL">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -364,9 +401,13 @@ Defines input files which characterize various facility elements.
 | `FILE` | Specifies the name of an input file. | Required |
 | `TYPE` | `ELECTRICITY2FUEL` | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="TABULAR" label="TABULAR">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -374,9 +415,13 @@ Defines input files which characterize various facility elements.
 | `FILE` | Specifies the name of an input file. | Required |
 | `TYPE` | `TABULAR` | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="COMPRESSOR_TABULAR" label="COMPRESSOR_TABULAR">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -384,9 +429,13 @@ Defines input files which characterize various facility elements.
 | `FILE` | Specifies the name of an input file. | Required |
 | `TYPE` | `COMPRESSOR_TABULAR` | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="PUMP_CHART_SINGLE_SPEED" label="PUMP_CHART_SINGLE_SPEED">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -406,9 +455,13 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
+
+</div>
 </TabItem>
 
 <TabItem value="PUMP_CHART_VARIABLE_SPEED" label="PUMP_CHART_VARIABLE_SPEED">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -428,18 +481,22 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
-## FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" /> \{#fluid_models}
+## FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" /> <LifecycleBadge kind="removed" version="3" /> \{#fluid_models}
 
 Defines fluid models that can be referenced by inlet streams.
 
-##### FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" /> \{#fluid_models}
+##### FLUID_MODELS <LifecycleBadge kind="deprecated" version="2" /> <LifecycleBadge kind="removed" version="3" /> \{#fluid_models}
 
 <Tabs>
 <TabItem value="FLUID" label="FLUID">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -449,9 +506,13 @@ Defines fluid models that can be referenced by inlet streams.
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `TYPE` | `FLUID` | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLCOMPOSITIONFLUIDMODEL" label="YAMLCOMPOSITIONFLUIDMODEL">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -479,6 +540,8 @@ Components in fluid and amount (relative to the others) in mole weights
 | `PROPANE` |  | Default: `0.0` |
 | `WATER` |  | Default: `0.0` |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -511,14 +574,16 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-## MODELS <LifecycleBadge kind="deprecated" version="2" /> \{#models}
+## MODELS <LifecycleBadge kind="deprecated" version="2" /> <LifecycleBadge kind="removed" version="3" /> \{#models}
 
 Defines input files which characterize various facility elements.
 
-##### MODELS <LifecycleBadge kind="deprecated" version="2" /> \{#models}
+##### MODELS <LifecycleBadge kind="deprecated" version="2" /> <LifecycleBadge kind="removed" version="3" /> \{#models}
 
 <Tabs>
 <TabItem value="COMPRESSOR_CHART" label="COMPRESSOR_CHART">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -533,6 +598,8 @@ Defines input files which characterize various facility elements.
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `SPEED` |  | Default: `1` |
@@ -540,14 +607,20 @@ Defines input files which characterize various facility elements.
 | `HEAD` |  | Required |
 | `EFFICIENCY` |  | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -562,9 +635,13 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLVARIABLESPEEDCHART" label="YAMLVARIABLESPEEDCHART">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -579,6 +656,8 @@ Defines the units
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `SPEED` |  | Default: `1` |
@@ -586,14 +665,20 @@ Defines the units
 | `HEAD` |  | Required |
 | `EFFICIENCY` |  | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -608,9 +693,13 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLGENERICFROMDESIGNPOINTCHART" label="YAMLGENERICFROMDESIGNPOINTCHART">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -630,9 +719,13 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLGENERICFROMINPUTCHART" label="YAMLGENERICFROMINPUTCHART">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -652,9 +745,13 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
+
+</div>
 </TabItem>
 
 <TabItem value="COMPRESSOR_WITH_TURBINE" label="COMPRESSOR_WITH_TURBINE">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -665,9 +762,13 @@ Defines the units
 | `TURBINE_MODEL` | Reference to a turbine model | Required |
 | `TYPE` | `COMPRESSOR_WITH_TURBINE` | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="FLUID" label="FLUID">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -677,9 +778,13 @@ Defines the units
 | `NAME` | Name of the model. See documentation for more information. | Required |
 | `TYPE` | `FLUID` | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLCOMPOSITIONFLUIDMODEL" label="YAMLCOMPOSITIONFLUIDMODEL">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -707,9 +812,13 @@ Components in fluid and amount (relative to the others) in mole weights
 | `PROPANE` |  | Default: `0.0` |
 | `WATER` |  | Default: `0.0` |
 
+
+</div>
 </TabItem>
 
 <TabItem value="TURBINE" label="TURBINE">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -721,9 +830,13 @@ Components in fluid and amount (relative to the others) in mole weights
 | `POWER_ADJUSTMENT_CONSTANT` | Constant to adjust power usage in MW | Default: `0` |
 | `POWER_ADJUSTMENT_FACTOR` | Factor to adjust power usage in MW | Default: `1.0` |
 
+
+</div>
 </TabItem>
 
 <TabItem value="VARIABLE_SPEED_COMPRESSOR_TRAIN" label="VARIABLE_SPEED_COMPRESSOR_TRAIN">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -757,9 +870,13 @@ List of compressor stages
 | `CONTROL_MARGIN` | Surge control margin, see documentation for more details. | Required |
 | `CONTROL_MARGIN_UNIT` | The unit of the surge control margin. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN" label="SIMPLIFIED_VARIABLE_SPEED_COMPRESSOR_TRAIN">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -777,6 +894,8 @@ List of compressor stages
 <Tabs>
 <TabItem value="YAMLCOMPRESSORSTAGES[YAMLCOMPRESSORSTAGE]" label="YAMLCOMPRESSORSTAGES[YAMLCOMPRESSORSTAGE]">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | [`STAGES`](#models-simplified_variable_speed_compressor_train-compressor_train-yamlcompressorstages[yamlcompressorstage]-stages) | List of compressor stages | Required |
@@ -790,9 +909,13 @@ List of compressor stages
 | `INLET_TEMPERATURE` | Inlet temperature in Celsius for stage | Required |
 | `COMPRESSOR_CHART` | Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLUNKNOWNCOMPRESSORSTAGES" label="YAMLUNKNOWNCOMPRESSORSTAGES">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -800,13 +923,19 @@ List of compressor stages
 | `INLET_TEMPERATURE` | Inlet temperature in Celsius for stage | Required |
 | `COMPRESSOR_CHART` | Reference to compressor chart model for stage, must be defined in MODELS or FACILITY_INPUTS | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
+
+</div>
 </TabItem>
 
 <TabItem value="SINGLE_SPEED_COMPRESSOR_TRAIN" label="SINGLE_SPEED_COMPRESSOR_TRAIN">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -841,9 +970,13 @@ List of compressor stages
 | `CONTROL_MARGIN` | Surge control margin, see documentation for more details. | Required |
 | `CONTROL_MARGIN_UNIT` | The unit of the surge control margin. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES" label="VARIABLE_SPEED_COMPRESSOR_TRAIN_MULTIPLE_STREAMS_AND_PRESSURES">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -861,21 +994,29 @@ List of compressor stages
 <Tabs>
 <TabItem value="INGOING" label="INGOING">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `TYPE` | `INGOING` | Required |
 | `NAME` |  | Required |
 | `FLUID_MODEL` | Reference to a fluid model | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="OUTGOING" label="OUTGOING">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `TYPE` | `OUTGOING` | Required |
 | `NAME` |  | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -903,11 +1044,13 @@ Pressure control. Can only be specified for one (only one) of the stages 2, ...,
 | `UPSTREAM_PRESSURE_CONTROL` | Pressure control. | Required |
 | `DOWNSTREAM_PRESSURE_CONTROL` | Pressure control. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
-## FUEL_TYPES <LifecycleBadge kind="deprecated" version="2" /> \{#fuel_types}
+## FUEL_TYPES <LifecycleBadge kind="deprecated" version="2" /> <LifecycleBadge kind="removed" version="3" /> \{#fuel_types}
 
 Specifies the various fuel types and associated emissions used in the model.
 
@@ -939,11 +1082,12 @@ Defines variables used in an energy usage model by means of expressions or const
 
 Defines named shafts representing mechanical connections between drivers and driven equipment.
 
-<YamlCodeBlock>{"NAME: default_shaft"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: default_shaft\nCOMPRESSORS:\n- default_compressor"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name of the shaft. | Required |
+| `COMPRESSORS` <LifecycleBadge kind="introduced" version="2" /> | Names of the compressors in COMPRESSORS that sit on this shaft and run at its speed. A compressor placed in a process pipeline must be on a shaft. A DRIVE_TRAIN on this shaft drives all of them. | Optional |
 
 ## COMPRESSORS <LifecycleBadge kind="introduced" version="2" /> \{#compressors}
 
@@ -960,7 +1104,7 @@ Defines the physical compressors in the model. Compressor process units in PROCE
 
 Defines process pipelines to use in process simulations.
 
-<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- TARGET:\n    TYPE: COMPRESSOR\n    COMPRESSOR_MODEL:\n      TYPE: COMPRESSOR_CHART\n      CHART:\n        CURVES:\n        - SPEED: 10000.0\n          RATE:\n          - 500.0\n          - 3000.0\n          - 5000.0\n          - 8000.0\n          HEAD:\n          - 30000.0\n          - 25000.0\n          - 20000.0\n          - 15000.0\n          EFFICIENCY:\n          - 0.68\n          - 0.72\n          - 0.74\n          - 0.7\n        UNITS:\n          RATE: AM3_PER_HOUR\n          HEAD: M\n          EFFICIENCY: FRACTION\n      CONTROL_MARGIN:\n        UNIT: FRACTION\n        VALUE: 0.0\n  COMPRESSOR: default_compressor\n  SHAFT: default_shaft\nEVENTS: []"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- TARGET:\n    TYPE: COMPRESSOR\n    COMPRESSOR_MODEL:\n      TYPE: COMPRESSOR_CHART\n      CHART:\n        CURVES:\n        - SPEED: 10000.0\n          RATE:\n          - 500.0\n          - 3000.0\n          - 5000.0\n          - 8000.0\n          HEAD:\n          - 30000.0\n          - 25000.0\n          - 20000.0\n          - 15000.0\n          EFFICIENCY:\n          - 0.68\n          - 0.72\n          - 0.74\n          - 0.7\n        UNITS:\n          RATE: AM3_PER_HOUR\n          HEAD: M\n          EFFICIENCY: FRACTION\n      CONTROL_MARGIN:\n        UNIT: FRACTION\n        VALUE: 0.0\n  COMPRESSOR: default_compressor\nEVENTS: []"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -973,21 +1117,29 @@ Defines process pipelines to use in process simulations.
 <Tabs>
 <TabItem value="COMPRESSOR_PROCESS_UNIT" label="COMPRESSOR_PROCESS_UNIT">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
-| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. | Required |
-| `SHAFT` | Reference to a shaft defined in SHAFTS. | Required |
+| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
+| `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> | Reference to a shaft defined in SHAFTS. This field is deprecated and has been removed in YAML_VERSION 3. Use the SHAFT &gt; COMPRESSORS instead. | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="PROCESS_UNIT" label="PROCESS_UNIT">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `NAME` |  | Optional |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -1022,6 +1174,8 @@ Defines one or more process simulations to be run.
 
 <Tabs>
 <TabItem value="COMMON_STREAM" label="COMMON_STREAM">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"METHOD: COMMON_STREAM\nINLET_STREAM:\n  NAME: DefaultInletStream\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 1000000.0\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY\nSETTINGS:\n- RATE_FRACTIONS:\n  - 1.0\n  OVERFLOW: null"}</YamlCodeBlock>
 
@@ -1067,9 +1221,13 @@ Rate with unit + value.
 | `FROM_REFERENCE` |  | Required |
 | `TO_REFERENCE` |  | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="INDIVIDUAL_STREAMS" label="INDIVIDUAL_STREAMS">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"METHOD: INDIVIDUAL_STREAMS\nINLET_STREAMS:\n- NAME: DefaultInletStream\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 1000000.0\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY"}</YamlCodeBlock>
 
@@ -1100,6 +1258,8 @@ Rate with unit + value.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -1155,6 +1315,8 @@ Converters, junctions, and consumers forming the energy network.
 <Tabs>
 <TabItem value="GENERATOR" label="GENERATOR">
 
+<div className="lifecycle-variant">
+
 <YamlCodeBlock>{"NAME: generator\nINPUT: fuel_gas\nTYPE: GENERATOR\nMODEL:\n  CURVE:\n    POWER:\n    - 0.0\n    - 5.0\n    - 10.0\n    - 15.0\n    FUEL:\n    - 0.0\n    - 25000.0\n    - 48000.0\n    - 70000.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
@@ -1164,9 +1326,13 @@ Converters, junctions, and consumers forming the energy network.
 | `TYPE` | `GENERATOR` | Required |
 | `MODEL` | Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="GAS_TURBINE" label="GAS_TURBINE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: gas_turbine\nINPUT: fuel_gas\nTYPE: GAS_TURBINE\nMODEL:\n  LOWER_HEATING_VALUE: 38.0\n  CURVE:\n    LOAD:\n    - 2.352\n    - 4.589\n    - 6.853\n    EFFICIENCY:\n    - 0.138\n    - 0.21\n    - 0.255"}</YamlCodeBlock>
 
@@ -1177,9 +1343,13 @@ Converters, junctions, and consumers forming the energy network.
 | `TYPE` | `GAS_TURBINE` | Required |
 | `MODEL` | Turbine model, given directly in place or as a reference to DEFINITIONS.TURBINES. Inline definition or reference. See [DEFINITIONS.TURBINES](#turbines). | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="ELECTRICAL_MOTOR" label="ELECTRICAL_MOTOR">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: electrical_motor\nINPUT: main_bus\nTYPE: ELECTRICAL_MOTOR\nEFFICIENCY: 0.95"}</YamlCodeBlock>
 
@@ -1191,9 +1361,13 @@ Converters, junctions, and consumers forming the energy network.
 | `TYPE` | `ELECTRICAL_MOTOR` | Required |
 | `EFFICIENCY` | Conversion efficiency (0–1]. Defaults to 0.95 if omitted. | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="ELECTRICAL_CABLE" label="ELECTRICAL_CABLE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: power_from_shore_cable\nINPUT: power_from_shore\nCAPACITY: 20\nTYPE: ELECTRICAL_CABLE\nEFFICIENCY: 0.98"}</YamlCodeBlock>
 
@@ -1205,9 +1379,13 @@ Converters, junctions, and consumers forming the energy network.
 | `TYPE` | `ELECTRICAL_CABLE` | Required |
 | `EFFICIENCY` | Transmission efficiency (0–1]. 1.0 means no loss. Defaults to 1.0 if omitted. | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="ELECTRICAL_BUS" label="ELECTRICAL_BUS">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: main_bus\nINPUT:\n- NAME: power_from_shore_cable\n  CAPACITY: 15\n- generator\nDISPATCH_STRATEGY: PRIORITY\nTYPE: ELECTRICAL_BUS"}</YamlCodeBlock>
 
@@ -1227,9 +1405,13 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Source or unit feeding into this junction. | Required |
 | `CAPACITY` | Dispatch limit for this input, measured at the junction after any upstream loss. It guides how demand is split and does not cap it: demand beyond every limit is placed on the last input, and exceeding a limit is not itself a capacity failure. Omit for unlimited, until a deliverability rule exists. | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="FUEL_GAS_MANIFOLD" label="FUEL_GAS_MANIFOLD">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: fuel_gas_manifold\nINPUT:\n- fuel_gas\n- imported_fuel_gas\nDISPATCH_STRATEGY: PRIORITY\nTYPE: FUEL_GAS_MANIFOLD"}</YamlCodeBlock>
 
@@ -1249,9 +1431,13 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Source or unit feeding into this junction. | Required |
 | `CAPACITY` | Dispatch limit for this input, measured at the junction after any upstream loss. It guides how demand is split and does not cap it: demand beyond every limit is placed on the last input, and exceeding a limit is not itself a capacity failure. Omit for unlimited, until a deliverability rule exists. | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="ELECTRICAL_CONSUMER" label="ELECTRICAL_CONSUMER">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: base_load\nINPUT: main_bus\nTYPE: ELECTRICAL_CONSUMER\nLOAD: ..."}</YamlCodeBlock>
 
@@ -1276,6 +1462,8 @@ Electrical power demand (MW), as an expression or a curve lookup.
 <Tabs>
 <TabItem value="POWERCURVE" label="POWERCURVE">
 
+<div className="lifecycle-variant">
+
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
 | Key | Description | Status |
@@ -1283,9 +1471,13 @@ Electrical power demand (MW), as an expression or a curve lookup.
 | `VARIABLE` | Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't POWER. | Required |
 | `POWER` | Power [MW] for each VARIABLE value. In a FILE, this is the POWER column. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"CURVE:\n  FILE: pump_sampled.csv\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1293,13 +1485,19 @@ Electrical power demand (MW), as an expression or a curve lookup.
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
+
+</div>
 </TabItem>
 
 <TabItem value="MECHANICAL_CONSUMER" label="MECHANICAL_CONSUMER">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: pump\nINPUT: electrical_motor\nTYPE: MECHANICAL_CONSUMER\nLOAD: ..."}</YamlCodeBlock>
 
@@ -1324,6 +1522,8 @@ Shaft power demand (MW), as an expression or a curve lookup.
 <Tabs>
 <TabItem value="POWERCURVE" label="POWERCURVE">
 
+<div className="lifecycle-variant">
+
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
 | Key | Description | Status |
@@ -1331,9 +1531,13 @@ Shaft power demand (MW), as an expression or a curve lookup.
 | `VARIABLE` | Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't POWER. | Required |
 | `POWER` | Power [MW] for each VARIABLE value. In a FILE, this is the POWER column. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"CURVE:\n  FILE: pump_sampled.csv\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1341,13 +1545,19 @@ Shaft power demand (MW), as an expression or a curve lookup.
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
+
+</div>
 </TabItem>
 
 <TabItem value="DRIVE_TRAIN" label="DRIVE_TRAIN">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: compressor_train\nINPUT: gas_turbine\nTYPE: DRIVE_TRAIN\nSHAFT: default_shaft"}</YamlCodeBlock>
 
@@ -1358,9 +1568,13 @@ Shaft power demand (MW), as an expression or a curve lookup.
 | `TYPE` | `DRIVE_TRAIN` | Required |
 | `SHAFT` | Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="FUEL_GAS_CONSUMER" label="FUEL_GAS_CONSUMER">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: flare\nINPUT: fuel_gas\nTYPE: FUEL_GAS_CONSUMER\nRATE: ..."}</YamlCodeBlock>
 
@@ -1385,6 +1599,8 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 <Tabs>
 <TabItem value="FUELTABLE" label="FUELTABLE">
 
+<div className="lifecycle-variant">
+
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
 | Key | Description | Status |
@@ -1392,9 +1608,13 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 | `VARIABLE` | Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't FUEL. | Required |
 | `FUEL` | Consumption rate for each VARIABLE value. In a FILE, this is the FUEL column (matching the legacy TABULAR/TABULATED convention, so existing files can be reused as-is). | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"CURVE:\n  FILE: flare_sampled.csv\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1402,13 +1622,19 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
+
+</div>
 </TabItem>
 
 <TabItem value="DIESEL_CONSUMER" label="DIESEL_CONSUMER">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"NAME: diesel_engine\nINPUT: diesel\nTYPE: DIESEL_CONSUMER\nRATE: ..."}</YamlCodeBlock>
 
@@ -1433,6 +1659,8 @@ Diesel consumption rate (l/d), as an expression or a curve lookup.
 <Tabs>
 <TabItem value="FUELTABLE" label="FUELTABLE">
 
+<div className="lifecycle-variant">
+
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
 | Key | Description | Status |
@@ -1440,9 +1668,13 @@ Diesel consumption rate (l/d), as an expression or a curve lookup.
 | `VARIABLE` | Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't FUEL. | Required |
 | `FUEL` | Consumption rate for each VARIABLE value. In a FILE, this is the FUEL column (matching the legacy TABULAR/TABULATED convention, so existing files can be reused as-is). | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
 
 <YamlCodeBlock>{"CURVE:\n  FILE: flare_sampled.csv\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1450,13 +1682,19 @@ Diesel consumption rate (l/d), as an expression or a curve lookup.
 | --- | --- | --- |
 | `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
 
+
+</div>
 </TabItem>
 
 </Tabs>
 
+
+</div>
 </TabItem>
 
 <TabItem value="COMPRESSOR_SAMPLED" label="COMPRESSOR_SAMPLED">
+
+<div className="lifecycle-variant">
 
 A compressor whose energy usage is tabulated in `FILE` against `RATE`, `SUCTION_PRESSURE` and/or
 `DISCHARGE_PRESSURE`. Which energy columns `FILE` has decides what the unit consumes:
@@ -1483,6 +1721,8 @@ tabulated.
 | `SUCTION_PRESSURE` | Compressor inlet pressure (bara), looked up in FILE. | Optional |
 | `DISCHARGE_PRESSURE` | Compressor outlet pressure (bara), looked up in FILE. | Optional |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -1527,7 +1767,7 @@ Defines one or more liquid pump process simulations to be run.
 | `PRESSURE` | Pump suction pressure in bara. | Required |
 | `DENSITY` | Liquid density in kg/m3. | Required |
 
-## INSTALLATIONS <LifecycleBadge kind="deprecated" version="2" /> \{#installations}
+## INSTALLATIONS <LifecycleBadge kind="deprecated" version="2" /> <LifecycleBadge kind="removed" version="3" /> \{#installations}
 
 Description of the system of energy consumers.
 
@@ -1572,6 +1812,8 @@ Consumers getting electrical power from the generator set.
 <Tabs>
 <TabItem value="YAMLENERGYUSAGEMODELDIRECTELECTRICITY" label="YAMLENERGYUSAGEMODELDIRECTELECTRICITY">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `CONDITION` | Logical condition for the consumer to be used. | Optional |
@@ -1581,9 +1823,13 @@ Consumers getting electrical power from the generator set.
 | `CONSUMPTION_RATE_TYPE` | Defines the energy usage rate as stream day or calendar day. | Optional |
 | `LOAD` | Fixed power consumer with constant load. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELCOMPRESSOR" label="YAMLENERGYUSAGEMODELCOMPRESSOR">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1596,9 +1842,13 @@ Consumers getting electrical power from the generator set.
 | `SUCTION_PRESSURE` | Fluid (gas) pressure at compressor inlet in bars | Optional |
 | `DISCHARGE_PRESSURE` | Fluid (gas) pressure at compressor outlet in bars | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELPUMP" label="YAMLENERGYUSAGEMODELPUMP">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1612,9 +1862,13 @@ Consumers getting electrical power from the generator set.
 | `DISCHARGE_PRESSURE` | Fluid pressure at pump outlet in bars | Optional |
 | `FLUID_DENSITY` | Density of the fluid in kg/m3. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELCOMPRESSORSYSTEM" label="YAMLENERGYUSAGEMODELCOMPRESSORSYSTEM">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1649,9 +1903,13 @@ Operational settings of the system.
 | `DISCHARGE_PRESSURE` | Set discharge pressure equal for all consumers in a consumer system operational setting. | Optional |
 | `SUCTION_PRESSURE` | Set suction pressure equal for all consumers in a consumer system operational setting. | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELPUMPSYSTEM" label="YAMLENERGYUSAGEMODELPUMPSYSTEM">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1688,9 +1946,13 @@ Operational settings of the system.
 | `SUCTION_PRESSURE` | Set suction pressure equal for all consumers in a consumer system operational setting. | Optional |
 | `FLUID_DENSITIES` | Set fluid density per consumer in a consumer system operational setting. Will overwrite the systems common fluid density expression | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELTABULATED" label="YAMLENERGYUSAGEMODELTABULATED">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1710,9 +1972,13 @@ Variables for the tabulated energy function
 | `NAME` | Name of variable. Must correspond exactly to header/column name in the energy function | Required |
 | `EXPRESSION` | Expression defining the variable | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELCOMPRESSORTRAINMULTIPLESTREAMS" label="YAMLENERGYUSAGEMODELCOMPRESSORTRAINMULTIPLESTREAMS">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1727,6 +1993,8 @@ Variables for the tabulated energy function
 | `DISCHARGE_PRESSURE` | Fluid (gas) pressure at compressor train outlet in bars | Required |
 | `INTERSTAGE_CONTROL_PRESSURE` | Fluid (gas) pressure at an intermediate step in the compressor train | Optional |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -1748,6 +2016,8 @@ Defines fuel consumers on the installation which are not generators.
 <Tabs>
 <TabItem value="YAMLENERGYUSAGEMODELDIRECTFUEL" label="YAMLENERGYUSAGEMODELDIRECTFUEL">
 
+<div className="lifecycle-variant">
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `CONDITION` | Logical condition for the consumer to be used. | Optional |
@@ -1757,9 +2027,13 @@ Defines fuel consumers on the installation which are not generators.
 | `CONSUMPTION_RATE_TYPE` | Defines the energy usage rate as stream day or calendar day. | Optional |
 | `FUEL_RATE` | Fixed power consumer with constant load. | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELCOMPRESSOR" label="YAMLENERGYUSAGEMODELCOMPRESSOR">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1772,9 +2046,13 @@ Defines fuel consumers on the installation which are not generators.
 | `SUCTION_PRESSURE` | Fluid (gas) pressure at compressor inlet in bars | Optional |
 | `DISCHARGE_PRESSURE` | Fluid (gas) pressure at compressor outlet in bars | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELCOMPRESSORSYSTEM" label="YAMLENERGYUSAGEMODELCOMPRESSORSYSTEM">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1809,9 +2087,13 @@ Operational settings of the system.
 | `DISCHARGE_PRESSURE` | Set discharge pressure equal for all consumers in a consumer system operational setting. | Optional |
 | `SUCTION_PRESSURE` | Set suction pressure equal for all consumers in a consumer system operational setting. | Optional |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELTABULATED" label="YAMLENERGYUSAGEMODELTABULATED">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1831,9 +2113,13 @@ Variables for the tabulated energy function
 | `NAME` | Name of variable. Must correspond exactly to header/column name in the energy function | Required |
 | `EXPRESSION` | Expression defining the variable | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="YAMLENERGYUSAGEMODELCOMPRESSORTRAINMULTIPLESTREAMS" label="YAMLENERGYUSAGEMODELCOMPRESSORTRAINMULTIPLESTREAMS">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1848,6 +2134,8 @@ Variables for the tabulated energy function
 | `DISCHARGE_PRESSURE` | Fluid (gas) pressure at compressor train outlet in bars | Required |
 | `INTERSTAGE_CONTROL_PRESSURE` | Fluid (gas) pressure at an intermediate step in the compressor train | Optional |
 
+
+</div>
 </TabItem>
 
 </Tabs>
@@ -1856,6 +2144,8 @@ Variables for the tabulated energy function
 
 <Tabs>
 <TabItem value="OIL_VOLUME" label="OIL_VOLUME">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1898,9 +2188,13 @@ The emission types and volume-emission-factors associated with oil loading/stora
 | `NAME` | Name of emission | Required |
 | `EMISSION_FACTOR` | Loading/storage volume-emission factor | Required |
 
+
+</div>
 </TabItem>
 
 <TabItem value="DIRECT_EMISSION" label="DIRECT_EMISSION">
+
+<div className="lifecycle-variant">
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1934,6 +2228,8 @@ For more details, see: | Optional |
 
 For more details, see: | Optional |
 
+
+</div>
 </TabItem>
 
 </Tabs>
