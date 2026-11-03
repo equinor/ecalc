@@ -1,7 +1,7 @@
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Self, assert_never
 
-from pydantic import ConfigDict, Field
+from pydantic import ConfigDict, Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
@@ -64,7 +64,8 @@ class YamlPipelineEvent(YamlBase):
         InstanceReference,
         Field(
             title="CHANGE_TARGET",
-            description="Name of the process unit in the pipeline to change.",
+            description="Name of the process unit in the pipeline to change. For REBUNDLE, the COMPRESSOR of a "
+            "compressor process unit in this pipeline.",
         ),
     ]
     change_from: Annotated[
@@ -107,3 +108,21 @@ class YamlProcessPipeline(YamlBase):
             description="Events that modify the pipeline over time, such as rebundling a compressor.",
         ),
     ] = []
+
+    @model_validator(mode="after")
+    def validate_events(self) -> Self:
+        """Rules for events that need only this pipeline. Each change type defines its own rule."""
+        compressors = [
+            unit.compressor for unit in self.process_units if isinstance(unit, YamlCompressorProcessUnitInstance)
+        ]
+        for event in self.events:
+            match event.change_type:
+                case PipelineEventChangeType.REBUNDLE:
+                    if event.change_target not in compressors:
+                        raise ValueError(
+                            f"REBUNDLE event targets '{event.change_target}', which is not a compressor in pipeline "
+                            f"'{self.name}'. Compressors in this pipeline: {', '.join(compressors) or 'none'}."
+                        )
+                case _:
+                    assert_never(event.change_type)
+        return self
