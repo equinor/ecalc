@@ -44,7 +44,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V3,
     YamlMajorVersion,
     get_required_field_names,
-    get_unavailable_field_names,
+    get_unavailable_elements,
     yaml_element_lifecycle,
 )
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
@@ -238,15 +238,13 @@ class YamlAsset(YamlBase):
     )
 
     @model_validator(mode="after")
-    def validate_root_elements_available_for_version(self):
-        """Ensure root elements explicitly set in the yaml are available for the declared YAML_VERSION."""
-        unavailable = get_unavailable_field_names(type(self), self.yaml_version, self.model_fields_set)
-        if not unavailable:
+    def validate_elements_available_for_version(self):
+        aliases = get_unavailable_elements(self, self.yaml_version)
+        if not aliases:
             return self
 
-        aliases = sorted(YamlAsset.model_fields[field_name].alias or field_name.upper() for field_name in unavailable)
         raise ValueError(
-            f"The following root elements are not available for yaml version {self.yaml_version}: {', '.join(aliases)}."
+            f"The following elements are not available for yaml version {self.yaml_version}: {', '.join(sorted(aliases))}."
         )
 
     @model_validator(mode="after")

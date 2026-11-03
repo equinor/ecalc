@@ -4,7 +4,10 @@ from pydantic import ValidationError
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineCurve, YamlTurbineDefinition
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    YamlCompressorProcessUnitInstance,
+    YamlProcessPipeline,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.testing.energy_builders import YamlEnergyNetworkBuilder
 from libecalc.testing.process_builders import (
@@ -35,6 +38,49 @@ def _compressor_definitions() -> YamlDefinitions:
         .with_process_unit("compressor", YamlCompressorBuilder().with_test_data().validate())
         .validate()
     )
+
+
+def _pipeline_with_shaft_on_process_unit(name: str, compressor: str, shaft: str) -> YamlProcessPipeline:
+    return YamlProcessPipeline(
+        name=name,
+        process_units=[
+            YamlCompressorProcessUnitInstance(target="compressor", compressor=compressor, shaft=shaft)  # pyright: ignore[reportCallIssue]
+        ],
+    )
+
+
+def test_allows_shaft_on_compressor_process_unit_before_v3():
+    yaml_version = 2
+    pipeline = _pipeline_with_shaft_on_process_unit("export_pipeline", "lp_compressor", "export_shaft")
+    (
+        YamlAssetBuilder()
+        .with_yaml_version(yaml_version)
+        .with_end("2025-01-01")
+        .with_shafts([YamlShaft(name="export_shaft", compressors=["lp_compressor"])])
+        .with_compressors(compressors_in(pipeline))
+        .with_definitions(_compressor_definitions())
+        .with_process_pipelines({pipeline.name: pipeline})
+        .validate()
+    )
+
+
+def test_rejects_shaft_on_compressor_process_unit_from_v3():
+    pipeline = _pipeline_with_shaft_on_process_unit("export_pipeline", "lp_compressor", "export_shaft")
+
+    with pytest.raises(
+        ValidationError,
+        match=r"PROCESS_PIPELINES > export_pipeline > PROCESS_UNITS\[0\] > SHAFT",
+    ):
+        (
+            YamlAssetBuilder()
+            .with_yaml_version(3)
+            .with_end("2025-01-01")
+            .with_shafts([YamlShaft(name="export_shaft", compressors=["lp_compressor"])])
+            .with_compressors(compressors_in(pipeline))
+            .with_definitions(_compressor_definitions())
+            .with_process_pipelines({pipeline.name: pipeline})
+            .validate()
+        )
 
 
 def _drive_train_network(*shafts: str) -> YamlEnergyNetwork:

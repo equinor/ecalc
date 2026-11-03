@@ -15,6 +15,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     _parse_major_version,
     get_required_field_names,
     get_root_field_names,
+    get_unavailable_elements,
     get_unavailable_field_names,
     get_yaml_element_lifecycle,
     is_available_for_version,
@@ -221,3 +222,45 @@ class TestGetRequiredFieldNames:
 
     def test_for_v2_excludes_fields_no_longer_available(self):
         assert get_required_field_names(_LifecycleModel, 2) == set()
+
+
+class _Nested(BaseModel):
+    """Minimal model with a field removed at V2, for unit-testing get_unavailable_elements."""
+
+    removed_in_v2: str = Field(default="", json_schema_extra=yaml_element_lifecycle(removed_since=V2))
+    no_lifecycle: str = ""
+
+
+class _Container(BaseModel):
+    nested: _Nested | None = None
+    nested_list: list[_Nested] = Field(default_factory=list)
+    nested_dict: dict[str, _Nested] = Field(default_factory=dict)
+
+
+class TestGetUnavailableElements:
+    def test_returns_empty_set_when_nothing_is_set(self):
+        assert get_unavailable_elements(_Container(), 2) == set()
+
+    def test_finds_violation_nested_one_level_down(self):
+        container = _Container(nested=_Nested(removed_in_v2="x"))
+        assert get_unavailable_elements(container, 2) == {"NESTED > REMOVED_IN_V2"}
+
+    def test_does_not_flag_when_available(self):
+        container = _Container(nested=_Nested(removed_in_v2="x"))
+        assert get_unavailable_elements(container, 1) == set()
+
+    def test_finds_violation_in_a_list(self):
+        container = _Container(nested_list=[_Nested(no_lifecycle="x"), _Nested(removed_in_v2="x")])
+        assert get_unavailable_elements(container, 2) == {"NESTED_LIST[1] > REMOVED_IN_V2"}
+
+    def test_finds_violation_in_a_dict(self):
+        container = _Container(nested_dict={"a": _Nested(removed_in_v2="x")})
+        assert get_unavailable_elements(container, 2) == {"NESTED_DICT > a > REMOVED_IN_V2"}
+
+    def test_can_be_scoped_to_a_plain_container_instead_of_a_model(self):
+        nested_dict = {"a": _Nested(removed_in_v2="x"), "b": _Nested(no_lifecycle="x")}
+        assert get_unavailable_elements(nested_dict, 2) == {"a > REMOVED_IN_V2"}
+
+    def test_prefixes_breadcrumbs_with_the_given_path(self):
+        container = _Container(nested=_Nested(removed_in_v2="x"))
+        assert get_unavailable_elements(container, 2, path=("ROOT",)) == {"ROOT > NESTED > REMOVED_IN_V2"}

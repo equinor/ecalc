@@ -69,6 +69,7 @@ def yaml_element_lifecycle(
     deprecated_since: Version | None = None,
     removed_since: Version | None = None,
     required: bool = False,
+    for_documentation_only: bool = False,
 ) -> dict[str, JsonValue]:
     """
     Build the json_schema_extra for a root element Field(...) call, marking its lifecycle.
@@ -81,6 +82,8 @@ def yaml_element_lifecycle(
     removed_since so an element can be required while available, then disallowed entirely once removed,
     without pydantic itself ever treating the field as required (it still needs a default for versions
     where it's absent, e.g. V3).
+
+    If an element is only still available for documentation purposes, mark it as for_documentation_only. This will make the element fail validation for any version, so it is not allowed in the yaml for that version or any later version.
     """
     extra: dict[str, JsonValue] = {}
     if available_since is not None:
@@ -91,6 +94,10 @@ def yaml_element_lifecycle(
         extra[REMOVED_SINCE_KEY] = str(removed_since)
     if required:
         extra[REQUIRED_KEY] = True
+
+    # This makes the given element fail for any version. It is used to mark elements as removed in a version, so they are not allowed in the yaml for that version or any later version.
+    if for_documentation_only:
+        extra["not"] = {}
     return extra
 
 
@@ -175,4 +182,51 @@ def get_required_field_names(model: type[BaseModel], version: int) -> set[str]:
         field_name
         for field_name, field_info in model.model_fields.items()
         if is_required_for_version(field_info, version)
+    }
+
+
+Breadcrumb = tuple[str | int, ...]
+
+
+def _iter_nested_models(value: object, path: Breadcrumb = ()) -> Iterable[tuple[Breadcrumb, BaseModel]]:
+    """Depth-first yield of (path, model) for every pydantic model reachable from value, including value itself."""
+    if isinstance(value, BaseModel):
+        yield path, value
+        for field_name, field_info in type(value).model_fields.items():
+            alias = field_info.alias or field_name.upper()
+            yield from _iter_nested_models(getattr(value, field_name), (*path, alias))
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            yield from _iter_nested_models(item, (*path, key))
+    elif isinstance(value, list | tuple | set | frozenset):
+        for index, item in enumerate(value):
+            yield from _iter_nested_models(item, (*path, index))
+
+
+def _format_breadcrumb(path: Breadcrumb) -> str:
+    """Render a path as e.g. "PROCESS_PIPELINES > export_pipeline > PROCESS_UNITS[0] > SHAFT"."""
+    parts: list[str] = []
+    for segment in path:
+        if isinstance(segment, int):
+            parts[-1] = f"{parts[-1]}[{segment}]"
+        else:
+            parts.append(segment)
+    return " > ".join(parts)
+
+
+def get_unavailable_elements(root: object, version: int, path: Breadcrumb = ()) -> set[str]:
+    """
+    Find the breadcrumb path of every element explicitly set in the yaml that isn't available for the
+    given declared document version, anywhere within root — not just among root's own fields.
+
+    root can be a single model, or a container of models (e.g. a dict of PROCESS_PIPELINES), to scope
+    the search to a subtree; path is prepended to every breadcrumb found, to describe where root itself
+    sits in the full document, e.g. path=("PROCESS_PIPELINES",). This catches elements nested arbitrarily
+    deep, e.g. SHAFT on a COMPRESSOR_PROCESS_UNIT inside PROCESS_PIPELINES, which get_unavailable_field_names
+    alone can't see since it only inspects the fields of the single model it's given.
+    """
+    return {
+        _format_breadcrumb((*model_path, type(model).model_fields[field_name].alias or field_name.upper()))
+        for model_path, model in _iter_nested_models(root, path)
+        for field_name in get_unavailable_field_names(type(model), version, model.model_fields_set)
     }
