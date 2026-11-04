@@ -1,14 +1,6 @@
-"""
-Tests verifying that process system definitions and instances produce clear error messages
-when references point to non-existent definitions or definitions of an incorrect type.
-
-These tests are expected to FAIL currently — proper validation will be added later.
-"""
-
 from io import StringIO
 
 import pytest
-from inline_snapshot import snapshot
 
 from libecalc.ecalc_model.ecalc_event import EcalcEventService
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
@@ -18,12 +10,14 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     PipelineEventAction,
     PipelineEventChangeType,
     YamlPipelineEvent,
+    YamlProcessPipeline,
 )
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompressorModelChartBuilder,
     YamlDefinitionsBuilder,
-    YamlPredefinedFluidDefinitionBuilder,
+    YamlInletStreamBuilder,
+    YamlMixerBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
     compressors_in,
@@ -31,113 +25,85 @@ from libecalc.testing.process_builders import (
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
 
-
-def _asset_to_stream(asset) -> ResourceStream:
-    """Serialize a YamlAsset to a ResourceStream for use with yaml_model_factory."""
-    asset_dict = asset.model_dump(serialize_as_any=True, mode="json", exclude_unset=True, by_alias=True)
-    yaml_string = PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)
-    return ResourceStream(name="test_model", stream=StringIO(yaml_string))
+COMPRESSOR_MODEL = "compressor_model"
 
 
-class TestDefinitionReferenceNotFound:
-    """Tests for when a DefinitionReference points to a name that does not exist in definitions."""
-
-    @pytest.mark.parametrize(
-        "model, change_to",
-        [
-            pytest.param("ghost", "compressor_model", id="MODEL"),
-            pytest.param("compressor_model", "ghost", id="CHANGE_TO"),
-        ],
+def _get_process_simulations(yaml_model_factory, pipeline: YamlProcessPipeline):
+    """Map a model with the pipeline in one process simulation, read from YAML as a user's file is.
+    DEFINITIONS has one compressor model, COMPRESSOR_MODEL."""
+    simulation = (
+        YamlProcessSimulationBuilder()
+        .with_name("my_sim")
+        .with_pipeline(pipeline)
+        .with_stream_distribution(YamlCommonStreamDistributionBuilder().with_test_data().validate())
+        .validate()
     )
-    def test_compressor_model_reference_not_found_is_reported(self, yaml_model_factory, model, change_to):
-        pipeline = (
-            YamlProcessPipelineBuilder()
-            .with_name("train_1")
-            .with_compressor_item(compressor="compressor_1", model=model)
-            .with_events(
-                [
-                    YamlPipelineEvent(
-                        type=PipelineEventAction.CHANGE,
-                        change_target="compressor_1",
-                        change_to=change_to,
-                        change_type=PipelineEventChangeType.REBUNDLE,
-                        ref="rebundle",
-                    )
-                ]
-            )
+    asset = (
+        YamlAssetBuilder()
+        .with_test_data()
+        .with_shafts([shaft_for(pipeline)])
+        .with_compressors(compressors_in(pipeline))
+        .with_process_pipelines({pipeline.name: pipeline})
+        .with_process_simulations([simulation])
+        .with_definitions(
+            YamlDefinitionsBuilder()
+            .with_compressor_model(COMPRESSOR_MODEL, YamlCompressorModelChartBuilder().with_test_data().validate())
             .validate()
         )
-        simulation = (
-            YamlProcessSimulationBuilder()
-            .with_name("my_sim")
-            .with_pipeline(pipeline)
-            .with_stream_distribution(YamlCommonStreamDistributionBuilder().with_test_data().validate())
-            .validate()
-        )
-        asset = (
-            YamlAssetBuilder()
-            .with_test_data()
-            .with_shafts([shaft_for(pipeline)])
-            .with_compressors(compressors_in(pipeline))
-            .with_process_pipelines({"train_1": pipeline})
-            .with_process_simulations([simulation])
-            .with_definitions(
-                YamlDefinitionsBuilder()
-                .with_compressor_model(
-                    "compressor_model", YamlCompressorModelChartBuilder().with_test_data().validate()
+        .validate()
+    )
+    yaml_string = PyYamlYamlModel.dump_yaml(
+        yaml_dict=asset.model_dump(serialize_as_any=True, mode="json", exclude_unset=True, by_alias=True)
+    )
+    model = yaml_model_factory(
+        configuration=ResourceStream(name="test_model", stream=StringIO(yaml_string)), resources={}
+    )
+    return model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
+
+
+@pytest.mark.parametrize(
+    "model, change_to",
+    [
+        pytest.param("ghost", COMPRESSOR_MODEL, id="MODEL"),
+        pytest.param(COMPRESSOR_MODEL, "ghost", id="CHANGE_TO"),
+    ],
+)
+def test_compressor_model_reference_not_found_is_reported(yaml_model_factory, model, change_to):
+    pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("train_1")
+        .with_compressor_item(compressor="compressor_1", model=model)
+        .with_events(
+            [
+                YamlPipelineEvent(
+                    type=PipelineEventAction.CHANGE,
+                    change_target="compressor_1",
+                    change_to=change_to,
+                    change_type=PipelineEventChangeType.REBUNDLE,
+                    ref="rebundle",
                 )
-                .validate()
-            )
-            .validate()
+            ]
         )
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
+        .validate()
+    )
 
-        with pytest.raises(ModelValidationException, match="'ghost' not found. Available definitions"):
-            model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
+    with pytest.raises(ModelValidationException, match="'ghost' not found. Available definitions"):
+        _get_process_simulations(yaml_model_factory, pipeline)
 
 
-class TestDefinitionReferenceWrongType:
-    """Tests for when a DefinitionReference resolves to a definition of an incompatible type."""
+def test_definition_reference_of_wrong_type_is_reported_at_the_pipeline(yaml_model_factory):
+    sidestream = YamlInletStreamBuilder().with_test_data().with_fluid(COMPRESSOR_MODEL).validate()
+    pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("train_1")
+        .with_compressor_item(compressor="compressor_1", model=COMPRESSOR_MODEL)
+        .with_item(YamlMixerBuilder().with_sidestream(sidestream).validate())
+        .validate()
+    )
 
-    @pytest.mark.snapshot
-    @pytest.mark.inlinesnapshot
-    def test_pipeline_unit_references_fluid_definition(self, yaml_model_factory):
-        """A process unit instance referencing a fluid definition should produce a type error."""
+    with pytest.raises(ModelValidationException) as exc_info:
+        _get_process_simulations(yaml_model_factory, pipeline)
 
-        pipeline = (
-            YamlProcessPipelineBuilder().with_name("train_1").with_item(target="my_fluid", name="stage_1").validate()
-        )
-
-        sim_builder = (
-            YamlProcessSimulationBuilder()
-            .with_name("my_sim")
-            .with_pipeline(pipeline)
-            .with_stream_distribution(YamlCommonStreamDistributionBuilder().with_test_data().validate())
-        )
-        simulation = sim_builder.validate()
-
-        fluid_def = YamlPredefinedFluidDefinitionBuilder().with_test_data().validate()
-        definitions = YamlDefinitionsBuilder().with_fluid("my_fluid", fluid_def).validate()
-
-        asset = (
-            YamlAssetBuilder()
-            .with_test_data()
-            .with_shafts([shaft_for(pipeline)])
-            .with_compressors(compressors_in(pipeline))
-            .with_process_pipelines({"train_1": pipeline})
-            .with_process_simulations([simulation])
-            .with_definitions(definitions)
-        ).validate()
-
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
-
-        with pytest.raises(ModelValidationException) as exc_info:
-            model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
-
-        assert str(exc_info.value) == snapshot("""\
-Validation error
-
-	Object starting on line 16
-	Location: PROCESS_PIPELINES.train_1
-	Message: Definition reference 'my_fluid' resolved to type 'YamlPredefinedFluidDefinition', but expected one of: YamlPressureDropperDefinition, YamlTemperatureSetterDefinition, YamlLiquidRemoverDefinition, YamlMixerDefinition, YamlSplitterDefinition
-""")
+    [error] = exc_info.value.errors()
+    assert error.location.keys == ("PROCESS_PIPELINES", "train_1")
+    assert f"'{COMPRESSOR_MODEL}' resolved to type 'YamlCompressorModelChart'" in error.message

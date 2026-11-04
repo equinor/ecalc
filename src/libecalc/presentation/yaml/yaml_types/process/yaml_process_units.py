@@ -114,13 +114,3 @@ class YamlSplitterDefinition(YamlBase):
             title="OFFTAKE_RATE",
         ),
     ]
-
-
-YamlProcessUnitDefinition = Annotated[
-    YamlPressureDropperDefinition
-    | YamlTemperatureSetterDefinition
-    | YamlLiquidRemoverDefinition
-    | YamlMixerDefinition
-    | YamlSplitterDefinition,
-    Field(discriminator="type"),
-]
