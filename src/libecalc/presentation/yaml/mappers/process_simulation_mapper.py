@@ -1,5 +1,5 @@
 from collections.abc import Mapping
-from typing import Any, assert_never, get_args
+from typing import Any, assert_never
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException, ProgrammingError
@@ -61,7 +61,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlLiquidRemoverDefinition,
     YamlMixerDefinition,
     YamlPressureDropperDefinition,
-    YamlProcessUnitDefinition,
     YamlSplitterDefinition,
     YamlTemperatureSetterDefinition,
 )
@@ -336,24 +335,20 @@ class ProcessSimulationMapper:
                 | TimeSeriesSplitterConfiguration,
             ] = {}
 
-            for yaml_pipeline_item in item.process_units:
-                yaml_process_unit = (
-                    yaml_pipeline_item.model
-                    if isinstance(yaml_pipeline_item, YamlCompressorProcessUnitInstance)
-                    else yaml_pipeline_item.target
-                )
-                process_unit_name = yaml_pipeline_item.get_instance_reference()
-
+            for yaml_process_unit in item.process_units:
                 match yaml_process_unit:
-                    case YamlCompressorModelChart():
-                        assert isinstance(yaml_pipeline_item, YamlCompressorProcessUnitInstance)
+                    case YamlCompressorProcessUnitInstance():
+                        if not isinstance(yaml_process_unit.model, YamlCompressorModelChart):
+                            raise EcalcValidationException(
+                                f"MODEL '{yaml_process_unit.model}' of compressor '{yaml_process_unit.compressor}' is "
+                                "not a compressor model."
+                            )
                         unit = self._get_compressor(
-                            yaml_process_unit,
-                            process_unit_id=ProcessUnitId(
-                                self._compressor_equipment_ids[yaml_pipeline_item.compressor]
-                            ),
+                            yaml_process_unit.model,
+                            process_unit_id=ProcessUnitId(self._compressor_equipment_ids[yaml_process_unit.compressor]),
                         )
-                        shaft_name = self._shaft_by_compressor[yaml_pipeline_item.compressor]
+                        unit_name_to_id[yaml_process_unit.get_instance_reference()] = unit.get_id()
+                        shaft_name = self._shaft_by_compressor[yaml_process_unit.compressor]
                         if shaft_name not in solver_shafts:
                             solver_shafts[shaft_name] = VariableSpeedShaft()
                         shaft = solver_shafts[shaft_name]
@@ -391,22 +386,9 @@ class ProcessSimulationMapper:
                         )
 
                     case _:
-                        # Unreachable for valid YAML (pydantic discriminator rejects unknown types).
-                        # Guards against bypassed parsing or new union variants missing a case.
-                        allowed_types = [t.__name__ for t in get_args(get_args(YamlProcessUnitDefinition)[0])]
-                        raise EcalcValidationException(
-                            f"Process unit of type '{type(yaml_process_unit).__name__}' is not allowed "
-                            f"in a process pipeline. Allowed types are: {', '.join(allowed_types)}."
-                        )
+                        assert_never(yaml_process_unit)
 
                 process_unit_map[unit.get_id()] = unit
-                if process_unit_name is not None:
-                    if process_unit_name in unit_name_to_id:
-                        raise EcalcValidationException(
-                            f"Duplicate process unit name '{process_unit_name}'. "
-                            f"Process unit names must be unique within a process."
-                        )
-                    unit_name_to_id[process_unit_name] = unit.get_id()
 
             # Since we, in addition to intra-section connection, have inter-section connections, we keep them separate
             # from section, and keep track of them at pipeline level

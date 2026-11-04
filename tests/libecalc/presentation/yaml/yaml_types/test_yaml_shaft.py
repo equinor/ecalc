@@ -37,6 +37,7 @@ def _pipeline_with_shaft_on_process_unit(name: str, compressor: str, shaft: str)
         name=name,
         process_units=[
             YamlCompressorProcessUnitInstance(
+                type="COMPRESSOR",
                 compressor=compressor,
                 model=YamlCompressorModelChartBuilder().with_test_data().validate(),
                 shaft=shaft,
@@ -120,19 +121,6 @@ def _asset(
     return builder.validate()
 
 
-def test_rejects_compressor_model_without_compressor_reference(
-    yaml_process_pipeline_builder_factory, yaml_compressor_model_builder_factory
-):
-    with pytest.raises(ValidationError):
-        (
-            yaml_process_pipeline_builder_factory()
-            .with_name("export_pipeline")
-            .with_compressor_item(compressor="lp_compressor", model="compressor")
-            .with_item(name="hp_compressor", target=yaml_compressor_model_builder_factory().with_test_data().validate())
-            .validate()
-        )
-
-
 @pytest.mark.parametrize(
     "shafts, pipelines, message",
     [
@@ -180,6 +168,12 @@ def test_rejects_compressor_model_without_compressor_reference(
             ],
             "has compressors in multiple process pipelines",
             id="shaft in two pipelines",
+        ),
+        pytest.param(
+            [YamlShaft(name="export_shaft", compressors=["lp_compressor"])],
+            [_pipeline("export_pipeline", "lp_compressor", "lp_compressor")],
+            "'lp_compressor' is modelled more than once in the process domain",
+            id="compressor placed twice",
         ),
     ],
 )

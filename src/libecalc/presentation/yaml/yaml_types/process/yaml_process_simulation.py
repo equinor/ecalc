@@ -22,7 +22,8 @@ class YamlProcessConstraint(YamlBase):
         InstanceReference | None,
         Field(
             title="PROCESS_UNIT",
-            description="Reference to a named unit within the pipeline. If omitted, the constraint applies to the last process unit in the pipeline section.",
+            description="The COMPRESSOR of a compressor process unit in this pipeline. The pipeline is split after "
+            "it. If omitted, the constraint applies at the pipeline outlet.",
         ),
     ] = None
     outlet_pressure: Annotated[
