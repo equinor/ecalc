@@ -79,6 +79,25 @@ class TestCommonStreamDistribution:
         rates = [stream.standard_rate_sm3_per_day for stream in streams]
         assert rates == pytest.approx([45, 65])
 
+    @pytest.mark.parametrize("from_index, to_index", [(0, 1), (2, 0)])
+    def test_common_stream_overflow_keeps_rate_fraction_per_item(
+        self, stream_factory, fluid_service, from_index, to_index
+    ):
+        inlet_stream = stream_factory(standard_rate_m3_per_day=100)
+        items = [Item(capacity=100), Item(capacity=100), Item(capacity=100)]
+        stream_distribution = CommonStreamDistribution(
+            inlet_stream=inlet_stream,
+            items={item.id: item for item in items},
+            rate_fractions=[0.2, 0.3, 0.5],
+            overflows=[Overflow(from_id=items[from_index].id, to_id=items[to_index].id)],
+            fluid_service=fluid_service,
+        )
+
+        streams = stream_distribution.get_streams()
+
+        rates = [stream.standard_rate_sm3_per_day for stream in streams]
+        assert rates == pytest.approx([20, 30, 50])
+
     @pytest.mark.snapshot
     @pytest.mark.inlinesnapshot
     def test_common_stream_with_overflow_cycle(self, stream_factory, fluid_service):

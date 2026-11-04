@@ -65,7 +65,9 @@ class CommonStreamDistribution(StreamDistribution, Generic[T]):
     def _adjust_for_overflow(self) -> dict[T, float]:
         overflow_map: dict[T, list[float]] = defaultdict(list)
         adjusted_rates: dict[T, float] = {}
-        for item_id, rate in zip(self._get_sorted_items(), self._rates, strict=True):
+        rate_by_item = dict(zip(self._items, self._rates, strict=True))
+        for item_id in self._get_sorted_items():
+            rate = rate_by_item[item_id]
             overflow = self._get_overflow_out(item_id)
             overflow_rate = sum(overflow_map[item_id])
             current_rate = rate + overflow_rate
