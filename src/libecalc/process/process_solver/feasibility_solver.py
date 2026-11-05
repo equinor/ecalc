@@ -58,14 +58,13 @@ class FeasibilitySolver:
         upper_bound_sm3_per_day: float,
     ) -> float:
         boundary = Boundary(min=0.0, max=upper_bound_sm3_per_day)
+
+        def probe(rate: float) -> BisectResult:
+            feasible = self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure)
+            return BisectResult(higher=feasible, accepted=feasible)
+
         try:
-            return self._search_strategy.search(
-                boundary=boundary,
-                func=lambda rate: BisectResult(
-                    higher=self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure),
-                    accepted=True,
-                ),
-            )
+            return self._search_strategy.search(boundary=boundary, func=probe)
         except DidNotConvergeError:
             return 0.0
 
