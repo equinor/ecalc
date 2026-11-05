@@ -2,7 +2,6 @@ from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
-from libecalc.ecalc_model.ecalc_event import EcalcEventType, EnergyEventType, ProcessEventType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
@@ -14,102 +13,8 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution impo
     YamlIndividualStreamDistribution,
     YamlStreamDistribution,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
-
-
-class YamlEcalcEvent(YamlBase):
-    type: Annotated[
-        EcalcEventType,
-        Field(
-            title="TYPE",
-            description="Type of event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN or OTHER.",
-        ),
-    ]
-    start: Annotated[
-        YamlDefaultDatetime,
-        Field(
-            title="START",
-            description="Start date when this event takes effect.",
-        ),
-    ]
-    name: Annotated[
-        str,
-        Field(
-            title="NAME",
-            description="Short identifier for the event.",
-        ),
-    ]
-    description: Annotated[
-        str | None,
-        Field(
-            title="DESCRIPTION",
-            description="Human-readable description of the event and its purpose.",
-        ),
-    ] = None
-
-
-class YamlProcessEvent(YamlBase):
-    type: Annotated[
-        ProcessEventType,
-        Field(
-            title="TYPE",
-            description="Type of process event: INCREASED_GAS_RATE, INCREASED_WATER_INJECTION or OTHER.",
-        ),
-    ]
-    name: Annotated[
-        str,
-        Field(
-            title="NAME",
-            description="Short identifier for the process event.",
-        ),
-    ]
-    description: Annotated[
-        str | None,
-        Field(
-            title="DESCRIPTION",
-            description="Human-readable description of the process event.",
-        ),
-    ] = None
-    ref: Annotated[
-        InstanceReference,
-        Field(
-            title="REF",
-            description="Reference to a global ECALC_EVENT by name.",
-        ),
-    ]
-
-
-class YamlEnergyEvent(YamlBase):
-    type: Annotated[
-        EnergyEventType,
-        Field(
-            title="TYPE",
-            description="Type of energy event: FUEL_SWITCH or OTHER.",
-        ),
-    ]
-    name: Annotated[
-        str,
-        Field(
-            title="NAME",
-            description="Short identifier for the energy event.",
-        ),
-    ]
-    description: Annotated[
-        str | None,
-        Field(
-            title="DESCRIPTION",
-            description="Human-readable description of the energy event.",
-        ),
-    ] = None
-    ref: Annotated[
-        InstanceReference,
-        Field(
-            title="REF",
-            description="Reference to a global ECALC_EVENT by name.",
-        ),
-    ]
 
 
 class YamlProcessConstraint(YamlBase):

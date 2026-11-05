@@ -1,7 +1,6 @@
 from typing import Self
 
 from libecalc.common.utils.rates import RateType
-from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
 from libecalc.ecalc_model.timeline_event import TimelineEventType
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
@@ -31,9 +30,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
     YamlProcessConstraint,
-    YamlProcessEvent,
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -570,73 +567,11 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
 # ---------------------------------------------------------------------------
 
 
-class YamlEcalcEventBuilder(Builder[YamlEcalcEvent]):
-    def __init__(self):
-        self.type: EcalcEventType | None = None
-        self.start = None
-        self.name: str | None = None
-        self.description: str | None = None
-
-    def with_type(self, type: EcalcEventType) -> Self:
-        self.type = type
-        return self
-
-    def with_start(self, start) -> Self:
-        self.start = start
-        return self
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
-    def with_description(self, description: str | None) -> Self:
-        self.description = description
-        return self
-
-    def with_test_data(self) -> Self:
-        self.type = EcalcEventType.TIE_IN
-        self.start = "2025-01-01"
-        self.name = "DefaultEcalcEvent"
-        self.description = "Tie-in of new wells"
-        return self
-
-
-class YamlProcessEventBuilder(Builder[YamlProcessEvent]):
-    def __init__(self):
-        self.type: ProcessEventType | None = None
-        self.name: str | None = None
-        self.description: str | None = None
-        self.ref: InstanceReference | None = None
-
-    def with_type(self, type: ProcessEventType) -> Self:
-        self.type = type
-        return self
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
-    def with_description(self, description: str | None) -> Self:
-        self.description = description
-        return self
-
-    def with_ref(self, ref: InstanceReference) -> Self:
-        self.ref = ref
-        return self
-
-    def with_test_data(self) -> Self:
-        self.type = ProcessEventType.INCREASED_GAS_RATE
-        self.name = "DefaultProcessEvent"
-        self.description = "Increased gas rate after tie-in"
-        self.ref = "DefaultEcalcEvent"
-        return self
-
-
 class YamlTimelineEventBuilder(Builder[YamlTimelineEvent]):
     def __init__(self):
         self.title: str | None = None
         self.type: TimelineEventType | None = None
-        self.from_date = None
+        self.from_when = None
         self.description: str | None = None
 
     def with_title(self, title: str | None) -> Self:
@@ -647,8 +582,8 @@ class YamlTimelineEventBuilder(Builder[YamlTimelineEvent]):
         self.type = type
         return self
 
-    def with_from_date(self, from_date) -> Self:
-        self.from_date = from_date
+    def with_from_when(self, from_when) -> Self:
+        self.from_when = from_when
         return self
 
     def with_description(self, description: str | None) -> Self:
@@ -658,7 +593,7 @@ class YamlTimelineEventBuilder(Builder[YamlTimelineEvent]):
     def with_test_data(self) -> Self:
         self.title = "Tie-in of new wells"
         self.type = TimelineEventType.TIE_IN
-        self.from_date = "2025-01-01"
+        self.from_when = "2025-01-01"
         self.description = "New production wells are tied in to the platform."
         return self
 

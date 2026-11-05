@@ -1155,7 +1155,7 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | `CHANGE_FROM` | Reference to the existing process unit template being replaced. Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `CHANGE_TO` | Reference to the new process unit template to use. Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
-| `REF` | Reference to an event in TIMELINE.EVENTS or a PROCESS_EVENT by name. | Required |
+| `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date. | Required |
 
 ## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" /> \{#process_simulations}
 
@@ -1274,19 +1274,6 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 | `OUTLET_PRESSURE` | Target outlet pressure [bara]. | Required |
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
-
-## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" /> \{#ecalc_events}
-
-Defines eCalc events associated with temporal model changes
-
-<YamlCodeBlock>{"TYPE: TIE_IN\nSTART: '2025-01-01T00:00:00'\nNAME: DefaultEcalcEvent\nDESCRIPTION: Tie-in of new wells"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | Type of event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN or OTHER. | Required |
-| `START` | Start date when this event takes effect. | Required |
-| `NAME` | Short identifier for the event. | Required |
-| `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |
 
 ## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" /> \{#energy_network}
 
@@ -1726,19 +1713,6 @@ tabulated.
 </TabItem>
 
 </Tabs>
-
-## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" /> \{#process_events}
-
-Defines process-specific events that reference global eCalc events.
-
-<YamlCodeBlock>{"TYPE: INCREASED_GAS_RATE\nNAME: DefaultProcessEvent\nDESCRIPTION: Increased gas rate after tie-in\nREF: DefaultEcalcEvent"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | Type of process event: INCREASED_GAS_RATE, INCREASED_WATER_INJECTION or OTHER. | Required |
-| `NAME` | Short identifier for the process event. | Required |
-| `DESCRIPTION` | Human-readable description of the process event. | Optional |
-| `REF` | Reference to a global ECALC_EVENT by name. | Required |
 
 ## TIMELINE <LifecycleBadge kind="introduced" version="4" /> \{#timeline}
 

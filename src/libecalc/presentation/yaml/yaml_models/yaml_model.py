@@ -19,9 +19,6 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlEnergyEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
@@ -120,21 +117,6 @@ class YamlValidator(abc.ABC):
     @property
     @abc.abstractmethod
     def energy_network(self) -> YamlEnergyNetwork | None:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def ecalc_events(self) -> list[YamlEcalcEvent]:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def process_events(self) -> list[YamlProcessEvent]:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def energy_events(self) -> list[YamlEnergyEvent]:
         pass
 
     @property

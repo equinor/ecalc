@@ -9,7 +9,7 @@ class TimelineEventMapper:
                 reference=reference,
                 title=yaml_event.title or reference,
                 type=TimelineEventType(yaml_event.type.value),
-                from_date=yaml_event.from_date,
+                from_when=yaml_event.from_when,
                 description=yaml_event.description,
             )
             for reference, yaml_event in yaml_timeline_events.items()

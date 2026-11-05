@@ -1,5 +1,4 @@
 from collections.abc import Mapping
-from datetime import datetime
 from typing import Any, assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
@@ -9,7 +8,6 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
 from libecalc.ecalc_model.compressor_equipment import CompressorId
-from libecalc.ecalc_model.ecalc_event import EcalcEvent, EcalcEventService
 from libecalc.ecalc_model.process_simulation import (
     AntiSurgeConfig,
     CommonStreamDistributionConfig,
@@ -76,7 +74,6 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import Yaml
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
-from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
 from libecalc.process.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
@@ -138,7 +135,6 @@ class ProcessSimulationMapper:
         fluid_service: FluidService,
         references: dict[InstanceReference, Any],
         resources: Resources,
-        ecalc_event_service: EcalcEventService,
         shaft_by_compressor: Mapping[CompressorReference, ShaftReference],
         compressor_ids: Mapping[CompressorReference, CompressorId],
         timeline_event_service: TimelineEventService,
@@ -147,7 +143,6 @@ class ProcessSimulationMapper:
         self._fluid_service = fluid_service
         self._references = references
         self._resources = resources
-        self._ecalc_event_service = ecalc_event_service
         self._timeline_event_service = timeline_event_service
         self._shaft_by_compressor = shaft_by_compressor
         self._compressor_ids = compressor_ids
@@ -282,8 +277,7 @@ class ProcessSimulationMapper:
         events: list[PipelineEvent] = []
 
         for yaml_event in yaml_pipeline.events:
-            change_time = self._get_pipeline_event_time(yaml_event.ref)
-
+            timeline_event = self._timeline_event_service.get_event_by_reference(yaml_event.ref)
             change_target = unit_name_to_id[yaml_event.change_target]
             match yaml_event.change_to:
                 case YamlCompressorDefinition():
@@ -300,23 +294,11 @@ class ProcessSimulationMapper:
                     change_target=change_target,
                     change_to=change_to_unit,
                     change_type=PipelineEventChangeType(yaml_event.change_type.value),
-                    change_time=change_time,
+                    change_time=timeline_event.from_when,
                 )
             )
 
         return events
-
-    def _get_pipeline_event_time(self, ref: TimelineEventReference) -> datetime:
-        if self._timeline_event_service.has_event(ref):
-            return self._timeline_event_service.get_event_by_reference(ref).from_date
-
-        ecalc_event: EcalcEvent | None = self._ecalc_event_service.get_event_by_process_name(ref)
-        if ecalc_event is not None:
-            return ecalc_event.start
-
-        raise EcalcValidationException(
-            f"Pipeline event REF '{ref}' does not match any event in TIMELINE.EVENTS or any known process event."
-        )
 
     def map_process_simulation(
         self, yaml_process_simulation: YamlProcessSimulation

@@ -21,21 +21,18 @@ class TimelineEvent:
     reference: str
     title: str
     type: TimelineEventType
-    from_date: datetime
+    from_when: datetime
     description: str | None
 
 
 class TimelineEventNotFoundException(EcalcValidationException):
     def __init__(self, reference: str):
-        super().__init__(f"Timeline event '{reference}' does not exist in TIMELINE.EVENTS.")
+        super().__init__(f"Event reference '{reference}' does not match any event in TIMELINE.EVENTS.")
 
 
 class TimelineEventService:
     def __init__(self, timeline_events: list[TimelineEvent]):
         self._timeline_events = {timeline_event.reference: timeline_event for timeline_event in timeline_events}
-
-    def has_event(self, reference: str) -> bool:
-        return reference in self._timeline_events
 
     def get_event_by_reference(self, reference: str) -> TimelineEvent:
         if reference not in self._timeline_events:
@@ -43,4 +40,4 @@ class TimelineEventService:
         return self._timeline_events[reference]
 
     def get_event_dates(self) -> set[datetime]:
-        return {timeline_event.from_date for timeline_event in self._timeline_events.values()}
+        return {timeline_event.from_when for timeline_event in self._timeline_events.values()}

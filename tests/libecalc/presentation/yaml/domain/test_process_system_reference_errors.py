@@ -10,7 +10,6 @@ from io import StringIO
 import pytest
 from inline_snapshot import snapshot
 
-from libecalc.ecalc_model.ecalc_event import EcalcEventService
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -80,7 +79,7 @@ class TestDefinitionReferenceNotFound:
         model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
 
         with pytest.raises(ModelValidationException) as exc_info:
-            model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
+            model.get_process_simulations()
 
         assert str(exc_info.value) == snapshot("""\
 Validation error
@@ -127,7 +126,7 @@ class TestDefinitionReferenceWrongType:
         model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
 
         with pytest.raises(ModelValidationException) as exc_info:
-            model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
+            model.get_process_simulations()
 
         assert str(exc_info.value) == snapshot("""\
 Validation error
@@ -185,7 +184,7 @@ Validation error
         model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
 
         with pytest.raises(ModelValidationException) as exc_info:
-            model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
+            model.get_process_simulations()
 
         assert str(exc_info.value) == snapshot("""\
 Validation error

@@ -1,7 +1,6 @@
 from datetime import datetime
 from io import StringIO
 
-from libecalc.ecalc_model.ecalc_event import EcalcEventService
 from libecalc.ecalc_model.timeline_event import TimelineEventType
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
@@ -71,8 +70,8 @@ def test_pipeline_event_takes_effect_from_timeline_event(yaml_model_factory):
 
     [event] = model.get_timeline_events()
     assert event.type == TimelineEventType.OPERATIONAL_MEASURE
-    assert event.from_date == datetime(2021, 6, 1)
+    assert event.from_when == datetime(2021, 6, 1)
 
-    [pipeline], _ = model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
+    [pipeline], _ = model.get_process_simulations()
     [pipeline_event] = pipeline.get_events()
     assert pipeline_event.change_time == datetime(2021, 6, 1)

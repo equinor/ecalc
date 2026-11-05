@@ -35,10 +35,6 @@ from libecalc.domain.process.evaluation_input import (
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
 from libecalc.ecalc_model.compressor_equipment import CompressorEquipment, CompressorId
-from libecalc.ecalc_model.ecalc_event import (
-    EcalcEvent,
-    EcalcEventService,
-)
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.ecalc_model.shaft_equipment import ShaftEquipment
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
@@ -59,7 +55,6 @@ from libecalc.presentation.yaml.domain.strict_expression_evaluator import Strict
 from libecalc.presentation.yaml.domain.time_series_collections import TimeSeriesCollections
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
-from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapper
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
@@ -199,9 +194,7 @@ class YamlModel:
 
         return def_dict
 
-    def get_process_simulations(
-        self, ecalc_event_service: EcalcEventService
-    ) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
+    def get_process_simulations(self) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
         self.validate_for_run()
         timeline_event_service = self._get_timeline_event_service()
         facility_resources, _ = self._resource_service.get_facility_resources()
@@ -288,7 +281,7 @@ class YamlModel:
                 time_series_resources=time_series_name_map,
                 start=self._configuration.start,
                 end=end,
-                additional_dates=self._get_event_dates(ecalc_event_service),
+                additional_dates=timeline_event_service.get_event_dates(),
             )
 
             mapper = ProcessSimulationMapper(
@@ -296,10 +289,9 @@ class YamlModel:
                 fluid_service=NeqSimFluidService.instance(),
                 resources=facility_resources,
                 references=reference_objects,
-                ecalc_event_service=ecalc_event_service,
+                timeline_event_service=timeline_event_service,
                 shaft_by_compressor=shaft_by_compressor,
                 compressor_ids=self._get_compressor_ids(),
-                timeline_event_service=timeline_event_service,
             )
 
             try:
@@ -348,7 +340,7 @@ class YamlModel:
             time_series_resources=time_series_name_map,
             start=self._configuration.start,
             end=end,
-            additional_dates=self._get_event_dates(EcalcEventService(ecalc_events=self.get_events())),
+            additional_dates=self._get_timeline_event_service().get_event_dates(),
         )
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
@@ -370,21 +362,11 @@ class YamlModel:
                 ]
             ) from e
 
-    def get_events(self) -> list[EcalcEvent]:
-        return EcalcEventMapper().map_events(
-            yaml_ecalc_events=self._configuration.ecalc_events,
-            yaml_process_events=self._configuration.process_events,
-            yaml_energy_events=self._configuration.energy_events,
-        )
-
     def get_timeline_events(self) -> list[TimelineEvent]:
         return TimelineEventMapper().map_events(self._configuration.timeline_events)
 
     def _get_timeline_event_service(self) -> TimelineEventService:
         return TimelineEventService(timeline_events=self.get_timeline_events())
-
-    def _get_event_dates(self, ecalc_event_service: EcalcEventService) -> set[datetime]:
-        return ecalc_event_service.get_time_steps() | self._get_timeline_event_service().get_event_dates()
 
     def get_pump_process_simulations(
         self,

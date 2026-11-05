@@ -105,7 +105,7 @@ class YamlPipelineEvent(YamlBase):
         TimelineEventReference,
         Field(
             title="REF",
-            description="Reference to an event in TIMELINE.EVENTS or a PROCESS_EVENT by name.",
+            description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date.",
         ),
     ]
 

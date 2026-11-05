@@ -37,9 +37,6 @@ from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, Yaml
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlEnergyEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
@@ -63,9 +60,6 @@ _FLUIDS_KEY = "FLUIDS"
 _TURBINES_KEY = "TURBINES"
 _GENERATORS_KEY = "GENERATORS"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
-_ECALC_EVENTS_KEY = "ECALC_EVENTS"
-_PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
-_ENERGY_EVENTS_KEY = "ENERGY_EVENTS"
 _TIMELINE_KEY = "TIMELINE"
 _EVENTS_KEY = "EVENTS"
 _PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
@@ -558,39 +552,6 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             return YamlEnergyNetwork.model_validate(self._get_yaml_dict_or_empty("ENERGY_NETWORK"))
         except PydanticValidationError:
             return None
-
-    @property
-    def ecalc_events(self) -> list[YamlEcalcEvent]:
-        ecalc_events: list[YamlEcalcEvent] = []
-        adapter = TypeAdapter(YamlEcalcEvent)
-        for ecalc_event in self._get_yaml_list_or_empty(_ECALC_EVENTS_KEY):
-            try:
-                ecalc_events.append(adapter.validate_python(ecalc_event))
-            except PydanticValidationError:
-                pass
-        return ecalc_events
-
-    @property
-    def process_events(self) -> list[YamlProcessEvent]:
-        process_events: list[YamlProcessEvent] = []
-        adapter = TypeAdapter(YamlProcessEvent)
-        for process_event in self._get_yaml_list_or_empty(_PROCESS_EVENTS_KEY):
-            try:
-                process_events.append(adapter.validate_python(process_event))
-            except PydanticValidationError:
-                pass
-        return process_events
-
-    @property
-    def energy_events(self) -> list[YamlEnergyEvent]:
-        energy_events: list[YamlEnergyEvent] = []
-        adapter = TypeAdapter(YamlEnergyEvent)
-        for energy_event in self._get_yaml_list_or_empty(_ENERGY_EVENTS_KEY):
-            try:
-                energy_events.append(adapter.validate_python(energy_event))
-            except PydanticValidationError:
-                pass
-        return energy_events
 
     @property
     def timeline_events(self) -> dict[TimelineEventReference, YamlTimelineEvent]:

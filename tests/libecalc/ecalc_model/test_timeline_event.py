@@ -10,9 +10,9 @@ from libecalc.ecalc_model.timeline_event import (
 )
 
 
-def _event(reference: str, from_date: datetime) -> TimelineEvent:
+def _event(reference: str, from_when: datetime) -> TimelineEvent:
     return TimelineEvent(
-        reference=reference, title=reference, type=TimelineEventType.TIE_IN, from_date=from_date, description=None
+        reference=reference, title=reference, type=TimelineEventType.TIE_IN, from_when=from_when, description=None
     )
 
 
@@ -21,8 +21,6 @@ def test_get_event_by_reference():
     service = TimelineEventService(timeline_events=[event, _event("rebundle", datetime(2028, 6, 1))])
 
     assert service.get_event_by_reference("tie_in") == event
-    assert service.has_event("tie_in")
-    assert not service.has_event("unknown")
 
 
 def test_get_event_by_unknown_reference_raises():

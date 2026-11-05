@@ -19,7 +19,6 @@ from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.ecalc_model.compressor_equipment import CompressorEquipment
-from libecalc.ecalc_model.ecalc_event import EcalcEventService
 from libecalc.ecalc_model.timeline_event import TimelineEventService
 from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
@@ -736,7 +735,6 @@ def process_simulation_mapper_factory(
             fluid_service=fluid_service,
             references=references or {},
             resources={},
-            ecalc_event_service=EcalcEventService(ecalc_events=[]),
             shaft_by_compressor=_shaft_by_compressor_for_pipelines(references or {}),
             compressor_ids=compressor_ids,
             timeline_event_service=TimelineEventService(timeline_events=[]),

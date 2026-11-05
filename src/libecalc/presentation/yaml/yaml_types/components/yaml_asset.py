@@ -22,8 +22,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
@@ -186,31 +184,12 @@ class YamlAsset(YamlBase):
         description="Defines one or more process simulations to be run.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
-    ecalc_events: list[YamlEcalcEvent] = Field(
-        default_factory=list,
-        title="ECALC_EVENTS",
-        description="Defines eCalc events associated with temporal model changes",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
-    )
     energy_network: YamlEnergyNetwork | None = Field(
         None,
         title="ENERGY_NETWORK",
         description="Defines the energy network configuration.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
-    process_events: list[YamlProcessEvent] = Field(
-        default_factory=list,
-        title="PROCESS_EVENTS",
-        description="Defines process-specific events that reference global eCalc events.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
-    )
-    # TODO: Temporarily disabled until we have a proper implementation of energy events in the energy network.
-    # energy_events: list[YamlEnergyEvent] = Field(
-    #    default_factory=list,
-    #    title="ENERGY_EVENTS",
-    #    description="Defines energy-network-specific events that reference global eCalc events.",
-    #    json_schema_extra=yaml_element_lifecycle(available_since=V3),
-    # )
     timeline: YamlTimeline | None = Field(
         None,
         title="TIMELINE",

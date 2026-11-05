@@ -24,7 +24,7 @@ class YamlTimelineEvent(YamlBase):
             description=f"Category of the event: {', '.join(TimelineEventType)}.",
         ),
     ]
-    from_date: Annotated[
+    from_when: Annotated[
         YamlDefaultDatetime,
         Field(
             alias="FROM",
