@@ -1,23 +1,16 @@
-from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.common.string.string_utils import get_duplicates
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventType
-from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimelineEvent
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
 
 
 class TimelineEventMapper:
-    def map_events(self, yaml_timeline_events: list[YamlTimelineEvent]) -> list[TimelineEvent]:
-        duplicates = get_duplicates([yaml_event.name for yaml_event in yaml_timeline_events])
-        if duplicates:
-            raise EcalcValidationException(
-                f"Duplicate TIMELINE event name(s): {', '.join(sorted(duplicates))}. Event names must be unique."
-            )
-
+    def map_events(self, yaml_timeline_events: dict[TimelineEventReference, YamlTimelineEvent]) -> list[TimelineEvent]:
         return [
             TimelineEvent(
-                name=yaml_event.name,
+                reference=reference,
+                title=yaml_event.title or reference,
                 type=TimelineEventType(yaml_event.type.value),
-                from_=yaml_event.from_,
+                from_date=yaml_event.from_date,
                 description=yaml_event.description,
             )
-            for yaml_event in yaml_timeline_events
+            for reference, yaml_event in yaml_timeline_events.items()
         ]

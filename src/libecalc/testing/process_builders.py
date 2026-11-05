@@ -62,7 +62,11 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
-from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline, YamlTimelineEvent
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import (
+    TimelineEventReference,
+    YamlTimeline,
+    YamlTimelineEvent,
+)
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.testing.yaml_builder import Builder
@@ -630,21 +634,21 @@ class YamlProcessEventBuilder(Builder[YamlProcessEvent]):
 
 class YamlTimelineEventBuilder(Builder[YamlTimelineEvent]):
     def __init__(self):
-        self.name: str | None = None
+        self.title: str | None = None
         self.type: TimelineEventType | None = None
-        self.from_ = None
+        self.from_date = None
         self.description: str | None = None
 
-    def with_name(self, name: str) -> Self:
-        self.name = name
+    def with_title(self, title: str | None) -> Self:
+        self.title = title
         return self
 
     def with_type(self, type: TimelineEventType) -> Self:
         self.type = type
         return self
 
-    def with_from(self, from_) -> Self:
-        self.from_ = from_
+    def with_from_date(self, from_date) -> Self:
+        self.from_date = from_date
         return self
 
     def with_description(self, description: str | None) -> Self:
@@ -652,23 +656,23 @@ class YamlTimelineEventBuilder(Builder[YamlTimelineEvent]):
         return self
 
     def with_test_data(self) -> Self:
-        self.name = "DefaultTimelineEvent"
+        self.title = "Tie-in of new wells"
         self.type = TimelineEventType.TIE_IN
-        self.from_ = "2025-01-01"
-        self.description = "Tie-in of new wells"
+        self.from_date = "2025-01-01"
+        self.description = "New production wells are tied in to the platform."
         return self
 
 
 class YamlTimelineBuilder(Builder[YamlTimeline]):
     def __init__(self):
-        self.events: list[YamlTimelineEvent] = []
+        self.events: dict[TimelineEventReference, YamlTimelineEvent] = {}
 
-    def with_event(self, event: YamlTimelineEvent) -> Self:
-        self.events.append(event)
+    def with_event(self, reference: TimelineEventReference, event: YamlTimelineEvent) -> Self:
+        self.events[reference] = event
         return self
 
     def with_test_data(self) -> Self:
-        self.events = [YamlTimelineEventBuilder().with_test_data().validate()]
+        self.events = {"new_wells_tie_in": YamlTimelineEventBuilder().with_test_data().validate()}
         return self
 
 

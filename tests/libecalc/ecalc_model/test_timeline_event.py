@@ -1,24 +1,41 @@
 from datetime import datetime
 
-from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService, TimelineEventType
+import pytest
+
+from libecalc.ecalc_model.timeline_event import (
+    TimelineEvent,
+    TimelineEventNotFoundException,
+    TimelineEventService,
+    TimelineEventType,
+)
 
 
-def _event(name: str, from_: datetime) -> TimelineEvent:
-    return TimelineEvent(name=name, type=TimelineEventType.TIE_IN, from_=from_, description=None)
+def _event(reference: str, from_date: datetime) -> TimelineEvent:
+    return TimelineEvent(
+        reference=reference, title=reference, type=TimelineEventType.TIE_IN, from_date=from_date, description=None
+    )
 
 
-def test_get_event_by_name():
+def test_get_event_by_reference():
     event = _event("tie_in", datetime(2025, 1, 1))
     service = TimelineEventService(timeline_events=[event, _event("rebundle", datetime(2028, 6, 1))])
 
-    assert service.get_event_by_name("tie_in") == event
-    assert service.get_event_by_name("unknown") is None
+    assert service.get_event_by_reference("tie_in") == event
+    assert service.has_event("tie_in")
+    assert not service.has_event("unknown")
 
 
-def test_get_time_steps():
+def test_get_event_by_unknown_reference_raises():
+    service = TimelineEventService(timeline_events=[_event("tie_in", datetime(2025, 1, 1))])
+
+    with pytest.raises(TimelineEventNotFoundException):
+        service.get_event_by_reference("unknown")
+
+
+def test_get_event_dates():
     service = TimelineEventService(
         timeline_events=[_event("tie_in", datetime(2025, 1, 1)), _event("rebundle", datetime(2028, 6, 1))]
     )
 
-    assert service.get_time_steps() == {datetime(2025, 1, 1), datetime(2028, 6, 1)}
-    assert TimelineEventService(timeline_events=[]).get_time_steps() == set()
+    assert service.get_event_dates() == {datetime(2025, 1, 1), datetime(2028, 6, 1)}
+    assert TimelineEventService(timeline_events=[]).get_event_dates() == set()

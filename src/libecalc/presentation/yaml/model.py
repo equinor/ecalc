@@ -203,7 +203,7 @@ class YamlModel:
         self, ecalc_event_service: EcalcEventService
     ) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
         self.validate_for_run()
-        timeline_event_service = TimelineEventService(timeline_events=self.get_timeline_events())
+        timeline_event_service = self._get_timeline_event_service()
         facility_resources, _ = self._resource_service.get_facility_resources()
         time_series_resources, _ = self._resource_service.get_time_series_resources()
 
@@ -288,7 +288,7 @@ class YamlModel:
                 time_series_resources=time_series_name_map,
                 start=self._configuration.start,
                 end=end,
-                additional_dates=ecalc_event_service.get_time_steps() | timeline_event_service.get_time_steps(),
+                additional_dates=self._get_event_dates(ecalc_event_service),
             )
 
             mapper = ProcessSimulationMapper(
@@ -348,8 +348,7 @@ class YamlModel:
             time_series_resources=time_series_name_map,
             start=self._configuration.start,
             end=end,
-            additional_dates=EcalcEventService(ecalc_events=self.get_events()).get_time_steps()
-            | TimelineEventService(timeline_events=self.get_timeline_events()).get_time_steps(),
+            additional_dates=self._get_event_dates(EcalcEventService(ecalc_events=self.get_events())),
         )
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
@@ -380,6 +379,12 @@ class YamlModel:
 
     def get_timeline_events(self) -> list[TimelineEvent]:
         return TimelineEventMapper().map_events(self._configuration.timeline_events)
+
+    def _get_timeline_event_service(self) -> TimelineEventService:
+        return TimelineEventService(timeline_events=self.get_timeline_events())
+
+    def _get_event_dates(self, ecalc_event_service: EcalcEventService) -> set[datetime]:
+        return ecalc_event_service.get_time_steps() | self._get_timeline_event_service().get_event_dates()
 
     def get_pump_process_simulations(
         self,

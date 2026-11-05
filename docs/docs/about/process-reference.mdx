@@ -518,23 +518,23 @@ Defines process-specific events that reference global eCalc events.
 | `DESCRIPTION` | Human-readable description of the process event. | Optional |
 | `REF` | Reference to a global ECALC_EVENT by name. | Required |
 
-## TIMELINE <LifecycleBadge kind="introduced" version="2" /> \{#timeline}
+## TIMELINE <LifecycleBadge kind="introduced" version="4" /> \{#timeline}
 
 Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network.
 
-<YamlCodeBlock>{"EVENTS:\n- NAME: DefaultTimelineEvent\n  TYPE: TIE_IN\n  FROM: '2025-01-01T00:00:00'\n  DESCRIPTION: Tie-in of new wells"}</YamlCodeBlock>
+<YamlCodeBlock>{"EVENTS:\n  new_wells_tie_in:\n    TITLE: Tie-in of new wells\n    TYPE: TIE_IN\n    FROM: '2025-01-01T00:00:00'\n    DESCRIPTION: New production wells are tied in to the platform."}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`EVENTS`](#timeline-events) | Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle. | Default: `[]` |
+| [`EVENTS`](#timeline-events) | Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle. The key is the event reference, used by other parts of the model to refer to the event. | Default: `{}` |
 
 ##### EVENTS \{#timeline-events}
 
-Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle.
+Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle. The key is the event reference, used by other parts of the model to refer to the event.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `NAME` | Unique name of the event. Other parts of the model refer to the event by this name. | Required |
+| `TITLE` | Human-friendly label for the event. Defaults to the event reference. | Optional |
 | `TYPE` | Category of the event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN, INCREASED_GAS_RATE, INCREASED_WATER_INJECTION, FUEL_SWITCH, OTHER. | Required |
 | `FROM` | Date when the event takes effect. The change is permanent from this date. | Required |
 | `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |

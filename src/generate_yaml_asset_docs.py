@@ -34,6 +34,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
     V3,
+    V4,
     YamlElementLifecycle,
     get_model_lifecycle,
     get_yaml_element_lifecycle,
@@ -1424,6 +1425,7 @@ Use the version filter below to show only the elements available for a chosen `Y
 
 YAML_CHANGELOG_VERSIONS: list[Version] = [
     V3,
+    V4,
 ]
 
 ChangeKind = Literal["added", "deprecated", "removed"]

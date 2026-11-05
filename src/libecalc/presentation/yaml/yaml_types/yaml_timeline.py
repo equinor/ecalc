@@ -1,21 +1,22 @@
 from typing import Annotated
 
-from pydantic import ConfigDict, Field, field_validator
+from pydantic import ConfigDict, Field
 
-from libecalc.common.string.string_utils import get_duplicates
 from libecalc.ecalc_model.timeline_event import TimelineEventType
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 
+type TimelineEventReference = str
+
 
 class YamlTimelineEvent(YamlBase):
-    name: Annotated[
-        str,
+    title: Annotated[
+        str | None,
         Field(
-            title="NAME",
-            description="Unique name of the event. Other parts of the model refer to the event by this name.",
+            title="TITLE",
+            description="Human-friendly label for the event. Defaults to the event reference.",
         ),
-    ]
+    ] = None
     type: Annotated[
         TimelineEventType,
         Field(
@@ -23,7 +24,7 @@ class YamlTimelineEvent(YamlBase):
             description=f"Category of the event: {', '.join(TimelineEventType)}.",
         ),
     ]
-    from_: Annotated[
+    from_date: Annotated[
         YamlDefaultDatetime,
         Field(
             alias="FROM",
@@ -44,17 +45,10 @@ class YamlTimeline(YamlBase):
     model_config = ConfigDict(title="Timeline")
 
     events: Annotated[
-        list[YamlTimelineEvent],
+        dict[TimelineEventReference, YamlTimelineEvent],
         Field(
             title="EVENTS",
-            description="Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle.",
+            description="Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle. "
+            "The key is the event reference, used by other parts of the model to refer to the event.",
         ),
-    ] = []
-
-    @field_validator("events")
-    @classmethod
-    def validate_unique_event_names(cls, events: list[YamlTimelineEvent]) -> list[YamlTimelineEvent]:
-        duplicates = get_duplicates([event.name for event in events])
-        if duplicates:
-            raise ValueError(f"Event names must be unique. Duplicated names: {', '.join(sorted(duplicates))}.")
-        return events
+    ] = {}

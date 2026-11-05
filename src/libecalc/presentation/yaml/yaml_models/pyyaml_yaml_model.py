@@ -49,7 +49,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
-from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimelineEvent
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
 
@@ -593,17 +593,17 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return energy_events
 
     @property
-    def timeline_events(self) -> list[YamlTimelineEvent]:
+    def timeline_events(self) -> dict[TimelineEventReference, YamlTimelineEvent]:
         timeline = self._get_yaml_dict_or_empty(_TIMELINE_KEY)
         raw_events = timeline.get(_EVENTS_KEY)
-        if not isinstance(raw_events, list):
-            return []
+        if not isinstance(raw_events, dict):
+            return {}
 
-        timeline_events: list[YamlTimelineEvent] = []
+        timeline_events: dict[TimelineEventReference, YamlTimelineEvent] = {}
         adapter = TypeAdapter(YamlTimelineEvent)
-        for timeline_event in raw_events:
+        for reference, timeline_event in raw_events.items():
             try:
-                timeline_events.append(adapter.validate_python(timeline_event))
+                timeline_events[reference] = adapter.validate_python(timeline_event)
             except PydanticValidationError:
                 pass
         return timeline_events

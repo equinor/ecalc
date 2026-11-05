@@ -42,6 +42,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
     V2,
     V3,
+    V4,
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
@@ -215,7 +216,7 @@ class YamlAsset(YamlBase):
         title="TIMELINE",
         description="Defines dated events in the model. Event dates are added to the time steps of process "
         "simulations and the energy network.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
         default_factory=list,

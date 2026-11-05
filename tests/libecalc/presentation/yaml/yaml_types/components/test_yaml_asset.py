@@ -29,16 +29,16 @@ def test_ecalc_events_requires_yaml_version_v2_or_later():
     assert len(asset.ecalc_events) == 1
 
 
-def test_timeline_requires_yaml_version_v2_or_later():
+def test_timeline_requires_yaml_version_v4_or_later():
     dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
-    asset_data = YamlAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
+    asset_data = {"END": "2025-01-01"}
     timeline_data = YamlTimelineBuilder().with_test_data().validate().model_dump(**dump_kwargs)
 
     with pytest.raises(ValidationError, match="TIMELINE"):
-        YamlAsset.model_validate({**asset_data, "YAML_VERSION": 1, "TIMELINE": timeline_data})
+        YamlAsset.model_validate({**asset_data, "YAML_VERSION": 3, "TIMELINE": timeline_data})
 
-    asset = YamlAsset.model_validate({**asset_data, "YAML_VERSION": 2, "TIMELINE": timeline_data})
-    assert asset.yaml_version == 2
+    asset = YamlAsset.model_validate({**asset_data, "YAML_VERSION": 4, "TIMELINE": timeline_data})
+    assert asset.yaml_version == 4
     assert len(asset.timeline.events) == 1
 
 

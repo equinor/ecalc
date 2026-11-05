@@ -76,6 +76,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import Yaml
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
 from libecalc.process.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
@@ -140,14 +141,14 @@ class ProcessSimulationMapper:
         ecalc_event_service: EcalcEventService,
         shaft_by_compressor: Mapping[CompressorReference, ShaftReference],
         compressor_ids: Mapping[CompressorReference, CompressorId],
-        timeline_event_service: TimelineEventService | None = None,
+        timeline_event_service: TimelineEventService,
     ):
         self._expression_evaluator = expression_evaluator
         self._fluid_service = fluid_service
         self._references = references
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
-        self._timeline_event_service = timeline_event_service or TimelineEventService(timeline_events=[])
+        self._timeline_event_service = timeline_event_service
         self._shaft_by_compressor = shaft_by_compressor
         self._compressor_ids = compressor_ids
 
@@ -305,10 +306,9 @@ class ProcessSimulationMapper:
 
         return events
 
-    def _get_pipeline_event_time(self, ref: InstanceReference) -> datetime:
-        timeline_event = self._timeline_event_service.get_event_by_name(ref)
-        if timeline_event is not None:
-            return timeline_event.from_
+    def _get_pipeline_event_time(self, ref: TimelineEventReference) -> datetime:
+        if self._timeline_event_service.has_event(ref):
+            return self._timeline_event_service.get_event_by_reference(ref).from_date
 
         ecalc_event: EcalcEvent | None = self._ecalc_event_service.get_event_by_process_name(ref)
         if ecalc_event is not None:
