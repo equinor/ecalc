@@ -55,12 +55,14 @@ does not represent minor or patch.
 V1 = Version(1, 0, 0)
 V2 = Version(2, 0, 0)
 V3 = Version(3, 0, 0)
+V4 = Version(4, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
 
 AVAILABLE_SINCE_KEY = "available_since"
 DEPRECATED_SINCE_KEY = "deprecated_since"
 REMOVED_SINCE_KEY = "removed_since"
+CHANGED_SINCE_KEY = "changed_since"
 REQUIRED_KEY = "required"
 
 
@@ -68,6 +70,7 @@ def yaml_element_lifecycle(
     available_since: Version | None = None,
     deprecated_since: Version | None = None,
     removed_since: Version | None = None,
+    changed_since: Version | None = None,
     required: bool = False,
     for_documentation_only: bool = False,
 ) -> dict[str, JsonValue]:
@@ -92,6 +95,8 @@ def yaml_element_lifecycle(
         extra[DEPRECATED_SINCE_KEY] = str(deprecated_since)
     if removed_since is not None:
         extra[REMOVED_SINCE_KEY] = str(removed_since)
+    if changed_since is not None:
+        extra[CHANGED_SINCE_KEY] = str(changed_since)
     if required:
         extra[REQUIRED_KEY] = True
 
@@ -106,6 +111,7 @@ class YamlElementLifecycle:
     available_since: Version
     deprecated_since: Version | None
     removed_since: Version | None
+    changed_since: Version | None
     required: bool = False
 
 
@@ -118,6 +124,7 @@ def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
         available_since=_parse(AVAILABLE_SINCE_KEY) or V1,
         deprecated_since=_parse(DEPRECATED_SINCE_KEY),
         removed_since=_parse(REMOVED_SINCE_KEY),
+        changed_since=_parse(CHANGED_SINCE_KEY),
         required=bool(extra.get(REQUIRED_KEY, False)),
     )
 

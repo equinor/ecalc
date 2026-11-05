@@ -42,6 +42,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
     V2,
     V3,
+    V4,
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
@@ -60,7 +61,8 @@ class YamlDefinitions(YamlBase):
     process_units: dict[str, YamlProcessUnitDefinition] = Field(
         default_factory=dict,
         title="PROCESS_UNITS",
-        description="Defines process units used in PROCESS_PIPELINES.",
+        description="Defines process units used in PROCESS_PIPELINES. Changed in V4: compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V2, changed_since=V4),
     )
 
     compressor_models: dict[str, YamlCompressorModelChart] = Field(
@@ -68,6 +70,7 @@ class YamlDefinitions(YamlBase):
         title="COMPRESSOR_MODELS",
         description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
         "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
 
     fluids: dict[str, YamlFluidDefinition] = Field(
