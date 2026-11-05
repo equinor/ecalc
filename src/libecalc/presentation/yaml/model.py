@@ -41,6 +41,7 @@ from libecalc.ecalc_model.ecalc_event import (
 )
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.ecalc_model.shaft_equipment import ShaftEquipment
+from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
@@ -62,6 +63,7 @@ from libecalc.presentation.yaml.mappers.ecalc_event_mapper import EcalcEventMapp
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
+from libecalc.presentation.yaml.mappers.timeline_event_mapper import TimelineEventMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
     InvalidEndDate,
@@ -201,6 +203,7 @@ class YamlModel:
         self, ecalc_event_service: EcalcEventService
     ) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
         self.validate_for_run()
+        timeline_event_service = TimelineEventService(timeline_events=self.get_timeline_events())
         facility_resources, _ = self._resource_service.get_facility_resources()
         time_series_resources, _ = self._resource_service.get_time_series_resources()
 
@@ -285,7 +288,7 @@ class YamlModel:
                 time_series_resources=time_series_name_map,
                 start=self._configuration.start,
                 end=end,
-                additional_dates=ecalc_event_service.get_time_steps(),
+                additional_dates=ecalc_event_service.get_time_steps() | timeline_event_service.get_time_steps(),
             )
 
             mapper = ProcessSimulationMapper(
@@ -296,6 +299,7 @@ class YamlModel:
                 ecalc_event_service=ecalc_event_service,
                 shaft_by_compressor=shaft_by_compressor,
                 compressor_ids=self._get_compressor_ids(),
+                timeline_event_service=timeline_event_service,
             )
 
             try:
@@ -344,7 +348,8 @@ class YamlModel:
             time_series_resources=time_series_name_map,
             start=self._configuration.start,
             end=end,
-            additional_dates=EcalcEventService(ecalc_events=self.get_events()).get_time_steps(),
+            additional_dates=EcalcEventService(ecalc_events=self.get_events()).get_time_steps()
+            | TimelineEventService(timeline_events=self.get_timeline_events()).get_time_steps(),
         )
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
@@ -372,6 +377,9 @@ class YamlModel:
             yaml_process_events=self._configuration.process_events,
             yaml_energy_events=self._configuration.energy_events,
         )
+
+    def get_timeline_events(self) -> list[TimelineEvent]:
+        return TimelineEventMapper().map_events(self._configuration.timeline_events)
 
     def get_pump_process_simulations(
         self,

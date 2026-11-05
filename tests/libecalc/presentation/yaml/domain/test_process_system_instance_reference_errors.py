@@ -297,7 +297,7 @@ Validation error
 
 	Object starting on line 121
 	Location: PROCESS_SIMULATIONS.my_sim
-	Message: Pipeline event 'nonexistent_event' does not match any known process event.
+	Message: Pipeline event REF 'nonexistent_event' does not match any event in TIMELINE.EVENTS or any known process event.
 """)
 
 

@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from datetime import datetime
 from typing import Any, assert_never, get_args
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
@@ -28,6 +29,7 @@ from libecalc.ecalc_model.time_series_configuration import (
 )
 from libecalc.ecalc_model.time_series_fluid_model import TimeSeriesFluidModel
 from libecalc.ecalc_model.time_series_stream import TimeSeriesStream
+from libecalc.ecalc_model.timeline_event import TimelineEventService
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -138,12 +140,14 @@ class ProcessSimulationMapper:
         ecalc_event_service: EcalcEventService,
         shaft_by_compressor: Mapping[CompressorReference, ShaftReference],
         compressor_ids: Mapping[CompressorReference, CompressorId],
+        timeline_event_service: TimelineEventService | None = None,
     ):
         self._expression_evaluator = expression_evaluator
         self._fluid_service = fluid_service
         self._references = references
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
+        self._timeline_event_service = timeline_event_service or TimelineEventService(timeline_events=[])
         self._shaft_by_compressor = shaft_by_compressor
         self._compressor_ids = compressor_ids
 
@@ -277,11 +281,7 @@ class ProcessSimulationMapper:
         events: list[PipelineEvent] = []
 
         for yaml_event in yaml_pipeline.events:
-            ecalc_event: EcalcEvent | None = self._ecalc_event_service.get_event_by_process_name(yaml_event.ref)
-            if ecalc_event is None:
-                raise EcalcValidationException(
-                    f"Pipeline event '{yaml_event.ref}' does not match any known process event."
-                )
+            change_time = self._get_pipeline_event_time(yaml_event.ref)
 
             change_target = unit_name_to_id[yaml_event.change_target]
             match yaml_event.change_to:
@@ -299,11 +299,24 @@ class ProcessSimulationMapper:
                     change_target=change_target,
                     change_to=change_to_unit,
                     change_type=PipelineEventChangeType(yaml_event.change_type.value),
-                    change_time=ecalc_event.start,
+                    change_time=change_time,
                 )
             )
 
         return events
+
+    def _get_pipeline_event_time(self, ref: InstanceReference) -> datetime:
+        timeline_event = self._timeline_event_service.get_event_by_name(ref)
+        if timeline_event is not None:
+            return timeline_event.from_
+
+        ecalc_event: EcalcEvent | None = self._ecalc_event_service.get_event_by_process_name(ref)
+        if ecalc_event is not None:
+            return ecalc_event.start
+
+        raise EcalcValidationException(
+            f"Pipeline event REF '{ref}' does not match any event in TIMELINE.EVENTS or any known process event."
+        )
 
     def map_process_simulation(
         self, yaml_process_simulation: YamlProcessSimulation

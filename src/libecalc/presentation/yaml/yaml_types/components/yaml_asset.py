@@ -35,6 +35,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     DEFAULT_YAML_VERSION,
@@ -209,6 +210,13 @@ class YamlAsset(YamlBase):
     #    description="Defines energy-network-specific events that reference global eCalc events.",
     #    json_schema_extra=yaml_element_lifecycle(available_since=V3),
     # )
+    timeline: YamlTimeline | None = Field(
+        None,
+        title="TIMELINE",
+        description="Defines dated events in the model. Event dates are added to the time steps of process "
+        "simulations and the energy network.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+    )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
         default_factory=list,
         title="PUMP_PROCESS_SIMULATIONS",

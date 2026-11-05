@@ -2,6 +2,7 @@ from typing import Self
 
 from libecalc.common.utils.rates import RateType
 from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
+from libecalc.ecalc_model.timeline_event import TimelineEventType
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
@@ -61,6 +62,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline, YamlTimelineEvent
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.testing.yaml_builder import Builder
@@ -623,6 +625,50 @@ class YamlProcessEventBuilder(Builder[YamlProcessEvent]):
         self.name = "DefaultProcessEvent"
         self.description = "Increased gas rate after tie-in"
         self.ref = "DefaultEcalcEvent"
+        return self
+
+
+class YamlTimelineEventBuilder(Builder[YamlTimelineEvent]):
+    def __init__(self):
+        self.name: str | None = None
+        self.type: TimelineEventType | None = None
+        self.from_ = None
+        self.description: str | None = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_type(self, type: TimelineEventType) -> Self:
+        self.type = type
+        return self
+
+    def with_from(self, from_) -> Self:
+        self.from_ = from_
+        return self
+
+    def with_description(self, description: str | None) -> Self:
+        self.description = description
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "DefaultTimelineEvent"
+        self.type = TimelineEventType.TIE_IN
+        self.from_ = "2025-01-01"
+        self.description = "Tie-in of new wells"
+        return self
+
+
+class YamlTimelineBuilder(Builder[YamlTimeline]):
+    def __init__(self):
+        self.events: list[YamlTimelineEvent] = []
+
+    def with_event(self, event: YamlTimelineEvent) -> Self:
+        self.events.append(event)
+        return self
+
+    def with_test_data(self) -> Self:
+        self.events = [YamlTimelineEventBuilder().with_test_data().validate()]
         return self
 
 

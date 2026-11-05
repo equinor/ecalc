@@ -23,10 +23,11 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [PROCESS_SIMULATIONS](#process_simulations)
 - [ECALC_EVENTS](#ecalc_events)
 - [PROCESS_EVENTS](#process_events)
+- [TIMELINE](#timeline)
 
 ## Time steps and time series
 
-Each process simulation is calculated on its own time steps, between `START` and `END`. These time steps come from the time series files and dated `VARIABLES` it uses, and from the start dates in `ECALC_EVENTS`: all dates are merged into one time vector.
+Each process simulation is calculated on its own time steps, between `START` and `END`. These time steps come from the time series files and dated `VARIABLES` it uses, from the start dates in `ECALC_EVENTS` and from the `FROM` dates in `TIMELINE.EVENTS`: all dates are merged into one time vector.
 
 A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Dated `VARIABLES` work the same way. Each file and dated variable must have a value at `START`, otherwise the run fails.
 
@@ -371,7 +372,7 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | `CHANGE_FROM` | Reference to the existing process unit template being replaced. Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `CHANGE_TO` | Reference to the new process unit template to use. Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
-| `REF` | Reference to a PROCESS_EVENT by name. | Required |
+| `REF` | Reference to an event in TIMELINE.EVENTS or a PROCESS_EVENT by name. | Required |
 
 ## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" /> \{#process_simulations}
 
@@ -516,3 +517,24 @@ Defines process-specific events that reference global eCalc events.
 | `NAME` | Short identifier for the process event. | Required |
 | `DESCRIPTION` | Human-readable description of the process event. | Optional |
 | `REF` | Reference to a global ECALC_EVENT by name. | Required |
+
+## TIMELINE <LifecycleBadge kind="introduced" version="2" /> \{#timeline}
+
+Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network.
+
+<YamlCodeBlock>{"EVENTS:\n- NAME: DefaultTimelineEvent\n  TYPE: TIE_IN\n  FROM: '2025-01-01T00:00:00'\n  DESCRIPTION: Tie-in of new wells"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| [`EVENTS`](#timeline-events) | Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle. | Default: `[]` |
+
+##### EVENTS \{#timeline-events}
+
+Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the event. Other parts of the model refer to the event by this name. | Required |
+| `TYPE` | Category of the event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN, INCREASED_GAS_RATE, INCREASED_WATER_INJECTION, FUEL_SWITCH, OTHER. | Required |
+| `FROM` | Date when the event takes effect. The change is permanent from this date. | Required |
+| `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |

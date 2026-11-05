@@ -8,6 +8,7 @@ from libecalc.testing.process_builders import (
     YamlEcalcEventBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
+    YamlTimelineBuilder,
     shaft_for,
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
@@ -26,6 +27,19 @@ def test_ecalc_events_requires_yaml_version_v2_or_later():
     asset = YamlAsset.model_validate({**asset_data, "YAML_VERSION": 2, "ECALC_EVENTS": [event_data]})
     assert asset.yaml_version == 2
     assert len(asset.ecalc_events) == 1
+
+
+def test_timeline_requires_yaml_version_v2_or_later():
+    dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
+    asset_data = YamlAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
+    timeline_data = YamlTimelineBuilder().with_test_data().validate().model_dump(**dump_kwargs)
+
+    with pytest.raises(ValidationError, match="TIMELINE"):
+        YamlAsset.model_validate({**asset_data, "YAML_VERSION": 1, "TIMELINE": timeline_data})
+
+    asset = YamlAsset.model_validate({**asset_data, "YAML_VERSION": 2, "TIMELINE": timeline_data})
+    assert asset.yaml_version == 2
+    assert len(asset.timeline.events) == 1
 
 
 def test_default_yaml_version_is_v1():

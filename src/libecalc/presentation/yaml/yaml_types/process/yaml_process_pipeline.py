@@ -104,7 +104,7 @@ class YamlPipelineEvent(YamlBase):
         InstanceReference,
         Field(
             title="REF",
-            description="Reference to a PROCESS_EVENT by name.",
+            description="Reference to an event in TIMELINE.EVENTS or a PROCESS_EVENT by name.",
         ),
     ]
 

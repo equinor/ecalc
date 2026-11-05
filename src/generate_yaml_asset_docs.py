@@ -79,6 +79,7 @@ from libecalc.testing.process_builders import (
     YamlProcessSimulationBuilder,
     YamlSplitterBuilder,
     YamlTemperatureSetterBuilder,
+    YamlTimelineBuilder,
 )
 
 # YamlAsset fields to document, as dot-separated python attribute paths.
@@ -94,6 +95,7 @@ PROCESS_INCLUDE_FIELDS = {
     "process_simulations",
     "ecalc_events",
     "process_events",
+    "timeline",
 }
 ENERGY_INCLUDE_FIELDS = {
     "definitions.turbines",
@@ -288,6 +290,11 @@ EXAMPLES: list[Example] = [
     Example(
         "PROCESS_EVENTS",
         lambda: YamlProcessEventBuilder().with_test_data().validate(),
+    ),
+    # --- TIMELINE ---
+    Example(
+        "TIMELINE",
+        lambda: YamlTimelineBuilder().with_test_data().validate(),
     ),
 ]
 
@@ -812,6 +819,7 @@ SIDEBAR_DEPTH: dict[str, int] = {
     "process_simulations": 2,  # PROCESS_SIMULATIONS only (h2)
     "ecalc_events": 2,  # ECALC_EVENTS only (h2)
     "process_events": 2,  # PROCESS_EVENTS only (h2)
+    "timeline": 2,  # TIMELINE only (h2)
     "energy_network": 3,  # ENERGY_NETWORK only (h2)
 }
 
@@ -1310,13 +1318,13 @@ import LifecycleFilter from '@site/src/components/LifecycleFilter';
     return frontmatter + "\n" + imports + intro + legend + body
 
 
-def _time_series_section(opening: str) -> str:
+def _time_series_section(opening: str, closing: str = "") -> str:
     return f"""\
 ## Time steps and time series
 
-{opening} These time steps come from the time series files it uses: their time vectors are merged into one time vector.
+{opening} These time steps come from the time series files and dated `VARIABLES` it uses, from the start dates in `ECALC_EVENTS` and from the `FROM` dates in `TIMELINE.EVENTS`: all dates are merged into one time vector.{closing}
 
-A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Each file must have a value at `START`, otherwise the run fails.
+A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Dated `VARIABLES` work the same way. Each file and dated variable must have a value at `START`, otherwise the run fails.
 
 **When to resample yourself**
 
@@ -1347,6 +1355,7 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [PROCESS_SIMULATIONS](#process_simulations)
 - [ECALC_EVENTS](#ecalc_events)
 - [PROCESS_EVENTS](#process_events)
+- [TIMELINE](#timeline)
 
 """
         + _time_series_section(
@@ -1372,7 +1381,10 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
 - [ENERGY_NETWORK](#energy_network)
 
 """
-        + _time_series_section("The energy network is calculated on time steps between `START` and `END`."),
+        + _time_series_section(
+            "The energy network is calculated on time steps between `START` and `END`.",
+            " Dates from process simulations used by the energy network are also included.",
+        ),
         examples=ENERGY_EXAMPLES,
     )
 
