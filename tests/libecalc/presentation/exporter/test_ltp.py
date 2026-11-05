@@ -23,7 +23,6 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_installation import I
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import YamlEmissionRateUnits, YamlOilRateUnits
 from libecalc.testing.yaml_builder import (
-    YamlAssetBuilder,
     YamlCompressorTabularBuilder,
     YamlElectricity2fuelBuilder,
     YamlElectricityConsumerBuilder,
@@ -32,6 +31,7 @@ from libecalc.testing.yaml_builder import (
     YamlFuelConsumerBuilder,
     YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
+    YamlLegacyAssetBuilder,
     YamlTimeSeriesBuilder,
     YamlVentingEmitterDirectTypeBuilder,
     YamlVentingEmitterOilTypeBuilder,
@@ -494,7 +494,7 @@ class TestLtp:
         }
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation_fixed, installation_mobile])
@@ -589,7 +589,7 @@ class TestLtp:
         }
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation])
@@ -673,7 +673,7 @@ class TestLtp:
         }
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation])
@@ -733,7 +733,7 @@ class TestLtp:
         }
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation])
@@ -796,7 +796,7 @@ class TestLtp:
 
         resources = {ltp_test_helper.dummy_time_series.name: dummy_time_series_resource}
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(str(ltp_test_helper.date1))
             .with_end(str(ltp_test_helper.date5))
             .with_installations([installation])
@@ -862,7 +862,7 @@ class TestLtp:
         }
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation])
@@ -963,7 +963,7 @@ class TestLtp:
         }
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(str(ltp_test_helper.time_vector_installation[0]))
             .with_end(str(ltp_test_helper.time_vector_installation[-1]))
             .with_installations([installation1, installation2])
@@ -1082,7 +1082,7 @@ class TestLtp:
         ).validate()
 
         asset_sd_kg_per_day = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_installations([installation_sd_kg_per_day])
             .with_fuel_types([fuel])
             .with_start(str(time_vector[0]))
@@ -1090,7 +1090,7 @@ class TestLtp:
         ).validate()
 
         asset_sd_tons_per_day = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_installations([installation_sd_tons_per_day])
             .with_fuel_types([fuel])
             .with_start(str(time_vector[0]))
@@ -1098,7 +1098,7 @@ class TestLtp:
         ).validate()
 
         asset_cd_kg_per_day = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_installations([installation_cd_kg_per_day])
             .with_fuel_types([fuel])
             .with_start(str(time_vector[0]))
@@ -1193,7 +1193,7 @@ class TestLtp:
         ).validate()
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_installations([installation_only_emitters])
             .with_start(str(time_vector[0]))
             .with_end(str(time_vector[-1]))
@@ -1230,7 +1230,7 @@ class TestLtp:
         ).validate()
 
         asset_multi_installations = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_installations([installation_only_emitters, installation_only_fuel_consumers])
             .with_fuel_types([fuel])
             .with_start(str(time_vector[0]))
@@ -1335,7 +1335,7 @@ class TestLtp:
         }
 
         asset_pfs = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(time_vector_yearly[0])
             .with_end(time_vector_yearly[-1])
             .with_installations([installation_pfs])
@@ -1365,7 +1365,7 @@ class TestLtp:
         ).validate()
 
         asset_pfs_csv = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(time_vector_yearly[0])
             .with_end(time_vector_yearly[-1])
             .with_installations([installation_pfs_csv])
@@ -1503,7 +1503,7 @@ class TestLtp:
         }
 
         asset_pfs = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_start(time_vector_yearly[0])
             .with_end(time_vector_yearly[-1])
             .with_installations([installation_pfs])
@@ -1573,7 +1573,7 @@ class TestLtp:
 
         resources = {ltp_test_helper.dummy_time_series.name: time_series_resource}
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_installations([installation])
             .with_time_series([ltp_test_helper.dummy_time_series])
             .with_start(time_vector[0])
@@ -1635,7 +1635,7 @@ class TestLtp:
 
         resources = {ltp_test_helper.dummy_time_series.name: time_series_resource}
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_installations([installation])
             .with_time_series([ltp_test_helper.dummy_time_series])
             .with_start(time_vector[0])

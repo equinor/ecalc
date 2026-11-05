@@ -57,6 +57,7 @@ V2 = Version(2, 0, 0)
 V3 = Version(3, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
+LATEST_YAML_VERSION = V3.major  # TODO: Automatically set to latest
 
 AVAILABLE_SINCE_KEY = "available_since"
 DEPRECATED_SINCE_KEY = "deprecated_since"

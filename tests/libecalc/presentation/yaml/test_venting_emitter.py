@@ -317,7 +317,7 @@ class TestVentingEmitter:
 
     def test_venting_emitter_condition_mapping_and_evaluation(
         self,
-        yaml_asset_builder_factory,
+        yaml_legacy_asset_builder_factory,
         yaml_installation_builder_factory,
         yaml_asset_configuration_service_factory,
         resource_service_factory,
@@ -353,7 +353,7 @@ class TestVentingEmitter:
             .validate()
         )
         asset = (
-            yaml_asset_builder_factory()
+            yaml_legacy_asset_builder_factory()
             .with_start("2020-01-01")
             .with_end("2022-01-01")
             .with_time_series([prod_data_timeseries])

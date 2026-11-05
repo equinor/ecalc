@@ -11,14 +11,14 @@ from libecalc.testing.process_builders import (
     YamlProcessSimulationBuilder,
     shaft_for,
 )
-from libecalc.testing.yaml_builder import YamlAssetBuilder
+from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlLegacyAssetBuilder
 
 
 def test_ecalc_events_requires_yaml_version_v2_or_later():
     """ECALC_EVENTS was introduced in yaml version 2 and must not be usable in v1 documents. Serves as an example
     of how to test version restrictions on root elements."""
     dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
-    asset_data = YamlAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
+    asset_data = YamlLegacyAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
     event_data = YamlEcalcEventBuilder().with_test_data().validate().model_dump(**dump_kwargs)
 
     with pytest.raises(ValidationError, match="ECALC_EVENTS"):
@@ -31,9 +31,8 @@ def test_ecalc_events_requires_yaml_version_v2_or_later():
 
 def test_default_yaml_version_is_v1():
     dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
-    asset_data = YamlAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
+    asset_data = YamlLegacyAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
     del asset_data["YAML_VERSION"]
-    del asset_data["SHAFTS"]
 
     asset = YamlAsset.model_validate(asset_data)
     assert asset.yaml_version == 1

@@ -11,7 +11,7 @@ from libecalc.presentation.yaml.model import YamlModel
 def model_with_two_installations(
     minimal_installation_yaml_factory,
     yaml_asset_configuration_service_factory,
-    yaml_asset_builder_factory,
+    yaml_legacy_asset_builder_factory,
     yaml_fuel_type_builder_factory,
     resource_service_factory,
 ) -> YamlModel:
@@ -24,7 +24,7 @@ def model_with_two_installations(
     )
 
     asset = (
-        yaml_asset_builder_factory()
+        yaml_legacy_asset_builder_factory()
         .with_test_data()
         .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name(fuel_name).validate()])
         .with_installations([installation_1, installation_2])

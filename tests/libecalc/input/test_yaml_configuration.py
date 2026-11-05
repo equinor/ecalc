@@ -35,7 +35,7 @@ class TestYamlConfiguration:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 27
+	Object starting on line 6
 	Location: TIME_SERIES[0]
 	Message: Input tag 'INVALID' found using 'type' | 'TYPE' does not match any of the expected tags: 'DEFAULT', 'MISCELLANEOUS'
 """)
