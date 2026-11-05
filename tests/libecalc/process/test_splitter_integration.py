@@ -9,7 +9,6 @@ from libecalc.process.process_solver.process_pipeline_runner import propagate_st
 from libecalc.process.shaft import Shaft
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
-    YamlCompressorBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
     YamlSplitterBuilder,
@@ -31,10 +30,10 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_facto
         YamlProcessPipelineBuilder()
         .with_name("train_with_splitter")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_1")
         .with_item(target=yaml_splitter)
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_2")
         .validate()
     )
     builder = (

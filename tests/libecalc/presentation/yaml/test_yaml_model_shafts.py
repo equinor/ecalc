@@ -13,7 +13,7 @@ from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import Shaft
 from libecalc.testing.energy_builders import YamlEnergyNetworkBuilder
 from libecalc.testing.process_builders import (
-    YamlCompressorBuilder,
+    YamlDefinitionsBuilder,
     YamlIndividualStreamDistributionBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
@@ -31,8 +31,8 @@ def _asset() -> YamlAsset:
     pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("export_pipeline")
-        .with_compressor_item(compressor=COMPRESSOR_A, target=YamlCompressorBuilder().with_test_data().validate())
-        .with_compressor_item(compressor=COMPRESSOR_B, target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor=COMPRESSOR_A)
+        .with_compressor_item(compressor=COMPRESSOR_B)
         .validate()
     )
     simulation = (
@@ -55,6 +55,7 @@ def _asset() -> YamlAsset:
     return (
         YamlAssetBuilder()
         .with_test_data()
+        .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         .with_shafts([shaft_for(pipeline, name=SHAFT)])
         .with_compressors(compressors_in(pipeline))
         .with_process_pipelines({pipeline.name: pipeline})

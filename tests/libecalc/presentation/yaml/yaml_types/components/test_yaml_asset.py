@@ -5,6 +5,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsse
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
+    YamlDefinitionsBuilder,
     YamlEcalcEventBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
@@ -71,7 +72,6 @@ def test_pipeline_can_only_be_targeted_by_one_simulation():
 
 def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
     yaml_process_pipeline_builder_factory,
-    yaml_compressor_builder_factory,
     yaml_asset_builder_factory,
 ):
     pipeline_1 = (
@@ -79,7 +79,6 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
         .with_name("train_1")
         .with_compressor_item(
             compressor="compressor_1",
-            target=yaml_compressor_builder_factory().with_test_data().validate(),
         )
         .validate()
     )
@@ -88,7 +87,6 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
         .with_name("train_2")
         .with_compressor_item(
             compressor="compressor_2",
-            target=yaml_compressor_builder_factory().with_test_data().validate(),
         )
         .validate()
     )
@@ -111,6 +109,7 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
     asset = (
         yaml_asset_builder_factory()
         .with_test_data()
+        .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         .with_shafts([shaft_for(pipeline_1, name="shaft_1"), shaft_for(pipeline_2, name="shaft_2")])
         .with_compressors([YamlCompressor(name="compressor_1"), YamlCompressor(name="compressor_2")])
         .with_process_pipelines({pipeline_1.name: pipeline_1, pipeline_2.name: pipeline_2})

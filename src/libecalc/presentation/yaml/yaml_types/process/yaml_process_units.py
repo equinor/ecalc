@@ -28,6 +28,8 @@ class YamlCompressorChart(YamlBase):
 
 
 class YamlCompressorModelChart(YamlBase):
+    """A compressor model: a compressor chart and a control margin."""
+
     type: Literal["COMPRESSOR_CHART"]
     chart: YamlCompressorChart
     control_margin: Annotated[
@@ -38,17 +40,6 @@ class YamlCompressorModelChart(YamlBase):
             json_schema_extra=yaml_element_lifecycle(available_since=V2),
         ),
     ]
-
-
-class YamlCompressorDefinition(YamlBase):
-    """
-    A Compressor process unit
-    """
-
-    model_config = ConfigDict(json_schema_extra=yaml_element_lifecycle(available_since=V2))
-
-    type: Literal["COMPRESSOR"]
-    compressor_model: YamlCompressorModelChart
 
 
 class YamlPressureDropperDefinition(YamlBase):
@@ -127,19 +118,6 @@ class YamlSplitterDefinition(YamlBase):
 
 YamlProcessUnitDefinition = Annotated[
     YamlPressureDropperDefinition
-    | YamlTemperatureSetterDefinition
-    | YamlLiquidRemoverDefinition
-    | YamlMixerDefinition
-    | YamlSplitterDefinition,
-    Field(discriminator="type"),
-]
-
-
-# Everything that can be defined under DEFINITIONS.PROCESS_UNITS. Compressors are deliberately not part of
-# YamlProcessUnitDefinition, since they can only be used by shaft driven process unit instances.
-YamlReferenceableProcessUnitDefinition = Annotated[
-    YamlCompressorDefinition
-    | YamlPressureDropperDefinition
     | YamlTemperatureSetterDefinition
     | YamlLiquidRemoverDefinition
     | YamlMixerDefinition

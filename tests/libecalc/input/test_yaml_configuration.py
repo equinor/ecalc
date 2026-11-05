@@ -82,3 +82,10 @@ Validation error
             resource in configuration.facility_resource_names
             for resource in ["testfile_singlespeed.csv", "testfile_variablespeed.csv"]
         ]
+
+    def test_read_chart_curve_files_from_compressor_models(self):
+        yaml_dict = {"DEFINITIONS": {"COMPRESSOR_MODELS": {"model_a": {"CHART": {"CURVES": {"FILE": "chart.csv"}}}}}}
+
+        configuration = PyYamlYamlModel(internal_datamodel=yaml_dict, name="test_case", instantiated_through_read=True)
+
+        assert configuration.facility_resource_names == ["chart.csv"]
