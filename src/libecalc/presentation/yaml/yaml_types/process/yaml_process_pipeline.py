@@ -15,8 +15,8 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
+from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, V4, yaml_element_lifecycle
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, yaml_element_lifecycle
 
 CompressorModelOrReference = Annotated[
     DefinitionReference | YamlCompressorModelChart,
@@ -38,16 +38,26 @@ class YamlProcessUnitInstance[TTarget](YamlBase):
 class YamlCompressorProcessUnitInstance(YamlBase):
     model_config = ConfigDict(title="COMPRESSOR_PROCESS_UNIT")
 
+    target: str | None = Field(
+        None,
+        title="TARGET",
+        description="Reference to a compressor process unit defined in PROCESS_UNITS. From V4: Use MODEL instead.",
+        json_schema_extra=yaml_element_lifecycle(
+            available_since=V2, deprecated_since=V3, removed_since=V4, for_documentation_only=True
+        ),
+    )
     model: CompressorModelOrReference = Field(
         ...,
         title="MODEL",
-        description="The compressor model.",
+        description="The compressor model. Replaces TARGET",
+        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
     compressor: CompressorReference = Field(
         ...,
         title="COMPRESSOR",
         description="Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT "
         "refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
 
     # TODO: Available just to mark it as removed.
@@ -90,6 +100,16 @@ class YamlPipelineEvent(YamlBase):
             "compressor process unit in this pipeline.",
         ),
     ]
+    change_from: Annotated[
+        DefinitionReference | None,
+        Field(
+            None,
+            title="CHANGE_FROM",
+            description="Reference to the existing process unit template being replaced. V4: This is no longer needed. From is automatically deduced from target. Just remove.",
+            json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
+        ),
+    ]
+
     change_to: Annotated[
         CompressorModelOrReference,
         Field(

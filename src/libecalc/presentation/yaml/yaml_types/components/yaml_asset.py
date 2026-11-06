@@ -61,6 +61,12 @@ class YamlDefinitions(YamlBase):
         default_factory=dict,
         title="PROCESS_UNITS",
         description="Defines process units used in PROCESS_PIPELINES.",
+        json_schema_extra=yaml_element_lifecycle(
+            available_since=V2,
+            changed_in=[
+                (V4, "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead.")
+            ],
+        ),
     )
 
     compressor_models: dict[str, YamlCompressorModelChart] = Field(
@@ -68,6 +74,7 @@ class YamlDefinitions(YamlBase):
         title="COMPRESSOR_MODELS",
         description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
         "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
 
     fluids: dict[str, YamlFluidDefinition] = Field(
@@ -178,7 +185,7 @@ class YamlAsset(YamlBase):
         title="COMPRESSORS",
         description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
         "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
@@ -192,17 +199,29 @@ class YamlAsset(YamlBase):
         description="Defines one or more process simulations to be run.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
+    ecalc_events: str | None = Field(
+        None,
+        title="ECALC_EVENTS",
+        description="Defines eCalc events associated with temporal model changes. Use TIMELINE instead.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
+    )
     energy_network: YamlEnergyNetwork | None = Field(
         None,
         title="ENERGY_NETWORK",
         description="Defines the energy network configuration.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
+    process_events: str | None = Field(
+        None,
+        title="PROCESS_EVENTS",
+        description="Defines process-specific events that reference global eCalc events. Use TIMELINE instead",
+        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
+    )
     timeline: YamlTimeline | None = Field(
         None,
         title="TIMELINE",
         description="Defines dated events in the model. Event dates are added to the time steps of process "
-        "simulations and the energy network.",
+        "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
         json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
