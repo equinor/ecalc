@@ -356,7 +356,7 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | --- | --- | --- |
 | `TYPE` | Action to perform: CHANGE, ADD, or REMOVE a process unit. | Required |
 | `CHANGE_TARGET` | Name of the process unit in the pipeline to change. For REBUNDLE, the COMPRESSOR of a compressor process unit in this pipeline. | Required |
-| `CHANGE_FROM` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> | Reference to the existing process unit template being replaced. V4: This is no longer needed. From is automatically deduced from target. Just remove. Inline definition or reference to [DEFINITIONS](#definitions). | Required |
+| `CHANGE_FROM` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> | Reference to the existing process unit template being replaced. V4: This is no longer needed. From is automatically deduced from target. Just remove. Inline definition or reference to [DEFINITIONS](#definitions). | Optional |
 | `CHANGE_TO` | The compressor model to use from the event on. Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
 | `REF` | Reference to a PROCESS_EVENT by name. | Required |
