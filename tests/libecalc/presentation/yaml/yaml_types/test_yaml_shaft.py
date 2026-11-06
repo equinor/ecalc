@@ -18,7 +18,7 @@ from libecalc.testing.process_builders import (
     YamlProcessSimulationBuilder,
     compressors_in,
 )
-from libecalc.testing.yaml_builder import YamlAssetBuilder
+from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlLegacyAssetBuilder
 
 TURBINE_MODEL = YamlTurbineDefinition(
     lower_heating_value=38, curve=YamlTurbineCurve(load=[10, 20], efficiency=[0.2, 0.3])
@@ -46,17 +46,22 @@ def _pipeline_with_shaft_on_process_unit(name: str, compressor: str, shaft: str)
 
 
 def test_allows_shaft_on_compressor_process_unit_before_v3():
-    yaml_version = 2
+    """V2 is transitional: legacy root elements (FUEL_TYPES, INSTALLATIONS) are still required, while
+    v2+ elements (SHAFTS, COMPRESSORS, DEFINITIONS, PROCESS_PIPELINES) are already available."""
+    dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
     pipeline = _pipeline_with_shaft_on_process_unit("export_pipeline", "lp_compressor", "export_shaft")
-    (
-        YamlAssetBuilder()
-        .with_yaml_version(yaml_version)
-        .with_end("2025-01-01")
-        .with_shafts([YamlShaft(name="export_shaft", compressors=["lp_compressor"])])
-        .with_compressors(compressors_in(pipeline))
-        .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
-        .with_process_pipelines({pipeline.name: pipeline})
-        .validate()
+    asset_data = (
+        YamlLegacyAssetBuilder().with_test_data().with_yaml_version(2).with_end("2025-01-01").validate()
+    ).model_dump(**dump_kwargs)
+    definitions_data = YamlDefinitionsBuilder().with_test_data().validate().model_dump(**dump_kwargs)
+    YamlAsset.model_validate(
+        {
+            **asset_data,
+            "SHAFTS": [YamlShaft(name="export_shaft", compressors=["lp_compressor"]).model_dump(**dump_kwargs)],
+            "COMPRESSORS": [compressor.model_dump(**dump_kwargs) for compressor in compressors_in(pipeline)],
+            "DEFINITIONS": definitions_data,
+            "PROCESS_PIPELINES": {pipeline.name: pipeline.model_dump(**dump_kwargs)},
+        }
     )
 
 
