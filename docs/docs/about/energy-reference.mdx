@@ -21,7 +21,7 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
 
 ## Time steps and time series
 
-The energy network is calculated on time steps between `START` and `END`. These time steps come from the time series files it uses: their time vectors are merged into one time vector.
+The energy network is calculated on time steps between `START` and `END`. These time steps come from the time series files and dated `VARIABLES` it uses, and from the `FROM` dates in `TIMELINE.EVENTS`: all dates are merged into one time vector. Dates from process simulations used by the energy network are also included.
 
 A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Each file must have a value at `START`, otherwise the run fails.
 

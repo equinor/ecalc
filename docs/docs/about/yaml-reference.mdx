@@ -1146,7 +1146,7 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | `CHANGE_FROM` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> | Reference to the existing process unit template being replaced. V4: This is no longer needed. From is automatically deduced from target. Just remove. Inline definition or reference to [DEFINITIONS](#definitions). | Optional |
 | `CHANGE_TO` | The compressor model to use from the event on. Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
-| `REF` | Reference to a PROCESS_EVENT by name. | Required |
+| `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date. | Required |
 
 ## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" /> \{#process_simulations}
 
@@ -1265,19 +1265,6 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 | `OUTLET_PRESSURE` | Target outlet pressure [bara]. | Required |
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
-
-## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> \{#ecalc_events}
-
-Defines eCalc events associated with temporal model changes
-
-<YamlCodeBlock>{"TYPE: TIE_IN\nSTART: '2025-01-01T00:00:00'\nNAME: DefaultEcalcEvent\nDESCRIPTION: Tie-in of new wells"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | Type of event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN or OTHER. | Required |
-| `START` | Start date when this event takes effect. | Required |
-| `NAME` | Short identifier for the event. | Required |
-| `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |
 
 ## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" /> \{#energy_network}
 
@@ -1726,18 +1713,26 @@ tabulated.
 
 </Tabs>
 
-## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> \{#process_events}
+## TIMELINE <LifecycleBadge kind="introduced" version="4" /> \{#timeline}
 
-Defines process-specific events that reference global eCalc events.
+Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network.
 
-<YamlCodeBlock>{"TYPE: INCREASED_GAS_RATE\nNAME: DefaultProcessEvent\nDESCRIPTION: Increased gas rate after tie-in\nREF: DefaultEcalcEvent"}</YamlCodeBlock>
+<YamlCodeBlock>{"EVENTS:\n  new_wells_tie_in:\n    TITLE: Tie-in of new wells\n    TYPE: TIE_IN\n    FROM: '2025-01-01T00:00:00'\n    DESCRIPTION: New production wells are tied in to the platform."}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `TYPE` | Type of process event: INCREASED_GAS_RATE, INCREASED_WATER_INJECTION or OTHER. | Required |
-| `NAME` | Short identifier for the process event. | Required |
-| `DESCRIPTION` | Human-readable description of the process event. | Optional |
-| `REF` | Reference to a global ECALC_EVENT by name. | Required |
+| [`EVENTS`](#timeline-events) | Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle. The key is the event reference, used by other parts of the model to refer to the event. | Default: `{}` |
+
+##### EVENTS \{#timeline-events}
+
+Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle. The key is the event reference, used by other parts of the model to refer to the event.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TITLE` | Human-friendly label for the event. Defaults to the event reference. | Optional |
+| `TYPE` | Category of the event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN, INCREASED_GAS_RATE, INCREASED_WATER_INJECTION, FUEL_SWITCH, OTHER. | Required |
+| `FROM` | Date when the event takes effect. The change is permanent from this date. | Required |
+| `DESCRIPTION` | Human-readable description of the event and its purpose. | Optional |
 
 ## PUMP_PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" /> \{#pump_process_simulations}
 

@@ -22,8 +22,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
@@ -36,6 +34,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     DEFAULT_YAML_VERSION,
@@ -203,7 +202,7 @@ class YamlAsset(YamlBase):
     ecalc_events: list[YamlEcalcEvent] = Field(
         default_factory=list,
         title="ECALC_EVENTS",
-        description="Defines eCalc events associated with temporal model changes",
+        description="Defines eCalc events associated with temporal model changes. Use TIMELINE instead.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
     )
     energy_network: YamlEnergyNetwork | None = Field(
@@ -215,8 +214,15 @@ class YamlAsset(YamlBase):
     process_events: list[YamlProcessEvent] = Field(
         default_factory=list,
         title="PROCESS_EVENTS",
-        description="Defines process-specific events that reference global eCalc events.",
+        description="Defines process-specific events that reference global eCalc events. Use TIMELINE instead",
         json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4),
+    )
+    timeline: YamlTimeline | None = Field(
+        None,
+        title="TIMELINE",
+        description="Defines dated events in the model. Event dates are added to the time steps of process "
+        "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
+        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
         default_factory=list,

@@ -1,7 +1,7 @@
 from typing import Self
 
 from libecalc.common.utils.rates import RateType
-from libecalc.ecalc_model.ecalc_event import EcalcEventType, ProcessEventType
+from libecalc.ecalc_model.timeline_event import TimelineEventType
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
@@ -30,9 +30,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference, InstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
     YamlProcessConstraint,
-    YamlProcessEvent,
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
@@ -59,6 +57,11 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import (
+    TimelineEventReference,
+    YamlTimeline,
+    YamlTimelineEvent,
+)
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 from libecalc.testing.yaml_builder import Builder
@@ -548,23 +551,23 @@ class YamlProcessSimulationBuilder(Builder[YamlProcessSimulation]):
 # ---------------------------------------------------------------------------
 
 
-class YamlEcalcEventBuilder(Builder[YamlEcalcEvent]):
+class YamlTimelineEventBuilder(Builder[YamlTimelineEvent]):
     def __init__(self):
-        self.type: EcalcEventType | None = None
-        self.start = None
-        self.name: str | None = None
+        self.title: str | None = None
+        self.type: TimelineEventType | None = None
+        self.from_when = None
         self.description: str | None = None
 
-    def with_type(self, type: EcalcEventType) -> Self:
+    def with_title(self, title: str | None) -> Self:
+        self.title = title
+        return self
+
+    def with_type(self, type: TimelineEventType) -> Self:
         self.type = type
         return self
 
-    def with_start(self, start) -> Self:
-        self.start = start
-        return self
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
+    def with_from_when(self, from_when) -> Self:
+        self.from_when = from_when
         return self
 
     def with_description(self, description: str | None) -> Self:
@@ -572,41 +575,23 @@ class YamlEcalcEventBuilder(Builder[YamlEcalcEvent]):
         return self
 
     def with_test_data(self) -> Self:
-        self.type = EcalcEventType.TIE_IN
-        self.start = "2025-01-01"
-        self.name = "DefaultEcalcEvent"
-        self.description = "Tie-in of new wells"
+        self.title = "Tie-in of new wells"
+        self.type = TimelineEventType.TIE_IN
+        self.from_when = "2025-01-01"
+        self.description = "New production wells are tied in to the platform."
         return self
 
 
-class YamlProcessEventBuilder(Builder[YamlProcessEvent]):
+class YamlTimelineBuilder(Builder[YamlTimeline]):
     def __init__(self):
-        self.type: ProcessEventType | None = None
-        self.name: str | None = None
-        self.description: str | None = None
-        self.ref: InstanceReference | None = None
+        self.events: dict[TimelineEventReference, YamlTimelineEvent] = {}
 
-    def with_type(self, type: ProcessEventType) -> Self:
-        self.type = type
-        return self
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
-    def with_description(self, description: str | None) -> Self:
-        self.description = description
-        return self
-
-    def with_ref(self, ref: InstanceReference) -> Self:
-        self.ref = ref
+    def with_event(self, reference: TimelineEventReference, event: YamlTimelineEvent) -> Self:
+        self.events[reference] = event
         return self
 
     def with_test_data(self) -> Self:
-        self.type = ProcessEventType.INCREASED_GAS_RATE
-        self.name = "DefaultProcessEvent"
-        self.description = "Increased gas rate after tie-in"
-        self.ref = "DefaultEcalcEvent"
+        self.events = {"new_wells_tie_in": YamlTimelineEventBuilder().with_test_data().validate()}
         return self
 
 

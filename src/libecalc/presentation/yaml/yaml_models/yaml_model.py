@@ -19,9 +19,6 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlEnergyEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
@@ -31,6 +28,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable
 from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
@@ -123,17 +121,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def ecalc_events(self) -> list[YamlEcalcEvent]:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def process_events(self) -> list[YamlProcessEvent]:
-        pass
-
-    @property
-    @abc.abstractmethod
-    def energy_events(self) -> list[YamlEnergyEvent]:
+    def timeline_events(self) -> dict[TimelineEventReference, YamlTimelineEvent]:
         pass
 
     @property

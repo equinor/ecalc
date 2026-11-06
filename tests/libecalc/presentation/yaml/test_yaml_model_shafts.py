@@ -2,7 +2,6 @@ from io import StringIO
 
 import pytest
 
-from libecalc.ecalc_model.ecalc_event import EcalcEventService
 from libecalc.presentation.yaml.domain.energy.compressor import TimeSeriesProcessCompressor
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
@@ -83,7 +82,7 @@ def test_get_shafts_lists_compressor_ids_without_mapping(model):
 
 def test_drive_train_gets_process_compressors_when_energy_is_mapped_first(model):
     _, _, consumers, _ = model.get_energy_network()
-    pipelines, _ = model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
+    pipelines, _ = model.get_process_simulations()
 
     drive_train_nodes = [consumer for consumer in consumers if isinstance(consumer, TimeSeriesProcessCompressor)]
     process_compressors = [unit for unit in pipelines[0].get_process_units() if isinstance(unit, Compressor)]
@@ -92,7 +91,7 @@ def test_drive_train_gets_process_compressors_when_energy_is_mapped_first(model)
 
 
 def test_compressors_on_one_shaft_share_one_solver_shaft(model):
-    _, [simulation] = model.get_process_simulations(ecalc_event_service=EcalcEventService(ecalc_events=[]))
+    _, [simulation] = model.get_process_simulations()
     [problem] = simulation.process_problems
     [shaft] = model.get_shafts()
 

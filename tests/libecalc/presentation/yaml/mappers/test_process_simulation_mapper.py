@@ -4,14 +4,8 @@ import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
-from libecalc.ecalc_model.ecalc_event import (
-    EcalcEvent,
-    EcalcEventService,
-    EcalcEventType,
-    ProcessEvent,
-    ProcessEventType,
-)
 from libecalc.ecalc_model.process_simulation import Constraint
+from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService, TimelineEventType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     PipelineEventAction,
     PipelineEventChangeType,
@@ -461,21 +455,20 @@ def test_rebundle_changes_the_model_and_keeps_the_compressor_id(process_simulati
         .validate()
     )
     yaml_simulation, refs = _build_simulation_with_pipeline(pipeline)
-    ecalc_event_service = EcalcEventService(
-        ecalc_events=[
-            EcalcEvent(
-                name="tie_in",
-                type=EcalcEventType.TIE_IN,
-                start=PERIOD.start,
+    timeline_event_service = TimelineEventService(
+        timeline_events=[
+            TimelineEvent(
+                reference="rebundle",
+                title="Rebundle",
+                type=TimelineEventType.OTHER,
+                from_when=PERIOD.start,
                 description=None,
-                process_events=[ProcessEvent(name="rebundle", type=ProcessEventType.OTHER, description=None)],
-                energy_events=[],
             )
         ]
     )
 
     pipelines, _ = process_simulation_mapper_factory(
-        refs, ecalc_event_service=ecalc_event_service
+        refs, timeline_event_service=timeline_event_service
     ).map_process_simulation(yaml_process_simulation=yaml_simulation)
 
     [compressor] = [unit for unit in pipelines[0].get_process_units() if isinstance(unit, Compressor)]

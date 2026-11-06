@@ -37,9 +37,6 @@ from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, Yaml
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlEnergyEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
@@ -52,6 +49,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
 
@@ -66,9 +64,8 @@ _FLUIDS_KEY = "FLUIDS"
 _TURBINES_KEY = "TURBINES"
 _GENERATORS_KEY = "GENERATORS"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
-_ECALC_EVENTS_KEY = "ECALC_EVENTS"
-_PROCESS_EVENTS_KEY = "PROCESS_EVENTS"
-_ENERGY_EVENTS_KEY = "ENERGY_EVENTS"
+_TIMELINE_KEY = "TIMELINE"
+_EVENTS_KEY = "EVENTS"
 _PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
 _SHAFTS_KEY = "SHAFTS"
 _COMPRESSORS_KEY = "COMPRESSORS"
@@ -574,37 +571,20 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             return None
 
     @property
-    def ecalc_events(self) -> list[YamlEcalcEvent]:
-        ecalc_events: list[YamlEcalcEvent] = []
-        adapter = TypeAdapter(YamlEcalcEvent)
-        for ecalc_event in self._get_yaml_list_or_empty(_ECALC_EVENTS_KEY):
-            try:
-                ecalc_events.append(adapter.validate_python(ecalc_event))
-            except PydanticValidationError:
-                pass
-        return ecalc_events
+    def timeline_events(self) -> dict[TimelineEventReference, YamlTimelineEvent]:
+        timeline = self._get_yaml_dict_or_empty(_TIMELINE_KEY)
+        raw_events = timeline.get(_EVENTS_KEY)
+        if not isinstance(raw_events, dict):
+            return {}
 
-    @property
-    def process_events(self) -> list[YamlProcessEvent]:
-        process_events: list[YamlProcessEvent] = []
-        adapter = TypeAdapter(YamlProcessEvent)
-        for process_event in self._get_yaml_list_or_empty(_PROCESS_EVENTS_KEY):
+        timeline_events: dict[TimelineEventReference, YamlTimelineEvent] = {}
+        adapter = TypeAdapter(YamlTimelineEvent)
+        for reference, timeline_event in raw_events.items():
             try:
-                process_events.append(adapter.validate_python(process_event))
+                timeline_events[reference] = adapter.validate_python(timeline_event)
             except PydanticValidationError:
                 pass
-        return process_events
-
-    @property
-    def energy_events(self) -> list[YamlEnergyEvent]:
-        energy_events: list[YamlEnergyEvent] = []
-        adapter = TypeAdapter(YamlEnergyEvent)
-        for energy_event in self._get_yaml_list_or_empty(_ENERGY_EVENTS_KEY):
-            try:
-                energy_events.append(adapter.validate_python(energy_event))
-            except PydanticValidationError:
-                pass
-        return energy_events
+        return timeline_events
 
     @property
     def pump_process_simulations(self) -> list[YamlPumpProcessSimulation]:
