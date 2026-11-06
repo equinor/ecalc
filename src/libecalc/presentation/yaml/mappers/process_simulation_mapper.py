@@ -7,8 +7,8 @@ from libecalc.common.units import Unit
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
-from libecalc.ecalc_model.compressor_equipment import CompressorId
 from libecalc.ecalc_model.ecalc_event import EcalcEvent, EcalcEventService
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.ecalc_model.process_simulation import (
     AntiSurgeConfig,
     CommonStreamDistributionConfig,
@@ -136,7 +136,7 @@ class ProcessSimulationMapper:
         resources: Resources,
         ecalc_event_service: EcalcEventService,
         shaft_by_compressor: Mapping[CompressorReference, ShaftReference],
-        compressor_ids: Mapping[CompressorReference, CompressorId],
+        compressor_equipment_ids: Mapping[CompressorReference, EquipmentId],
     ):
         self._expression_evaluator = expression_evaluator
         self._fluid_service = fluid_service
@@ -144,7 +144,7 @@ class ProcessSimulationMapper:
         self._resources = resources
         self._ecalc_event_service = ecalc_event_service
         self._shaft_by_compressor = shaft_by_compressor
-        self._compressor_ids = compressor_ids
+        self._compressor_equipment_ids = compressor_equipment_ids
 
     def _resolve_pipeline_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
         if isinstance(ref, str):
@@ -354,7 +354,9 @@ class ProcessSimulationMapper:
                         assert isinstance(yaml_pipeline_item, YamlCompressorProcessUnitInstance)
                         unit = self._get_compressor(
                             yaml_process_unit,
-                            process_unit_id=ProcessUnitId(self._compressor_ids[yaml_pipeline_item.compressor]),
+                            process_unit_id=ProcessUnitId(
+                                self._compressor_equipment_ids[yaml_pipeline_item.compressor]
+                            ),
                         )
                         shaft_name = self._shaft_by_compressor[yaml_pipeline_item.compressor]
                         if shaft_name not in solver_shafts:
