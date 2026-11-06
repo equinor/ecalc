@@ -9,7 +9,6 @@ from pydantic import Field
 from libecalc.presentation.yaml.definition_expander import get_expected_types
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlCompressorDefinition,
     YamlLiquidRemoverDefinition,
     YamlMixerDefinition,
     YamlPressureDropperDefinition,
@@ -97,11 +96,3 @@ def test_get_expected_types_with_real_process_unit_annotation():
         YamlMixerDefinition,
         YamlSplitterDefinition,
     }
-
-
-def test_get_expected_types_with_real_compressor_event_annotation():
-    """Verify against the change_from/change_to annotation: YamlCompressorDefinition | DefinitionReference."""
-    annotation = YamlCompressorDefinition | DefinitionReference
-
-    result = get_expected_types(annotation)
-    assert result == [YamlCompressorDefinition]

@@ -5,6 +5,12 @@ import pytest
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
 from libecalc.ecalc_model.process_simulation import Constraint
+from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService, TimelineEventType
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
+    PipelineEventAction,
+    PipelineEventChangeType,
+    YamlPipelineEvent,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
@@ -20,7 +26,9 @@ from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
-    YamlCompressorBuilder,
+    YamlCompressorChartBuilder,
+    YamlCompressorModelChartBuilder,
+    YamlCurveBuilder,
     YamlLiquidRemoverBuilder,
     YamlMixerBuilder,
     YamlPressureDropperBuilder,
@@ -45,9 +53,7 @@ def _simple_pipeline(name: str = "train_1"):
         .with_item(target=YamlPressureDropperBuilder().with_test_data().validate())
         .with_item(target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_item(target=YamlLiquidRemoverBuilder().with_test_data().validate())
-        .with_compressor_item(
-            compressor=f"{name} compressor", target=YamlCompressorBuilder().with_test_data().validate()
-        )
+        .with_compressor_item(compressor=f"{name} compressor")
         .validate()
     )
 
@@ -175,11 +181,11 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer_and_splitter")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_1")
         .with_item(target=YamlSplitterBuilder().with_test_data().validate())
         .with_item(target=YamlMixerBuilder().with_test_data().validate())
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_2")
         .validate()
     )
     yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
@@ -288,9 +294,9 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
         YamlProcessPipelineBuilder()
         .with_name("train_with_aftercooler")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_1")
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_2")
         .with_item(name="temp_setter_3", target=YamlTemperatureSetterBuilder().with_test_data().validate())
         .validate()
     )
@@ -322,9 +328,9 @@ def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper_fact
         YamlProcessPipelineBuilder()
         .with_name("train_with_duplicate_unit_names")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_1")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_2")
         .validate()
     )
     yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
@@ -368,10 +374,10 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
         YamlProcessPipelineBuilder()
         .with_name("train_with_intermediate_constraint")
         .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_1", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_1")
         .with_item(target=YamlMixerBuilder().with_test_data().validate())
         .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_2", target=YamlCompressorBuilder().with_test_data().validate())
+        .with_compressor_item(compressor="compressor_2")
         .validate()
     )
 
@@ -410,3 +416,63 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
         problem.get_process_problem_sections()[0].get_constraint().target_process_unit_id
         != problem.get_process_problem_sections()[1].get_constraint().target_process_unit_id
     )
+
+
+# ---------------------------------------------------------------------------
+# Tests: pipeline events
+# ---------------------------------------------------------------------------
+
+
+def test_rebundle_changes_the_model_and_keeps_the_compressor_id(process_simulation_mapper_factory):
+    """A REBUNDLE swaps the compressor's model for the one in CHANGE_TO. It is the same physical compressor, so the new
+    model gets the process unit id of the compressor it replaces."""
+    model_after = (
+        YamlCompressorModelChartBuilder()
+        .with_test_data()
+        .with_chart(
+            YamlCompressorChartBuilder()
+            .with_test_data()
+            .with_curves([YamlCurveBuilder().with_test_data().with_speed(12000.0).validate()])
+            .validate()
+        )
+        .validate()
+    )
+    pipeline = (
+        YamlProcessPipelineBuilder()
+        .with_name("train_1")
+        .with_compressor_item(compressor="comp")
+        .with_events(
+            [
+                YamlPipelineEvent(
+                    type=PipelineEventAction.CHANGE,
+                    change_target="comp",
+                    change_to=model_after,
+                    change_type=PipelineEventChangeType.REBUNDLE,
+                    ref="rebundle",
+                )
+            ]
+        )
+        .validate()
+    )
+    yaml_simulation, refs = _build_simulation_with_pipeline(pipeline)
+    timeline_event_service = TimelineEventService(
+        timeline_events=[
+            TimelineEvent(
+                reference="rebundle",
+                title="Rebundle",
+                type=TimelineEventType.OTHER,
+                from_when=PERIOD.start,
+                description=None,
+            )
+        ]
+    )
+
+    pipelines, _ = process_simulation_mapper_factory(
+        refs, timeline_event_service=timeline_event_service
+    ).map_process_simulation(yaml_process_simulation=yaml_simulation)
+
+    [compressor] = [unit for unit in pipelines[0].get_process_units() if isinstance(unit, Compressor)]
+    [event] = pipelines[0].get_events()
+    assert isinstance(event.change_to, Compressor)
+    assert event.change_to.get_id() == compressor.get_id()
+    assert event.change_to.compressor_chart.maximum_speed == 12000.0

@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineCurve, YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
@@ -12,7 +12,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.testing.energy_builders import YamlEnergyNetworkBuilder
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
-    YamlCompressorBuilder,
+    YamlCompressorModelChartBuilder,
     YamlDefinitionsBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
@@ -28,23 +28,19 @@ TURBINE_MODEL = YamlTurbineDefinition(
 def _pipeline(name: str, *compressors: str) -> YamlProcessPipeline:
     builder = YamlProcessPipelineBuilder().with_name(name)
     for compressor in compressors:
-        builder.with_compressor_item(compressor=compressor, target="compressor")
+        builder.with_compressor_item(compressor=compressor)
     return builder.validate()
-
-
-def _compressor_definitions() -> YamlDefinitions:
-    return (
-        YamlDefinitionsBuilder()
-        .with_process_unit("compressor", YamlCompressorBuilder().with_test_data().validate())
-        .validate()
-    )
 
 
 def _pipeline_with_shaft_on_process_unit(name: str, compressor: str, shaft: str) -> YamlProcessPipeline:
     return YamlProcessPipeline(
         name=name,
         process_units=[
-            YamlCompressorProcessUnitInstance(target="compressor", compressor=compressor, shaft=shaft)  # pyright: ignore[reportCallIssue]
+            YamlCompressorProcessUnitInstance(
+                compressor=compressor,
+                model=YamlCompressorModelChartBuilder().with_test_data().validate(),
+                shaft=shaft,
+            )
         ],
     )
 
@@ -58,7 +54,7 @@ def test_allows_shaft_on_compressor_process_unit_before_v3():
         .with_end("2025-01-01")
         .with_shafts([YamlShaft(name="export_shaft", compressors=["lp_compressor"])])
         .with_compressors(compressors_in(pipeline))
-        .with_definitions(_compressor_definitions())
+        .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         .with_process_pipelines({pipeline.name: pipeline})
         .validate()
     )
@@ -77,7 +73,7 @@ def test_rejects_shaft_on_compressor_process_unit_from_v3():
             .with_end("2025-01-01")
             .with_shafts([YamlShaft(name="export_shaft", compressors=["lp_compressor"])])
             .with_compressors(compressors_in(pipeline))
-            .with_definitions(_compressor_definitions())
+            .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
             .with_process_pipelines({pipeline.name: pipeline})
             .validate()
         )
@@ -110,7 +106,7 @@ def _asset(
         .with_end("2025-01-01")
         .with_shafts(shafts)
         .with_compressors(compressors_in(*pipelines))
-        .with_definitions(_compressor_definitions())
+        .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         .with_process_pipelines({pipeline.name: pipeline for pipeline in pipelines})
         .with_process_simulations(simulations)
     )
@@ -119,15 +115,15 @@ def _asset(
     return builder.validate()
 
 
-def test_rejects_compressor_definition_without_compressor_reference(
-    yaml_process_pipeline_builder_factory, yaml_compressor_builder_factory
+def test_rejects_compressor_model_without_compressor_reference(
+    yaml_process_pipeline_builder_factory, yaml_compressor_model_builder_factory
 ):
     with pytest.raises(ValidationError):
         (
             yaml_process_pipeline_builder_factory()
             .with_name("export_pipeline")
-            .with_compressor_item(compressor="lp_compressor", target="compressor")
-            .with_item(name="hp_compressor", target=yaml_compressor_builder_factory().with_test_data().validate())
+            .with_compressor_item(compressor="lp_compressor", model="compressor")
+            .with_item(name="hp_compressor", target=yaml_compressor_model_builder_factory().with_test_data().validate())
             .validate()
         )
 

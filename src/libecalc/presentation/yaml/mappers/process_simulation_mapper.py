@@ -57,7 +57,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlCompressorDefinition,
     YamlCompressorModelChart,
     YamlLiquidRemoverDefinition,
     YamlMixerDefinition,
@@ -190,8 +189,10 @@ class ProcessSimulationMapper:
                 yaml_curves, units=yaml_chart.units, control_margin=control_margin_fraction
             )
 
-    def _get_compressor(self, yaml_compressor: YamlCompressorDefinition, process_unit_id: ProcessUnitId) -> Compressor:
-        chart: ChartData = self._get_compressor_chart(yaml_compressor_model_chart=yaml_compressor.compressor_model)
+    def _get_compressor(
+        self, yaml_compressor_model: YamlCompressorModelChart, process_unit_id: ProcessUnitId
+    ) -> Compressor:
+        chart: ChartData = self._get_compressor_chart(yaml_compressor_model_chart=yaml_compressor_model)
         return Compressor(
             compressor_chart=chart,
             fluid_service=self._fluid_service,
@@ -280,12 +281,12 @@ class ProcessSimulationMapper:
             timeline_event = self._timeline_event_service.get_event_by_reference(yaml_event.ref)
             change_target = unit_name_to_id[yaml_event.change_target]
             match yaml_event.change_to:
-                case YamlCompressorDefinition():
-                    # Same physical compressor after the rebundle, so the new specification keeps its id.
+                case YamlCompressorModelChart():
+                    # Same physical compressor after the rebundle, so the new model keeps its id.
                     change_to_unit = self._get_compressor(yaml_event.change_to, process_unit_id=change_target)
                 case _:
                     raise EcalcValidationException(
-                        f"Pipeline event CHANGE_TO '{type(yaml_event.change_to)}' does not match any compressor (chart) unit."
+                        f"Pipeline event CHANGE_TO '{yaml_event.change_to}' is not a compressor model."
                     )
 
             events.append(
@@ -336,14 +337,16 @@ class ProcessSimulationMapper:
             ] = {}
 
             for yaml_pipeline_item in item.process_units:
-                yaml_process_unit = yaml_pipeline_item.target
+                yaml_process_unit = (
+                    yaml_pipeline_item.model
+                    if isinstance(yaml_pipeline_item, YamlCompressorProcessUnitInstance)
+                    else yaml_pipeline_item.target
+                )
                 process_unit_name = yaml_pipeline_item.get_instance_reference()
 
                 match yaml_process_unit:
-                    case YamlCompressorDefinition():
-                        assert isinstance(yaml_pipeline_item, YamlCompressorProcessUnitInstance), (
-                            "Expected shaft driven instance for compressor definition"
-                        )
+                    case YamlCompressorModelChart():
+                        assert isinstance(yaml_pipeline_item, YamlCompressorProcessUnitInstance)
                         unit = self._get_compressor(
                             yaml_process_unit,
                             process_unit_id=ProcessUnitId(self._compressor_ids[yaml_pipeline_item.compressor]),

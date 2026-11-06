@@ -7,15 +7,21 @@ from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
     DefinitionReference,
     InstanceReference,
+    validate_definition_reference_or_inline_model,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlCompressorDefinition,
+    YamlCompressorModelChart,
     YamlProcessUnitDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
 from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, yaml_element_lifecycle
+
+CompressorModelOrReference = Annotated[
+    DefinitionReference | YamlCompressorModelChart,
+    validate_definition_reference_or_inline_model(YamlCompressorModelChart),
+]
 
 
 class YamlProcessUnitInstance[TTarget](YamlBase):
@@ -32,7 +38,11 @@ class YamlProcessUnitInstance[TTarget](YamlBase):
 class YamlCompressorProcessUnitInstance(YamlBase):
     model_config = ConfigDict(title="COMPRESSOR_PROCESS_UNIT")
 
-    target: YamlCompressorDefinition | DefinitionReference
+    model: CompressorModelOrReference = Field(
+        ...,
+        title="MODEL",
+        description="The compressor model.",
+    )
     compressor: CompressorReference = Field(
         ...,
         title="COMPRESSOR",
@@ -80,18 +90,11 @@ class YamlPipelineEvent(YamlBase):
             "compressor process unit in this pipeline.",
         ),
     ]
-    change_from: Annotated[
-        YamlCompressorDefinition | DefinitionReference,
-        Field(
-            title="CHANGE_FROM",
-            description="Reference to the existing process unit template being replaced.",
-        ),
-    ]
     change_to: Annotated[
-        YamlCompressorDefinition | DefinitionReference,
+        CompressorModelOrReference,
         Field(
             title="CHANGE_TO",
-            description="Reference to the new process unit template to use.",
+            description="The compressor model to use from the event on.",
         ),
     ]
     change_type: Annotated[

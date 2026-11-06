@@ -29,7 +29,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
-    YamlCompressorBuilder,
+    YamlCompressorModelChartBuilder,
     YamlDefinitionsBuilder,
     YamlPressureDropperBuilder,
     YamlProcessPipelineBuilder,
@@ -57,9 +57,7 @@ def _build_pipeline(name="train_1"):
         YamlProcessPipelineBuilder()
         .with_name(name)
         .with_item(target=YamlPressureDropperBuilder().with_test_data().validate(), name="dropper")
-        .with_compressor_item(
-            target=YamlCompressorBuilder().with_test_data().validate(), compressor=f"{name} compressor"
-        )
+        .with_compressor_item(compressor=f"{name} compressor")
         .validate()
     )
 
@@ -102,7 +100,7 @@ class TestTargetReferencesNonexistentPipeline:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 59
+	Object starting on line 58
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -150,7 +148,7 @@ class TestConstraintReferencesInvalid:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 59
+	Object starting on line 58
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -190,7 +188,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 101
+	Object starting on line 98
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Missing constraint for process system 'train_2'
 """)
@@ -235,7 +233,7 @@ class TestInletStreamReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 59
+	Object starting on line 58
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_stream'. Available references: fuel, train_1, my_sim
 """)
@@ -249,13 +247,10 @@ class TestPipelineEventRefNotFound:
     def test_pipeline_event_ref_not_found(self, yaml_model_factory):
         """A pipeline event with a ref that doesn't match any timeline event
         should produce a clear error."""
-        compressor_def = YamlCompressorBuilder().with_test_data().validate()
-
         event = YamlPipelineEvent(
             type=PipelineEventAction.CHANGE,
             change_target="stage_1",
-            change_from=compressor_def,
-            change_to=compressor_def,
+            change_to=YamlCompressorModelChartBuilder().with_test_data().validate(),
             change_type=PipelineEventChangeType.REBUNDLE,
             ref="nonexistent_event",
         )
@@ -264,7 +259,7 @@ class TestPipelineEventRefNotFound:
             YamlProcessPipelineBuilder()
             .with_name("train_1")
             .with_item(target=YamlPressureDropperBuilder().with_test_data().validate(), name="dropper")
-            .with_compressor_item(target=compressor_def, compressor="stage_1")
+            .with_compressor_item(compressor="stage_1")
             .with_events([event])
             .validate()
         )
@@ -294,7 +289,7 @@ class TestPipelineEventRefNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 121
+	Object starting on line 89
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Event reference 'nonexistent_event' does not match any event in TIMELINE.EVENTS.
 """)
@@ -340,7 +335,7 @@ class TestOverflowReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 59
+	Object starting on line 58
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)
@@ -382,7 +377,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 59
+	Object starting on line 58
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: fuel, train_1, my_sim
 """)

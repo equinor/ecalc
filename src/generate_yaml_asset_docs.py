@@ -63,7 +63,6 @@ from libecalc.testing.energy_builders import (
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompositionFluidDefinitionBuilder,
-    YamlCompressorBuilder,
     YamlCompressorChartBuilder,
     YamlCompressorModelChartBuilder,
     YamlCurveBuilder,
@@ -86,6 +85,7 @@ from libecalc.testing.process_builders import (
 # includes only that sub-field, so a section can be split across documents.
 PROCESS_INCLUDE_FIELDS = {
     "definitions.process_units",
+    "definitions.compressor_models",
     "definitions.fluids",
     "shafts",
     "compressors",
@@ -109,7 +109,7 @@ class Example:
     An example YAML snippet associated with a path in the documentation tree.
 
     Attributes:
-        path: Dot-separated YAML key path (e.g. "DEFINITIONS.PROCESS_UNITS.COMPRESSOR").
+        path: Dot-separated YAML key path (e.g. "DEFINITIONS.PROCESS_UNITS.PRESSURE_DROPPER").
               For discriminated union variants, the variant name is used as the last segment.
         builder: A callable that returns a validated pydantic model instance.
         abbreviate: Whether fields with their own registered example are shown as '...'.
@@ -182,23 +182,20 @@ def _replace_with_ellipsis(data: dict | list | Any, child_paths: set[str], curre
 # ---------------------------------------------------------------------------
 
 EXAMPLES: list[Example] = [
-    # --- DEFINITIONS.PROCESS_UNITS variants ---
+    # --- DEFINITIONS.COMPRESSOR_MODELS ---
     Example(
-        "DEFINITIONS.PROCESS_UNITS.COMPRESSOR",
-        lambda: YamlCompressorBuilder().with_test_data().validate(),
-    ),
-    Example(
-        "DEFINITIONS.PROCESS_UNITS.COMPRESSOR.COMPRESSOR_MODEL",
+        "DEFINITIONS.COMPRESSOR_MODELS",
         lambda: YamlCompressorModelChartBuilder().with_test_data().validate(),
     ),
     Example(
-        "DEFINITIONS.PROCESS_UNITS.COMPRESSOR.COMPRESSOR_MODEL.CHART",
+        "DEFINITIONS.COMPRESSOR_MODELS.CHART",
         lambda: YamlCompressorChartBuilder().with_test_data().validate(),
     ),
     Example(
-        "DEFINITIONS.PROCESS_UNITS.COMPRESSOR.COMPRESSOR_MODEL.CHART.CURVES.YAMLCURVE",
+        "DEFINITIONS.COMPRESSOR_MODELS.CHART.CURVES.YAMLCURVE",
         lambda: YamlCurveBuilder().with_test_data().validate(),
     ),
+    # --- DEFINITIONS.PROCESS_UNITS variants ---
     Example(
         "DEFINITIONS.PROCESS_UNITS.PRESSURE_DROPPER",
         lambda: YamlPressureDropperBuilder().with_test_data().validate(),
@@ -258,10 +255,7 @@ EXAMPLES: list[Example] = [
                 name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
             )
             .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
-            .with_compressor_item(
-                compressor="default_compressor",
-                target=YamlCompressorBuilder().with_test_data().validate(),
-            )
+            .with_compressor_item(compressor="default_compressor", model="default_compressor_model")
             .validate()
         ),
     ),
@@ -902,7 +896,7 @@ def _build_definitions_type_map() -> dict[type, str]:
     Build a mapping from BaseModel types to their DEFINITIONS subsection title.
 
     Introspects YamlDefinitions to find which model types belong to which
-    subsection (e.g. YamlCompressorDefinition -> "PROCESS_UNITS").
+    subsection (e.g. YamlPressureDropperDefinition -> "PROCESS_UNITS").
     """
     type_to_section: dict[type, str] = {}
 

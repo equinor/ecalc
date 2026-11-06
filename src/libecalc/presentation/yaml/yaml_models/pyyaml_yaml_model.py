@@ -40,7 +40,10 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlReferenceableProcessUnitDefinition
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
+    YamlCompressorModelChart,
+    YamlProcessUnitDefinition,
+)
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
@@ -53,6 +56,7 @@ from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidati
 # Top-level YAML keywords used only by experimental/new sections
 _DEFINITIONS_KEY = "DEFINITIONS"
 _PROCESS_UNITS_KEY = "PROCESS_UNITS"
+_COMPRESSOR_MODELS_KEY = "COMPRESSOR_MODELS"
 _PROCESS_PIPELINES_KEY = "PROCESS_PIPELINES"
 _INLET_STREAMS_KEY = "INLET_STREAMS"
 _FLUID_MODELS_KEY = "FLUID_MODELS"
@@ -335,7 +339,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
         )
         if isinstance(definitions, dict):
-            for section in (_PROCESS_UNITS_KEY, _TURBINES_KEY, _GENERATORS_KEY):
+            for section in (_PROCESS_UNITS_KEY, _COMPRESSOR_MODELS_KEY, _TURBINES_KEY, _GENERATORS_KEY):
                 resource_names.extend(_find_file_references(definitions.get(section)))
         for section in ("PROCESS_PIPELINES", "ENERGY_NETWORK"):
             resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
@@ -465,7 +469,8 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def definitions(self) -> YamlDefinitions:
-        process_units: dict[str, YamlReferenceableProcessUnitDefinition] = {}
+        process_units: dict[str, YamlProcessUnitDefinition] = {}
+        compressor_models: dict[str, YamlCompressorModelChart] = {}
         fluids: dict[str, YamlFluidDefinition] = {}
         turbines: dict[str, YamlTurbineDefinition] = {}
         generators: dict[str, YamlGeneratorDefinition] = {}
@@ -473,13 +478,19 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
         )
         raw_process_units = definitions.get(_PROCESS_UNITS_KEY, {}) if isinstance(definitions, dict) else {}
+        raw_compressor_models = definitions.get(_COMPRESSOR_MODELS_KEY, {}) if isinstance(definitions, dict) else {}
         raw_fluids = definitions.get(_FLUIDS_KEY, {}) if isinstance(definitions, dict) else {}
         raw_turbines = definitions.get(_TURBINES_KEY, {}) if isinstance(definitions, dict) else {}
         raw_generators = definitions.get(_GENERATORS_KEY, {}) if isinstance(definitions, dict) else {}
 
         for name, unit_data in raw_process_units.items():
             try:
-                process_units[name] = TypeAdapter(YamlReferenceableProcessUnitDefinition).validate_python(unit_data)
+                process_units[name] = TypeAdapter(YamlProcessUnitDefinition).validate_python(unit_data)
+            except PydanticValidationError:
+                pass
+        for name, compressor_model_data in raw_compressor_models.items():
+            try:
+                compressor_models[name] = YamlCompressorModelChart.model_validate(compressor_model_data)
             except PydanticValidationError:
                 pass
         for name, fluid_data in raw_fluids.items():
@@ -498,7 +509,13 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             except PydanticValidationError:
                 pass
 
-        return YamlDefinitions(process_units=process_units, fluids=fluids, turbines=turbines, generators=generators)
+        return YamlDefinitions(
+            process_units=process_units,
+            compressor_models=compressor_models,
+            fluids=fluids,
+            turbines=turbines,
+            generators=generators,
+        )
 
     @property
     def shafts(self) -> list[YamlShaft]:
