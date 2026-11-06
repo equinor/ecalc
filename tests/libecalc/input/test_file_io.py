@@ -448,3 +448,23 @@ class TestZipUpload:
 
         assert relative_paths[arbitrary_include_file.original_filename] == "../resources/file.yaml"
         assert relative_paths[main_yaml.original_filename] == "main.yaml"
+
+
+@pytest.mark.parametrize(
+    "content, expected",
+    [
+        ("INSTALLATIONS:\n  - NAME: a\n", True),
+        ("TIME_SERIES:\n  - NAME: a\n", True),
+        ("FACILITY_INPUTS: []\n", True),
+        ("FUEL_TYPES: []\n", True),
+        ("YAML_VERSION: 2\nDEFINITIONS:\n  TURBINES: {}\n", True),
+        ("ENERGY_NETWORK:\n  UNITS: []\n", True),
+        ("PROCESS_PIPELINES: {}\n", True),
+        ("PROCESS_SIMULATIONS: []\n", True),
+        ("- NAME: included_list\n", False),
+        ("NAME: genset\nTYPE: GENERATOR\n", False),
+        ("", False),
+    ],
+)
+def test_is_main_yaml_content(content: str, expected: bool):
+    assert file_io.is_main_yaml_content(content) is expected

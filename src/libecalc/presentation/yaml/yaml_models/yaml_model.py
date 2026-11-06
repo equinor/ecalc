@@ -5,12 +5,11 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any, TextIO
 
-from libecalc.common.logger import logger
 from libecalc.presentation.yaml.file_context import FileContext
 from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
 )
-from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
+from libecalc.presentation.yaml.yaml_models.yaml_editable import DataModelYamlEditor, YamlEditable
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
@@ -248,6 +247,10 @@ class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
         self._internal_datamodel = internal_datamodel
         self._name = name
 
+    def as_editable(self) -> YamlEditable:
+        """Get an editor for this yaml model. Edits are applied in place, and are reflected when dumping the model."""
+        return DataModelYamlEditor(self._internal_datamodel)
+
     class Builder:
         """Inner class to build yaml models."""
 
@@ -274,89 +277,3 @@ class YamlConfiguration(YamlReader, YamlDumper, metaclass=abc.ABCMeta):
                 return PyYamlYamlModel
 
             raise NotImplementedError(f"Unknown yaml model implementation provided: {str(reader_type)}")
-
-    class UpdateStatus(enum.Enum):
-        """Update status for updating resource files when loading yaml and attempting to match
-        To avoid that we just break and raie an exception, but handle it gracefully.
-
-        Inner class, because it is only relevant in this context...
-        """
-
-        ZERO_UPDATES = "Zero Updates"
-        ONE_UPDATE = "One Update"
-        MANY_UPDATES = "Many Updates"
-
-    def update_resource_names(self, mappings: dict[str, str]) -> dict[str, UpdateStatus]:
-        """In-place update resource names, mappings on the format:
-            old_name: new_name
-        :return:
-        """
-        update_statuses: dict[str, YamlConfiguration.UpdateStatus] = {}
-
-        for old_name, new_name in mappings.items():
-            update_statuses[old_name] = self.update_resource_name(old_name, new_name)
-
-        return update_statuses
-
-    def update_resource_name(self, old_name: str, new_name: str) -> UpdateStatus:
-        names_updated = 0
-        names_updated += self.__update_resource(
-            resource_type=EcalcYamlKeywords.time_series, old_value=old_name, new_value=new_name
-        )
-        names_updated += self.__update_resource(
-            resource_type=EcalcYamlKeywords.facility_inputs, old_value=old_name, new_value=new_name
-        )
-
-        names_updated += self.__update_resource(
-            resource_type=EcalcYamlKeywords.models, old_value=old_name, new_value=new_name
-        )
-
-        if names_updated == 0:
-            logger.warning(f"No resource was found with name: '{old_name}'.")
-            return YamlConfiguration.UpdateStatus.ZERO_UPDATES
-        if names_updated > 1:
-            logger.warning(f"More than one resource was updated ('{old_name}' found '{names_updated}' times).")
-            return YamlConfiguration.UpdateStatus.MANY_UPDATES
-        return YamlConfiguration.UpdateStatus.ONE_UPDATE
-
-    def __update_resource(self, resource_type: str, old_value: str, new_value: str) -> int:
-        """Update a nested dict object in the YAML config data.
-
-        Args:
-            resource_type: The type of resource to update.
-            old_value: The old file name of the resource.
-            new_value: The new file name of the resource.
-
-        Returns:
-            One or zero if resource field is found. Used to count the number of updates.
-        """
-        field = EcalcYamlKeywords.file
-        for resource in self._internal_datamodel.get(resource_type, []):
-            if not isinstance(resource, dict):
-                continue
-
-            try:
-                if resource_type == EcalcYamlKeywords.models:
-                    curves = resource[EcalcYamlKeywords.consumer_chart_curves]
-                    if isinstance(curves, dict):
-                        if curves[field] == old_value:
-                            curves[field] = new_value
-                            return 1
-            except KeyError:
-                pass
-            try:
-                curve = resource[EcalcYamlKeywords.consumer_chart_curve]
-                if isinstance(curve, dict):
-                    if curve[field] == old_value:
-                        curve[field] = new_value
-                        return 1
-            except KeyError:
-                pass
-            try:
-                if resource[field] == old_value:
-                    resource[field] = new_value
-                    return 1
-            except KeyError:
-                pass
-
-        return 0
