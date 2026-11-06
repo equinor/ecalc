@@ -181,7 +181,7 @@ class YamlAsset(YamlBase):
         title="COMPRESSORS",
         description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
         "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,

@@ -1076,7 +1076,7 @@ Defines named shafts representing mechanical connections between drivers and dri
 | `NAME` | Unique name of the shaft. | Required |
 | `COMPRESSORS` <LifecycleBadge kind="introduced" version="2" /> | Names of the compressors in COMPRESSORS that sit on this shaft and run at its speed. A compressor placed in a process pipeline must be on a shaft. A DRIVE_TRAIN on this shaft drives all of them. | Optional |
 
-## COMPRESSORS <LifecycleBadge kind="introduced" version="2" /> \{#compressors}
+## COMPRESSORS <LifecycleBadge kind="introduced" version="3" /> \{#compressors}
 
 Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.
 
@@ -1434,11 +1434,11 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `ELECTRICAL_CONSUMER` | Required |
-| [`LOAD`](#energy_network-units-electrical_consumer-load) | Electrical power demand (MW), as an expression or a curve lookup. | Required |
+| [`LOAD`](#energy_network-units-electrical_consumer-load) | Electrical power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve. | Required |
 
 ##### LOAD \{#energy_network-units-electrical_consumer-load}
 
-Electrical power demand (MW), as an expression or a curve lookup.
+Electrical power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve.
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1451,6 +1451,8 @@ Electrical power demand (MW), as an expression or a curve lookup.
 <TabItem value="POWERCURVE" label="POWERCURVE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="4" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1494,11 +1496,11 @@ Electrical power demand (MW), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `MECHANICAL_CONSUMER` | Required |
-| [`LOAD`](#energy_network-units-mechanical_consumer-load) | Shaft power demand (MW), as an expression or a curve lookup. | Required |
+| [`LOAD`](#energy_network-units-mechanical_consumer-load) | Shaft power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve. | Required |
 
 ##### LOAD \{#energy_network-units-mechanical_consumer-load}
 
-Shaft power demand (MW), as an expression or a curve lookup.
+Shaft power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve.
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1511,6 +1513,8 @@ Shaft power demand (MW), as an expression or a curve lookup.
 <TabItem value="POWERCURVE" label="POWERCURVE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="4" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1571,11 +1575,11 @@ Shaft power demand (MW), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `FUEL_GAS_CONSUMER` | Required |
-| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
+| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve. | Required |
 
 ##### RATE \{#energy_network-units-fuel_gas_consumer-rate}
 
-Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
+Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve.
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1588,6 +1592,8 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 <TabItem value="FUELTABLE" label="FUELTABLE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="4" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1631,11 +1637,11 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `DIESEL_CONSUMER` | Required |
-| [`RATE`](#energy_network-units-diesel_consumer-rate) | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
+| [`RATE`](#energy_network-units-diesel_consumer-rate) | Diesel consumption rate (l/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve. | Required |
 
 ##### RATE \{#energy_network-units-diesel_consumer-rate}
 
-Diesel consumption rate (l/d), as an expression or a curve lookup.
+Diesel consumption rate (l/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve.
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1648,6 +1654,8 @@ Diesel consumption rate (l/d), as an expression or a curve lookup.
 <TabItem value="FUELTABLE" label="FUELTABLE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="4" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 

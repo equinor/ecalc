@@ -22,6 +22,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
+from libecalc.presentation.yaml.yaml_types.yaml_version import V4, yaml_element_lifecycle
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -276,7 +277,7 @@ class YamlConsumerBase(YamlBase):
 
 
 class YamlPowerCurve(YamlBase):
-    model_config = ConfigDict(title="PowerCurve")
+    model_config = ConfigDict(title="PowerCurve", json_schema_extra=yaml_element_lifecycle(available_since=V4))
 
     variable: Annotated[
         list[float],
@@ -301,6 +302,7 @@ class YamlLoadCurve(YamlBase):
     model_config = ConfigDict(
         title="LoadCurve",
         json_schema_extra={
+            **yaml_element_lifecycle(available_since=V4),
             "examples": [
                 {"CURVE": {"VARIABLE": [0, 1000, 5000], "POWER": [0, 0.8, 3.4]}, "VARIABLE": "SIM;RATE"},
                 {"CURVE": {"FILE": "pump_sampled.csv"}, "VARIABLE": "SIM;RATE"},
@@ -335,7 +337,7 @@ class YamlLoadCurve(YamlBase):
 
 
 class YamlFuelTable(YamlBase):
-    model_config = ConfigDict(title="FuelTable")
+    model_config = ConfigDict(title="FuelTable", json_schema_extra=yaml_element_lifecycle(available_since=V4))
 
     variable: Annotated[
         list[float],
@@ -361,6 +363,7 @@ class YamlRateCurve(YamlBase):
     model_config = ConfigDict(
         title="RateCurve",
         json_schema_extra={
+            **yaml_element_lifecycle(available_since=V4),
             "examples": [
                 {"CURVE": {"VARIABLE": [0, 1000, 5000], "FUEL": [0, 8000, 35000]}, "VARIABLE": "SIM;RATE"},
                 {"CURVE": {"FILE": "flare_sampled.csv"}, "VARIABLE": "SIM;RATE"},
@@ -402,7 +405,8 @@ class YamlElectricalConsumer(YamlConsumerBase):
         YamlExpressionType | YamlLoadCurve,
         Field(
             title="LOAD",
-            description="Electrical power demand (MW), as an expression or a curve lookup.",
+            description="Electrical power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve.",
+            json_schema_extra=yaml_element_lifecycle(changed_since=V4),
         ),
     ]
 
@@ -422,7 +426,8 @@ class YamlMechanicalConsumer(YamlConsumerBase):
         YamlExpressionType | YamlLoadCurve,
         Field(
             title="LOAD",
-            description="Shaft power demand (MW), as an expression or a curve lookup.",
+            description="Shaft power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve.",
+            json_schema_extra=yaml_element_lifecycle(changed_since=V4),
         ),
     ]
 
@@ -453,7 +458,8 @@ class YamlFuelGasConsumer(YamlConsumerBase):
         YamlExpressionType | YamlRateCurve,
         Field(
             title="RATE",
-            description="Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.",
+            description="Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve.",
+            json_schema_extra=yaml_element_lifecycle(changed_since=V4),
         ),
     ]
 
@@ -473,7 +479,8 @@ class YamlDieselConsumer(YamlConsumerBase):
         YamlExpressionType | YamlRateCurve,
         Field(
             title="RATE",
-            description="Diesel consumption rate (l/d), as an expression or a curve lookup.",
+            description="Diesel consumption rate (l/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve.",
+            json_schema_extra=yaml_element_lifecycle(changed_since=V4),
         ),
     ]
 
