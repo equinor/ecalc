@@ -56,6 +56,7 @@ class YamlCompressorProcessUnitInstance(YamlBase):
         title="COMPRESSOR",
         description="Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT "
         "refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
 
     # TODO: Available just to mark it as removed.

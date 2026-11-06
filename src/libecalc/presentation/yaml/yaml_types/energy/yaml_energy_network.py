@@ -22,7 +22,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V4, yaml_element_lifecycle
+from libecalc.presentation.yaml.yaml_types.yaml_version import V3, V4, yaml_element_lifecycle
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -515,6 +515,7 @@ class YamlCompressorSampled(YamlConsumerBase):
         Field(
             title="COMPRESSOR",
             description="Reference to a compressor defined in COMPRESSORS.",
+            json_schema_extra=yaml_element_lifecycle(available_since=V3),
         ),
     ]
     file: Annotated[
