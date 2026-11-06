@@ -3,7 +3,7 @@ from io import StringIO
 import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.ecalc_model.compressor_equipment import CompressorEquipment
+from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
 from libecalc.energy.energy_types import ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.presentation.yaml.domain.energy import TimeSeriesGasTurbineFactory

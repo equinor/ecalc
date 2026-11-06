@@ -5,8 +5,8 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.resource import Resource
-from libecalc.ecalc_model.compressor_equipment import CompressorId
-from libecalc.ecalc_model.shaft_equipment import ShaftEquipment
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
+from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
 from libecalc.energy.dispatch import DispatchStrategy, PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
@@ -88,12 +88,14 @@ class EnergyNetworkMapper:
     def __init__(
         self,
         shafts: Mapping[ShaftReference, ShaftEquipment],
-        compressor_ids: Mapping[CompressorReference, CompressorId],
+        compressor_equipment_ids: Mapping[CompressorReference, EquipmentId],
         definitions: dict[str, Any] | None = None,
     ):
         self._shafts = shafts
-        self._compressor_ids = compressor_ids
-        self._compressor_names_by_id = {compressor_id: name for name, compressor_id in compressor_ids.items()}
+        self._compressor_equipment_ids = compressor_equipment_ids
+        self._compressor_names_by_id = {
+            compressor_equipment_id: name for name, compressor_equipment_id in compressor_equipment_ids.items()
+        }
         self._definitions = definitions or {}
 
     def map_energy_network(
@@ -130,7 +132,7 @@ class EnergyNetworkMapper:
             if expansion is not None:
                 assert isinstance(unit, YamlCompressorSampled)
                 # The sampled compressor's own node is identified by the compressor id; a generated turbine is not.
-                node_ids_by_key[unit_key(unit.name)] = EnergyUnitId(self._compressor_ids[unit.compressor])
+                node_ids_by_key[unit_key(unit.name)] = EnergyUnitId(self._compressor_equipment_ids[unit.compressor])
 
         mapped_nodes: list[tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]] = []
         connections: list[tuple[EnergyUnitId, EnergyUnitId]] = []
@@ -159,12 +161,12 @@ class EnergyNetworkMapper:
             elif isinstance(unit, YamlDriveTrain):
                 input_id = node_ids_by_key[unit_key(unit.input)]
 
-                for compressor_id in self._shafts[unit.shaft].compressor_ids:
+                for compressor_equipment_id in self._shafts[unit.shaft].compressor_equipment_ids:
                     # The process mapper uses the compressor id as the process Compressor's id.
                     node = TimeSeriesProcessCompressor(
-                        process_unit_id=ProcessUnitId(compressor_id),
-                        name=self._get_compressor_name(compressor_id),
-                        energy_unit_id=EnergyUnitId(compressor_id),
+                        process_unit_id=ProcessUnitId(compressor_equipment_id),
+                        name=self._get_compressor_name(compressor_equipment_id),
+                        energy_unit_id=EnergyUnitId(compressor_equipment_id),
                     )
                     mapped_nodes.append((node, MechanicalPower, None))
                     connections.append((input_id, node.get_id()))
@@ -193,8 +195,8 @@ class EnergyNetworkMapper:
         ]
         return topology, energy_unit_factories, consumers
 
-    def _get_compressor_name(self, compressor_id: CompressorId) -> str:
-        return self._compressor_names_by_id[compressor_id]
+    def _get_compressor_name(self, compressor_equipment_id: EquipmentId) -> str:
+        return self._compressor_names_by_id[compressor_equipment_id]
 
     @staticmethod
     def _check_no_duplicate_generated_names(
