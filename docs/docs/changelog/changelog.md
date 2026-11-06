@@ -1,5 +1,34 @@
 # Changelog
 
+## [15.6.0](https://github.com/equinor/ecalc/compare/v15.5.0...v15.6.0) (2026-11-06)
+
+
+### Features
+
+* add TIMELINE.EVENTS alongside existing events ([#1917](https://github.com/equinor/ecalc/issues/1917)) ([b9883f1](https://github.com/equinor/ecalc/commit/b9883f17d17e41967fc4d99eeb486c7f14e80bf9))
+* define compressor models in DEFINITIONS.COMPRESSOR_MODELS ([#1912](https://github.com/equinor/ecalc/issues/1912)) ([bc122d9](https://github.com/equinor/ecalc/commit/bc122d95ba0c9f682ccf9383c07f15da1347e69f))
+
+
+### Bug Fixes
+
+* **libecalc:** mark feasibility probes accepted only when actually feasible ([#1914](https://github.com/equinor/ecalc/issues/1914)) ([6ebe76d](https://github.com/equinor/ecalc/commit/6ebe76d3c5e1c637783d57edc0cb0747d4623c75))
+* rate assignment with overflow in COMMON_STREAM ([#1915](https://github.com/equinor/ecalc/issues/1915)) ([b7cd2a0](https://github.com/equinor/ecalc/commit/b7cd2a0b0acbcb45d2d3644feaecbe5b44f401f2))
+
+
+### Miscellaneous Chores
+
+* **deps:** bump astral-sh/setup-uv from 10.3.2 to 10.3.3 ([d15e274](https://github.com/equinor/ecalc/commit/d15e2746ce63ec760c1ba56396840963945cc9f5))
+
+
+### Code Refactoring
+
+* common EquipmentID and clarify id naming ([da5a406](https://github.com/equinor/ecalc/commit/da5a4066676bec995599363846af4f55bad11b39))
+
+
+### Tests
+
+* separate tests for legacy and nextgen ([#1919](https://github.com/equinor/ecalc/issues/1919)) ([b9e6811](https://github.com/equinor/ecalc/commit/b9e681137613f6da282a6c727e22edbed8220683))
+
 ## [15.5.0](https://github.com/equinor/ecalc/compare/v15.4.0...v15.5.0) (2026-11-03)
 
 
