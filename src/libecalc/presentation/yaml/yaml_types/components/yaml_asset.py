@@ -42,6 +42,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
     V2,
     V3,
+    V4,
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
@@ -64,7 +65,7 @@ class YamlDefinitions(YamlBase):
         json_schema_extra=yaml_element_lifecycle(
             available_since=V2,
             changed_in=[
-                (V3, "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead.")
+                (V4, "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead.")
             ],
         ),
     )
@@ -74,7 +75,7 @@ class YamlDefinitions(YamlBase):
         title="COMPRESSOR_MODELS",
         description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
         "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V3),
+        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
 
     fluids: dict[str, YamlFluidDefinition] = Field(
@@ -203,7 +204,7 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="ECALC_EVENTS",
         description="Defines eCalc events associated with temporal model changes",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
     )
     energy_network: YamlEnergyNetwork | None = Field(
         None,
@@ -215,7 +216,7 @@ class YamlAsset(YamlBase):
         default_factory=list,
         title="PROCESS_EVENTS",
         description="Defines process-specific events that reference global eCalc events.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4),
     )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
         default_factory=list,

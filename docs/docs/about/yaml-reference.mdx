@@ -32,7 +32,7 @@ The eCalc YAML schema major version. Determines which root elements are availabl
 
 Contains reusable definitions.
 
-### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <ChangeHistory changes={[{ "version": "3", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead." }]} /> \{#process_units}
+### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <ChangeHistory changes={[{ "version": "4", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead." }]} /> \{#process_units}
 
 Defines process units used in PROCESS_PIPELINES.
 
@@ -131,7 +131,7 @@ Standard rate to split off.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-### COMPRESSOR_MODELS <LifecycleBadge kind="introduced" version="3" /> \{#compressor_models}
+### COMPRESSOR_MODELS <LifecycleBadge kind="introduced" version="4" /> \{#compressor_models}
 
 Defines compressor models that can be referenced by name from MODEL of a compressor process unit in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.
 
@@ -1266,7 +1266,7 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
 
-## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" /> \{#ecalc_events}
+## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> \{#ecalc_events}
 
 Defines eCalc events associated with temporal model changes
 
@@ -1726,7 +1726,7 @@ tabulated.
 
 </Tabs>
 
-## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" /> \{#process_events}
+## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> \{#process_events}
 
 Defines process-specific events that reference global eCalc events.
 
