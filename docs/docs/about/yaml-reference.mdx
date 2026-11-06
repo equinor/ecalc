@@ -32,7 +32,7 @@ The eCalc YAML schema major version. Determines which root elements are availabl
 
 Contains reusable definitions.
 
-### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <ChangeHistory changes={[{ "version": "4", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead." }]} /> \{#process_units}
+### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <ChangeHistory changes={[{ "version": "3", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead." }]} /> \{#process_units}
 
 Defines process units used in PROCESS_PIPELINES.
 
@@ -131,7 +131,7 @@ Standard rate to split off.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-### COMPRESSOR_MODELS <LifecycleBadge kind="introduced" version="4" /> \{#compressor_models}
+### COMPRESSOR_MODELS <LifecycleBadge kind="introduced" version="3" /> \{#compressor_models}
 
 Defines compressor models that can be referenced by name from MODEL of a compressor process unit in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.
 
@@ -1113,7 +1113,7 @@ Defines process pipelines to use in process simulations.
 | --- | --- | --- |
 | `TARGET` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="deprecated" version="3" /> <LifecycleBadge kind="removed" version="4" /> | Reference to a compressor process unit defined in PROCESS_UNITS. From V4: Use MODEL instead. | Optional |
 | `MODEL` <LifecycleBadge kind="introduced" version="4" /> | The compressor model. Replaces TARGET Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
-| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
+| `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
 | `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> | Reference to a shaft defined in SHAFTS. This field is deprecated and has been removed in YAML_VERSION 3. Use the SHAFT &gt; COMPRESSORS instead. | Optional |
 
 
@@ -1437,9 +1437,9 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `ELECTRICAL_CONSUMER` | Required |
-| [`LOAD`](#energy_network-units-electrical_consumer-load) <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> | Electrical power demand (MW), as an expression or a curve lookup. | Required |
+| [`LOAD`](#energy_network-units-electrical_consumer-load) <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> | Electrical power demand (MW), as an expression or a curve lookup. | Required |
 
-##### LOAD <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-electrical_consumer-load}
+##### LOAD <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-electrical_consumer-load}
 
 Electrical power demand (MW), as an expression or a curve lookup.
 
@@ -1455,7 +1455,7 @@ Electrical power demand (MW), as an expression or a curve lookup.
 
 <div className="lifecycle-variant">
 
-<LifecycleBadge kind="introduced" version="4" />
+<LifecycleBadge kind="introduced" version="3" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1499,9 +1499,9 @@ Electrical power demand (MW), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `MECHANICAL_CONSUMER` | Required |
-| [`LOAD`](#energy_network-units-mechanical_consumer-load) <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> | Shaft power demand (MW), as an expression or a curve lookup. | Required |
+| [`LOAD`](#energy_network-units-mechanical_consumer-load) <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> | Shaft power demand (MW), as an expression or a curve lookup. | Required |
 
-##### LOAD <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-mechanical_consumer-load}
+##### LOAD <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-mechanical_consumer-load}
 
 Shaft power demand (MW), as an expression or a curve lookup.
 
@@ -1517,7 +1517,7 @@ Shaft power demand (MW), as an expression or a curve lookup.
 
 <div className="lifecycle-variant">
 
-<LifecycleBadge kind="introduced" version="4" />
+<LifecycleBadge kind="introduced" version="3" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1578,9 +1578,9 @@ Shaft power demand (MW), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `FUEL_GAS_CONSUMER` | Required |
-| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
+| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
 
-##### RATE <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-fuel_gas_consumer-rate}
+##### RATE <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-fuel_gas_consumer-rate}
 
 Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 
@@ -1596,7 +1596,7 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 
 <div className="lifecycle-variant">
 
-<LifecycleBadge kind="introduced" version="4" />
+<LifecycleBadge kind="introduced" version="3" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1640,9 +1640,9 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `DIESEL_CONSUMER` | Required |
-| [`RATE`](#energy_network-units-diesel_consumer-rate) <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
+| [`RATE`](#energy_network-units-diesel_consumer-rate) <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
 
-##### RATE <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-diesel_consumer-rate}
+##### RATE <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-diesel_consumer-rate}
 
 Diesel consumption rate (l/d), as an expression or a curve lookup.
 
@@ -1658,7 +1658,7 @@ Diesel consumption rate (l/d), as an expression or a curve lookup.
 
 <div className="lifecycle-variant">
 
-<LifecycleBadge kind="introduced" version="4" />
+<LifecycleBadge kind="introduced" version="3" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1714,7 +1714,7 @@ tabulated.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `COMPRESSOR_SAMPLED` | Required |
-| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. | Required |
+| `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. | Required |
 | `FILE` | Resource tabulating FUEL and/or POWER against RATE, SUCTION_PRESSURE and/or DISCHARGE_PRESSURE. | Required |
 | `RATE` | Rate through the compressor (Sm³/d), looked up in FILE. | Optional |
 | `SUCTION_PRESSURE` | Compressor inlet pressure (bara), looked up in FILE. | Optional |

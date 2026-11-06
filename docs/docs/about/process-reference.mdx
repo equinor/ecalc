@@ -47,7 +47,7 @@ Use the filter below to show only the elements available for a single YAML_VERSI
 
 Contains reusable definitions.
 
-### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <ChangeHistory changes={[{ "version": "4", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead." }]} /> \{#process_units}
+### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <ChangeHistory changes={[{ "version": "3", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead." }]} /> \{#process_units}
 
 Defines process units used in PROCESS_PIPELINES.
 
@@ -146,7 +146,7 @@ Standard rate to split off.
 | `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
 | `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
-### COMPRESSOR_MODELS <LifecycleBadge kind="introduced" version="4" /> \{#compressor_models}
+### COMPRESSOR_MODELS <LifecycleBadge kind="introduced" version="3" /> \{#compressor_models}
 
 Defines compressor models that can be referenced by name from MODEL of a compressor process unit in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.
 
@@ -329,7 +329,7 @@ Defines process pipelines to use in process simulations.
 | --- | --- | --- |
 | `TARGET` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="deprecated" version="3" /> <LifecycleBadge kind="removed" version="4" /> | Reference to a compressor process unit defined in PROCESS_UNITS. From V4: Use MODEL instead. | Optional |
 | `MODEL` <LifecycleBadge kind="introduced" version="4" /> | The compressor model. Replaces TARGET Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
-| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
+| `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
 | `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> | Reference to a shaft defined in SHAFTS. This field is deprecated and has been removed in YAML_VERSION 3. Use the SHAFT &gt; COMPRESSORS instead. | Optional |
 
 
