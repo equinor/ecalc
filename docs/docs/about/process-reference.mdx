@@ -28,7 +28,7 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 
 Each process simulation is calculated on its own time steps, between `START` and `END`. These time steps come from the time series files and dated `VARIABLES` it uses, and from the `FROM` dates in `TIMELINE.EVENTS`: all dates are merged into one time vector.
 
-A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Each file must have a value at `START`, otherwise the run fails.
+A value from a time series applies from its date until the next date in that file (forward-fill). After a file's last date, its last value is kept until `END`. Dated `VARIABLES` work the same way. Each file and dated variable must have a value at `START`, otherwise the run fails.
 
 **When to resample yourself**
 
@@ -483,7 +483,7 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 
 ## TIMELINE <LifecycleBadge kind="introduced" version="4" /> \{#timeline}
 
-Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network.
+Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS
 
 <YamlCodeBlock>{"EVENTS:\n  new_wells_tie_in:\n    TITLE: Tie-in of new wells\n    TYPE: TIE_IN\n    FROM: '2025-01-01T00:00:00'\n    DESCRIPTION: New production wells are tied in to the platform."}</YamlCodeBlock>
 

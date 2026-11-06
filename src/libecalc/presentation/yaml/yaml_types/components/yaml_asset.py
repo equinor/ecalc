@@ -199,8 +199,8 @@ class YamlAsset(YamlBase):
         description="Defines one or more process simulations to be run.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
-    ecalc_events: list[YamlEcalcEvent] = Field(
-        default_factory=list,
+    ecalc_events: str | None = Field(
+        None,
         title="ECALC_EVENTS",
         description="Defines eCalc events associated with temporal model changes. Use TIMELINE instead.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
@@ -211,11 +211,11 @@ class YamlAsset(YamlBase):
         description="Defines the energy network configuration.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
-    process_events: list[YamlProcessEvent] = Field(
-        default_factory=list,
+    process_events: str | None = Field(
+        None,
         title="PROCESS_EVENTS",
         description="Defines process-specific events that reference global eCalc events. Use TIMELINE instead",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4),
+        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
     )
     timeline: YamlTimeline | None = Field(
         None,

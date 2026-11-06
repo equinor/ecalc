@@ -1266,6 +1266,10 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
 
+## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> \{#ecalc_events}
+
+Defines eCalc events associated with temporal model changes. Use TIMELINE instead.
+
 ## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" /> \{#energy_network}
 
 Defines the energy network configuration.
@@ -1713,9 +1717,13 @@ tabulated.
 
 </Tabs>
 
+## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> \{#process_events}
+
+Defines process-specific events that reference global eCalc events. Use TIMELINE instead
+
 ## TIMELINE <LifecycleBadge kind="introduced" version="4" /> \{#timeline}
 
-Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network.
+Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS
 
 <YamlCodeBlock>{"EVENTS:\n  new_wells_tie_in:\n    TITLE: Tie-in of new wells\n    TYPE: TIE_IN\n    FROM: '2025-01-01T00:00:00'\n    DESCRIPTION: New production wells are tied in to the platform."}</YamlCodeBlock>
 
