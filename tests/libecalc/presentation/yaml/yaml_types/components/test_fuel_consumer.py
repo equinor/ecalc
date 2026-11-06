@@ -6,7 +6,7 @@ import pytest
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlFuelConsumerBuilder, YamlInstallationBuilder
+from libecalc.testing.yaml_builder import YamlFuelConsumerBuilder, YamlInstallationBuilder, YamlLegacyAssetBuilder
 
 
 class FuelConsumerHelper:
@@ -26,7 +26,7 @@ class FuelConsumerHelper:
         ).validate()
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_test_data()
             .with_installations([installation])
             .with_start(self.time_vector[0])

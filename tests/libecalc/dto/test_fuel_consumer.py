@@ -12,9 +12,9 @@ from libecalc.presentation.yaml.model_validation_exception import ModelValidatio
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.testing.yaml_builder import (
-    YamlAssetBuilder,
     YamlFuelConsumerBuilder,
     YamlInstallationBuilder,
+    YamlLegacyAssetBuilder,
 )
 
 
@@ -35,7 +35,7 @@ class FuelConsumerHelper:
         ).validate()
 
         asset = (
-            YamlAssetBuilder()
+            YamlLegacyAssetBuilder()
             .with_test_data()
             .with_installations([installation])
             .with_start(self.time_vector[0])
@@ -101,7 +101,7 @@ class TestFuelConsumer:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 16
+	Object starting on line 14
 	Location: installations.Installation 1.FUELCONSUMERS.flare.fuel
 	Message: Missing fuel reference
 """)

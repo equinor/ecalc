@@ -60,6 +60,7 @@ from libecalc.testing.yaml_builder import (
     YamlFuelTypeBuilder,
     YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
+    YamlLegacyAssetBuilder,
     YamlTimeSeriesBuilder,
 )
 
@@ -308,6 +309,11 @@ def yaml_asset_builder_factory():
 
 
 @pytest.fixture
+def yaml_legacy_asset_builder_factory():
+    return lambda: YamlLegacyAssetBuilder()
+
+
+@pytest.fixture
 def yaml_time_series_factory():
     return YamlTimeSeriesBuilder
 
@@ -423,7 +429,7 @@ def minimal_installation_yaml_factory(
 
 @pytest.fixture
 def minimal_model_yaml_factory(
-    yaml_asset_builder_factory,
+    yaml_legacy_asset_builder_factory,
     minimal_installation_yaml_factory,
     yaml_fuel_type_builder_factory,
     yaml_asset_configuration_service_factory,
@@ -432,7 +438,7 @@ def minimal_model_yaml_factory(
         fuel_name = "fuel"
         installation = minimal_installation_yaml_factory(fuel_name="fuel", fuel_rate=fuel_rate)
         model = (
-            yaml_asset_builder_factory()
+            yaml_legacy_asset_builder_factory()
             .with_test_data()
             .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name(fuel_name).validate()])
             .with_installations([installation])

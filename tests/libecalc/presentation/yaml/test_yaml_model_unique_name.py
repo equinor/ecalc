@@ -8,13 +8,13 @@ from libecalc.presentation.yaml.model_validation_exception import ModelValidatio
 from libecalc.testing.facility_resource_factories import el2fuel_factory
 from libecalc.testing.time_series_factories import production_profile_factory
 from libecalc.testing.yaml_builder import (
-    YamlAssetBuilder,
     YamlElectricity2fuelBuilder,
     YamlElectricityConsumerBuilder,
     YamlFuelConsumerBuilder,
     YamlFuelTypeBuilder,
     YamlGeneratorSetBuilder,
     YamlInstallationBuilder,
+    YamlLegacyAssetBuilder,
     YamlTimeSeriesBuilder,
     YamlTurbineBuilder,
     YamlVentingEmitterOilTypeBuilder,
@@ -29,7 +29,7 @@ def duplicate_genset_name_model(
     el2fuel_reference = "el2fuel"
     el2fuel_resource_reference = "el2fuel_file"
     model = (
-        YamlAssetBuilder()
+        YamlLegacyAssetBuilder()
         .with_test_data()
         .with_facility_inputs(
             [
@@ -112,7 +112,7 @@ def generate_model(
     el2fuel_reference = "el2fuel"
     el2fuel_resource_reference = "el2fuel_file"
     model = (
-        YamlAssetBuilder()
+        YamlLegacyAssetBuilder()
         .with_test_data()
         .with_facility_inputs(
             [
@@ -232,7 +232,7 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
     have same name.
     """
     model = (
-        YamlAssetBuilder()
+        YamlLegacyAssetBuilder()
         .with_test_data()
         .with_fuel_types(
             [
@@ -264,7 +264,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
     TEST SCOPE: Check that duplicate timeseries names are not allowed.
     """
     model = (
-        YamlAssetBuilder()
+        YamlLegacyAssetBuilder()
         .with_test_data()
         .with_time_series(
             [
@@ -345,7 +345,9 @@ def test_models_unique_name(
     """
     TEST SCOPE: Check that duplicate timeseries names are not allowed.
     """
-    model = YamlAssetBuilder().with_test_data().with_facility_inputs(facility_inputs).with_models(models).construct()
+    model = (
+        YamlLegacyAssetBuilder().with_test_data().with_facility_inputs(facility_inputs).with_models(models).construct()
+    )
     configuration = yaml_asset_configuration_service_factory(model, "non_unique_model_names").get_configuration()
     yaml_model = YamlModel(
         configuration=configuration,
