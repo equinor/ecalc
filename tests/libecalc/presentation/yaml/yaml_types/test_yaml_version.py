@@ -111,7 +111,9 @@ class TestGetYamlElementLifecycle:
     def test_defaults_to_available_since_v1_when_no_extra(self):
         field_info = Field()
         lifecycle = get_yaml_element_lifecycle(field_info)
-        assert lifecycle == YamlElementLifecycle(available_since=V1, deprecated_since=None, removed_since=None)
+        assert lifecycle == YamlElementLifecycle(
+            available_since=V1, deprecated_since=None, removed_since=None, changed_since=None
+        )
 
     def test_parses_lifecycle_from_json_schema_extra(self):
         field_info = Field(json_schema_extra=yaml_element_lifecycle(available_since=V2, deprecated_since=V3))
@@ -123,7 +125,9 @@ class TestGetYamlElementLifecycle:
     def test_ignores_non_dict_json_schema_extra(self):
         field_info = Field(json_schema_extra=lambda schema: None)
         lifecycle = get_yaml_element_lifecycle(field_info)
-        assert lifecycle == YamlElementLifecycle(available_since=V1, deprecated_since=None, removed_since=None)
+        assert lifecycle == YamlElementLifecycle(
+            available_since=V1, deprecated_since=None, removed_since=None, changed_since=None
+        )
 
 
 class TestIsAvailableForVersion:

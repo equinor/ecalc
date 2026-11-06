@@ -99,8 +99,9 @@ class YamlPipelineEvent(YamlBase):
         ),
     ]
     change_from: Annotated[
-        DefinitionReference,
+        DefinitionReference | None,
         Field(
+            None,
             title="CHANGE_FROM",
             description="Reference to the existing process unit template being replaced. V4: This is no longer needed. From is automatically deduced from target. Just remove.",
             json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
