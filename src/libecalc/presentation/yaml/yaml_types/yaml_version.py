@@ -63,15 +63,21 @@ LATEST_YAML_VERSION = current_yaml_version().major
 AVAILABLE_SINCE_KEY = "available_since"
 DEPRECATED_SINCE_KEY = "deprecated_since"
 REMOVED_SINCE_KEY = "removed_since"
-CHANGED_SINCE_KEY = "changed_since"
+CHANGED_IN_KEY = "changed_in"
 REQUIRED_KEY = "required"
+
+
+@dataclass(frozen=True)
+class ChangeEntry:
+    version: Version
+    description: str
 
 
 def yaml_element_lifecycle(
     available_since: Version | None = None,
     deprecated_since: Version | None = None,
     removed_since: Version | None = None,
-    changed_since: Version | None = None,
+    changed_in: Iterable[tuple[Version, str]] | None = None,
     required: bool = False,
     for_documentation_only: bool = False,
 ) -> dict[str, JsonValue]:
@@ -87,6 +93,9 @@ def yaml_element_lifecycle(
     without pydantic itself ever treating the field as required (it still needs a default for versions
     where it's absent, e.g. V3).
 
+    changed_in lists (version, description) pairs describing a behavioral change to the element that
+    wasn't an addition, deprecation or removal, e.g. [(V4, "Added support to also load from curve.")].
+
     If an element is only still available for documentation purposes, mark it as for_documentation_only. This will make the element fail validation for any version, so it is not allowed in the yaml for that version or any later version.
     """
     extra: dict[str, JsonValue] = {}
@@ -96,8 +105,10 @@ def yaml_element_lifecycle(
         extra[DEPRECATED_SINCE_KEY] = str(deprecated_since)
     if removed_since is not None:
         extra[REMOVED_SINCE_KEY] = str(removed_since)
-    if changed_since is not None:
-        extra[CHANGED_SINCE_KEY] = str(changed_since)
+    if changed_in:
+        extra[CHANGED_IN_KEY] = [
+            {"version": str(version), "description": description} for version, description in changed_in
+        ]
     if required:
         extra[REQUIRED_KEY] = True
 
@@ -112,7 +123,7 @@ class YamlElementLifecycle:
     available_since: Version
     deprecated_since: Version | None
     removed_since: Version | None
-    changed_since: Version | None
+    changed_in: tuple[ChangeEntry, ...]
     required: bool = False
 
 
@@ -121,11 +132,25 @@ def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
         value = extra.get(key)
         return Version.from_string(value) if isinstance(value, str) else None
 
+    def _parse_changed_in() -> tuple[ChangeEntry, ...]:
+        value = extra.get(CHANGED_IN_KEY)
+        if not isinstance(value, list):
+            return ()
+        changes: list[ChangeEntry] = []
+        for entry in value:
+            if not isinstance(entry, dict):
+                continue
+            version = entry.get("version")
+            description = entry.get("description")
+            if isinstance(version, str) and isinstance(description, str):
+                changes.append(ChangeEntry(version=Version.from_string(version), description=description))
+        return tuple(changes)
+
     return YamlElementLifecycle(
         available_since=_parse(AVAILABLE_SINCE_KEY) or V1,
         deprecated_since=_parse(DEPRECATED_SINCE_KEY),
         removed_since=_parse(REMOVED_SINCE_KEY),
-        changed_since=_parse(CHANGED_SINCE_KEY),
+        changed_in=_parse_changed_in(),
         required=bool(extra.get(REQUIRED_KEY, False)),
     )
 

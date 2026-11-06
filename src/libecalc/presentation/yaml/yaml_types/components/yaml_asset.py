@@ -61,8 +61,13 @@ class YamlDefinitions(YamlBase):
     process_units: dict[str, YamlProcessUnitDefinition] = Field(
         default_factory=dict,
         title="PROCESS_UNITS",
-        description="Defines process units used in PROCESS_PIPELINES. Changed in V4: compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2, changed_since=V4),
+        description="Defines process units used in PROCESS_PIPELINES.",
+        json_schema_extra=yaml_element_lifecycle(
+            available_since=V2,
+            changed_in=[
+                (V4, "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead.")
+            ],
+        ),
     )
 
     compressor_models: dict[str, YamlCompressorModelChart] = Field(

@@ -405,8 +405,8 @@ class YamlElectricalConsumer(YamlConsumerBase):
         YamlExpressionType | YamlLoadCurve,
         Field(
             title="LOAD",
-            description="Electrical power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve.",
-            json_schema_extra=yaml_element_lifecycle(changed_since=V4),
+            description="Electrical power demand (MW), as an expression or a curve lookup.",
+            json_schema_extra=yaml_element_lifecycle(changed_in=[(V4, "Added support to also load from curve.")]),
         ),
     ]
 
@@ -426,8 +426,8 @@ class YamlMechanicalConsumer(YamlConsumerBase):
         YamlExpressionType | YamlLoadCurve,
         Field(
             title="LOAD",
-            description="Shaft power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve.",
-            json_schema_extra=yaml_element_lifecycle(changed_since=V4),
+            description="Shaft power demand (MW), as an expression or a curve lookup.",
+            json_schema_extra=yaml_element_lifecycle(changed_in=[(V4, "Added support to also load from curve.")]),
         ),
     ]
 
@@ -458,8 +458,8 @@ class YamlFuelGasConsumer(YamlConsumerBase):
         YamlExpressionType | YamlRateCurve,
         Field(
             title="RATE",
-            description="Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve.",
-            json_schema_extra=yaml_element_lifecycle(changed_since=V4),
+            description="Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.",
+            json_schema_extra=yaml_element_lifecycle(changed_in=[(V4, "Added support to also load from curve.")]),
         ),
     ]
 
@@ -479,8 +479,8 @@ class YamlDieselConsumer(YamlConsumerBase):
         YamlExpressionType | YamlRateCurve,
         Field(
             title="RATE",
-            description="Diesel consumption rate (l/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve.",
-            json_schema_extra=yaml_element_lifecycle(changed_since=V4),
+            description="Diesel consumption rate (l/d), as an expression or a curve lookup.",
+            json_schema_extra=yaml_element_lifecycle(changed_in=[(V4, "Added support to also load from curve.")]),
         ),
     ]
 

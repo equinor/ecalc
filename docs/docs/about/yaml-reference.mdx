@@ -10,6 +10,7 @@ import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 import LifecycleBadge from '@site/src/components/LifecycleBadge';
 import LifecycleFilter from '@site/src/components/LifecycleFilter';
+import ChangeHistory from '@site/src/components/ChangeHistory';
 
 # YAML Reference
 
@@ -17,7 +18,9 @@ This page documents every YAML configuration key for the eCalc Asset model, rega
 
 Use the version filter below to show only the elements available for a chosen `YAML_VERSION`.
 
-Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="N" /><LifecycleBadge kind="deprecated" version="N" /><LifecycleBadge kind="removed" version="N" />. Use the filter below to show only the elements available for a single YAML_VERSION.
+Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="N" /><LifecycleBadge kind="deprecated" version="N" /><LifecycleBadge kind="removed" version="N" />. Elements with a behavioral change also show an expandable `Changed in:` label you can click to see what changed.
+
+Use the filter below to show only the elements available for a single YAML_VERSION.
 
 <LifecycleFilter />
 
@@ -29,9 +32,9 @@ The eCalc YAML schema major version. Determines which root elements are availabl
 
 Contains reusable definitions.
 
-### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> \{#process_units}
+### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <ChangeHistory changes={[{ "version": "4", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead." }]} /> \{#process_units}
 
-Defines process units used in PROCESS_PIPELINES. Changed in V4: compressors can no longer be defined here. Use DEFINITIONS &gt; COMPRESSOR_MODELS instead.
+Defines process units used in PROCESS_PIPELINES.
 
 #### PRESSURE_DROPPER <LifecycleBadge kind="introduced" version="2" /> \{#pressure_dropper}
 
@@ -1434,11 +1437,11 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `ELECTRICAL_CONSUMER` | Required |
-| [`LOAD`](#energy_network-units-electrical_consumer-load) | Electrical power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve. | Required |
+| [`LOAD`](#energy_network-units-electrical_consumer-load) <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> | Electrical power demand (MW), as an expression or a curve lookup. | Required |
 
-##### LOAD \{#energy_network-units-electrical_consumer-load}
+##### LOAD <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-electrical_consumer-load}
 
-Electrical power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve.
+Electrical power demand (MW), as an expression or a curve lookup.
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1496,11 +1499,11 @@ Electrical power demand (MW), as an expression or a curve lookup. Change in V4: 
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `MECHANICAL_CONSUMER` | Required |
-| [`LOAD`](#energy_network-units-mechanical_consumer-load) | Shaft power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve. | Required |
+| [`LOAD`](#energy_network-units-mechanical_consumer-load) <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> | Shaft power demand (MW), as an expression or a curve lookup. | Required |
 
-##### LOAD \{#energy_network-units-mechanical_consumer-load}
+##### LOAD <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-mechanical_consumer-load}
 
-Shaft power demand (MW), as an expression or a curve lookup. Change in V4: Added support to also load from curve.
+Shaft power demand (MW), as an expression or a curve lookup.
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1575,11 +1578,11 @@ Shaft power demand (MW), as an expression or a curve lookup. Change in V4: Added
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `FUEL_GAS_CONSUMER` | Required |
-| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve. | Required |
+| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
 
-##### RATE \{#energy_network-units-fuel_gas_consumer-rate}
+##### RATE <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-fuel_gas_consumer-rate}
 
-Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve.
+Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 
 | Key | Description | Status |
 | --- | --- | --- |
@@ -1637,11 +1640,11 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. Change i
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `DIESEL_CONSUMER` | Required |
-| [`RATE`](#energy_network-units-diesel_consumer-rate) | Diesel consumption rate (l/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve. | Required |
+| [`RATE`](#energy_network-units-diesel_consumer-rate) <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
 
-##### RATE \{#energy_network-units-diesel_consumer-rate}
+##### RATE <ChangeHistory changes={[{ "version": "4", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-diesel_consumer-rate}
 
-Diesel consumption rate (l/d), as an expression or a curve lookup. Change in V4: Added support to also load from curve.
+Diesel consumption rate (l/d), as an expression or a curve lookup.
 
 | Key | Description | Status |
 | --- | --- | --- |

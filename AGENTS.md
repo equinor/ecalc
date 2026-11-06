@@ -36,7 +36,8 @@ YAML input models carry a lifecycle via `yaml_element_lifecycle(...)` in
 - `for_documentation_only=True`: adds `"not": {}` to the generated JSON Schema so external editors
   reject the field. This is schema-generation-only — it does **not** gate runtime pydantic
   validation. Runtime gating is solely `available_since`/`removed_since`.
-- `changed_since`: documentation-only marker, no runtime effect.
+- `changed_in`: documentation-only marker, no runtime effect. Lists `(version, description)` pairs
+  for behavioral changes that weren't an addition, deprecation or removal.
 - `deprecated_since`: documentation-only marker, no runtime effect.
 
 When bumping to a new major YAML version, update:
