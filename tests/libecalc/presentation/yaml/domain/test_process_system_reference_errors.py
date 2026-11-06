@@ -137,7 +137,7 @@ class TestDefinitionReferenceWrongType:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 23
+	Object starting on line 16
 	Location: PROCESS_PIPELINES.train_1
 	Message: Definition reference 'my_fluid' resolved to type 'YamlPredefinedFluidDefinition', but expected one of: YamlPressureDropperDefinition, YamlTemperatureSetterDefinition, YamlLiquidRemoverDefinition, YamlMixerDefinition, YamlSplitterDefinition
 """)

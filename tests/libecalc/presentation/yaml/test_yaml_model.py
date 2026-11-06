@@ -115,7 +115,7 @@ class TestYamlModelValidation:
 
     def test_no_emitters_or_fuelconsumers(
         self,
-        yaml_asset_builder_factory,
+        yaml_legacy_asset_builder_factory,
         yaml_installation_builder_factory,
         yaml_asset_configuration_service_factory,
         resource_service_factory,
@@ -124,7 +124,7 @@ class TestYamlModelValidation:
         Test that eCalc returns error when neither fuelconsumers or venting emitters are specified.
         """
         asset = (
-            yaml_asset_builder_factory()
+            yaml_legacy_asset_builder_factory()
             .with_test_data()
             .with_installations(
                 [
@@ -182,7 +182,7 @@ class TestYamlModelValidation:
 
     def test_mismatching_fuel_in_fuel_consumer(
         self,
-        yaml_asset_builder_factory,
+        yaml_legacy_asset_builder_factory,
         yaml_installation_builder_factory,
         yaml_asset_configuration_service_factory,
         yaml_fuel_consumer_builder_factory,
@@ -191,7 +191,7 @@ class TestYamlModelValidation:
         yaml_fuel_type_builder_factory,
     ):
         asset = (
-            yaml_asset_builder_factory()
+            yaml_legacy_asset_builder_factory()
             .with_test_data()
             .with_start(datetime(2019, 1, 1))
             .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name("my_fuel").construct()])

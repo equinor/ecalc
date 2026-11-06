@@ -66,6 +66,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
+from libecalc.presentation.yaml.yaml_types.yaml_version import DEFAULT_YAML_VERSION, LATEST_YAML_VERSION
 
 T = TypeVar("T")
 
@@ -733,22 +734,24 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
         return self
 
 
-class YamlAssetBuilder(Builder[YamlAsset]):
+class YamlLegacyAssetBuilder(Builder[YamlAsset]):
+    """
+    Builder for a legacy (yaml version 1) YamlAsset.
+
+    Only supports the root elements available in v1: FACILITY_INPUTS, MODELS, FUEL_TYPES and
+    INSTALLATIONS, in addition to the elements common to every version. Root elements introduced
+    in later versions (e.g. SHAFTS, COMPRESSORS, DEFINITIONS, PROCESS_PIPELINES) are not available here;
+    use YamlAssetBuilder for those.
+    """
+
     def __init__(self):
-        self.yaml_version = 2  # We default to v2 here, since we have a mix of v1 and v2 in the tests.
+        self.yaml_version = DEFAULT_YAML_VERSION
         self.time_series = []
         self.facility_inputs = []
         self.models = []
         self.fuel_types = []
         self.variables = None
-        self.shafts: list[YamlShaft] | None = None
-        self.compressors: list[YamlCompressor] | None = None
         self.installations = []
-        self.definitions: YamlDefinitions | None = None
-        self.inlet_streams: dict[str, YamlInletStream] | None = None
-        self.process_pipelines = None
-        self.process_simulations = None
-        self.energy_network: YamlEnergyNetwork | None = None
         self.start = None
         self.end = None
 
@@ -764,9 +767,6 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.fuel_types = [fuel_types_builder.validate()]
 
         self.variables = None
-        self.shafts = [YamlShaft(name="default_shaft")]
-        self.definitions = None
-        self.inlet_streams = None
 
         # Create and populate a list of YamlInstallation test instances
         installations_builder = YamlInstallationBuilder().with_test_data()
@@ -801,14 +801,6 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.variables = variables
         return self
 
-    def with_shafts(self, shafts: list[YamlShaft]) -> Self:
-        self.shafts = shafts
-        return self
-
-    def with_compressors(self, compressors: list[YamlCompressor]) -> Self:
-        self.compressors = compressors
-        return self
-
     def with_installations(self, installations: list[YamlInstallation]):
         if len(installations) == 0:
             self.installations = []
@@ -819,6 +811,69 @@ class YamlAssetBuilder(Builder[YamlAsset]):
             new_installations.append(installation)
 
         self.installations = new_installations
+        return self
+
+    def with_start(self, start: str):
+        self.start = start
+        return self
+
+    def with_end(self, end: str):
+        self.end = end
+        return self
+
+
+class YamlAssetBuilder(Builder[YamlAsset]):
+    """
+    Builder for the latest (currently yaml version 3) YamlAsset.
+
+    Legacy root elements removed since v3 (FACILITY_INPUTS, MODELS, FUEL_TYPES, INSTALLATIONS) are not
+    available here; use YamlLegacyAssetBuilder for a v1 document.
+    """
+
+    def __init__(self):
+        self.yaml_version = LATEST_YAML_VERSION
+        self.time_series = []
+        self.variables = None
+        self.shafts: list[YamlShaft] | None = None
+        self.compressors: list[YamlCompressor] | None = None
+        self.definitions: YamlDefinitions | None = None
+        self.inlet_streams: dict[str, YamlInletStream] | None = None
+        self.process_pipelines = None
+        self.process_simulations = None
+        self.energy_network: YamlEnergyNetwork | None = None
+        self.start = None
+        self.end = None
+
+    def with_test_data(self):
+        self.time_series = []
+        self.variables = None
+        self.shafts = [YamlShaft(name="default_shaft")]
+        self.definitions = None
+        self.inlet_streams = None
+
+        self.start = "2019-01-01"
+        self.end = "2024-01-01"
+
+        return self
+
+    def with_yaml_version(self, version: int) -> Self:
+        self.yaml_version = version
+        return self
+
+    def with_time_series(self, time_series: list[YamlTimeSeriesCollection]):
+        self.time_series = time_series
+        return self
+
+    def with_variables(self, variables: YamlVariables):
+        self.variables = variables
+        return self
+
+    def with_shafts(self, shafts: list[YamlShaft]) -> Self:
+        self.shafts = shafts
+        return self
+
+    def with_compressors(self, compressors: list[YamlCompressor]) -> Self:
+        self.compressors = compressors
         return self
 
     def with_definitions(self, definitions: YamlDefinitions) -> Self:

@@ -16,15 +16,16 @@ def test_returns_nothing_without_an_energy_network(minimal_model_yaml_factory, y
 
 
 def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
-    yaml_asset_builder_factory,
+    yaml_legacy_asset_builder_factory,
     minimal_installation_yaml_factory,
     yaml_fuel_type_builder_factory,
     yaml_model_factory,
 ):
     """The evaluator only loads referenced time series, so a reference nested in INPUT must be found and used."""
     asset = (
-        yaml_asset_builder_factory()
+        yaml_legacy_asset_builder_factory()
         .with_test_data()
+        .with_yaml_version(2)
         .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name("fuel").validate()])
         .with_installations([minimal_installation_yaml_factory(fuel_name="fuel")])
         .with_time_series([YamlTimeSeriesBuilder().with_name("SIM1").with_type("DEFAULT").with_file("SIM1").validate()])
@@ -99,12 +100,13 @@ def _turbine_model_data(model, definitions, base_data_factory, load=5):
 
 @pytest.fixture
 def turbine_network_data_factory(
-    yaml_asset_builder_factory, minimal_installation_yaml_factory, yaml_fuel_type_builder_factory
+    yaml_legacy_asset_builder_factory, minimal_installation_yaml_factory, yaml_fuel_type_builder_factory
 ):
     def create():
         asset = (
-            yaml_asset_builder_factory()
+            yaml_legacy_asset_builder_factory()
             .with_test_data()
+            .with_yaml_version(2)
             .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name("fuel").validate()])
             .with_installations([minimal_installation_yaml_factory(fuel_name="fuel")])
             .with_start("2020-01-01")
