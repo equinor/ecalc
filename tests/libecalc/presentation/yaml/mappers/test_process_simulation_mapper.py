@@ -56,9 +56,9 @@ def _simple_pipeline(name: str = "train_1"):
     return (
         YamlProcessPipelineBuilder()
         .with_name(name)
-        .with_item(target=YamlPressureDropperBuilder().with_test_data().validate())
-        .with_item(target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_item(target=YamlLiquidRemoverBuilder().with_test_data().validate())
+        .with_item(YamlPressureDropperBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlLiquidRemoverBuilder().with_test_data().validate())
         .with_compressor_item(compressor=f"{name} compressor")
         .validate()
     )
@@ -186,11 +186,11 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer_and_splitter")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_compressor_item(compressor="compressor_1")
-        .with_item(target=YamlSplitterBuilder().with_test_data().validate())
-        .with_item(target=YamlMixerBuilder().with_test_data().validate())
-        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlSplitterBuilder().with_test_data().validate())
+        .with_item(YamlMixerBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_compressor_item(compressor="compressor_2")
         .validate()
     )
@@ -299,11 +299,11 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_aftercooler")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_compressor_item(compressor="compressor_1")
-        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_compressor_item(compressor="compressor_2")
-        .with_item(name="temp_setter_3", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .validate()
     )
     yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
@@ -321,30 +321,6 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
     trailing_temp_index = len(units) - 2
     assert isinstance(units[trailing_temp_index], TemperatureSetter)
     assert trailing_temp_index > max(splitter_indices)
-
-
-# ---------------------------------------------------------------------------
-# Tests: process units
-# ---------------------------------------------------------------------------
-
-
-def test_duplicate_process_unit_names_not_allowed(process_simulation_mapper_factory):
-    """Duplicate process unit names are not allowed within a process."""
-    yaml_pipeline = (
-        YamlProcessPipelineBuilder()
-        .with_name("train_with_duplicate_unit_names")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_1")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
-        .with_compressor_item(compressor="compressor_2")
-        .validate()
-    )
-    yaml_simulation, refs = _build_simulation_with_pipeline(yaml_pipeline, pressure_control="INDIVIDUAL_ASV_RATE")
-
-    with pytest.raises(EcalcValidationException) as exc_info:
-        process_simulation_mapper_factory(refs).map_process_simulation(yaml_simulation)
-
-    assert "Duplicate process unit name 'temp_setter_1'" in str(exc_info.value)
 
 
 # ---------------------------------------------------------------------------
@@ -379,10 +355,10 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_intermediate_constraint")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_compressor_item(compressor="compressor_1")
-        .with_item(target=YamlMixerBuilder().with_test_data().validate())
-        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlMixerBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_compressor_item(compressor="compressor_2")
         .validate()
     )

@@ -28,6 +28,7 @@ from pydantic_core import PydanticUndefined
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlCompressorProcessUnitInstance
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
@@ -84,7 +85,6 @@ from libecalc.testing.process_builders import (
 # A top-level name includes the whole field; a dotted path (e.g. "definitions.turbines")
 # includes only that sub-field, so a section can be split across documents.
 PROCESS_INCLUDE_FIELDS = {
-    "definitions.process_units",
     "definitions.compressor_models",
     "definitions.fluids",
     "shafts",
@@ -110,7 +110,7 @@ class Example:
     An example YAML snippet associated with a path in the documentation tree.
 
     Attributes:
-        path: Dot-separated YAML key path (e.g. "DEFINITIONS.PROCESS_UNITS.PRESSURE_DROPPER").
+        path: Dot-separated YAML key path (e.g. "PROCESS_PIPELINES.PROCESS_UNITS.PRESSURE_DROPPER").
               For discriminated union variants, the variant name is used as the last segment.
         builder: A callable that returns a validated pydantic model instance.
         abbreviate: Whether fields with their own registered example are shown as '...'.
@@ -196,25 +196,31 @@ EXAMPLES: list[Example] = [
         "DEFINITIONS.COMPRESSOR_MODELS.CHART.CURVES.YAMLCURVE",
         lambda: YamlCurveBuilder().with_test_data().validate(),
     ),
-    # --- DEFINITIONS.PROCESS_UNITS variants ---
+    # --- PROCESS_PIPELINES.PROCESS_UNITS variants ---
     Example(
-        "DEFINITIONS.PROCESS_UNITS.PRESSURE_DROPPER",
+        "PROCESS_PIPELINES.PROCESS_UNITS.COMPRESSOR",
+        lambda: YamlCompressorProcessUnitInstance.model_validate(
+            {"TYPE": "COMPRESSOR", "COMPRESSOR": "default_compressor", "MODEL": "default_compressor_model"}
+        ),
+    ),
+    Example(
+        "PROCESS_PIPELINES.PROCESS_UNITS.PRESSURE_DROPPER",
         lambda: YamlPressureDropperBuilder().with_test_data().validate(),
     ),
     Example(
-        "DEFINITIONS.PROCESS_UNITS.TEMPERATURE_SETTER",
+        "PROCESS_PIPELINES.PROCESS_UNITS.TEMPERATURE_SETTER",
         lambda: YamlTemperatureSetterBuilder().with_test_data().validate(),
     ),
     Example(
-        "DEFINITIONS.PROCESS_UNITS.LIQUID_REMOVER",
+        "PROCESS_PIPELINES.PROCESS_UNITS.LIQUID_REMOVER",
         lambda: YamlLiquidRemoverBuilder().with_test_data().validate(),
     ),
     Example(
-        "DEFINITIONS.PROCESS_UNITS.MIXER",
+        "PROCESS_PIPELINES.PROCESS_UNITS.MIXER",
         lambda: YamlMixerBuilder().with_test_data().validate(),
     ),
     Example(
-        "DEFINITIONS.PROCESS_UNITS.SPLITTER",
+        "PROCESS_PIPELINES.PROCESS_UNITS.SPLITTER",
         lambda: YamlSplitterBuilder().with_test_data().validate(),
     ),
     # --- DEFINITIONS.FLUIDS variants ---
@@ -251,14 +257,13 @@ EXAMPLES: list[Example] = [
         lambda: (
             YamlProcessPipelineBuilder()
             .with_name("DefaultPipeline")
-            .with_item(name="default_pressure_dropper", target=YamlPressureDropperBuilder().with_test_data().validate())
-            .with_item(
-                name="default_temperature_setter", target=YamlTemperatureSetterBuilder().with_test_data().validate()
-            )
-            .with_item(name="default_liquid_remover", target=YamlLiquidRemoverBuilder().with_test_data().validate())
+            .with_item(YamlPressureDropperBuilder().with_test_data().validate())
+            .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
+            .with_item(YamlLiquidRemoverBuilder().with_test_data().validate())
             .with_compressor_item(compressor="default_compressor", model="default_compressor_model")
             .validate()
         ),
+        abbreviate=False,
     ),
     # --- PROCESS_SIMULATIONS ---
     Example(
@@ -798,7 +803,7 @@ def build_yaml_asset_tree(include_fields: set[str] | None) -> list[DocNode]:
 # Maximum heading level to show in sidebar TOC, per top-level field name.
 # h2=top-level, h3=one below, h4=two below. Anything deeper uses h5+ (hidden from sidebar).
 SIDEBAR_DEPTH: dict[str, int] = {
-    "definitions": 4,  # DEFINITIONS > PROCESS_UNITS > COMPRESSOR (h2, h3, h4)
+    "definitions": 4,  # DEFINITIONS > FLUIDS > PREDEFINED (h2, h3, h4)
     "inlet_streams": 2,  # INLET_STREAMS only (h2)
     "shafts": 2,  # SHAFTS only (h2)
     "compressors": 2,  # COMPRESSORS only (h2)
@@ -903,7 +908,7 @@ def _build_definitions_type_map() -> dict[type, str]:
     Build a mapping from BaseModel types to their DEFINITIONS subsection title.
 
     Introspects YamlDefinitions to find which model types belong to which
-    subsection (e.g. YamlPressureDropperDefinition -> "PROCESS_UNITS").
+    subsection (e.g. YamlPredefinedFluidDefinition -> "FLUIDS").
     """
     type_to_section: dict[type, str] = {}
 
@@ -928,7 +933,7 @@ def _resolve_definition_section(annotation: Any) -> str | None:
     Given a field annotation that includes DefinitionReference, find which
     DEFINITIONS subsection it refers to by matching the companion model types.
 
-    Returns the subsection title (e.g. "PROCESS_UNITS", "FLUIDS") or None.
+    Returns the subsection title (e.g. "FLUIDS", "TURBINES") or None.
     """
     annotation = _unwrap_annotation(annotation)
     origin = get_origin(annotation)

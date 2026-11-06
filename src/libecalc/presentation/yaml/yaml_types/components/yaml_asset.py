@@ -18,7 +18,6 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlCompressorProcessUnitInstance,
     YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
@@ -27,10 +26,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
-    YamlCompressorModelChart,
-    YamlProcessUnitDefinition,
-)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressorModelChart
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
@@ -55,12 +51,6 @@ class YamlDefinitions(YamlBase):
 
     model_config = ConfigDict(
         title="Definitions",
-    )
-
-    process_units: dict[str, YamlProcessUnitDefinition] = Field(
-        default_factory=dict,
-        title="PROCESS_UNITS",
-        description="Defines process units used in PROCESS_PIPELINES.",
     )
 
     compressor_models: dict[str, YamlCompressorModelChart] = Field(
@@ -374,10 +364,9 @@ class YamlAsset(YamlBase):
     def _process_compressor_models(self) -> list[tuple[CompressorReference, str]]:
         """Every model of a compressor in the process domain, as (compressor, human-readable location)."""
         return [
-            (process_unit.compressor, f"process pipeline '{pipeline_name}'")
+            (compressor, f"process pipeline '{pipeline_name}'")
             for pipeline_name, pipeline in self.process_pipelines.items()
-            for process_unit in pipeline.process_units
-            if isinstance(process_unit, YamlCompressorProcessUnitInstance)
+            for compressor in pipeline.compressors
         ]
 
     def _sampled_compressor_models(self) -> list[tuple[CompressorReference, str]]:
@@ -419,10 +408,9 @@ class YamlAsset(YamlBase):
         shaft_by_compressor = self._shaft_by_compressor()
         return {
             pipeline_name: {
-                shaft_by_compressor[process_unit.compressor]
-                for process_unit in pipeline.process_units
-                if isinstance(process_unit, YamlCompressorProcessUnitInstance)
-                and process_unit.compressor in shaft_by_compressor
+                shaft_by_compressor[compressor]
+                for compressor in pipeline.compressors
+                if compressor in shaft_by_compressor
             }
             for pipeline_name, pipeline in self.process_pipelines.items()
         }
@@ -500,7 +488,6 @@ class YamlAsset(YamlBase):
 
         references.extend(self.process_pipelines.keys())
 
-        references.extend(self.definitions.process_units.keys())
         references.extend(self.definitions.compressor_models.keys())
         references.extend(self.definitions.fluids.keys())
         references.extend(self.definitions.turbines.keys())
@@ -525,6 +512,27 @@ class YamlAsset(YamlBase):
                 f"References/names must be unique across {YamlAsset.model_fields['facility_inputs'].alias}, {YamlAsset.model_fields['models'].alias} and {YamlAsset.model_fields['fuel_types'].alias}."
                 f" Duplicated references are: {', '.join(duplicated_references)}"
             )
+        return self
+
+    @model_validator(mode="after")
+    def validate_constraint_process_units(self):
+        """A constraint splits its pipeline after a compressor, so PROCESS_UNIT names a compressor in that pipeline."""
+        compressors_by_pipeline = {pipeline.name: pipeline.compressors for pipeline in self.process_pipelines.values()}
+        violations: list[str] = []
+        for simulation in self.process_simulations:
+            for pipeline_name, constraints in simulation.constraints.items():
+                compressors = compressors_by_pipeline.get(pipeline_name)
+                if compressors is None:
+                    continue
+                violations.extend(
+                    f"CONSTRAINTS PROCESS_UNIT '{constraint.process_unit}' of process simulation '{simulation.name}' is "
+                    f"not a compressor in process pipeline '{pipeline_name}'. "
+                    f"Compressors in this pipeline: {', '.join(compressors) or 'none'}."
+                    for constraint in constraints
+                    if constraint.process_unit is not None and constraint.process_unit not in compressors
+                )
+        if violations:
+            raise ValueError("\n".join(violations))
         return self
 
     @model_validator(mode="after")
@@ -621,10 +629,9 @@ class YamlAsset(YamlBase):
         compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
         targeted_pipelines = {target for simulation in self.process_simulations for target in simulation.targets}
         pipeline_by_compressor = {
-            process_unit.compressor: pipeline_name
+            compressor: pipeline_name
             for pipeline_name, pipeline in self.process_pipelines.items()
-            for process_unit in pipeline.process_units
-            if isinstance(process_unit, YamlCompressorProcessUnitInstance)
+            for compressor in pipeline.compressors
         }
 
         violations: list[str] = []

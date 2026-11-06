@@ -14,6 +14,7 @@ These are not available in legacy models, so they are not part of the release ch
 ## v15.6 {/* #v15-6 */}
 
 - `DEFINITIONS`: compressor models are defined in `COMPRESSOR_MODELS`, which replaces `TYPE: COMPRESSOR` process units in `DEFINITIONS.PROCESS_UNITS`. A compressor process unit gives its model with `MODEL` instead of `TARGET`, and a `REBUNDLE` event gives the new model with `CHANGE_TO`. Both take a model in place or the name of one in `COMPRESSOR_MODELS`. `CHANGE_FROM` is removed, since the model before the event is known.
+- `PROCESS_PIPELINES`: `DEFINITIONS.PROCESS_UNITS` and `TARGET` are removed, so a process unit can no longer be reused from `DEFINITIONS`. Each entry in a pipeline's `PROCESS_UNITS` is a process unit given by its `TYPE` and that type's keys, and `NAME` on process units is removed. A compressor process unit has `TYPE: COMPRESSOR` and is the only process unit referred to by name, its `COMPRESSOR`. A constraint's `PROCESS_UNIT` must be the `COMPRESSOR` of a compressor process unit in its pipeline.
 
 ## v15.5 {/* #v15-5 */}
 

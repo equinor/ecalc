@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Annotated, Self, assert_never
+from typing import Annotated, Literal, Self, assert_never
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -11,7 +11,11 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlCompressorModelChart,
-    YamlProcessUnitDefinition,
+    YamlLiquidRemoverDefinition,
+    YamlMixerDefinition,
+    YamlPressureDropperDefinition,
+    YamlSplitterDefinition,
+    YamlTemperatureSetterDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
@@ -23,20 +27,14 @@ CompressorModelOrReference = Annotated[
 ]
 
 
-class YamlProcessUnitInstance[TTarget](YamlBase):
-    model_config = ConfigDict(title="PROCESS_UNIT")
-
-    target: TTarget | DefinitionReference
-    name: str | None = None
-
-    def get_instance_reference(self) -> InstanceReference | None:
-        """The name CHANGE_TARGET and CONSTRAINTS use to refer to this process unit, if any."""
-        return self.name
-
-
 class YamlCompressorProcessUnitInstance(YamlBase):
-    model_config = ConfigDict(title="COMPRESSOR_PROCESS_UNIT")
+    """A compressor from COMPRESSORS, run with a compressor model."""
 
+    model_config = ConfigDict(
+        title="COMPRESSOR_PROCESS_UNIT", json_schema_extra=yaml_element_lifecycle(available_since=V2)
+    )
+
+    type: Literal["COMPRESSOR"]
     model: CompressorModelOrReference = Field(
         ...,
         title="MODEL",
@@ -112,9 +110,28 @@ class YamlPipelineEvent(YamlBase):
     ]
 
 
+# Every process unit is chosen by its TYPE, so an invalid unit reports the errors of its own type only.
+YamlProcessUnit = Annotated[
+    YamlCompressorProcessUnitInstance
+    | YamlPressureDropperDefinition
+    | YamlTemperatureSetterDefinition
+    | YamlLiquidRemoverDefinition
+    | YamlMixerDefinition
+    | YamlSplitterDefinition,
+    Field(discriminator="type"),
+]
+
+
 class YamlProcessPipeline(YamlBase):
     name: str
-    process_units: list[YamlCompressorProcessUnitInstance | YamlProcessUnitInstance[YamlProcessUnitDefinition]]
+    process_units: Annotated[
+        list[YamlProcessUnit],
+        Field(
+            title="PROCESS_UNITS",
+            description="The process units in flow order, each given by its TYPE. Only a compressor process unit is "
+            "referred to by name, its COMPRESSOR.",
+        ),
+    ]
     events: Annotated[
         list[YamlPipelineEvent],
         Field(
@@ -123,12 +140,15 @@ class YamlProcessPipeline(YamlBase):
         ),
     ] = []
 
+    @property
+    def compressors(self) -> list[CompressorReference]:
+        """The compressors placed in this pipeline, in flow order."""
+        return [unit.compressor for unit in self.process_units if isinstance(unit, YamlCompressorProcessUnitInstance)]
+
     @model_validator(mode="after")
     def validate_events(self) -> Self:
         """Rules for events that need only this pipeline. Each change type defines its own rule."""
-        compressors = [
-            unit.compressor for unit in self.process_units if isinstance(unit, YamlCompressorProcessUnitInstance)
-        ]
+        compressors = self.compressors
         for event in self.events:
             match event.change_type:
                 case PipelineEventChangeType.REBUNDLE:
