@@ -18,7 +18,7 @@ from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
-from libecalc.ecalc_model.compressor_equipment import CompressorEquipment
+from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
 from libecalc.ecalc_model.timeline_event import TimelineEventService
 from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
@@ -746,7 +746,7 @@ def process_simulation_mapper_factory(
             references=references or {},
             resources={},
             shaft_by_compressor=_shaft_by_compressor_for_pipelines(references or {}),
-            compressor_ids=compressor_ids,
+            compressor_equipment_ids=compressor_ids,
             timeline_event_service=timeline_event_service or TimelineEventService(timeline_events=[]),
         )
 
@@ -785,7 +785,7 @@ def energy_network_mapper_factory():
     def _create(shafts: dict | None = None, compressor_ids: dict | None = None, definitions=None):
         return EnergyNetworkMapper(
             shafts=shafts or {},
-            compressor_ids=compressor_ids or {},
+            compressor_equipment_ids=compressor_ids or {},
             definitions=definitions,
         )
 

@@ -1,13 +1,11 @@
-from typing import Final, NewType, Self
-from uuid import UUID
+from typing import Final, Self
 
 from libecalc.common.ddd import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 
-CompressorId = NewType("CompressorId", UUID)
 
-
-class CompressorEquipment(Entity[CompressorId]):
+class CompressorEquipment(Entity[EquipmentId]):
     """
     A physical compressor, shared by the process and energy domains through its id.
 
@@ -15,17 +13,17 @@ class CompressorEquipment(Entity[CompressorId]):
     equipment tag once the equipment is registered.
     """
 
-    def __init__(self, name: str, alias: str | None = None, compressor_id: CompressorId | None = None):
-        self._id: Final[CompressorId] = compressor_id or CompressorEquipment._create_id()
+    def __init__(self, name: str, alias: str | None = None, equipment_id: EquipmentId | None = None):
+        self._id: Final[EquipmentId] = equipment_id or CompressorEquipment._create_id()
         self._name = name
         self._alias = alias
 
-    def get_id(self) -> CompressorId:
+    def get_id(self) -> EquipmentId:
         return self._id
 
     @classmethod
-    def _create_id(cls: type[Self]) -> CompressorId:
-        return CompressorId(ecalc_id_generator())
+    def _create_id(cls: type[Self]) -> EquipmentId:
+        return EquipmentId(ecalc_id_generator())
 
     @property
     def name(self) -> str:

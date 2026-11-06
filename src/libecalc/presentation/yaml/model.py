@@ -34,9 +34,10 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
-from libecalc.ecalc_model.compressor_equipment import CompressorEquipment, CompressorId
+from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
+from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
-from libecalc.ecalc_model.shaft_equipment import ShaftEquipment
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.expression.extract_expressions import extract_expression_references
@@ -156,7 +157,7 @@ class YamlModel:
         self._shafts = {
             shaft.name: ShaftEquipment(
                 name=shaft.name,
-                compressor_ids=[
+                compressor_equipment_ids=[
                     self._compressors[name].get_id() for name in shaft.compressors if name in self._compressors
                 ],
             )
@@ -183,7 +184,7 @@ class YamlModel:
         """The shafts in SHAFTS, with the ids of the compressors on them. Needs no process or energy mapping."""
         return list(self._shafts.values())
 
-    def _get_compressor_ids(self) -> dict[CompressorReference, CompressorId]:
+    def _get_compressor_equipment_ids(self) -> dict[CompressorReference, EquipmentId]:
         return {name: compressor.get_id() for name, compressor in self._compressors.items()}
 
     def _get_definitions(self) -> dict[str, Any]:
@@ -291,7 +292,7 @@ class YamlModel:
                 references=reference_objects,
                 timeline_event_service=timeline_event_service,
                 shaft_by_compressor=shaft_by_compressor,
-                compressor_ids=self._get_compressor_ids(),
+                compressor_equipment_ids=self._get_compressor_equipment_ids(),
             )
 
             try:
@@ -346,7 +347,7 @@ class YamlModel:
         try:
             topology, energy_unit_factories, consumers = EnergyNetworkMapper(
                 shafts=self._shafts,
-                compressor_ids=self._get_compressor_ids(),
+                compressor_equipment_ids=self._get_compressor_equipment_ids(),
                 definitions=self._get_definitions(),
             ).map_energy_network(yaml_energy_network, expression_evaluator, resources=facility_resources)
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods

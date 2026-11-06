@@ -77,7 +77,7 @@ def test_get_shafts_lists_compressor_ids_without_mapping(model):
     [shaft] = model.get_shafts()
 
     assert shaft.name == SHAFT
-    assert shaft.compressor_ids == (compressor_ids[COMPRESSOR_A], compressor_ids[COMPRESSOR_B])
+    assert shaft.compressor_equipment_ids == (compressor_ids[COMPRESSOR_A], compressor_ids[COMPRESSOR_B])
 
 
 def test_drive_train_gets_process_compressors_when_energy_is_mapped_first(model):
@@ -97,4 +97,4 @@ def test_compressors_on_one_shaft_share_one_solver_shaft(model):
 
     [solver_shaft] = [handler for handler in problem.get_configuration_handlers() if isinstance(handler, Shaft)]
 
-    assert solver_shaft.get_compressor_ids() == list(shaft.compressor_ids)
+    assert solver_shaft.get_compressor_ids() == list(shaft.compressor_equipment_ids)
