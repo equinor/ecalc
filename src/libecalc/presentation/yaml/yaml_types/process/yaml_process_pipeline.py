@@ -15,6 +15,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
 from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, yaml_element_lifecycle
 
 CompressorModelOrReference = Annotated[
@@ -104,10 +105,10 @@ class YamlPipelineEvent(YamlBase):
         ),
     ]
     ref: Annotated[
-        InstanceReference,
+        TimelineEventReference,
         Field(
             title="REF",
-            description="Reference to a PROCESS_EVENT by name.",
+            description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date.",
         ),
     ]
 

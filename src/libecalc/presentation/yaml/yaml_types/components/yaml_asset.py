@@ -22,8 +22,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlEcalcEvent,
-    YamlProcessEvent,
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
@@ -36,12 +34,14 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     DEFAULT_YAML_VERSION,
     V1,
     V2,
     V3,
+    V4,
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
@@ -192,31 +192,19 @@ class YamlAsset(YamlBase):
         description="Defines one or more process simulations to be run.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
-    ecalc_events: list[YamlEcalcEvent] = Field(
-        default_factory=list,
-        title="ECALC_EVENTS",
-        description="Defines eCalc events associated with temporal model changes",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
-    )
     energy_network: YamlEnergyNetwork | None = Field(
         None,
         title="ENERGY_NETWORK",
         description="Defines the energy network configuration.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
-    process_events: list[YamlProcessEvent] = Field(
-        default_factory=list,
-        title="PROCESS_EVENTS",
-        description="Defines process-specific events that reference global eCalc events.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+    timeline: YamlTimeline | None = Field(
+        None,
+        title="TIMELINE",
+        description="Defines dated events in the model. Event dates are added to the time steps of process "
+        "simulations and the energy network.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
-    # TODO: Temporarily disabled until we have a proper implementation of energy events in the energy network.
-    # energy_events: list[YamlEnergyEvent] = Field(
-    #    default_factory=list,
-    #    title="ENERGY_EVENTS",
-    #    description="Defines energy-network-specific events that reference global eCalc events.",
-    #    json_schema_extra=yaml_element_lifecycle(available_since=V3),
-    # )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
         default_factory=list,
         title="PUMP_PROCESS_SIMULATIONS",

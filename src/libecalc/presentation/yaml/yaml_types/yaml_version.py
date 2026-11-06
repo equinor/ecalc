@@ -55,6 +55,7 @@ does not represent minor or patch.
 V1 = Version(1, 0, 0)
 V2 = Version(2, 0, 0)
 V3 = Version(3, 0, 0)
+V4 = Version(4, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
 LATEST_YAML_VERSION = V3.major  # TODO: Automatically set to latest

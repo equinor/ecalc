@@ -18,8 +18,8 @@ from libecalc.common.utils.rates import RateType
 from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
-from libecalc.ecalc_model.ecalc_event import EcalcEventService
 from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
+from libecalc.ecalc_model.timeline_event import TimelineEventService
 from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
 from libecalc.fixtures import YamlCase
@@ -736,7 +736,7 @@ def process_simulation_mapper_factory(
     def _create(
         references: dict | None = None,
         compressor_ids: dict | None = None,
-        ecalc_event_service: EcalcEventService | None = None,
+        timeline_event_service: TimelineEventService | None = None,
     ):
         if compressor_ids is None:
             compressor_ids = _compressor_ids_for_pipelines(references or {})
@@ -745,9 +745,9 @@ def process_simulation_mapper_factory(
             fluid_service=fluid_service,
             references=references or {},
             resources={},
-            ecalc_event_service=ecalc_event_service or EcalcEventService(ecalc_events=[]),
             shaft_by_compressor=_shaft_by_compressor_for_pipelines(references or {}),
             compressor_equipment_ids=compressor_ids,
+            timeline_event_service=timeline_event_service or TimelineEventService(timeline_events=[]),
         )
 
     return _create
