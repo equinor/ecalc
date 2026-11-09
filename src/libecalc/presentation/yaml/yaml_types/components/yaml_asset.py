@@ -622,6 +622,29 @@ class YamlAsset(YamlBase):
         return self
 
     @model_validator(mode="after")
+    def validate_drive_train_mechanical_efficiency_compressors(self):
+        if self.energy_network is None:
+            return self
+
+        compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
+        violations = [
+            f"Drive train '{unit.name}' gives a mechanical efficiency for compressor '{entry.compressor}', "
+            f"which is not on its shaft '{unit.shaft}'. "
+            f"Compressors on this shaft: {', '.join(compressors_by_shaft[unit.shaft]) or 'none'}."
+            for unit in self.energy_network.units
+            if isinstance(unit, YamlDriveTrain) and unit.shaft in compressors_by_shaft
+            for entry in unit.mechanical_efficiencies
+            if entry.compressor not in compressors_by_shaft[unit.shaft]
+        ]
+        if violations:
+            raise ValueError(
+                "\n".join(
+                    [*violations, "MECHANICAL_EFFICIENCIES can only list compressors on the drive train's shaft."]
+                )
+            )
+        return self
+
+    @model_validator(mode="after")
     def validate_shaft_used_by_single_drive_train(self):
         if self.energy_network is None:
             return self

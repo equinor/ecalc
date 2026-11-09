@@ -99,6 +99,18 @@ class TestNumericBounds:
                 {"NAME": "m", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "g", "EFFICIENCY": 1.5}
             )
 
+    def test_mechanical_efficiency_given_in_percent_rejected(self):
+        with pytest.raises(ValidationError, match="EFFICIENCY must be in"):
+            _component_adapter.validate_python(
+                {
+                    "NAME": "d",
+                    "TYPE": "DRIVE_TRAIN",
+                    "INPUT": "t",
+                    "SHAFT": "s",
+                    "MECHANICAL_EFFICIENCIES": [{"COMPRESSOR": "c", "EFFICIENCY": 95}],
+                }
+            )
+
     def test_efficiency_one_accepted(self):
         comp = _component_adapter.validate_python(
             {"NAME": "c", "TYPE": "ELECTRICAL_CABLE", "INPUT": "g", "EFFICIENCY": 1}
@@ -136,6 +148,23 @@ class TestJunctionValidation:
         with pytest.raises(ValidationError, match="duplicate INPUT"):
             _component_adapter.validate_python(
                 {"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["a", "a"], "DISPATCH_STRATEGY": "PRIORITY"}
+            )
+
+
+class TestDriveTrainValidation:
+    def test_compressor_listed_twice_in_mechanical_efficiencies_rejected(self):
+        with pytest.raises(ValidationError, match="MECHANICAL_EFFICIENCIES lists compressors more than once: c"):
+            _component_adapter.validate_python(
+                {
+                    "NAME": "d",
+                    "TYPE": "DRIVE_TRAIN",
+                    "INPUT": "t",
+                    "SHAFT": "s",
+                    "MECHANICAL_EFFICIENCIES": [
+                        {"COMPRESSOR": "c", "EFFICIENCY": 0.95},
+                        {"COMPRESSOR": "c", "EFFICIENCY": 0.98},
+                    ],
+                }
             )
 
 

@@ -406,6 +406,7 @@ class YamlDriveTrainBuilder(Builder[YamlDriveTrain]):
         self.name = None
         self.input = None
         self.shaft = None
+        self.mechanical_efficiencies = None
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -417,6 +418,13 @@ class YamlDriveTrainBuilder(Builder[YamlDriveTrain]):
 
     def with_shaft(self, shaft: str) -> Self:
         self.shaft = shaft
+        return self
+
+    def with_mechanical_efficiency(self, compressor: str, efficiency: YamlExpressionType) -> Self:
+        self.mechanical_efficiencies = [
+            *(self.mechanical_efficiencies or []),
+            {"compressor": compressor, "efficiency": efficiency},
+        ]
         return self
 
     def with_test_data(self) -> Self:
@@ -561,6 +569,10 @@ class YamlEnergyNetworkBuilder(Builder[YamlEnergyNetwork]):
 
     def with_units(self, units: list[YamlComponent]) -> Self:
         self.units = units
+        return self
+
+    def with_unit(self, unit: YamlComponent) -> Self:
+        self.units = [*self.units, unit]
         return self
 
     def with_gas_turbine(self, name: str, input: str, model: YamlTurbineDefinition) -> Self:
