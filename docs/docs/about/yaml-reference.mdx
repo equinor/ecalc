@@ -1025,7 +1025,7 @@ A compressor from COMPRESSORS, run with a compressor model.
 | `TYPE` | `COMPRESSOR` | Required |
 | `MODEL` <LifecycleBadge kind="introduced" version="4" /> | The compressor model. Replaces TARGET. Other PROCESS_UNITs no longer supported. They must be defined inline without a reference. Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
 | `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
-| `TARGET` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "Use PROCESS_UNITS > MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET." }]} /> | Removed in V4: Use PROCESS_UNITS &gt; MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET. | Optional |
+| `TARGET` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "Other PROCESS_UNITS can no longer be defined with TARGET." }]} /> | Removed in V4: Other PROCESS_UNITS can no longer be defined with TARGET. Use PROCESS_PIPELINES &gt; PROCESS_UNITS &gt; MODEL instead. | Optional |
 | `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> | Removed in V3: Use SHAFTS &gt; COMPRESSORS instead. | Optional |
 
 

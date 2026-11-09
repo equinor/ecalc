@@ -67,6 +67,17 @@ CHANGED_IN_KEY = "changed_in"
 REQUIRED_KEY = "required"
 REPLACED_BY_KEY = "replaced_by"
 
+ElementPath = tuple[str, ...]
+ReplacedBy = ElementPath | tuple[ElementPath, ...]
+
+
+def _normalize_replaced_by(replaced_by: ReplacedBy | None) -> tuple[ElementPath, ...]:
+    if not replaced_by:
+        return ()
+    if isinstance(replaced_by[0], str):
+        return (cast(ElementPath, replaced_by),)
+    return cast(tuple[ElementPath, ...], replaced_by)
+
 
 @dataclass(frozen=True)
 class ChangeEntry:
@@ -79,15 +90,19 @@ def removed_field(
     removed_in: Version,
     message: str | None = None,
     available_since: Version | None = None,
-    replaced_by: tuple[str, ...] | None = None,
+    replaced_by: ReplacedBy | None = None,
 ) -> Any:
     """
     Use this field type to annotate removed fields for documentation only.
 
-    replaced_by is the path to the element replacing the removed one, e.g. ("DEFINITIONS", "COMPRESSOR_MODELS").
-    It is shown as a breadcrumb in the error message, and used to link to the element in the docs.
+    replaced_by is the path to the element replacing the removed one, e.g. ("DEFINITIONS", "COMPRESSOR_MODELS"),
+    or a tuple of such paths if it was replaced by more than one element.
+    It is shown as a breadcrumb in the error message, and used to link to the element(s) in the docs.
     """
-    replaced_by_message = f"Use {' > '.join(replaced_by)} instead." if replaced_by else None
+    replacements = _normalize_replaced_by(replaced_by)
+    replaced_by_message = (
+        f"Use {' or '.join(' > '.join(path) for path in replacements)} instead." if replacements else None
+    )
     full_message = " ".join(part for part in (message, replaced_by_message) if part)
 
     def rejected_with(msg: str) -> BeforeValidator:
@@ -112,7 +127,7 @@ def removed_field(
                         for_documentation_only=True,
                     ),
                     "deprecationMessage": full_message,
-                    **({REPLACED_BY_KEY: list(replaced_by)} if replaced_by else {}),
+                    **({REPLACED_BY_KEY: [list(path) for path in replacements]} if replacements else {}),
                 },
             ),
         ),
@@ -174,7 +189,7 @@ class YamlElementLifecycle:
     removed_since: Version | None
     changed_in: tuple[ChangeEntry, ...]
     required: bool = False
-    replaced_by: tuple[str, ...] = ()
+    replaced_by: tuple[ElementPath, ...] = ()
 
 
 def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
@@ -196,11 +211,13 @@ def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
                 changes.append(ChangeEntry(version=Version.from_string(version), description=description))
         return tuple(changes)
 
-    def _parse_replaced_by() -> tuple[str, ...]:
+    def _parse_replaced_by() -> tuple[ElementPath, ...]:
         value = extra.get(REPLACED_BY_KEY)
         if not isinstance(value, list):
             return ()
-        return tuple(item for item in value if isinstance(item, str))
+        return tuple(
+            tuple(segment for segment in path if isinstance(segment, str)) for path in value if isinstance(path, list)
+        )
 
     return YamlElementLifecycle(
         available_since=_parse(AVAILABLE_SINCE_KEY) or V1,

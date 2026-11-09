@@ -54,7 +54,8 @@ class YamlCompressorProcessUnitInstance(YamlBase):
         title="TARGET",
         available_since=V2,
         removed_in=V4,
-        message="Use PROCESS_UNITS > MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET.",
+        message="Other PROCESS_UNITS can no longer be defined with TARGET.",
+        replaced_by=("PROCESS_PIPELINES", "PROCESS_UNITS", "MODEL"),
     )
     shaft: Any = removed_field(title="SHAFT", available_since=V2, removed_in=V3, replaced_by=("SHAFTS", "COMPRESSORS"))
     # END REMOVED FIELDS
