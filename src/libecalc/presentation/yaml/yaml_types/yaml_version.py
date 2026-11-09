@@ -65,7 +65,6 @@ DEPRECATED_SINCE_KEY = "deprecated_since"
 REMOVED_SINCE_KEY = "removed_since"
 CHANGED_IN_KEY = "changed_in"
 REQUIRED_KEY = "required"
-REMOVED_NOTE_KEY = "removed_note"
 
 
 @dataclass(frozen=True)

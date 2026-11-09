@@ -33,9 +33,9 @@ YAML input models carry a lifecycle via `yaml_element_lifecycle(...)` in
   (`model_fields_set`), not just root fields.
 - `required=True`: the element must be explicitly present for every version it's available in
   (checked separately, only for `YamlAsset`'s own root fields, via `get_required_field_names`).
-- `for_documentation_only=True`: adds `"not": {}` to the generated JSON Schema so external editors
-  reject the field. This is schema-generation-only — it does **not** gate runtime pydantic
-  validation. Runtime gating is solely `available_since`/`removed_since`.
+- `removed_field(...)`: a field that is no longer available in the current YAML version. These are still present
+  in the model for documentation purposes, but are **not** validated at runtime. They are only
+  used to generate JSON Schema for documentation and editor support.
 - `changed_in`: documentation-only marker, no runtime effect. Lists `(version, description)` pairs
   for behavioral changes that weren't an addition, deprecation or removal.
 - `deprecated_since`: documentation-only marker, no runtime effect.
@@ -47,6 +47,10 @@ When bumping to a new major YAML version, update:
 `LATEST_YAML_VERSION` is what test builders (`YamlAssetBuilder` in `src/libecalc/testing/yaml_builder.py`)
 default to — forgetting to bump it means new version-gated fields will fail validation in any test
 that relies on the builder's default version.
+
+If there are ANY changes to any class that causes the YAML schema to change, or any other change that would make a YAML document valid in one version but invalid in another,
+you must make sure that this is reflected in the yaml_element_lifecycle(...) of the affected fields, or that the field is replaced with removed_field(...) if it is no longer valid in the current version.
+If any of these changes are made, you must run `uv run ./generate_yaml_asset_docs.py` from `libecalc/src` and ensure that the generated documentation is correctly generated without errors.
 
 ## Code Style
 
