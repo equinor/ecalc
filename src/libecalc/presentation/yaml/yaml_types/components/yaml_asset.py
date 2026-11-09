@@ -1,6 +1,12 @@
 from collections import defaultdict
+from typing import Any
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
@@ -41,6 +47,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
+    removed_field,
     yaml_element_lifecycle,
 )
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
@@ -53,16 +60,11 @@ class YamlDefinitions(YamlBase):
         title="Definitions",
     )
 
-    process_units: dict[str, YamlProcessUnitDefinition] = Field(
-        default_factory=dict,
+    process_units: Any = removed_field(
         title="PROCESS_UNITS",
-        description="Defines process units used in PROCESS_PIPELINES.",
-        json_schema_extra=yaml_element_lifecycle(
-            available_since=V2,
-            changed_in=[
-                (V4, "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead.")
-            ],
-        ),
+        available_since=V2,
+        removed_in=V4,
+        message="Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
     )
 
     compressor_models: dict[str, YamlCompressorModelChart] = Field(

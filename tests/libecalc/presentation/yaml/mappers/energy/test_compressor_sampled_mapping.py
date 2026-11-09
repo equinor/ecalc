@@ -166,23 +166,9 @@ class TestMapperExpansion:
 
 
 MODEL_YAML = """
-YAML_VERSION: 2
+YAML_VERSION: 3
 START: 2020-01-01
 END: 2021-01-01
-FUEL_TYPES:
-  - NAME: fuel_gas
-    EMISSIONS:
-      - NAME: CO2
-        FACTOR: 2.2
-INSTALLATIONS:
-  - NAME: installation
-    FUEL: fuel_gas
-    FUELCONSUMERS:
-      - NAME: flare
-        CATEGORY: FLARE
-        ENERGY_USAGE_MODEL:
-          TYPE: DIRECT
-          FUELRATE: 10
 COMPRESSORS:
   - NAME: 23KA001 Gas Compressor
 ENERGY_NETWORK:

@@ -3,10 +3,10 @@ from __future__ import annotations
 import re
 from collections.abc import Iterable
 from dataclasses import dataclass
-from typing import Annotated
+from typing import Annotated, Any, cast
 
 from pydantic import BaseModel, BeforeValidator, JsonValue, WithJsonSchema
-from pydantic.fields import FieldInfo
+from pydantic.fields import Field, FieldInfo
 
 from libecalc.common.version import Version
 from libecalc.version import current_yaml_version
@@ -65,12 +65,53 @@ DEPRECATED_SINCE_KEY = "deprecated_since"
 REMOVED_SINCE_KEY = "removed_since"
 CHANGED_IN_KEY = "changed_in"
 REQUIRED_KEY = "required"
+REMOVED_NOTE_KEY = "removed_note"
 
 
 @dataclass(frozen=True)
 class ChangeEntry:
     version: Version
     description: str
+
+
+def removed_field(
+    title: str,
+    removed_in: Version,
+    message: str,
+    available_since: Version | None = None,
+) -> Any:
+    """
+    Use this field type to annotate removed fields for documentation only
+    """
+
+    def rejected_with(msg: str) -> BeforeValidator:
+        def reject(_value: Any) -> Any:
+            raise ValueError(msg)
+
+        return BeforeValidator(reject)
+
+    field = cast(
+        FieldInfo,
+        cast(
+            object,
+            Field(
+                default=None,
+                title=title,
+                description=f"Removed in V{removed_in.major}: {message}.",
+                json_schema_extra={
+                    **yaml_element_lifecycle(
+                        available_since=available_since,
+                        removed_since=removed_in,
+                        changed_in=[(removed_in, message)],
+                        for_documentation_only=True,
+                    ),
+                    "deprecationMessage": message,
+                },
+            ),
+        ),
+    )
+    field.metadata.append(rejected_with(msg=message))
+    return field
 
 
 def yaml_element_lifecycle(
@@ -114,7 +155,8 @@ def yaml_element_lifecycle(
 
     # This makes the given element fail for any version. It is used to mark elements as removed in a version, so they are not allowed in the yaml for that version or any later version.
     if for_documentation_only:
-        extra["not"] = {}
+        extra["not"] = {"const": "Prohibited"}
+
     return extra
 
 
