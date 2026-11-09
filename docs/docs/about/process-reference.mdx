@@ -233,11 +233,11 @@ A compressor from COMPRESSORS, run with a compressor model.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `TARGET` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="deprecated" version="3" /> <LifecycleBadge kind="removed" version="4" /> | Reference to a compressor process unit defined in PROCESS_UNITS. From V4: Use MODEL instead. | Optional |
 | `TYPE` | `COMPRESSOR` | Required |
-| `MODEL` <LifecycleBadge kind="introduced" version="4" /> | The compressor model. Replaces TARGET Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
+| `MODEL` <LifecycleBadge kind="introduced" version="4" /> | The compressor model. Replaces TARGET. Other PROCESS_UNITs no longer supported. They must be defined inline without a reference. Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
 | `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
-| `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> | Reference to a shaft defined in SHAFTS. This field is deprecated and has been removed in YAML_VERSION 3. Use the SHAFT &gt; COMPRESSORS instead. | Optional |
+| `TARGET` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "Use PROCESS_UNITS > MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET." }]} /> | Removed in V4: Use PROCESS_UNITS &gt; MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET.. | Optional |
+| `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> <ChangeHistory changes={[{ "version": "3", "description": "Use SHAFT > COMPRESSORS instead." }]} /> | Removed in V3: Use SHAFT &gt; COMPRESSORS instead.. | Optional |
 
 
 </div>
@@ -388,10 +388,10 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | --- | --- | --- |
 | `TYPE` | Action to perform: CHANGE, ADD, or REMOVE a process unit. | Required |
 | `CHANGE_TARGET` | Name of the process unit in the pipeline to change. For REBUNDLE, the COMPRESSOR of a compressor process unit in this pipeline. | Required |
-| `CHANGE_FROM` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> | Reference to the existing process unit template being replaced. V4: This is no longer needed. From is automatically deduced from target. Just remove. Inline definition or reference to [DEFINITIONS](#definitions). | Optional |
 | `CHANGE_TO` | The compressor model to use from the event on. Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
 | `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date. | Required |
+| `CHANGE_FROM` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "No longer in use. Remove. This is detected automatically." }]} /> | Removed in V4: No longer in use. Remove. This is detected automatically.. | Optional |
 
 ## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" /> \{#process_simulations}
 
