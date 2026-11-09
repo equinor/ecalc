@@ -1443,6 +1443,7 @@ class ChangelogEntry:
     path: list[str]
     kind: ChangeKind
     description: str | None = None
+    replaced_by: tuple[str, ...] = ()
 
 
 def _node_event_major(node: DocNode, kind: ChangeKind) -> int | None:
@@ -1478,7 +1479,8 @@ def _collect_changelog_entries(
             if kind in covered:
                 continue
             if _node_event_major(node, kind) == version:
-                entries.append(ChangelogEntry(path=node_path, kind=kind))
+                replaced_by = node.lifecycle.replaced_by if kind == "removed" and node.lifecycle else ()
+                entries.append(ChangelogEntry(path=node_path, kind=kind, replaced_by=replaced_by))
                 node_covered.add(kind)
         if "changed" not in covered:
             lifecycle = node.lifecycle
@@ -1518,6 +1520,16 @@ def _render_changelog_section(
             breadcrumb = f"[{breadcrumb}](../about/yaml-reference.mdx#{anchor})"
         if entry.description:
             breadcrumb = f"{breadcrumb}: {entry.description}"
+        if entry.replaced_by:
+            replacement = " › ".join(f"`{segment}`" for segment in entry.replaced_by)
+            replacement_anchor = (
+                _resolve_reference_anchor(list(entry.replaced_by), anchor_registry)
+                if anchor_registry is not None
+                else None
+            )
+            if replacement_anchor is not None:
+                replacement = f"[{replacement}](../about/yaml-reference.mdx#{replacement_anchor})"
+            breadcrumb = f"{breadcrumb}: replaced by {replacement}"
         lines.append(f"- {breadcrumb}")
     lines.append("")
     lines.append("")

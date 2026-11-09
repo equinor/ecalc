@@ -56,9 +56,7 @@ class YamlCompressorProcessUnitInstance(YamlBase):
         removed_in=V4,
         message="Use PROCESS_UNITS > MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET.",
     )
-    shaft: Any = removed_field(
-        title="SHAFT", available_since=V2, removed_in=V3, message="Use SHAFT > COMPRESSORS instead."
-    )
+    shaft: Any = removed_field(title="SHAFT", available_since=V2, removed_in=V3, replaced_by=("SHAFTS", "COMPRESSORS"))
     # END REMOVED FIELDS
 
     def get_instance_reference(self) -> InstanceReference:

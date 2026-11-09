@@ -97,7 +97,8 @@ class YamlDefinitions(YamlBase):
         title="PROCESS_UNITS",
         available_since=V2,
         removed_in=V4,
-        message="Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
+        message="Compressors can no longer be defined here. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
+        replaced_by=("DEFINITIONS", "COMPRESSOR_MODELS"),
     )
     # END REMOVED FIELDS
 
@@ -247,13 +248,13 @@ class YamlAsset(YamlBase):
         title="ECALC_EVENTS",
         available_since=V2,
         removed_in=V4,
-        message="Use TIMELINE > EVENTS instead.",
+        replaced_by=("TIMELINE", "EVENTS"),
     )
     process_events: Any = removed_field(
         title="PROCESS_EVENTS",
         available_since=V2,
         removed_in=V4,
-        message="Use TIMELINE > EVENTS instead.",
+        replaced_by=("TIMELINE", "EVENTS"),
     )
     # END REMOVED FIELDS
 
