@@ -51,7 +51,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 from libecalc.process.fluid_stream.fluid_model import EoSModel, FluidComposition, FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.testing.energy_builders import YamlEnergyNetworkBuilder
-from libecalc.testing.process_builders import YamlCompressorModelChartBuilder, YamlProcessPipelineBuilder
+from libecalc.testing.process_builders import YamlProcessPipelineBuilder
 from libecalc.testing.yaml_builder import (
     YamlAssetBuilder,
     YamlElectricityConsumerBuilder,
@@ -355,11 +355,6 @@ def yaml_process_pipeline_builder_factory():
 @pytest.fixture
 def energy_network_builder_factory():
     return lambda: YamlEnergyNetworkBuilder()
-
-
-@pytest.fixture
-def yaml_compressor_model_builder_factory():
-    return lambda: YamlCompressorModelChartBuilder()
 
 
 @pytest.fixture

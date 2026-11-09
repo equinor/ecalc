@@ -15,7 +15,16 @@ from libecalc.common.logger import logger
 YAML_EXTENSIONS = [".yml", ".yaml"]
 CSV_EXTENSION = ".csv"
 ZIP_EXTENSION = ".zip"
-MAIN_PROVEN_FILE = ["INSTALLATION", "TIME_SERIES", "FACILITY_INPUTS", "FUEL_TYPES"]
+MAIN_PROVEN_FILE = [
+    "INSTALLATION",
+    "TIME_SERIES",
+    "FACILITY_INPUTS",
+    "FUEL_TYPES",
+    "DEFINITIONS",
+    "PROCESS_SIMULATIONS",
+    "ENERGY_NETWORK",
+    "PROCESS_PIPELINES",
+]
 
 IGNORED_ZIP_CONTENTS_KEYWORDS = [".DS_Store", "__MACOSX"]
 
@@ -27,8 +36,11 @@ def is_main_yaml_file(file: IO) -> bool:
     """
     bytes_str = file.read()
     file.seek(0)
-    text_obj = bytes_str.decode("UTF-8")
-    return any(x in text_obj for x in MAIN_PROVEN_FILE)
+    return is_main_yaml_content(bytes_str.decode("UTF-8"))
+
+
+def is_main_yaml_content(text: str) -> bool:
+    return any(x in text for x in MAIN_PROVEN_FILE)
 
 
 def is_ignored_zip_content(file: Path) -> bool:
@@ -115,8 +127,7 @@ class ValidEcalcFile(EcalcFile):
     def is_main_yaml_file(self) -> bool:
         bytes_str = self.file.read()
         self.file.seek(0)
-        text_obj = bytes_str.decode("UTF-8")
-        return any(x in text_obj for x in MAIN_PROVEN_FILE)
+        return is_main_yaml_content(bytes_str.decode("UTF-8"))
 
 
 @dataclass
