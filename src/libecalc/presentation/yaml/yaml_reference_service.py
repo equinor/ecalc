@@ -36,7 +36,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation impor
     YamlProcessSimulation,
     YamlPumpProcessSimulation,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlProcessUnitDefinition
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 logger = logging.getLogger(__name__)
@@ -50,7 +49,6 @@ type ReferenceType = (
     | YamlProcessPipeline
     | YamlProcessSimulation
     | YamlPumpProcessSimulation
-    | YamlProcessUnitDefinition
     | YamlFluidDefinition
 )
 

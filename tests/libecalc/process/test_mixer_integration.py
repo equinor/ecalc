@@ -33,10 +33,10 @@ def test_yaml_mixer_maps_to_runnable_pipeline(process_simulation_mapper_factory,
     yaml_pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("train_with_mixer")
-        .with_item(name="temp_setter_1", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_compressor_item(compressor="compressor_1")
-        .with_item(target=yaml_mixer)
-        .with_item(name="temp_setter_2", target=YamlTemperatureSetterBuilder().with_test_data().validate())
+        .with_item(yaml_mixer)
+        .with_item(YamlTemperatureSetterBuilder().with_test_data().validate())
         .with_compressor_item(compressor="compressor_2")
         .validate()
     )
