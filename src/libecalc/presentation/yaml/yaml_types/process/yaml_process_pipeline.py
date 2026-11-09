@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Annotated, Literal, Self, assert_never
+from typing import Annotated, Any, Literal, Self, assert_never
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -18,9 +18,8 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlTemperatureSetterDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
-from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, V4, yaml_element_lifecycle
+from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, V4, removed_field, yaml_element_lifecycle
 
 CompressorModelOrReference = Annotated[
     DefinitionReference | YamlCompressorModelChart,
@@ -31,23 +30,15 @@ CompressorModelOrReference = Annotated[
 class YamlCompressorProcessUnitInstance(YamlBase):
     """A compressor from COMPRESSORS, run with a compressor model."""
 
-    target: str | None = Field(
-        None,
-        title="TARGET",
-        description="Reference to a compressor process unit defined in PROCESS_UNITS. From V4: Use MODEL instead.",
-        json_schema_extra=yaml_element_lifecycle(
-            available_since=V2, deprecated_since=V3, removed_since=V4, for_documentation_only=True
-        ),
-    )
     model_config = ConfigDict(
         title="COMPRESSOR_PROCESS_UNIT", json_schema_extra=yaml_element_lifecycle(available_since=V2)
     )
-
     type: Literal["COMPRESSOR"]
+
     model: CompressorModelOrReference = Field(
         ...,
         title="MODEL",
-        description="The compressor model. Replaces TARGET",
+        description="The compressor model. Replaces TARGET. Other PROCESS_UNITs no longer supported. They must be defined inline without a reference.",
         json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
     compressor: CompressorReference = Field(
@@ -58,14 +49,17 @@ class YamlCompressorProcessUnitInstance(YamlBase):
         json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
 
-    # TODO: Available just to mark it as removed.
-    shaft: ShaftReference | None = Field(
-        None,
-        title="SHAFT",
-        description="Reference to a shaft defined in SHAFTS. "
-        "This field is deprecated and has been removed in YAML_VERSION 3. Use the SHAFT > COMPRESSORS instead.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V3, for_documentation_only=True),
+    # REMOVED FIELDS
+    target: Any = removed_field(
+        title="TARGET",
+        available_since=V2,
+        removed_in=V4,
+        message="Use PROCESS_UNITS > MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET.",
     )
+    shaft: Any = removed_field(
+        title="SHAFT", available_since=V2, removed_in=V3, message="Use SHAFT > COMPRESSORS instead."
+    )
+    # END REMOVED FIELDS
 
     def get_instance_reference(self) -> InstanceReference:
         """The name CHANGE_TARGET and CONSTRAINTS use to refer to this process unit: the compressor's name."""
@@ -98,15 +92,6 @@ class YamlPipelineEvent(YamlBase):
             "compressor process unit in this pipeline.",
         ),
     ]
-    change_from: Annotated[
-        DefinitionReference | None,
-        Field(
-            None,
-            title="CHANGE_FROM",
-            description="Reference to the existing process unit template being replaced. V4: This is no longer needed. From is automatically deduced from target. Just remove.",
-            json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
-        ),
-    ]
 
     change_to: Annotated[
         CompressorModelOrReference,
@@ -129,6 +114,15 @@ class YamlPipelineEvent(YamlBase):
             description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date.",
         ),
     ]
+
+    # REMOVED FIELDS
+    change_from: Any = removed_field(
+        title="CHANGE_FROM",
+        available_since=V2,
+        removed_in=V4,
+        message="No longer in use. Remove. This is detected automatically.",
+    )
+    # END REMOVED FIELDS
 
 
 # Every process unit is chosen by its TYPE, so an invalid unit reports the errors of its own type only.

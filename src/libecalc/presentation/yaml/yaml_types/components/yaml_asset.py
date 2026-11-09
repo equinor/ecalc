@@ -60,13 +60,6 @@ class YamlDefinitions(YamlBase):
         title="Definitions",
     )
 
-    process_units: Any = removed_field(
-        title="PROCESS_UNITS",
-        available_since=V2,
-        removed_in=V4,
-        message="Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
-    )
-
     compressor_models: dict[str, YamlCompressorModelChart] = Field(
         default_factory=dict,
         title="COMPRESSOR_MODELS",
@@ -98,6 +91,15 @@ class YamlDefinitions(YamlBase):
         "the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a "
         "GENERATOR.",
     )
+
+    # REMOVED FIELDS
+    process_units: Any = removed_field(
+        title="PROCESS_UNITS",
+        available_since=V2,
+        removed_in=V4,
+        message="Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
+    )
+    # END REMOVED FIELDS
 
 
 class YamlAsset(YamlBase):
@@ -197,24 +199,14 @@ class YamlAsset(YamlBase):
         description="Defines one or more process simulations to be run.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
-    ecalc_events: str | None = Field(
-        None,
-        title="ECALC_EVENTS",
-        description="Defines eCalc events associated with temporal model changes. Use TIMELINE instead.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
-    )
+
     energy_network: YamlEnergyNetwork | None = Field(
         None,
         title="ENERGY_NETWORK",
         description="Defines the energy network configuration.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
-    process_events: str | None = Field(
-        None,
-        title="PROCESS_EVENTS",
-        description="Defines process-specific events that reference global eCalc events. Use TIMELINE instead",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2, removed_since=V4, for_documentation_only=True),
-    )
+
     timeline: YamlTimeline | None = Field(
         None,
         title="TIMELINE",
@@ -249,6 +241,21 @@ class YamlAsset(YamlBase):
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
         json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
+
+    # REMOVED FIELDS
+    ecalc_events: Any = removed_field(
+        title="ECALC_EVENTS",
+        available_since=V2,
+        removed_in=V4,
+        message="Use TIMELINE > EVENTS instead.",
+    )
+    process_events: Any = removed_field(
+        title="PROCESS_EVENTS",
+        available_since=V2,
+        removed_in=V4,
+        message="Use TIMELINE > EVENTS instead.",
+    )
+    # END REMOVED FIELDS
 
     @model_validator(mode="after")
     def validate_elements_available_for_version(self):

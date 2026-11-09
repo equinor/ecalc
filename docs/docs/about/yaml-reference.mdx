@@ -32,104 +32,9 @@ The eCalc YAML schema major version. Determines which root elements are availabl
 
 Contains reusable definitions.
 
-### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <ChangeHistory changes={[{ "version": "4", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead." }]} /> \{#process_units}
+### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS." }]} /> \{#process_units}
 
-Defines process units used in PROCESS_PIPELINES.
-
-#### PRESSURE_DROPPER <LifecycleBadge kind="introduced" version="2" /> \{#pressure_dropper}
-
-A pressure dropper unit — reduces stream pressure by a fixed amount.
-
-<YamlCodeBlock>{"TYPE: PRESSURE_DROPPER\nPRESSURE_DROP: 1.0"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `PRESSURE_DROPPER` | Required |
-| `PRESSURE_DROP` | Pressure drop across the unit [bar]. | Required |
-
-#### TEMPERATURE_SETTER <LifecycleBadge kind="introduced" version="2" /> \{#temperature_setter}
-
-A temperature setter unit — forces the stream to a specified temperature.
-
-<YamlCodeBlock>{"TYPE: TEMPERATURE_SETTER\nTEMPERATURE: 30.0"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `TEMPERATURE_SETTER` | Required |
-| `TEMPERATURE` | Target temperature [Celsius]. | Required |
-
-#### LIQUID_REMOVER <LifecycleBadge kind="introduced" version="2" /> \{#liquid_remover}
-
-A liquid remover (scrubber) unit — removes any condensed liquid from
-the stream, leaving only the gas phase.
-
-No-op if the stream is already pure vapor.
-
-<YamlCodeBlock>{"TYPE: LIQUID_REMOVER"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `LIQUID_REMOVER` | Required |
-
-#### MIXER <LifecycleBadge kind="introduced" version="2" /> \{#mixer}
-
-Mixes an external sidestream into the through-stream at an
-intermediate point in the pipeline.
-
-<YamlCodeBlock>{"TYPE: MIXER\nSIDESTREAM:\n  NAME: SidestreamDefault\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 200000\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `MIXER` | Required |
-| [`INLET_STREAM`](#definitions-process_units-mixer-inlet_stream) | Sidestream to mix in. Either a reference to a named stream or an inline stream definition. | Required |
-
-##### INLET_STREAM \{#definitions-process_units-mixer-inlet_stream}
-
-Sidestream to mix in. Either a reference to a named stream or an inline stream definition.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `NAME` | Unique name of the inlet stream. | Required |
-| `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
-| `TEMPERATURE` | Temperature in K. | Required |
-| `PRESSURE` | Pressure in Bara | Required |
-| [`RATE`](#definitions-process_units-mixer-inlet_stream-rate) | Rate with unit + value. | Required |
-
-##### RATE \{#definitions-process_units-mixer-inlet_stream-rate}
-
-Rate with unit + value.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `VALUE` |  | Required |
-| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
-| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
-| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
-
-#### SPLITTER <LifecycleBadge kind="introduced" version="2" /> \{#splitter}
-
-Removes a fixed rate from the through-stream at an
-intermediate point in the pipeline (e.g. fuel gas offtake).
-
-<YamlCodeBlock>{"TYPE: SPLITTER\nOFFTAKE_RATE:\n  VALUE: 50000\n  UNIT: SM3_PER_DAY\n  TYPE: STREAM_DAY"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `SPLITTER` | Required |
-| [`OFFTAKE_RATE`](#definitions-process_units-splitter-offtake_rate) | Standard rate to split off. | Required |
-
-##### OFFTAKE_RATE \{#definitions-process_units-splitter-offtake_rate}
-
-Standard rate to split off.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `VALUE` |  | Required |
-| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
-| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
-| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
+Removed in V4: Compressors can no longer be defined here. Use DEFINITIONS &gt; COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES &gt; PROCESS_UNITS..
 
 ### COMPRESSOR_MODELS <LifecycleBadge kind="introduced" version="4" /> \{#compressor_models}
 
@@ -1094,24 +999,31 @@ Defines the physical compressors in the model. Compressor process units in PROCE
 
 Defines process pipelines to use in process simulations.
 
-<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- MODEL: default_compressor_model\n  COMPRESSOR: default_compressor\nEVENTS: []"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TYPE: PRESSURE_DROPPER\n  PRESSURE_DROP: 1.0\n- TYPE: TEMPERATURE_SETTER\n  TEMPERATURE: 30.0\n- TYPE: LIQUID_REMOVER\n- TYPE: COMPRESSOR\n  MODEL: default_compressor_model\n  COMPRESSOR: default_compressor\nEVENTS: []"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` |  | Required |
-| [`PROCESS_UNITS`](#process_pipelines-process_units) |  | Required |
+| [`PROCESS_UNITS`](#process_pipelines-process_units) | The process units in flow order, each given by its TYPE. Only a compressor process unit is referred to by name, its COMPRESSOR. | Required |
 | [`EVENTS`](#process_pipelines-events) | Events that modify the pipeline over time, such as rebundling a compressor. | Default: `[]` |
 
 ##### PROCESS_UNITS \{#process_pipelines-process_units}
 
 <Tabs>
-<TabItem value="COMPRESSOR_PROCESS_UNIT" label="COMPRESSOR_PROCESS_UNIT">
+<TabItem value="COMPRESSOR" label="COMPRESSOR">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+A compressor from COMPRESSORS, run with a compressor model.
+
+<YamlCodeBlock>{"TYPE: COMPRESSOR\nMODEL: default_compressor_model\nCOMPRESSOR: default_compressor"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `TARGET` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="deprecated" version="3" /> <LifecycleBadge kind="removed" version="4" /> | Reference to a compressor process unit defined in PROCESS_UNITS. From V4: Use MODEL instead. | Optional |
+| `TYPE` | `COMPRESSOR` | Required |
 | `MODEL` <LifecycleBadge kind="introduced" version="4" /> | The compressor model. Replaces TARGET Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
 | `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
 | `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> | Reference to a shaft defined in SHAFTS. This field is deprecated and has been removed in YAML_VERSION 3. Use the SHAFT &gt; COMPRESSORS instead. | Optional |
@@ -1120,14 +1032,136 @@ Defines process pipelines to use in process simulations.
 </div>
 </TabItem>
 
-<TabItem value="PROCESS_UNIT" label="PROCESS_UNIT">
+<TabItem value="PRESSURE_DROPPER" label="PRESSURE_DROPPER">
 
 <div className="lifecycle-variant">
 
+<LifecycleBadge kind="introduced" version="2" />
+
+A pressure dropper unit — reduces stream pressure by a fixed amount.
+
+<YamlCodeBlock>{"TYPE: PRESSURE_DROPPER\nPRESSURE_DROP: 1.0"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
-| `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
-| `NAME` |  | Optional |
+| `TYPE` | `PRESSURE_DROPPER` | Required |
+| `PRESSURE_DROP` | Pressure drop across the unit [bar]. | Required |
+
+
+</div>
+</TabItem>
+
+<TabItem value="TEMPERATURE_SETTER" label="TEMPERATURE_SETTER">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+A temperature setter unit — forces the stream to a specified temperature.
+
+<YamlCodeBlock>{"TYPE: TEMPERATURE_SETTER\nTEMPERATURE: 30.0"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `TEMPERATURE_SETTER` | Required |
+| `TEMPERATURE` | Target temperature [Celsius]. | Required |
+
+
+</div>
+</TabItem>
+
+<TabItem value="LIQUID_REMOVER" label="LIQUID_REMOVER">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+A liquid remover (scrubber) unit — removes any condensed liquid from
+the stream, leaving only the gas phase.
+
+No-op if the stream is already pure vapor.
+
+<YamlCodeBlock>{"TYPE: LIQUID_REMOVER"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `LIQUID_REMOVER` | Required |
+
+
+</div>
+</TabItem>
+
+<TabItem value="MIXER" label="MIXER">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+Mixes an external sidestream into the through-stream at an
+intermediate point in the pipeline.
+
+<YamlCodeBlock>{"TYPE: MIXER\nSIDESTREAM:\n  NAME: SidestreamDefault\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 200000\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `MIXER` | Required |
+| [`INLET_STREAM`](#process_pipelines-process_units-mixer-inlet_stream) | Sidestream to mix in. Either a reference to a named stream or an inline stream definition. | Required |
+
+##### INLET_STREAM \{#process_pipelines-process_units-mixer-inlet_stream}
+
+Sidestream to mix in. Either a reference to a named stream or an inline stream definition.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the inlet stream. | Required |
+| `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
+| `TEMPERATURE` | Temperature in K. | Required |
+| `PRESSURE` | Pressure in Bara | Required |
+| [`RATE`](#process_pipelines-process_units-mixer-inlet_stream-rate) | Rate with unit + value. | Required |
+
+##### RATE \{#process_pipelines-process_units-mixer-inlet_stream-rate}
+
+Rate with unit + value.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
+
+
+</div>
+</TabItem>
+
+<TabItem value="SPLITTER" label="SPLITTER">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+Removes a fixed rate from the through-stream at an
+intermediate point in the pipeline (e.g. fuel gas offtake).
+
+<YamlCodeBlock>{"TYPE: SPLITTER\nOFFTAKE_RATE:\n  VALUE: 50000\n  UNIT: SM3_PER_DAY\n  TYPE: STREAM_DAY"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `SPLITTER` | Required |
+| [`OFFTAKE_RATE`](#process_pipelines-process_units-splitter-offtake_rate) | Standard rate to split off. | Required |
+
+##### OFFTAKE_RATE \{#process_pipelines-process_units-splitter-offtake_rate}
+
+Standard rate to split off.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
 
 </div>
@@ -1261,7 +1295,7 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `PROCESS_UNIT` | Reference to a named unit within the pipeline. If omitted, the constraint applies to the last process unit in the pipeline section. | Optional |
+| `PROCESS_UNIT` | The COMPRESSOR of a compressor process unit in this pipeline. The pipeline is split after it. If omitted, the constraint applies at the pipeline outlet. | Optional |
 | `OUTLET_PRESSURE` | Target outlet pressure [bara]. | Required |
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
