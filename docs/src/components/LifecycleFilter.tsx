@@ -5,7 +5,10 @@ const BADGE_SELECTOR = '.lifecycle-badge';
 const VARIANT_SELECTOR = '.lifecycle-variant';
 const HIDDEN_CLASS = 'lifecycle-hidden';
 const ALL_VERSIONS = 'all';
-const VERSIONS = ['1', '2', '3', '4'];
+
+interface LifecycleFilterProps {
+  versions: number[];
+}
 
 interface Lifecycle {
   availableSince: number;

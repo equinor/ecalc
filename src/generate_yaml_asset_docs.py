@@ -35,7 +35,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
     V3,
-    V4,
     YamlElementLifecycle,
     get_model_lifecycle,
     get_yaml_element_lifecycle,
@@ -80,6 +79,7 @@ from libecalc.testing.process_builders import (
     YamlTemperatureSetterBuilder,
     YamlTimelineBuilder,
 )
+from libecalc.version import current_yaml_version
 
 # YamlAsset fields to document, as dot-separated python attribute paths.
 # A top-level name includes the whole field; a dotted path (e.g. "definitions.turbines")
@@ -1302,6 +1302,8 @@ import ChangeHistory from '@site/src/components/ChangeHistory';
 
 """
 
+    versions = ", ".join(str(major) for major in range(V1.major, current_yaml_version().major + 1))
+
     legend = (
         "Elements are labelled with their lifecycle: "
         '<LifecycleBadge kind="introduced" version="N" />'
@@ -1310,7 +1312,7 @@ import ChangeHistory from '@site/src/components/ChangeHistory';
         "Elements with a behavioral change also show an expandable `Changed in:` label you can "
         "click to see what changed.\n\n"
         "Use the filter below to show only the elements available for a single YAML_VERSION.\n\n"
-        "<LifecycleFilter />\n\n"
+        f"<LifecycleFilter versions={{[{versions}]}} />\n\n"
     )
 
     registry = ExampleRegistry(examples)
@@ -1430,9 +1432,10 @@ Use the version filter below to show only the elements available for a chosen `Y
 # left out — add new versions here as they're introduced.
 # ---------------------------------------------------------------------------
 
+FIRST_YAML_CHANGELOG_VERSION = V3
+
 YAML_CHANGELOG_VERSIONS: list[Version] = [
-    V3,
-    V4,
+    Version(major, 0, 0) for major in range(FIRST_YAML_CHANGELOG_VERSION.major, current_yaml_version().major + 1)
 ]
 
 ChangeKind = Literal["added", "deprecated", "removed", "changed"]
