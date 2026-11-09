@@ -159,3 +159,38 @@
 .lifecycle-variant {
   display: contents;
 }
+
+/* <ChangeHistory>: expandable "Changed in: " label next to a heading or field,
+   collapsed by default, listing the versions and descriptions of behavioral
+   changes that weren't an addition, deprecation or removal. */
+.change-history {
+  display: inline-block;
+  margin-left: 8px;
+  vertical-align: middle;
+}
+
+.change-history__toggle {
+  display: inline-block;
+  font-size: 0.65em;
+  font-weight: 600;
+  line-height: 1.4;
+  padding: 1px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  cursor: pointer;
+  color: #8a6d00;
+  background-color: rgba(255, 221, 0, 0.25);
+  border: 1px solid rgba(217, 184, 6, 0.6);
+}
+
+.change-history__toggle:hover {
+  background-color: rgba(255, 221, 0, 0.4);
+}
+
+.change-history__list {
+  margin: 6px 0 0;
+  padding-left: 1.2em;
+  font-size: 0.85em;
+  font-weight: normal;
+}
+

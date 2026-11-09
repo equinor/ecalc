@@ -191,7 +191,9 @@ class YamlModel:
         definitions = self._configuration.definitions
         def_dict = {}
         for field_name in type(definitions).model_fields:
-            def_dict.update(getattr(definitions, field_name))
+            def_dict.update(
+                getattr(definitions, field_name) or {}
+            )  # Handle removed_fields that returns None instead of {}
 
         return def_dict
 

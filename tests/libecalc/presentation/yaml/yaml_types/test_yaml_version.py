@@ -4,12 +4,14 @@ from pydantic import BaseModel, Field, ValidationError
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     AVAILABLE_SINCE_KEY,
+    CHANGED_IN_KEY,
     DEFAULT_YAML_VERSION,
     DEPRECATED_SINCE_KEY,
     REMOVED_SINCE_KEY,
     REQUIRED_KEY,
     V1,
     V2,
+    ChangeEntry,
     YamlElementLifecycle,
     YamlMajorVersion,
     _parse_major_version,
@@ -106,12 +108,22 @@ class TestYamlElementLifecycleBuilder:
     def test_omits_required_when_false(self):
         assert yaml_element_lifecycle(required=False) == {}
 
+    def test_includes_changed_in_when_set(self):
+        assert yaml_element_lifecycle(changed_in=[(V3, "Added support for X.")]) == {
+            CHANGED_IN_KEY: [{"version": "3.0.0", "description": "Added support for X."}]
+        }
+
+    def test_omits_changed_in_when_empty(self):
+        assert yaml_element_lifecycle(changed_in=[]) == {}
+
 
 class TestGetYamlElementLifecycle:
     def test_defaults_to_available_since_v1_when_no_extra(self):
         field_info = Field()
         lifecycle = get_yaml_element_lifecycle(field_info)
-        assert lifecycle == YamlElementLifecycle(available_since=V1, deprecated_since=None, removed_since=None)
+        assert lifecycle == YamlElementLifecycle(
+            available_since=V1, deprecated_since=None, removed_since=None, changed_in=()
+        )
 
     def test_parses_lifecycle_from_json_schema_extra(self):
         field_info = Field(json_schema_extra=yaml_element_lifecycle(available_since=V2, deprecated_since=V3))
@@ -123,7 +135,14 @@ class TestGetYamlElementLifecycle:
     def test_ignores_non_dict_json_schema_extra(self):
         field_info = Field(json_schema_extra=lambda schema: None)
         lifecycle = get_yaml_element_lifecycle(field_info)
-        assert lifecycle == YamlElementLifecycle(available_since=V1, deprecated_since=None, removed_since=None)
+        assert lifecycle == YamlElementLifecycle(
+            available_since=V1, deprecated_since=None, removed_since=None, changed_in=()
+        )
+
+    def test_parses_changed_in_from_json_schema_extra(self):
+        field_info = Field(json_schema_extra=yaml_element_lifecycle(changed_in=[(V3, "Added support for X.")]))
+        lifecycle = get_yaml_element_lifecycle(field_info)
+        assert lifecycle.changed_in == (ChangeEntry(version=V3, description="Added support for X."),)
 
 
 class TestIsAvailableForVersion:

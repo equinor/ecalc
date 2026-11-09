@@ -1,6 +1,12 @@
 from collections import defaultdict
+from typing import Any
 
-from pydantic import ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
@@ -41,6 +47,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
+    removed_field,
     yaml_element_lifecycle,
 )
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
@@ -58,6 +65,7 @@ class YamlDefinitions(YamlBase):
         title="COMPRESSOR_MODELS",
         description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
         "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
 
     fluids: dict[str, YamlFluidDefinition] = Field(
@@ -83,6 +91,15 @@ class YamlDefinitions(YamlBase):
         "the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a "
         "GENERATOR.",
     )
+
+    # REMOVED FIELDS
+    process_units: Any = removed_field(
+        title="PROCESS_UNITS",
+        available_since=V2,
+        removed_in=V4,
+        message="Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
+    )
+    # END REMOVED FIELDS
 
 
 class YamlAsset(YamlBase):
@@ -168,7 +185,7 @@ class YamlAsset(YamlBase):
         title="COMPRESSORS",
         description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
         "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
@@ -182,17 +199,19 @@ class YamlAsset(YamlBase):
         description="Defines one or more process simulations to be run.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
+
     energy_network: YamlEnergyNetwork | None = Field(
         None,
         title="ENERGY_NETWORK",
         description="Defines the energy network configuration.",
         json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
+
     timeline: YamlTimeline | None = Field(
         None,
         title="TIMELINE",
         description="Defines dated events in the model. Event dates are added to the time steps of process "
-        "simulations and the energy network.",
+        "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
         json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
@@ -222,6 +241,21 @@ class YamlAsset(YamlBase):
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
         json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
+
+    # REMOVED FIELDS
+    ecalc_events: Any = removed_field(
+        title="ECALC_EVENTS",
+        available_since=V2,
+        removed_in=V4,
+        message="Use TIMELINE > EVENTS instead.",
+    )
+    process_events: Any = removed_field(
+        title="PROCESS_EVENTS",
+        available_since=V2,
+        removed_in=V4,
+        message="Use TIMELINE > EVENTS instead.",
+    )
+    # END REMOVED FIELDS
 
     @model_validator(mode="after")
     def validate_elements_available_for_version(self):

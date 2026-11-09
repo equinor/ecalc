@@ -968,6 +968,29 @@ def _lifecycle_badges_markdown(lifecycle: YamlElementLifecycle | None) -> str:
     return " ".join(badges)
 
 
+def _escape_jsx_string(value: str) -> str:
+    """Escape a string for embedding as a JSX string literal inside a f-string-built prop."""
+    return value.replace("\\", "\\\\").replace('"', '\\"')
+
+
+def _change_history_markdown(lifecycle: YamlElementLifecycle | None) -> str:
+    """Render an inline <ChangeHistory> listing a node's changed_in entries, if any."""
+    if lifecycle is None or not lifecycle.changed_in:
+        return ""
+    changes = ", ".join(
+        f'{{ "version": "{change.version.major}", "description": "{_escape_jsx_string(change.description)}" }}'
+        for change in lifecycle.changed_in
+    )
+    return f"<ChangeHistory changes={{[{changes}]}} />"
+
+
+def _lifecycle_markup(lifecycle: YamlElementLifecycle | None) -> str:
+    """Render the combined lifecycle badges and change history for a node, to append to its heading
+    or key cell."""
+    parts = [part for part in (_lifecycle_badges_markdown(lifecycle), _change_history_markdown(lifecycle)) if part]
+    return " ".join(parts)
+
+
 def _render_fields_table(nodes: list[DocNode], parent_path: str = "") -> list[list[str]]:
     """Build table rows for a list of child DocNodes."""
     rows = []
@@ -1009,7 +1032,7 @@ def _render_fields_table(nodes: list[DocNode], parent_path: str = "") -> list[li
         else:
             key_cell = f"`{node.title}`"
 
-        badges = _lifecycle_badges_markdown(node.lifecycle)
+        badges = _lifecycle_markup(node.lifecycle)
         if badges:
             key_cell = f"{key_cell} {badges}"
 
@@ -1034,7 +1057,7 @@ def _render_variants_as_tabs(
         anchor = _make_field_anchor(parent_path)
         if anchor_registry is not None:
             anchor_registry[parent_path] = anchor
-        badges = _lifecycle_badges_markdown(parent_lifecycle)
+        badges = _lifecycle_markup(parent_lifecycle)
         suffix = f" {badges}" if badges else ""
         md.line(f"##### {parent_title}{suffix} \\{{#{anchor}}}")
         md.line("")
@@ -1050,7 +1073,7 @@ def _render_variants_as_tabs(
         # `display: contents` (see custom.css) keeps it invisible as a layout box.
         md.line('<div className="lifecycle-variant">')
         md.line("")
-        badges = _lifecycle_badges_markdown(variant.lifecycle)
+        badges = _lifecycle_markup(variant.lifecycle)
         if badges:
             md.paragraph(badges)
 
@@ -1105,7 +1128,7 @@ def _render_nested_fields(
             anchor = _make_field_anchor(node_path)
             if anchor_registry is not None:
                 anchor_registry[node_path] = anchor
-            badges = _lifecycle_badges_markdown(node.lifecycle)
+            badges = _lifecycle_markup(node.lifecycle)
             suffix = f" {badges}" if badges else ""
             md.line(f"##### {node.title}{suffix} \\{{#{anchor}}}")
             md.line("")
@@ -1170,7 +1193,7 @@ def render_tree(
         md.heading(
             min(effective_depth, 6),
             node.title,
-            suffix=_lifecycle_badges_markdown(node.lifecycle),
+            suffix=_lifecycle_markup(node.lifecycle),
             anchor=anchor,
         )
 
@@ -1275,6 +1298,7 @@ import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 import LifecycleBadge from '@site/src/components/LifecycleBadge';
 import LifecycleFilter from '@site/src/components/LifecycleFilter';
+import ChangeHistory from '@site/src/components/ChangeHistory';
 
 """
 
@@ -1283,6 +1307,8 @@ import LifecycleFilter from '@site/src/components/LifecycleFilter';
         '<LifecycleBadge kind="introduced" version="N" />'
         '<LifecycleBadge kind="deprecated" version="N" />'
         '<LifecycleBadge kind="removed" version="N" />. '
+        "Elements with a behavioral change also show an expandable `Changed in:` label you can "
+        "click to see what changed.\n\n"
         "Use the filter below to show only the elements available for a single YAML_VERSION.\n\n"
         "<LifecycleFilter />\n\n"
     )
@@ -1409,13 +1435,14 @@ YAML_CHANGELOG_VERSIONS: list[Version] = [
     V4,
 ]
 
-ChangeKind = Literal["added", "deprecated", "removed"]
+ChangeKind = Literal["added", "deprecated", "removed", "changed"]
 
 
 @dataclass
 class ChangelogEntry:
     path: list[str]
     kind: ChangeKind
+    description: str | None = None
 
 
 def _node_event_major(node: DocNode, kind: ChangeKind) -> int | None:
@@ -1453,6 +1480,12 @@ def _collect_changelog_entries(
             if _node_event_major(node, kind) == version:
                 entries.append(ChangelogEntry(path=node_path, kind=kind))
                 node_covered.add(kind)
+        if "changed" not in covered:
+            lifecycle = node.lifecycle
+            for change in lifecycle.changed_in if lifecycle is not None else ():
+                if change.version.major == version:
+                    entries.append(ChangelogEntry(path=node_path, kind="changed", description=change.description))
+                    node_covered.add("changed")
         entries.extend(_collect_changelog_entries(node.children, version, node_path, frozenset(node_covered)))
     return entries
 
@@ -1483,6 +1516,8 @@ def _render_changelog_section(
         anchor = _resolve_reference_anchor(entry.path, anchor_registry) if anchor_registry is not None else None
         if anchor is not None:
             breadcrumb = f"[{breadcrumb}](../about/yaml-reference.mdx#{anchor})"
+        if entry.description:
+            breadcrumb = f"{breadcrumb}: {entry.description}"
         lines.append(f"- {breadcrumb}")
     lines.append("")
     lines.append("")
@@ -1494,6 +1529,7 @@ def generate_yaml_changelog_markdown(version: Version, anchor_registry: dict[str
     tree = build_yaml_asset_tree(include_fields=None)
     entries = _collect_changelog_entries(tree, version.major, path=[])
     added = [e for e in entries if e.kind == "added"]
+    changed = [e for e in entries if e.kind == "changed"]
     deprecated = [e for e in entries if e.kind == "deprecated"]
     removed = [e for e in entries if e.kind == "removed"]
 
@@ -1515,6 +1551,7 @@ versions.
 """
     sections = (
         _render_changelog_section("Added", added, anchor_registry)
+        + _render_changelog_section("Changed", changed, anchor_registry)
         + _render_changelog_section("Deprecated", deprecated, anchor_registry)
         + _render_changelog_section("Removed", removed, anchor_registry)
     )

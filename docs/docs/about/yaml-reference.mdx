@@ -10,6 +10,7 @@ import TabItem from '@theme/TabItem';
 import YamlCodeBlock from '@site/src/components/YamlCodeBlock';
 import LifecycleBadge from '@site/src/components/LifecycleBadge';
 import LifecycleFilter from '@site/src/components/LifecycleFilter';
+import ChangeHistory from '@site/src/components/ChangeHistory';
 
 # YAML Reference
 
@@ -17,7 +18,9 @@ This page documents every YAML configuration key for the eCalc Asset model, rega
 
 Use the version filter below to show only the elements available for a chosen `YAML_VERSION`.
 
-Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="N" /><LifecycleBadge kind="deprecated" version="N" /><LifecycleBadge kind="removed" version="N" />. Use the filter below to show only the elements available for a single YAML_VERSION.
+Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" version="N" /><LifecycleBadge kind="deprecated" version="N" /><LifecycleBadge kind="removed" version="N" />. Elements with a behavioral change also show an expandable `Changed in:` label you can click to see what changed.
+
+Use the filter below to show only the elements available for a single YAML_VERSION.
 
 <LifecycleFilter />
 
@@ -29,41 +32,24 @@ The eCalc YAML schema major version. Determines which root elements are availabl
 
 Contains reusable definitions.
 
-### PROCESS_UNITS \{#process_units}
+### COMPRESSOR_MODELS <LifecycleBadge kind="introduced" version="4" /> \{#compressor_models}
 
-Defines process units used in PROCESS_PIPELINES.
-
-#### COMPRESSOR <LifecycleBadge kind="introduced" version="2" /> \{#compressor}
-
-A Compressor process unit
-
-<YamlCodeBlock>{"TYPE: COMPRESSOR\nCOMPRESSOR_MODEL: ..."}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPRESSOR` | Required |
-| [`COMPRESSOR_MODEL`](#definitions-process_units-compressor-compressor_model) |  | Required |
-
-##### COMPRESSOR_MODEL \{#definitions-process_units-compressor-compressor_model}
+Defines compressor models that can be referenced by name from MODEL of a compressor process unit in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.
 
 <YamlCodeBlock>{"TYPE: COMPRESSOR_CHART\nCHART: ...\nCONTROL_MARGIN:\n  UNIT: FRACTION\n  VALUE: 0.0"}</YamlCodeBlock>
 
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `COMPRESSOR_CHART` | Required |
-| [`CHART`](#definitions-process_units-compressor-compressor_model-chart) |  | Required |
-| [`CONTROL_MARGIN`](#definitions-process_units-compressor-compressor_model-control_margin) <LifecycleBadge kind="introduced" version="2" /> | Margin added to the compressor's surge control line. | Required |
+#### TYPE \{#type}
 
-##### CHART \{#definitions-process_units-compressor-compressor_model-chart}
+#### CHART \{#chart}
 
 <YamlCodeBlock>{"CURVES: ...\nUNITS:\n  RATE: AM3_PER_HOUR\n  HEAD: M\n  EFFICIENCY: FRACTION"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
-| [`CURVES`](#definitions-process_units-compressor-compressor_model-chart-curves) | Compressor chart curves, one per speed. | Required |
-| [`UNITS`](#definitions-process_units-compressor-compressor_model-chart-units) <LifecycleBadge kind="introduced" version="2" /> | Defines the units | Optional |
+| [`CURVES`](#definitions-compressor_models-chart-curves) | Compressor chart curves, one per speed. | Required |
+| [`UNITS`](#definitions-compressor_models-chart-units) <LifecycleBadge kind="introduced" version="2" /> | Defines the units | Optional |
 
-##### CURVES \{#definitions-process_units-compressor-compressor_model-chart-curves}
+##### CURVES \{#definitions-compressor_models-chart-curves}
 
 <Tabs>
 <TabItem value="YAMLCURVE" label="YAMLCURVE">
@@ -97,7 +83,7 @@ A Compressor process unit
 
 </Tabs>
 
-##### UNITS <LifecycleBadge kind="introduced" version="2" /> \{#definitions-process_units-compressor-compressor_model-chart-units}
+##### UNITS <LifecycleBadge kind="introduced" version="2" /> \{#definitions-compressor_models-chart-units}
 
 Defines the units
 
@@ -107,7 +93,7 @@ Defines the units
 | `HEAD` | Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG | Default: `M` |
 | `EFFICIENCY` | Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION. | Default: `PERCENTAGE` |
 
-##### CONTROL_MARGIN <LifecycleBadge kind="introduced" version="2" /> \{#definitions-process_units-compressor-compressor_model-control_margin}
+#### CONTROL_MARGIN <LifecycleBadge kind="introduced" version="2" /> \{#control_margin}
 
 Margin added to the compressor's surge control line.
 
@@ -115,101 +101,6 @@ Margin added to the compressor's surge control line.
 | --- | --- | --- |
 | `UNIT` |  | Required |
 | `VALUE` |  | Required |
-
-#### PRESSURE_DROPPER <LifecycleBadge kind="introduced" version="2" /> \{#pressure_dropper}
-
-A pressure dropper unit — reduces stream pressure by a fixed amount.
-
-<YamlCodeBlock>{"TYPE: PRESSURE_DROPPER\nPRESSURE_DROP: 1.0"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `PRESSURE_DROPPER` | Required |
-| `PRESSURE_DROP` | Pressure drop across the unit [bar]. | Required |
-
-#### TEMPERATURE_SETTER <LifecycleBadge kind="introduced" version="2" /> \{#temperature_setter}
-
-A temperature setter unit — forces the stream to a specified temperature.
-
-<YamlCodeBlock>{"TYPE: TEMPERATURE_SETTER\nTEMPERATURE: 30.0"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `TEMPERATURE_SETTER` | Required |
-| `TEMPERATURE` | Target temperature [Celsius]. | Required |
-
-#### LIQUID_REMOVER <LifecycleBadge kind="introduced" version="2" /> \{#liquid_remover}
-
-A liquid remover (scrubber) unit — removes any condensed liquid from
-the stream, leaving only the gas phase.
-
-No-op if the stream is already pure vapor.
-
-<YamlCodeBlock>{"TYPE: LIQUID_REMOVER"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `LIQUID_REMOVER` | Required |
-
-#### MIXER <LifecycleBadge kind="introduced" version="2" /> \{#mixer}
-
-Mixes an external sidestream into the through-stream at an
-intermediate point in the pipeline.
-
-<YamlCodeBlock>{"TYPE: MIXER\nSIDESTREAM:\n  NAME: SidestreamDefault\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 200000\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `MIXER` | Required |
-| [`INLET_STREAM`](#definitions-process_units-mixer-inlet_stream) | Sidestream to mix in. Either a reference to a named stream or an inline stream definition. | Required |
-
-##### INLET_STREAM \{#definitions-process_units-mixer-inlet_stream}
-
-Sidestream to mix in. Either a reference to a named stream or an inline stream definition.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `NAME` | Unique name of the inlet stream. | Required |
-| `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
-| `TEMPERATURE` | Temperature in K. | Required |
-| `PRESSURE` | Pressure in Bara | Required |
-| [`RATE`](#definitions-process_units-mixer-inlet_stream-rate) | Rate with unit + value. | Required |
-
-##### RATE \{#definitions-process_units-mixer-inlet_stream-rate}
-
-Rate with unit + value.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `VALUE` |  | Required |
-| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
-| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
-| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
-
-#### SPLITTER <LifecycleBadge kind="introduced" version="2" /> \{#splitter}
-
-Removes a fixed rate from the through-stream at an
-intermediate point in the pipeline (e.g. fuel gas offtake).
-
-<YamlCodeBlock>{"TYPE: SPLITTER\nOFFTAKE_RATE:\n  VALUE: 50000\n  UNIT: SM3_PER_DAY\n  TYPE: STREAM_DAY"}</YamlCodeBlock>
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `TYPE` | `SPLITTER` | Required |
-| [`OFFTAKE_RATE`](#definitions-process_units-splitter-offtake_rate) | Standard rate to split off. | Required |
-
-##### OFFTAKE_RATE \{#definitions-process_units-splitter-offtake_rate}
-
-Standard rate to split off.
-
-| Key | Description | Status |
-| --- | --- | --- |
-| `VALUE` |  | Required |
-| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
-| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
-| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
-| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
 ### FLUIDS \{#fluids}
 
@@ -321,7 +212,7 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 | Key | Description | Status |
 | --- | --- | --- |
 | `POWER` | Electrical power [MW], strictly increasing. In a FILE, this is the POWER column. | Required |
-| `FUEL` | Fuel gas rate [Sm3/day] for each power. In a FILE, this is the FUEL column. | Required |
+| `FUEL` | Fuel rate for each power. In a FILE, this is the FUEL column. Unit follows the connected source: Sm3/day for a FUEL_GAS_SOURCE, L/day for a DIESEL_SOURCE. | Required |
 
 
 </div>
@@ -342,6 +233,10 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 </TabItem>
 
 </Tabs>
+
+### PROCESS_UNITS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "Compressors can no longer be defined here. Use DEFINITIONS > COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS." }]} /> \{#process_units}
+
+Removed in V4: Compressors can no longer be defined here. Use DEFINITIONS &gt; COMPRESSOR_MODELS instead. Other process units are defined inline in PROCESS_PIPELINES &gt; PROCESS_UNITS..
 
 ## TIME_SERIES \{#time_series}
 
@@ -1089,7 +984,7 @@ Defines named shafts representing mechanical connections between drivers and dri
 | `NAME` | Unique name of the shaft. | Required |
 | `COMPRESSORS` <LifecycleBadge kind="introduced" version="2" /> | Names of the compressors in COMPRESSORS that sit on this shaft and run at its speed. A compressor placed in a process pipeline must be on a shaft. A DRIVE_TRAIN on this shaft drives all of them. | Optional |
 
-## COMPRESSORS <LifecycleBadge kind="introduced" version="2" /> \{#compressors}
+## COMPRESSORS <LifecycleBadge kind="introduced" version="3" /> \{#compressors}
 
 Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.
 
@@ -1104,39 +999,169 @@ Defines the physical compressors in the model. Compressor process units in PROCE
 
 Defines process pipelines to use in process simulations.
 
-<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TARGET:\n    TYPE: PRESSURE_DROPPER\n    PRESSURE_DROP: 1.0\n  NAME: default_pressure_dropper\n- TARGET:\n    TYPE: TEMPERATURE_SETTER\n    TEMPERATURE: 30.0\n  NAME: default_temperature_setter\n- TARGET:\n    TYPE: LIQUID_REMOVER\n  NAME: default_liquid_remover\n- TARGET:\n    TYPE: COMPRESSOR\n    COMPRESSOR_MODEL:\n      TYPE: COMPRESSOR_CHART\n      CHART:\n        CURVES:\n        - SPEED: 10000.0\n          RATE:\n          - 500.0\n          - 3000.0\n          - 5000.0\n          - 8000.0\n          HEAD:\n          - 30000.0\n          - 25000.0\n          - 20000.0\n          - 15000.0\n          EFFICIENCY:\n          - 0.68\n          - 0.72\n          - 0.74\n          - 0.7\n        UNITS:\n          RATE: AM3_PER_HOUR\n          HEAD: M\n          EFFICIENCY: FRACTION\n      CONTROL_MARGIN:\n        UNIT: FRACTION\n        VALUE: 0.0\n  COMPRESSOR: default_compressor\nEVENTS: []"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: DefaultPipeline\nPROCESS_UNITS:\n- TYPE: PRESSURE_DROPPER\n  PRESSURE_DROP: 1.0\n- TYPE: TEMPERATURE_SETTER\n  TEMPERATURE: 30.0\n- TYPE: LIQUID_REMOVER\n- TYPE: COMPRESSOR\n  MODEL: default_compressor_model\n  COMPRESSOR: default_compressor\nEVENTS: []"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` |  | Required |
-| [`PROCESS_UNITS`](#process_pipelines-process_units) |  | Required |
+| [`PROCESS_UNITS`](#process_pipelines-process_units) | The process units in flow order, each given by its TYPE. Only a compressor process unit is referred to by name, its COMPRESSOR. | Required |
 | [`EVENTS`](#process_pipelines-events) | Events that modify the pipeline over time, such as rebundling a compressor. | Default: `[]` |
 
 ##### PROCESS_UNITS \{#process_pipelines-process_units}
 
 <Tabs>
-<TabItem value="COMPRESSOR_PROCESS_UNIT" label="COMPRESSOR_PROCESS_UNIT">
+<TabItem value="COMPRESSOR" label="COMPRESSOR">
 
 <div className="lifecycle-variant">
 
+<LifecycleBadge kind="introduced" version="2" />
+
+A compressor from COMPRESSORS, run with a compressor model.
+
+<YamlCodeBlock>{"TYPE: COMPRESSOR\nMODEL: default_compressor_model\nCOMPRESSOR: default_compressor"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
-| `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
-| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
-| `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> | Reference to a shaft defined in SHAFTS. This field is deprecated and has been removed in YAML_VERSION 3. Use the SHAFT &gt; COMPRESSORS instead. | Optional |
+| `TYPE` | `COMPRESSOR` | Required |
+| `MODEL` <LifecycleBadge kind="introduced" version="4" /> | The compressor model. Replaces TARGET. Other PROCESS_UNITs no longer supported. They must be defined inline without a reference. Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
+| `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS. | Required |
+| `TARGET` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "Use PROCESS_UNITS > MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET." }]} /> | Removed in V4: Use PROCESS_UNITS &gt; MODEL for compressors instead. Other PROCESS_UNITS can no longer be defined with TARGET.. | Optional |
+| `SHAFT` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="3" /> <ChangeHistory changes={[{ "version": "3", "description": "Use SHAFT > COMPRESSORS instead." }]} /> | Removed in V3: Use SHAFT &gt; COMPRESSORS instead.. | Optional |
 
 
 </div>
 </TabItem>
 
-<TabItem value="PROCESS_UNIT" label="PROCESS_UNIT">
+<TabItem value="PRESSURE_DROPPER" label="PRESSURE_DROPPER">
 
 <div className="lifecycle-variant">
 
+<LifecycleBadge kind="introduced" version="2" />
+
+A pressure dropper unit — reduces stream pressure by a fixed amount.
+
+<YamlCodeBlock>{"TYPE: PRESSURE_DROPPER\nPRESSURE_DROP: 1.0"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
-| `TARGET` | Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
-| `NAME` |  | Optional |
+| `TYPE` | `PRESSURE_DROPPER` | Required |
+| `PRESSURE_DROP` | Pressure drop across the unit [bar]. | Required |
+
+
+</div>
+</TabItem>
+
+<TabItem value="TEMPERATURE_SETTER" label="TEMPERATURE_SETTER">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+A temperature setter unit — forces the stream to a specified temperature.
+
+<YamlCodeBlock>{"TYPE: TEMPERATURE_SETTER\nTEMPERATURE: 30.0"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `TEMPERATURE_SETTER` | Required |
+| `TEMPERATURE` | Target temperature [Celsius]. | Required |
+
+
+</div>
+</TabItem>
+
+<TabItem value="LIQUID_REMOVER" label="LIQUID_REMOVER">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+A liquid remover (scrubber) unit — removes any condensed liquid from
+the stream, leaving only the gas phase.
+
+No-op if the stream is already pure vapor.
+
+<YamlCodeBlock>{"TYPE: LIQUID_REMOVER"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `LIQUID_REMOVER` | Required |
+
+
+</div>
+</TabItem>
+
+<TabItem value="MIXER" label="MIXER">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+Mixes an external sidestream into the through-stream at an
+intermediate point in the pipeline.
+
+<YamlCodeBlock>{"TYPE: MIXER\nSIDESTREAM:\n  NAME: SidestreamDefault\n  FLUID:\n    TYPE: PREDEFINED\n    EOS_MODEL: SRK\n    GAS_TYPE: MEDIUM\n  TEMPERATURE: 30.0\n  PRESSURE: 20.0\n  RATE:\n    VALUE: 200000\n    UNIT: SM3_PER_DAY\n    TYPE: STREAM_DAY"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `MIXER` | Required |
+| [`INLET_STREAM`](#process_pipelines-process_units-mixer-inlet_stream) | Sidestream to mix in. Either a reference to a named stream or an inline stream definition. | Required |
+
+##### INLET_STREAM \{#process_pipelines-process_units-mixer-inlet_stream}
+
+Sidestream to mix in. Either a reference to a named stream or an inline stream definition.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name of the inlet stream. | Required |
+| `FLUID` | Reference to a fluid definition. Inline definition or reference. See [DEFINITIONS.FLUIDS](#fluids). | Required |
+| `TEMPERATURE` | Temperature in K. | Required |
+| `PRESSURE` | Pressure in Bara | Required |
+| [`RATE`](#process_pipelines-process_units-mixer-inlet_stream-rate) | Rate with unit + value. | Required |
+
+##### RATE \{#process_pipelines-process_units-mixer-inlet_stream-rate}
+
+Rate with unit + value.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
+
+
+</div>
+</TabItem>
+
+<TabItem value="SPLITTER" label="SPLITTER">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="2" />
+
+Removes a fixed rate from the through-stream at an
+intermediate point in the pipeline (e.g. fuel gas offtake).
+
+<YamlCodeBlock>{"TYPE: SPLITTER\nOFFTAKE_RATE:\n  VALUE: 50000\n  UNIT: SM3_PER_DAY\n  TYPE: STREAM_DAY"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `TYPE` | `SPLITTER` | Required |
+| [`OFFTAKE_RATE`](#process_pipelines-process_units-splitter-offtake_rate) | Standard rate to split off. | Required |
+
+##### OFFTAKE_RATE \{#process_pipelines-process_units-splitter-offtake_rate}
+
+Standard rate to split off.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `VALUE` |  | Required |
+| `UNIT` | Rate unit. SM3_PER_DAY for standard volume. | Required |
+| `TYPE` | `STREAM_DAY` | Default: `STREAM_DAY` |
+| `CONDITION` | A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used. | Optional |
+| `CONDITIONS` | A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used. | Optional |
 
 
 </div>
@@ -1151,11 +1176,11 @@ Events that modify the pipeline over time, such as rebundling a compressor.
 | Key | Description | Status |
 | --- | --- | --- |
 | `TYPE` | Action to perform: CHANGE, ADD, or REMOVE a process unit. | Required |
-| `CHANGE_TARGET` | Name of the process unit in the pipeline to change. | Required |
-| `CHANGE_FROM` | Reference to the existing process unit template being replaced. Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
-| `CHANGE_TO` | Reference to the new process unit template to use. Inline definition or reference. See [DEFINITIONS.PROCESS_UNITS](#process_units). | Required |
+| `CHANGE_TARGET` | Name of the process unit in the pipeline to change. For REBUNDLE, the COMPRESSOR of a compressor process unit in this pipeline. | Required |
+| `CHANGE_TO` | The compressor model to use from the event on. Inline definition or reference. See [DEFINITIONS.COMPRESSOR_MODELS](#compressor_models). | Required |
 | `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (chart change, same physical compressor). | Required |
 | `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date. | Required |
+| `CHANGE_FROM` <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "No longer in use. Remove. This is detected automatically." }]} /> | Removed in V4: No longer in use. Remove. This is detected automatically.. | Optional |
 
 ## PROCESS_SIMULATIONS <LifecycleBadge kind="introduced" version="2" /> \{#process_simulations}
 
@@ -1270,7 +1295,7 @@ Constraints per target. Key is pipeline name, value is list of constraints.
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `PROCESS_UNIT` | Reference to a named unit within the pipeline. If omitted, the constraint applies to the last process unit in the pipeline section. | Optional |
+| `PROCESS_UNIT` | The COMPRESSOR of a compressor process unit in this pipeline. The pipeline is split after it. If omitted, the constraint applies at the pipeline outlet. | Optional |
 | `OUTLET_PRESSURE` | Target outlet pressure [bara]. | Required |
 | `PRESSURE_CONTROL` | `UPSTREAM_CHOKE` \| `DOWNSTREAM_CHOKE` \| `COMMON_ASV` \| `INDIVIDUAL_ASV_RATE` \| `INDIVIDUAL_ASV_PRESSURE` | Required |
 | `ANTI_SURGE` | Anti-surge strategy to keep the compressor train within safe operating capacity. | Required |
@@ -1433,9 +1458,9 @@ At least two sources or units feeding into this junction, in dispatch priority o
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `ELECTRICAL_CONSUMER` | Required |
-| [`LOAD`](#energy_network-units-electrical_consumer-load) | Electrical power demand (MW), as an expression or a curve lookup. | Required |
+| [`LOAD`](#energy_network-units-electrical_consumer-load) <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> | Electrical power demand (MW), as an expression or a curve lookup. | Required |
 
-##### LOAD \{#energy_network-units-electrical_consumer-load}
+##### LOAD <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-electrical_consumer-load}
 
 Electrical power demand (MW), as an expression or a curve lookup.
 
@@ -1450,6 +1475,8 @@ Electrical power demand (MW), as an expression or a curve lookup.
 <TabItem value="POWERCURVE" label="POWERCURVE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="3" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1493,9 +1520,9 @@ Electrical power demand (MW), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `MECHANICAL_CONSUMER` | Required |
-| [`LOAD`](#energy_network-units-mechanical_consumer-load) | Shaft power demand (MW), as an expression or a curve lookup. | Required |
+| [`LOAD`](#energy_network-units-mechanical_consumer-load) <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> | Shaft power demand (MW), as an expression or a curve lookup. | Required |
 
-##### LOAD \{#energy_network-units-mechanical_consumer-load}
+##### LOAD <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-mechanical_consumer-load}
 
 Shaft power demand (MW), as an expression or a curve lookup.
 
@@ -1510,6 +1537,8 @@ Shaft power demand (MW), as an expression or a curve lookup.
 <TabItem value="POWERCURVE" label="POWERCURVE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="3" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  POWER:\n  - 0.0\n  - 0.8\n  - 3.4\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1570,9 +1599,9 @@ Shaft power demand (MW), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `FUEL_GAS_CONSUMER` | Required |
-| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
+| [`RATE`](#energy_network-units-fuel_gas_consumer-rate) <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> | Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup. | Required |
 
-##### RATE \{#energy_network-units-fuel_gas_consumer-rate}
+##### RATE <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-fuel_gas_consumer-rate}
 
 Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 
@@ -1587,6 +1616,8 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 <TabItem value="FUELTABLE" label="FUELTABLE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="3" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1630,9 +1661,9 @@ Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `DIESEL_CONSUMER` | Required |
-| [`RATE`](#energy_network-units-diesel_consumer-rate) | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
+| [`RATE`](#energy_network-units-diesel_consumer-rate) <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> | Diesel consumption rate (l/d), as an expression or a curve lookup. | Required |
 
-##### RATE \{#energy_network-units-diesel_consumer-rate}
+##### RATE <ChangeHistory changes={[{ "version": "3", "description": "Added support to also load from curve." }]} /> \{#energy_network-units-diesel_consumer-rate}
 
 Diesel consumption rate (l/d), as an expression or a curve lookup.
 
@@ -1647,6 +1678,8 @@ Diesel consumption rate (l/d), as an expression or a curve lookup.
 <TabItem value="FUELTABLE" label="FUELTABLE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="3" />
 
 <YamlCodeBlock>{"CURVE:\n  VARIABLE:\n  - 0.0\n  - 1000.0\n  - 5000.0\n  FUEL:\n  - 0.0\n  - 8000.0\n  - 35000.0\nVARIABLE: SIM;RATE"}</YamlCodeBlock>
 
@@ -1702,7 +1735,7 @@ tabulated.
 | `NAME` | Unique name for this component. | Required |
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `COMPRESSOR_SAMPLED` | Required |
-| `COMPRESSOR` | Reference to a compressor defined in COMPRESSORS. | Required |
+| `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. | Required |
 | `FILE` | Resource tabulating FUEL and/or POWER against RATE, SUCTION_PRESSURE and/or DISCHARGE_PRESSURE. | Required |
 | `RATE` | Rate through the compressor (Sm³/d), looked up in FILE. | Optional |
 | `SUCTION_PRESSURE` | Compressor inlet pressure (bara), looked up in FILE. | Optional |
@@ -1716,7 +1749,7 @@ tabulated.
 
 ## TIMELINE <LifecycleBadge kind="introduced" version="4" /> \{#timeline}
 
-Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network.
+Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS
 
 <YamlCodeBlock>{"EVENTS:\n  new_wells_tie_in:\n    TITLE: Tie-in of new wells\n    TYPE: TIE_IN\n    FROM: '2025-01-01T00:00:00'\n    DESCRIPTION: New production wells are tied in to the platform."}</YamlCodeBlock>
 
@@ -2236,3 +2269,11 @@ Global start date for eCalc calculations in &lt;YYYY-MM-DD&gt; format.
 ## END \{#end}
 
 Global end date for eCalc calculations in &lt;YYYY-MM-DD&gt; format.
+
+## ECALC_EVENTS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "Use TIMELINE > EVENTS instead." }]} /> \{#ecalc_events}
+
+Removed in V4: Use TIMELINE &gt; EVENTS instead..
+
+## PROCESS_EVENTS <LifecycleBadge kind="introduced" version="2" /> <LifecycleBadge kind="removed" version="4" /> <ChangeHistory changes={[{ "version": "4", "description": "Use TIMELINE > EVENTS instead." }]} /> \{#process_events}
+
+Removed in V4: Use TIMELINE &gt; EVENTS instead..
