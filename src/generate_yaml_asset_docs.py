@@ -34,7 +34,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
-    V3,
     YamlElementLifecycle,
     get_model_lifecycle,
     get_yaml_element_lifecycle,
@@ -1432,7 +1431,7 @@ Use the version filter below to show only the elements available for a chosen `Y
 # left out — add new versions here as they're introduced.
 # ---------------------------------------------------------------------------
 
-FIRST_YAML_CHANGELOG_VERSION = V3
+FIRST_YAML_CHANGELOG_VERSION = Version(current_yaml_version().major - 1, 0, 0)  # 1 version back (current + previous)
 
 YAML_CHANGELOG_VERSIONS: list[Version] = [
     Version(major, 0, 0) for major in range(FIRST_YAML_CHANGELOG_VERSION.major, current_yaml_version().major + 1)
