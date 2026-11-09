@@ -33,17 +33,13 @@ def _pipeline(name: str, *compressors: str) -> YamlProcessPipeline:
 
 
 def _pipeline_with_shaft_on_process_unit(name: str, compressor: str, shaft: str) -> YamlProcessPipeline:
-    return YamlProcessPipeline(
-        name=name,
-        process_units=[
-            YamlCompressorProcessUnitInstance(
-                type="COMPRESSOR",
-                compressor=compressor,
-                model=YamlCompressorModelChartBuilder().with_test_data().validate(),
-                shaft=shaft,
-            )
-        ],
+    process_unit = YamlCompressorProcessUnitInstance.model_construct(
+        type="COMPRESSOR",
+        compressor=compressor,
+        model=YamlCompressorModelChartBuilder().with_test_data().validate(),
+        shaft=shaft,
     )
+    return YamlProcessPipeline.model_construct(name=name, process_units=[process_unit])
 
 
 def test_rejects_shaft_on_compressor_process_unit_from_v3():
