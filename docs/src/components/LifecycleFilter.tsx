@@ -186,7 +186,7 @@ function syncTableOfContents(content: Element) {
  * chosen YAML_VERSION, and keeps the table-of-contents sidebar in sync with
  * whatever ends up hidden.
  */
-export default function LifecycleFilter() {
+export default function LifecycleFilter({ versions }: LifecycleFilterProps) {
   const [version, setVersion] = useState<string>(ALL_VERSIONS);
   const versionRef = useRef(version);
   versionRef.current = version;
@@ -232,7 +232,7 @@ export default function LifecycleFilter() {
           />
           All versions
         </label>
-        {VERSIONS.map((v) => (
+        {versions.map(String).map((v) => (
           <label key={v} className="lifecycle-filter__option">
             <input
               type="radio"
