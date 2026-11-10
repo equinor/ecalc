@@ -34,8 +34,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V1,
-    V3,
-    V4,
     YamlElementLifecycle,
     get_model_lifecycle,
     get_yaml_element_lifecycle,
@@ -80,6 +78,7 @@ from libecalc.testing.process_builders import (
     YamlTemperatureSetterBuilder,
     YamlTimelineBuilder,
 )
+from libecalc.version import current_yaml_version
 
 # YamlAsset fields to document, as dot-separated python attribute paths.
 # A top-level name includes the whole field; a dotted path (e.g. "definitions.turbines")
@@ -1302,6 +1301,8 @@ import ChangeHistory from '@site/src/components/ChangeHistory';
 
 """
 
+    versions = ", ".join(str(major) for major in range(V1.major, current_yaml_version().major + 1))
+
     legend = (
         "Elements are labelled with their lifecycle: "
         '<LifecycleBadge kind="introduced" version="N" />'
@@ -1310,7 +1311,7 @@ import ChangeHistory from '@site/src/components/ChangeHistory';
         "Elements with a behavioral change also show an expandable `Changed in:` label you can "
         "click to see what changed.\n\n"
         "Use the filter below to show only the elements available for a single YAML_VERSION.\n\n"
-        "<LifecycleFilter />\n\n"
+        f"<LifecycleFilter versions={{[{versions}]}} />\n\n"
     )
 
     registry = ExampleRegistry(examples)
@@ -1430,9 +1431,10 @@ Use the version filter below to show only the elements available for a chosen `Y
 # left out — add new versions here as they're introduced.
 # ---------------------------------------------------------------------------
 
+FIRST_YAML_CHANGELOG_VERSION = Version(current_yaml_version().major - 1, 0, 0)  # 1 version back (current + previous)
+
 YAML_CHANGELOG_VERSIONS: list[Version] = [
-    V3,
-    V4,
+    Version(major, 0, 0) for major in range(FIRST_YAML_CHANGELOG_VERSION.major, current_yaml_version().major + 1)
 ]
 
 ChangeKind = Literal["added", "deprecated", "removed", "changed"]
@@ -1443,6 +1445,7 @@ class ChangelogEntry:
     path: list[str]
     kind: ChangeKind
     description: str | None = None
+    replaced_by: tuple[tuple[str, ...], ...] = ()
 
 
 def _node_event_major(node: DocNode, kind: ChangeKind) -> int | None:
@@ -1478,7 +1481,8 @@ def _collect_changelog_entries(
             if kind in covered:
                 continue
             if _node_event_major(node, kind) == version:
-                entries.append(ChangelogEntry(path=node_path, kind=kind))
+                replaced_by = node.lifecycle.replaced_by if kind == "removed" and node.lifecycle else ()
+                entries.append(ChangelogEntry(path=node_path, kind=kind, replaced_by=replaced_by))
                 node_covered.add(kind)
         if "changed" not in covered:
             lifecycle = node.lifecycle
@@ -1518,6 +1522,19 @@ def _render_changelog_section(
             breadcrumb = f"[{breadcrumb}](../about/yaml-reference.mdx#{anchor})"
         if entry.description:
             breadcrumb = f"{breadcrumb}: {entry.description}"
+        if entry.replaced_by:
+            replacements = []
+            for replacement_path in entry.replaced_by:
+                replacement = " › ".join(f"`{segment}`" for segment in replacement_path)
+                replacement_anchor = (
+                    _resolve_reference_anchor(list(replacement_path), anchor_registry)
+                    if anchor_registry is not None
+                    else None
+                )
+                if replacement_anchor is not None:
+                    replacement = f"[{replacement}](../about/yaml-reference.mdx#{replacement_anchor})"
+                replacements.append(replacement)
+            breadcrumb = f"{breadcrumb}: replaced by {' and '.join(replacements)}"
         lines.append(f"- {breadcrumb}")
     lines.append("")
     lines.append("")

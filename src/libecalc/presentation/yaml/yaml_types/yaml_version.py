@@ -65,6 +65,18 @@ DEPRECATED_SINCE_KEY = "deprecated_since"
 REMOVED_SINCE_KEY = "removed_since"
 CHANGED_IN_KEY = "changed_in"
 REQUIRED_KEY = "required"
+REPLACED_BY_KEY = "replaced_by"
+
+ElementPath = tuple[str, ...]
+ReplacedBy = ElementPath | tuple[ElementPath, ...]
+
+
+def _normalize_replaced_by(replaced_by: ReplacedBy | None) -> tuple[ElementPath, ...]:
+    if not replaced_by:
+        return ()
+    if isinstance(replaced_by[0], str):
+        return (cast(ElementPath, replaced_by),)
+    return cast(tuple[ElementPath, ...], replaced_by)
 
 
 @dataclass(frozen=True)
@@ -76,12 +88,22 @@ class ChangeEntry:
 def removed_field(
     title: str,
     removed_in: Version,
-    message: str,
+    message: str | None = None,
     available_since: Version | None = None,
+    replaced_by: ReplacedBy | None = None,
 ) -> Any:
     """
-    Use this field type to annotate removed fields for documentation only
+    Use this field type to annotate removed fields for documentation only.
+
+    replaced_by is the path to the element replacing the removed one, e.g. ("DEFINITIONS", "COMPRESSOR_MODELS"),
+    or a tuple of such paths if it was replaced by more than one element.
+    It is shown as a breadcrumb in the error message, and used to link to the element(s) in the docs.
     """
+    replacements = _normalize_replaced_by(replaced_by)
+    replaced_by_message = (
+        f"Use {' or '.join(' > '.join(path) for path in replacements)} instead." if replacements else None
+    )
+    full_message = " ".join(part for part in (message, replaced_by_message) if part)
 
     def rejected_with(msg: str) -> BeforeValidator:
         def reject(_value: Any) -> Any:
@@ -96,20 +118,21 @@ def removed_field(
             Field(
                 default=None,
                 title=title,
-                description=f"Removed in V{removed_in.major}: {message}.",
+                description=f"Removed in V{removed_in.major}: {full_message}",
                 json_schema_extra={
                     **yaml_element_lifecycle(
                         available_since=available_since,
                         removed_since=removed_in,
-                        changed_in=[(removed_in, message)],
+                        changed_in=[(removed_in, message)] if message else None,
                         for_documentation_only=True,
                     ),
-                    "deprecationMessage": message,
+                    "deprecationMessage": full_message,
+                    **({REPLACED_BY_KEY: [list(path) for path in replacements]} if replacements else {}),
                 },
             ),
         ),
     )
-    field.metadata.append(rejected_with(msg=message))
+    field.metadata.append(rejected_with(msg=full_message))
     return field
 
 
@@ -166,6 +189,7 @@ class YamlElementLifecycle:
     removed_since: Version | None
     changed_in: tuple[ChangeEntry, ...]
     required: bool = False
+    replaced_by: tuple[ElementPath, ...] = ()
 
 
 def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
@@ -187,12 +211,21 @@ def _parse_lifecycle_extra(extra: dict[str, JsonValue]) -> YamlElementLifecycle:
                 changes.append(ChangeEntry(version=Version.from_string(version), description=description))
         return tuple(changes)
 
+    def _parse_replaced_by() -> tuple[ElementPath, ...]:
+        value = extra.get(REPLACED_BY_KEY)
+        if not isinstance(value, list):
+            return ()
+        return tuple(
+            tuple(segment for segment in path if isinstance(segment, str)) for path in value if isinstance(path, list)
+        )
+
     return YamlElementLifecycle(
         available_since=_parse(AVAILABLE_SINCE_KEY) or V1,
         deprecated_since=_parse(DEPRECATED_SINCE_KEY),
         removed_since=_parse(REMOVED_SINCE_KEY),
         changed_in=_parse_changed_in(),
         required=bool(extra.get(REQUIRED_KEY, False)),
+        replaced_by=_parse_replaced_by(),
     )
 
 

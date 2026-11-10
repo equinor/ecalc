@@ -29,6 +29,19 @@ jobs:
       - name: Install the project
         run: uv sync --locked --all-extras --dev
 
+      - name: Ensure generated YAML reference and changelog are up to date
+        run: |
+          cd src
+          uv run python generate_yaml_asset_docs.py
+          cd ..
+          generated_paths="docs/docs/about/process-reference.mdx docs/docs/about/energy-reference.mdx docs/docs/about/yaml-reference.mdx docs/docs/yaml-changelog"
+          if [ -n "$(git status --porcelain -- $generated_paths)" ]; then
+            echo "::error::The generated YAML documentation is out of date. A YAML schema change must be documented with yaml_element_lifecycle(...) or removed_field(...). Run 'uv run ./generate_yaml_asset_docs.py' from libecalc/src and commit the result."
+            git status --porcelain -- $generated_paths
+            git diff -- $generated_paths
+            exit 1
+          fi
+
       - name: Generate CLI reference
         run: |
           uv run typer src/ecalc_cli/main.py utils docs > ./docs/docs/about/getting_started/cli/cli_reference.md
