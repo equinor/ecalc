@@ -200,7 +200,7 @@ class TestGasTurbineCapacity:
 
 
 class TestGeneratorModelEvents:
-    def _generator(self, *, model_events):
+    def _genset_with_events(self, *, model_events):
         return TimeSeriesGeneratorFactory(
             name="genset",
             fuel_model=ScaledFuelModel(1.0),
@@ -209,51 +209,51 @@ class TestGeneratorModelEvents:
         )
 
     @staticmethod
-    def _rebundle(change_time, factor) -> EnergyUnitModelEvent[ScaledFuelModel]:
+    def _rebundle_at(change_time, fuel_scale) -> EnergyUnitModelEvent[ScaledFuelModel]:
         return EnergyUnitModelEvent(
             change_type=EnergyUnitEventChangeType.REBUNDLE,
             change_time=change_time,
-            change_to=ScaledFuelModel(factor),
+            change_to=ScaledFuelModel(fuel_scale),
         )
 
     def test_uses_the_active_fuel_model_per_period(self):
-        factory = self._generator(model_events=[self._rebundle(SECOND_PERIOD.start, 0.5)])
-        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
-        (connection,) = connections
+        genset = self._genset_with_events(model_events=[self._rebundle_at(SECOND_PERIOD.start, 0.5)])
+        connections = incoming(genset.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (fuel_input,) = connections
 
-        first = factory.create(ElectricalPower(10), incoming_connections=connections, period=FIRST_PERIOD)
-        second = factory.create(ElectricalPower(10), incoming_connections=connections, period=SECOND_PERIOD)
+        before_rebundle = genset.create(ElectricalPower(10), incoming_connections=connections, period=FIRST_PERIOD)
+        after_rebundle = genset.create(ElectricalPower(10), incoming_connections=connections, period=SECOND_PERIOD)
 
-        assert first.get_input_energies()[connection.id] == FuelGasRate(10)
-        assert second.get_input_energies()[connection.id] == FuelGasRate(5)
+        assert before_rebundle.get_input_energies()[fuel_input.id] == FuelGasRate(10)
+        assert after_rebundle.get_input_energies()[fuel_input.id] == FuelGasRate(5)
 
     def test_latest_effective_event_wins_regardless_of_order(self):
-        factory = self._generator(
-            model_events=[self._rebundle(THIRD_PERIOD.start, 0.25), self._rebundle(SECOND_PERIOD.start, 0.5)]
+        genset = self._genset_with_events(
+            model_events=[self._rebundle_at(THIRD_PERIOD.start, 0.25), self._rebundle_at(SECOND_PERIOD.start, 0.5)]
         )
-        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
-        (connection,) = connections
+        connections = incoming(genset.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (fuel_input,) = connections
 
-        first = factory.create(ElectricalPower(8), incoming_connections=connections, period=FIRST_PERIOD)
-        second = factory.create(ElectricalPower(8), incoming_connections=connections, period=SECOND_PERIOD)
-        third = factory.create(ElectricalPower(8), incoming_connections=connections, period=THIRD_PERIOD)
+        on_base_model = genset.create(ElectricalPower(8), incoming_connections=connections, period=FIRST_PERIOD)
+        after_first_rebundle = genset.create(ElectricalPower(8), incoming_connections=connections, period=SECOND_PERIOD)
+        after_second_rebundle = genset.create(ElectricalPower(8), incoming_connections=connections, period=THIRD_PERIOD)
 
-        assert first.get_input_energies()[connection.id] == FuelGasRate(8)
-        assert second.get_input_energies()[connection.id] == FuelGasRate(4)
-        assert third.get_input_energies()[connection.id] == FuelGasRate(2)
+        assert on_base_model.get_input_energies()[fuel_input.id] == FuelGasRate(8)
+        assert after_first_rebundle.get_input_energies()[fuel_input.id] == FuelGasRate(4)
+        assert after_second_rebundle.get_input_energies()[fuel_input.id] == FuelGasRate(2)
 
     def test_model_events_require_a_period(self):
-        factory = self._generator(model_events=[self._rebundle(SECOND_PERIOD.start, 0.5)])
-        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        genset = self._genset_with_events(model_events=[self._rebundle_at(SECOND_PERIOD.start, 0.5)])
+        connections = incoming(genset.get_id(), FuelGasRate, FIRST_CANDIDATE)
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="changes model over time"):
-            factory.create(ElectricalPower(10), incoming_connections=connections)
+            genset.create(ElectricalPower(10), incoming_connections=connections)
 
     def test_without_events_the_base_model_is_used_without_a_period(self):
-        factory = self._generator(model_events=())
-        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
-        (connection,) = connections
+        genset = self._genset_with_events(model_events=())
+        connections = incoming(genset.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (fuel_input,) = connections
 
-        generator = factory.create(ElectricalPower(10), incoming_connections=connections)
+        generator = genset.create(ElectricalPower(10), incoming_connections=connections)
 
-        assert generator.get_input_energies()[connection.id] == FuelGasRate(10)
+        assert generator.get_input_energies()[fuel_input.id] == FuelGasRate(10)
