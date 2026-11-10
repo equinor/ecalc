@@ -5,12 +5,13 @@ from uuid import UUID
 import pytest
 
 from libecalc.common.time_utils import Period
-from libecalc.domain.energy.model_event import EnergyUnitEventChangeType, EnergyUnitModelEvent
+from libecalc.ecalc_model.model_event import EnergyUnitEventChangeType, EnergyUnitModelEvent
 from libecalc.energy import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
+from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
@@ -38,14 +39,8 @@ class IdentityFuelModel:
         return power
 
 
-class ScaledFuelModel:
-    """Fuel model test double whose fuel_for_power scales the power by a fixed factor."""
-
-    def __init__(self, factor: float) -> None:
-        self._factor = factor
-
-    def fuel_for_power(self, power: float) -> float:
-        return power * self._factor
+def linear_fuel_model(*, fuel_per_power: float, max_power: float = 100) -> GeneratorFuelModel:
+    return GeneratorFuelModel(powers=[0, max_power], fuels=[0, fuel_per_power * max_power])
 
 
 @pytest.fixture
@@ -74,12 +69,6 @@ RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, FuelGasRate, None, id="fuel gas source"),
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
-    pytest.param(
-        partial(TimeSeriesGeneratorFactory, fuel_model=IdentityFuelModel(), input_energy_type=FuelGasRate),
-        ElectricalPower,
-        FuelGasRate,
-        id="generator",
-    ),
     pytest.param(
         partial(TimeSeriesGasTurbineFactory, fuel_model=IdentityFuelModel()),
         MechanicalPower,
@@ -201,24 +190,28 @@ class TestGasTurbineCapacity:
 
 
 class TestGeneratorModelEvents:
-    def _generator_factory(self, *, model_events):
+    def _generator_factory(self, *, model_events, max_power: float = 100):
         return TimeSeriesGeneratorFactory(
             name="generator",
-            fuel_model=ScaledFuelModel(1.0),
+            fuel_model=linear_fuel_model(fuel_per_power=1.0, max_power=max_power),
             input_energy_type=FuelGasRate,
             model_events=model_events,
         )
 
     @staticmethod
-    def _rebundle_at(change_time, fuel_scale) -> EnergyUnitModelEvent[ScaledFuelModel]:
+    def _rebundle_at(
+        change_time, *, fuel_per_power: float = 1.0, max_power: float = 100
+    ) -> EnergyUnitModelEvent[GeneratorFuelModel]:
         return EnergyUnitModelEvent(
             change_type=EnergyUnitEventChangeType.REBUNDLE,
             change_time=change_time,
-            change_to=ScaledFuelModel(fuel_scale),
+            change_to=linear_fuel_model(fuel_per_power=fuel_per_power, max_power=max_power),
         )
 
     def test_uses_the_active_fuel_model_per_period(self):
-        generator_factory = self._generator_factory(model_events=[self._rebundle_at(SECOND_PERIOD.start, 0.5)])
+        generator_factory = self._generator_factory(
+            model_events=[self._rebundle_at(SECOND_PERIOD.start, fuel_per_power=0.5)]
+        )
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
         (connection,) = connections
 
@@ -232,7 +225,10 @@ class TestGeneratorModelEvents:
 
     def test_uses_the_latest_rebundle_in_effect_for_each_period(self):
         generator_factory = self._generator_factory(
-            model_events=[self._rebundle_at(THIRD_PERIOD.start, 0.25), self._rebundle_at(SECOND_PERIOD.start, 0.5)]
+            model_events=[
+                self._rebundle_at(THIRD_PERIOD.start, fuel_per_power=0.25),
+                self._rebundle_at(SECOND_PERIOD.start, fuel_per_power=0.5),
+            ]
         )
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
         (connection,) = connections
@@ -253,8 +249,24 @@ class TestGeneratorModelEvents:
         assert generator_second_rebundle.get_input_energies()[connection.id] == FuelGasRate(2)
         assert generator_carried_forward.get_input_energies()[connection.id] == FuelGasRate(2)
 
+    def test_capacity_is_the_max_power_of_the_active_fuel_model(self):
+        generator_factory = self._generator_factory(
+            max_power=10, model_events=[self._rebundle_at(SECOND_PERIOD.start, max_power=15)]
+        )
+        connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+
+        generator = generator_factory.create(ElectricalPower(5), incoming_connections=connections, period=FIRST_PERIOD)
+        generator_rebundled = generator_factory.create(
+            ElectricalPower(5), incoming_connections=connections, period=SECOND_PERIOD
+        )
+
+        assert generator.get_capacity() == ElectricalPower(10)
+        assert generator_rebundled.get_capacity() == ElectricalPower(15)
+
     def test_model_events_require_a_period(self):
-        generator_factory = self._generator_factory(model_events=[self._rebundle_at(SECOND_PERIOD.start, 0.5)])
+        generator_factory = self._generator_factory(
+            model_events=[self._rebundle_at(SECOND_PERIOD.start, fuel_per_power=0.5)]
+        )
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="changes model over time"):

@@ -381,7 +381,6 @@ class EnergyNetworkMapper:
                     TimeSeriesGeneratorFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
-                        capacity=self._time_series(fuel_model.max_power, expression_evaluator),
                         fuel_model=fuel_model,
                         input_energy_type=input_energy_type,
                     ),

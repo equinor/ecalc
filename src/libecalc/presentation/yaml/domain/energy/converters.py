@@ -4,9 +4,9 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 from libecalc.common.time_utils import Period
-from libecalc.domain.energy.model_event import EnergyUnitModelEvent
+from libecalc.ecalc_model.model_event import EnergyUnitModelEvent
 from libecalc.energy.energy_network_topology import EnergyConnection
-from libecalc.energy.energy_types import Energy
+from libecalc.energy.energy_types import ElectricalPower, Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, Generator
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
@@ -25,11 +25,10 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
         name: str,
         fuel_model: GeneratorFuelModel,
         energy_unit_id: EnergyUnitId | None = None,
-        capacity: TimeSeriesExpression | None = None,
         input_energy_type: type[Energy],
         model_events: Sequence[EnergyUnitModelEvent[GeneratorFuelModel]] = (),
     ) -> None:
-        super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
+        super().__init__(name=name, energy_unit_id=energy_unit_id)
         self.fuel_model = fuel_model
         self.input_energy_type = input_energy_type
         self._model_events = tuple(sorted(model_events, key=lambda event: event.change_time))
@@ -51,12 +50,6 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
         (incoming_connection,) = incoming_connections
         period = extra.get("period")
         fuel_model = self._fuel_model_for(period)
-        capacity = resolve_optional_energy(
-            self.capacity,
-            Generator.get_output_energy_type(),
-            period=period,
-            description=f"Capacity for '{self.get_name()}'",
-        )
         return Generator(
             name=self.get_name(),
             power_to_fuel=fuel_model.fuel_for_power,
@@ -64,7 +57,7 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
             energy_unit_id=self.get_id(),
             output_energy=demand,
             input_connection_id=incoming_connection.id,
-            capacity=capacity,
+            capacity=ElectricalPower(fuel_model.max_power),
         )
 
 

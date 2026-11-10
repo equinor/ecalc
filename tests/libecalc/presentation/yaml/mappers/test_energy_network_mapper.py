@@ -46,10 +46,13 @@ def test_generator_capacity_is_the_curve_maximum(energy_network_mapper_factory, 
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
 
     (genset,) = (factory for factory in factories if factory.get_name() == "genset")
-    assert genset.capacity.get_evaluated_expression() == [10]
+    generator = genset.create(
+        ElectricalPower(0), incoming_connections=topology.get_incoming_connections(genset.get_id()), period=period
+    )
+    assert generator.get_capacity() == ElectricalPower(10)
 
 
 def test_generator_input_energy_type_follows_connected_source(
@@ -157,7 +160,6 @@ def test_maps_sources_units_connections_and_expressions(
         "grid": 20,
         "diesel": 500,
         "backup_fuel": 50,
-        "genset": 10,
         "turbine": 20,
         "motor": 5,
         "cable": 4,
