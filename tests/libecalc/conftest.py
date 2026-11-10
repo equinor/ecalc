@@ -19,6 +19,7 @@ from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_split
 )
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.regularity import Regularity
+from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline, ProcessPipelineSection
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
@@ -26,7 +27,6 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 from libecalc.process.chart import ChartCurve
 from libecalc.process.chart.chart import Chart, ChartData
 from libecalc.process.chart.compressor import CompressorChart
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineSection
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
