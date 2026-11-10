@@ -24,6 +24,7 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 FIRST_PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
 SECOND_PERIOD = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
 THIRD_PERIOD = Period(start=datetime(2022, 1, 1), end=datetime(2023, 1, 1))
+FOURTH_PERIOD = Period(start=datetime(2023, 1, 1), end=datetime(2024, 1, 1))
 PERIODS = [FIRST_PERIOD, SECOND_PERIOD]
 
 FIRST_CANDIDATE = EnergyUnitId(UUID(int=1))
@@ -229,7 +230,7 @@ class TestGeneratorModelEvents:
         assert generator.get_input_energies()[connection.id] == FuelGasRate(10)
         assert generator_rebundled.get_input_energies()[connection.id] == FuelGasRate(5)
 
-    def test_latest_effective_event_wins_regardless_of_order(self):
+    def test_uses_the_latest_rebundle_in_effect_for_each_period(self):
         generator_factory = self._generator_factory(
             model_events=[self._rebundle_at(THIRD_PERIOD.start, 0.25), self._rebundle_at(SECOND_PERIOD.start, 0.5)]
         )
@@ -243,10 +244,14 @@ class TestGeneratorModelEvents:
         generator_second_rebundle = generator_factory.create(
             ElectricalPower(8), incoming_connections=connections, period=THIRD_PERIOD
         )
+        generator_carried_forward = generator_factory.create(
+            ElectricalPower(8), incoming_connections=connections, period=FOURTH_PERIOD
+        )
 
         assert generator.get_input_energies()[connection.id] == FuelGasRate(8)
         assert generator_first_rebundle.get_input_energies()[connection.id] == FuelGasRate(4)
         assert generator_second_rebundle.get_input_energies()[connection.id] == FuelGasRate(2)
+        assert generator_carried_forward.get_input_energies()[connection.id] == FuelGasRate(2)
 
     def test_model_events_require_a_period(self):
         generator_factory = self._generator_factory(model_events=[self._rebundle_at(SECOND_PERIOD.start, 0.5)])
