@@ -9,12 +9,12 @@ from libecalc.process.process_solver.choke_configuration_handler import ChokeCon
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, ScipyRootFindingStrategy
 from libecalc.process.process_solver.section_assembly import individual_recirculation_loops, recirculation_loop
-from libecalc.process.process_solver.solver_assembly import ProcessSolverSystem, assemble_solver
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
+from libecalc.testing.solver_assembly import ProcessSolverSystem, assemble_solver
 from tests.libecalc.process.helpers.process_solver_system import StageConfig
 
 

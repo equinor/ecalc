@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 from libecalc.process.chart.chart import ChartData
-from libecalc.process.process_solver.solver_assembly import ProcessSolverSystem
+from libecalc.testing.solver_assembly import ProcessSolverSystem
 
 __all__ = ["ProcessSolverSystem", "StageConfig"]
 

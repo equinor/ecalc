@@ -37,6 +37,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
+from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
@@ -83,7 +84,6 @@ from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
     YamlModelValidationContextNames,
 )
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
 from libecalc.process.pump.pump_process_simulation import (
     PumpOperatingInput,
     PumpProcessSimulation,

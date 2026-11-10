@@ -8,6 +8,13 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
+from libecalc.ecalc_model.process.process_pipeline import (
+    PipelineEvent,
+    PipelineEventAction,
+    PipelineEventChangeType,
+    ProcessPipeline,
+    ProcessPipelineSection,
+)
 from libecalc.ecalc_model.process_simulation import (
     AntiSurgeConfig,
     CommonStreamDistributionConfig,
@@ -75,14 +82,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.process.chart.chart import ChartData
 from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_pipeline import (
-    PipelineEvent,
-    PipelineEventAction,
-    PipelineEventChangeType,
-    ProcessPipeline,
-    ProcessPipelineId,
-    ProcessPipelineSection,
-)
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint

@@ -1,10 +1,7 @@
-"""Production solver assembly: wire physical components into a working solver.
+"""Test solver assembly: wire physical components into a working solver.
 
-This module contains the single source of truth for assembling a
-PipelineSectionSolver from its collaborating objects (runner, anti-surge
-strategy, pressure control strategy).  Both the YAML mapper and test
-infrastructure should use ``assemble_solver`` to ensure tests exercise
-the same wiring logic as production.
+Assembles a PipelineSectionSolver from its collaborating objects (runner,
+anti-surge strategy, pressure control strategy) for use in tests.
 """
 
 from __future__ import annotations
@@ -13,7 +10,7 @@ from collections.abc import Sequence
 from typing import assert_never
 
 from libecalc.common.ddd import value_object
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineSection
+from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline, ProcessPipelineSection
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
@@ -75,7 +72,7 @@ def assemble_solver(
 ) -> ProcessSolverSystem:
     """Assemble a fully-wired PipelineSectionSolver from physical components.
 
-    This is the production solver assembly path.  It creates the
+    It creates the
     ProcessPipelineRunner, resolves the anti-surge and pressure control
     strategies from the ``pressure_control_type``, and wires everything
     into a PipelineSectionSolver.

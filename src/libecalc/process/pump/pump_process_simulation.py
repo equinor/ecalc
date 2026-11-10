@@ -26,10 +26,7 @@ from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.chart.chart import Chart
-from libecalc.process.process_pipeline.process_pipeline import (
-    ProcessUnitConnection,
-    ProcessUnitConnectionId,
-)
+from libecalc.process.process_pipeline.process_pipeline import ProcessUnitConnectionId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.pump.liquid_stream import LiquidStream
 from libecalc.process.pump.pump import Pump, PumpEvaluationResult
@@ -74,6 +71,31 @@ class LiquidProcessUnit(Entity[ProcessUnitId]):
     @classmethod
     def _create_id(cls: type[Self]) -> ProcessUnitId:
         return ProcessUnitId(ecalc_id_generator())
+
+
+class LiquidProcessUnitConnection(Entity[ProcessUnitConnectionId]):
+    def __init__(
+        self,
+        from_process_unit_id: ProcessUnitId,
+        to_process_unit_id: ProcessUnitId,
+        id: ProcessUnitConnectionId | None = None,
+    ):
+        self._id: Final[ProcessUnitConnectionId] = id or LiquidProcessUnitConnection._create_id()
+        self._from_process_unit_id = from_process_unit_id
+        self._to_process_unit_id = to_process_unit_id
+
+    def get_id(self) -> ProcessUnitConnectionId:
+        return self._id
+
+    def get_from_process_unit_id(self) -> ProcessUnitId:
+        return self._from_process_unit_id
+
+    def get_to_process_unit_id(self) -> ProcessUnitId:
+        return self._to_process_unit_id
+
+    @classmethod
+    def _create_id(cls: type[Self]) -> ProcessUnitConnectionId:
+        return ProcessUnitConnectionId(ecalc_id_generator())
 
 
 class LiquidRecirculationLoop(Entity[LiquidRecirculationLoopId]):
@@ -170,12 +192,12 @@ class PumpProcessSimulation(Entity[PumpProcessSimulationId]):
         self._units: Final[tuple[LiquidProcessUnit, ...]] = (inlet, mixer, pump_unit, splitter, choke, outlet)
 
         # Serial connections, in flow order; connection[i] carries stream[i] (see _project_streams).
-        self._connections: Final[tuple[ProcessUnitConnection, ...]] = (
-            ProcessUnitConnection(from_process_unit_id=inlet.get_id(), to_process_unit_id=mixer.get_id()),
-            ProcessUnitConnection(from_process_unit_id=mixer.get_id(), to_process_unit_id=pump_unit.get_id()),
-            ProcessUnitConnection(from_process_unit_id=pump_unit.get_id(), to_process_unit_id=splitter.get_id()),
-            ProcessUnitConnection(from_process_unit_id=splitter.get_id(), to_process_unit_id=choke.get_id()),
-            ProcessUnitConnection(from_process_unit_id=choke.get_id(), to_process_unit_id=outlet.get_id()),
+        self._connections: Final[tuple[LiquidProcessUnitConnection, ...]] = (
+            LiquidProcessUnitConnection(from_process_unit_id=inlet.get_id(), to_process_unit_id=mixer.get_id()),
+            LiquidProcessUnitConnection(from_process_unit_id=mixer.get_id(), to_process_unit_id=pump_unit.get_id()),
+            LiquidProcessUnitConnection(from_process_unit_id=pump_unit.get_id(), to_process_unit_id=splitter.get_id()),
+            LiquidProcessUnitConnection(from_process_unit_id=splitter.get_id(), to_process_unit_id=choke.get_id()),
+            LiquidProcessUnitConnection(from_process_unit_id=choke.get_id(), to_process_unit_id=outlet.get_id()),
         )
         self._recirculation_loop: Final[LiquidRecirculationLoop] = LiquidRecirculationLoop(
             splitter_id=splitter.get_id(),
@@ -191,7 +213,7 @@ class PumpProcessSimulation(Entity[PumpProcessSimulationId]):
     def get_process_units(self) -> Sequence[LiquidProcessUnit]:
         return self._units
 
-    def get_process_unit_connections(self) -> Sequence[ProcessUnitConnection]:
+    def get_process_unit_connections(self) -> Sequence[LiquidProcessUnitConnection]:
         return self._connections
 
     def get_recirculation_loop(self) -> LiquidRecirculationLoop:

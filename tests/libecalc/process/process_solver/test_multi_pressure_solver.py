@@ -3,7 +3,7 @@ import pytest
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl, InterstagePressureControl
 from libecalc.domain.process.compressor.core.train.compressor_train_common_shaft import CompressorTrainCommonShaft
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
+from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
 from libecalc.process.process_solver.pipeline_section import Pipeline
