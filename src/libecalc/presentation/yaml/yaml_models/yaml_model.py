@@ -10,8 +10,9 @@ from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
 )
 from libecalc.presentation.yaml.yaml_models.yaml_editable import DataModelYamlEditor, YamlEditable
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_document import YamlDocument
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
@@ -149,7 +150,7 @@ class YamlValidator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate(self, context: YamlModelValidationContext) -> YamlAsset: ...
+    def validate(self, context: YamlModelValidationContext) -> YamlDocument: ...
 
     @abc.abstractmethod
     def get_file_context(self, yaml_path: tuple[str | int | datetime.datetime, ...]) -> FileContext | None: ...

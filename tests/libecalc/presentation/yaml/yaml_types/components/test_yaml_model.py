@@ -2,6 +2,8 @@ import pytest
 from pydantic import ValidationError
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_document import validate_yaml_document
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlNextgenModel
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
@@ -20,9 +22,9 @@ def test_timeline_requires_yaml_version_v4_or_later():
     timeline_data = YamlTimelineBuilder().with_test_data().validate().model_dump(**dump_kwargs)
 
     with pytest.raises(ValidationError, match="TIMELINE"):
-        YamlAsset.model_validate({**asset_data, "YAML_VERSION": 3, "TIMELINE": timeline_data})
+        YamlNextgenModel.model_validate({**asset_data, "YAML_VERSION": 3, "TIMELINE": timeline_data})
 
-    asset = YamlAsset.model_validate({**asset_data, "YAML_VERSION": 4, "TIMELINE": timeline_data})
+    asset = YamlNextgenModel.model_validate({**asset_data, "YAML_VERSION": 4, "TIMELINE": timeline_data})
     assert asset.yaml_version == 4
     assert len(asset.timeline.events) == 1
 
@@ -32,8 +34,29 @@ def test_default_yaml_version_is_v1():
     asset_data = YamlLegacyAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
     del asset_data["YAML_VERSION"]
 
-    asset = YamlAsset.model_validate(asset_data)
+    asset = validate_yaml_document(asset_data)
+    assert isinstance(asset, YamlAsset)
     assert asset.yaml_version == 1
+
+
+@pytest.mark.parametrize(
+    ("version", "extra_data"),
+    [(2, {"FUEL_TYPES": [], "INSTALLATIONS": []}), (3, {}), (4, {})],
+)
+def test_yaml_version_2_and_later_is_validated_as_nextgen_model(version, extra_data):
+    asset = validate_yaml_document({"YAML_VERSION": version, "END": "2025-01-01", **extra_data})
+    assert isinstance(asset, YamlNextgenModel)
+    assert asset.yaml_version == version
+
+
+def test_nextgen_root_elements_are_rejected_for_legacy_yaml():
+    with pytest.raises(ValidationError, match="SHAFTS"):
+        validate_yaml_document({"END": "2025-01-01", "FUEL_TYPES": [], "INSTALLATIONS": [], "SHAFTS": []})
+
+
+def test_invalid_yaml_version_is_reported_on_yaml_version():
+    with pytest.raises(ValidationError, match="YAML_VERSION"):
+        validate_yaml_document({"YAML_VERSION": 99, "END": "2025-01-01"})
 
 
 def test_pipeline_can_only_be_targeted_by_one_simulation():

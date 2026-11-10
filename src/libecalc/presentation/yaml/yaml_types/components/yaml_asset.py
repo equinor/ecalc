@@ -1,110 +1,21 @@
-from collections import defaultdict
-from typing import Any
-
-from pydantic import (
-    ConfigDict,
-    Field,
-    field_validator,
-    model_validator,
-)
+from pydantic import ConfigDict, Field, field_validator, model_validator
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
-    YamlCompressorSampled,
-    YamlDriveTrain,
-    YamlEnergyNetwork,
-)
-from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
-from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
-from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
-    YamlProcessPipeline,
-)
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlProcessSimulation,
-    YamlPumpProcessSimulation,
-)
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressorModelChart
-from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
-from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
-from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
-from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
-from libecalc.presentation.yaml.yaml_types.yaml_version import (
-    DEFAULT_YAML_VERSION,
-    V1,
-    V2,
-    V3,
-    V4,
-    YamlMajorVersion,
-    get_required_field_names,
-    get_unavailable_elements,
-    removed_field,
-    yaml_element_lifecycle,
-)
+from libecalc.presentation.yaml.yaml_types.yaml_version import DEFAULT_YAML_VERSION, YamlMajorVersion
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 
-class YamlDefinitions(YamlBase):
-    """Definitions section of an eCalc™ yaml file, containing reusable definitions."""
-
-    model_config = ConfigDict(
-        title="Definitions",
-    )
-
-    compressor_models: dict[str, YamlCompressorModelChart] = Field(
-        default_factory=dict,
-        title="COMPRESSOR_MODELS",
-        description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
-        "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V4),
-    )
-
-    fluids: dict[str, YamlFluidDefinition] = Field(
-        default_factory=dict,
-        title="FLUIDS",
-        description="Defines fluids that can be referenced in inlet streams.",
-    )
-
-    turbines: dict[str, YamlTurbineDefinition] = Field(
-        default_factory=dict,
-        title="TURBINES",
-        description="Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. "
-        "Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the "
-        "last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of "
-        "a GAS_TURBINE.",
-    )
-
-    generators: dict[str, YamlGeneratorDefinition] = Field(
-        default_factory=dict,
-        title="GENERATORS",
-        description="Defines generators that can be referenced from GENERATOR units in the ENERGY_NETWORK. "
-        "Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above "
-        "the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a "
-        "GENERATOR.",
-    )
-
-    # REMOVED FIELDS
-    process_units: Any = removed_field(
-        title="PROCESS_UNITS",
-        available_since=V2,
-        removed_in=V4,
-        message="Compressors can no longer be defined here. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
-        replaced_by=("DEFINITIONS", "COMPRESSOR_MODELS"),
-    )
-    # END REMOVED FIELDS
-
-
 class YamlAsset(YamlBase):
-    """An eCalc™ yaml file"""
+    """A legacy (yaml version 1) eCalc™ yaml file"""
 
     model_config = ConfigDict(
         title="Asset",
@@ -113,177 +24,71 @@ class YamlAsset(YamlBase):
     yaml_version: YamlMajorVersion = Field(
         DEFAULT_YAML_VERSION,
         title="YAML_VERSION",
-        description="The eCalc YAML schema major version. Determines which root elements are available. "
-        "Only the major version is tracked, e.g. YAML_VERSION: 2 allows any 2.x.y root elements. "
-        f"Defaults to {DEFAULT_YAML_VERSION} if not specified.",
-        json_schema_extra={
-            "default": DEFAULT_YAML_VERSION
-        },  # No lifecycle metadata (yet). Pretend it has been implicitly available since v1
-    )
-    definitions: YamlDefinitions = Field(
-        default_factory=YamlDefinitions,
-        title="DEFINITIONS",
-        description="Contains reusable definitions.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        description=f"The eCalc YAML schema major version. Defaults to {DEFAULT_YAML_VERSION} if not specified.",
     )
     time_series: list[YamlTimeSeriesCollection] = Field(
         default_factory=list,
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
     facility_inputs: list[YamlFacilityModel] = Field(
         default_factory=list,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     fluid_models: dict[str, YamlFluidModel] = Field(
         default_factory=dict,
         title="FLUID_MODELS",
         description="Defines fluid models that can be referenced by inlet streams.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
-    )
-    inlet_streams: dict[str, YamlInletStream] = Field(
-        default_factory=dict,
-        title="INLET_STREAMS",
-        description="Defines inlet streams that can be referenced by process system and stream distribution.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     models: list[YamlConsumerModel] = Field(
         default_factory=list,
         title="MODELS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     fuel_types: list[YamlFuelType] = Field(
         default_factory=list,
         title="FUEL_TYPES",
         description="Specifies the various fuel types and associated emissions used in the model."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
-        json_schema_extra=yaml_element_lifecycle(
-            available_since=V1, deprecated_since=V2, removed_since=V3, required=True
-        ),
     )
     variables: YamlVariables = Field(
         default_factory=dict,
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1),
-    )
-    shafts: list[YamlShaft] = Field(
-        default_factory=list,
-        title="SHAFTS",
-        description="Defines named shafts representing mechanical connections between drivers and driven equipment.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
-    )
-    compressors: list[YamlCompressor] = Field(
-        default_factory=list,
-        title="COMPRESSORS",
-        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
-        "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V3),
-    )
-    process_pipelines: dict[str, YamlProcessPipeline] = Field(
-        default_factory=dict,
-        title="PROCESS_PIPELINES",
-        description="Defines process pipelines to use in process simulations.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
-    )
-    process_simulations: list[YamlProcessSimulation] = Field(
-        default_factory=list,
-        title="PROCESS_SIMULATIONS",
-        description="Defines one or more process simulations to be run.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
-    )
-
-    energy_network: YamlEnergyNetwork | None = Field(
-        None,
-        title="ENERGY_NETWORK",
-        description="Defines the energy network configuration.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
-    )
-
-    timeline: YamlTimeline | None = Field(
-        None,
-        title="TIMELINE",
-        description="Defines dated events in the model. Event dates are added to the time steps of process "
-        "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
-        json_schema_extra=yaml_element_lifecycle(available_since=V4),
-    )
-    pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
-        default_factory=list,
-        title="PUMP_PROCESS_SIMULATIONS",
-        description="Defines one or more liquid pump process simulations to be run.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     installations: list[YamlInstallation] = Field(
         default_factory=list,
         title="INSTALLATIONS",
         description="Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
-        json_schema_extra=yaml_element_lifecycle(
-            available_since=V1, deprecated_since=V2, removed_since=V3, required=True
-        ),
     )
     start: YamlDefaultDatetime | None = Field(
         None,
         title="START",
         description="Global start date for eCalc calculations in <YYYY-MM-DD> format."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/START",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
     end: YamlDefaultDatetime = Field(
         ...,
         title="END",
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
-
-    # REMOVED FIELDS
-    ecalc_events: Any = removed_field(
-        title="ECALC_EVENTS",
-        available_since=V2,
-        removed_in=V4,
-        replaced_by=("TIMELINE", "EVENTS"),
-    )
-    process_events: Any = removed_field(
-        title="PROCESS_EVENTS",
-        available_since=V2,
-        removed_in=V4,
-        replaced_by=("TIMELINE", "EVENTS"),
-    )
-    # END REMOVED FIELDS
-
-    @model_validator(mode="after")
-    def validate_elements_available_for_version(self):
-        aliases = get_unavailable_elements(self, self.yaml_version)
-        if not aliases:
-            return self
-
-        raise ValueError(
-            f"The following elements are not available for yaml version {self.yaml_version}: {', '.join(sorted(aliases))}."
-        )
 
     @model_validator(mode="after")
     def validate_required_root_elements_present(self):
-        """Ensure root elements required for the declared YAML_VERSION are explicitly present in the yaml."""
-        missing = get_required_field_names(type(self), self.yaml_version) - self.model_fields_set
+        missing = {"fuel_types", "installations"} - self.model_fields_set
         if not missing:
             return self
 
         aliases = sorted(YamlAsset.model_fields[field_name].alias or field_name.upper() for field_name in missing)
-        raise ValueError(
-            f"The following root elements are required for yaml version {self.yaml_version}: {', '.join(aliases)}."
-        )
+        raise ValueError(f"The following root elements are required for yaml version 1: {', '.join(aliases)}.")
 
     @model_validator(mode="after")
     def validate_unique_component_names(self, info: ValidationInfo):
-        """Ensure unique component names in model."""
-
         context = info.context
         if not context:
             return self
@@ -317,40 +122,10 @@ class YamlAsset(YamlBase):
 
         return self
 
-    @model_validator(mode="after")
-    def validate_pipeline_targeted_by_single_simulation(self):
-        """A process pipeline can currently only be solved by a single process simulation."""
-        simulations_by_target: dict[str, list[str]] = defaultdict(list)
-        for process_simulation in self.process_simulations:
-            for target in process_simulation.targets:
-                simulations_by_target[target].append(process_simulation.name)
-
-        conflicts = {
-            target: simulation_names
-            for target, simulation_names in simulations_by_target.items()
-            if len(simulation_names) > 1
-        }
-
-        if conflicts:
-            conflict_descriptions = ", ".join(
-                f"'{target}' is targeted by {simulation_names}" for target, simulation_names in conflicts.items()
-            )
-            raise ValueError(
-                "A process pipeline can currently only be targeted by one process simulation. "
-                f"Conflicts found: {conflict_descriptions}."
-            )
-
-        return self
-
     @field_validator("time_series", mode="after")
     @classmethod
     def validate_unique_time_series_names(cls, collection, info: ValidationInfo):
-        names = []
-
-        for item in collection:
-            names.append(item.name)
-
-        duplicated_names = get_duplicates(names)
+        duplicated_names = get_duplicates(item.name for item in collection)
         if len(duplicated_names) > 0:
             raise ValueError(
                 f"{cls.model_fields[info.field_name].alias if info.field_name is not None else 'Unknown field'} names must be unique."
@@ -358,175 +133,12 @@ class YamlAsset(YamlBase):
             )
         return collection
 
-    @field_validator("shafts", mode="after")
-    @classmethod
-    def validate_unique_shaft_names(cls, shafts: list[YamlShaft], info: ValidationInfo) -> list[YamlShaft]:
-        duplicated_names = get_duplicates(shaft.name for shaft in shafts)
-        if duplicated_names:
-            field_name = info.field_name
-            alias = cls.model_fields[field_name].alias if field_name is not None else "SHAFTS"
-            raise ValueError(
-                f"{alias} names must be unique. Duplicated names are: {', '.join(sorted(duplicated_names))}"
-            )
-        return shafts
-
-    @field_validator("compressors", mode="after")
-    @classmethod
-    def validate_unique_compressor_names(
-        cls, compressors: list[YamlCompressor], info: ValidationInfo
-    ) -> list[YamlCompressor]:
-        duplicated_names = get_duplicates(compressor.name for compressor in compressors)
-        if duplicated_names:
-            field_name = info.field_name
-            alias = cls.model_fields[field_name].alias if field_name is not None else "COMPRESSORS"
-            raise ValueError(
-                f"{alias} names must be unique. Duplicated names are: {', '.join(sorted(duplicated_names))}"
-            )
-        return compressors
-
-    def _process_compressor_models(self) -> list[tuple[CompressorReference, str]]:
-        """Every model of a compressor in the process domain, as (compressor, human-readable location)."""
-        return [
-            (compressor, f"process pipeline '{pipeline_name}'")
-            for pipeline_name, pipeline in self.process_pipelines.items()
-            for compressor in pipeline.compressors
-        ]
-
-    def _sampled_compressor_models(self) -> list[tuple[CompressorReference, str]]:
-        """Every COMPRESSOR_SAMPLED unit, as (compressor, human-readable location)."""
-        if self.energy_network is None:
-            return []
-        return [
-            (unit.compressor, f"COMPRESSOR_SAMPLED unit '{unit.name}'")
-            for unit in self.energy_network.units
-            if isinstance(unit, YamlCompressorSampled)
-        ]
-
-    def _energy_compressor_models(self) -> list[tuple[CompressorReference, str]]:
-        """
-        Every model of a compressor in the energy domain, as (compressor, human-readable location).
-
-        A DRIVE_TRAIN models each compressor on its shaft; a COMPRESSOR_SAMPLED unit models its compressor.
-        """
-        if self.energy_network is None:
-            return []
-        compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
-        drive_train_models = [
-            (compressor, f"DRIVE_TRAIN '{unit.name}' (shaft '{unit.shaft}')")
-            for unit in self.energy_network.units
-            if isinstance(unit, YamlDriveTrain)
-            for compressor in compressors_by_shaft.get(unit.shaft, [])
-        ]
-        return drive_train_models + self._sampled_compressor_models()
-
-    def _shaft_compressor_references(self) -> list[tuple[CompressorReference, str]]:
-        """Every compressor listed in SHAFTS, as (compressor, human-readable location)."""
-        return [(compressor, f"shaft '{shaft.name}'") for shaft in self.shafts for compressor in shaft.compressors]
-
-    def _shaft_by_compressor(self) -> dict[CompressorReference, ShaftReference]:
-        return {compressor: shaft.name for shaft in self.shafts for compressor in shaft.compressors}
-
-    def _shafts_by_pipeline(self) -> dict[str, set[ShaftReference]]:
-        """The shafts of the compressors in each process pipeline. A compressor on no shaft is reported elsewhere."""
-        shaft_by_compressor = self._shaft_by_compressor()
-        return {
-            pipeline_name: {
-                shaft_by_compressor[compressor]
-                for compressor in pipeline.compressors
-                if compressor in shaft_by_compressor
-            }
-            for pipeline_name, pipeline in self.process_pipelines.items()
-        }
-
-    @model_validator(mode="after")
-    def validate_compressor_references(self):
-        available_compressor_names = {compressor.name for compressor in self.compressors}
-        locations_by_unknown_compressor: dict[CompressorReference, list[str]] = defaultdict(list)
-        for compressor_reference, location in (
-            self._process_compressor_models() + self._sampled_compressor_models() + self._shaft_compressor_references()
-        ):
-            if compressor_reference not in available_compressor_names:
-                locations_by_unknown_compressor[compressor_reference].append(location)
-
-        if locations_by_unknown_compressor:
-            available = ", ".join(sorted(available_compressor_names)) or "none"
-            violations = [
-                f"Compressor '{compressor_name}' referenced in {', '.join(locations)} is not defined."
-                for compressor_name, locations in locations_by_unknown_compressor.items()
-            ]
-            raise ValueError("\n".join([*violations, f"Available compressors in COMPRESSORS: {available}."]))
-        return self
-
-    @model_validator(mode="after")
-    def validate_compressor_on_single_shaft(self):
-        shafts_by_compressor: dict[CompressorReference, list[ShaftReference]] = defaultdict(list)
-        for shaft in self.shafts:
-            for compressor in shaft.compressors:
-                shafts_by_compressor[compressor].append(shaft.name)
-
-        violations = [
-            f"Compressor '{compressor_name}' is listed more than once in SHAFTS, on shafts: {', '.join(shaft_names)}."
-            for compressor_name, shaft_names in shafts_by_compressor.items()
-            if len(shaft_names) > 1
-        ]
-        if violations:
-            raise ValueError("\n".join([*violations, "A compressor can be listed on one shaft only."]))
-        return self
-
-    @model_validator(mode="after")
-    def validate_compressor_modelled_once_per_domain(self):
-        """The compressor id is used as process unit id and as energy unit id, so each domain can model it once."""
-        violations: list[str] = []
-        for domain, models in (
-            ("process", self._process_compressor_models()),
-            ("energy", self._energy_compressor_models()),
-        ):
-            locations_by_compressor: dict[CompressorReference, list[str]] = defaultdict(list)
-            for compressor_reference, location in models:
-                locations_by_compressor[compressor_reference].append(location)
-
-            violations.extend(
-                f"Compressor '{compressor_name}' is modelled more than once in the {domain} domain: "
-                f"{', '.join(locations)}."
-                for compressor_name, locations in locations_by_compressor.items()
-                if len(locations) > 1
-            )
-
-        if violations:
-            raise ValueError("\n".join([*violations, "Each domain can model a compressor at most once."]))
-        return self
-
     @model_validator(mode="after")
     def validate_unique_references(self):
-        references = []
-
-        for facility_input in self.facility_inputs:
-            references.append(facility_input.name)
-
-        for model in self.models:
-            references.append(model.name)
-
-        for fuel_type in self.fuel_types:
-            references.append(fuel_type.name)
-
-        references.extend(self.process_pipelines.keys())
-
-        references.extend(self.definitions.compressor_models.keys())
-        references.extend(self.definitions.fluids.keys())
-        references.extend(self.definitions.turbines.keys())
-        references.extend(self.definitions.generators.keys())
-
-        for process_simulation in self.process_simulations:
-            references.append(process_simulation.name)
-
-        for pump_process_simulation in self.pump_process_simulations:
-            references.append(pump_process_simulation.name)
-
-        # TODO: Add ecalc events references?
-
+        references = [facility_input.name for facility_input in self.facility_inputs]
+        references.extend(model.name for model in self.models)
+        references.extend(fuel_type.name for fuel_type in self.fuel_types)
         references.extend(self.fluid_models.keys())
-
-        references.extend(self.inlet_streams.keys())
 
         duplicated_references = get_duplicates(references)
 
@@ -534,182 +146,5 @@ class YamlAsset(YamlBase):
             raise ValueError(
                 f"References/names must be unique across {YamlAsset.model_fields['facility_inputs'].alias}, {YamlAsset.model_fields['models'].alias} and {YamlAsset.model_fields['fuel_types'].alias}."
                 f" Duplicated references are: {', '.join(duplicated_references)}"
-            )
-        return self
-
-    @model_validator(mode="after")
-    def validate_constraint_process_units(self):
-        """A constraint splits its pipeline after a compressor, so PROCESS_UNIT names a compressor in that pipeline."""
-        compressors_by_pipeline = {pipeline.name: pipeline.compressors for pipeline in self.process_pipelines.values()}
-        violations: list[str] = []
-        for simulation in self.process_simulations:
-            for pipeline_name, constraints in simulation.constraints.items():
-                compressors = compressors_by_pipeline.get(pipeline_name)
-                if compressors is None:
-                    continue
-                violations.extend(
-                    f"CONSTRAINTS PROCESS_UNIT '{constraint.process_unit}' of process simulation '{simulation.name}' is "
-                    f"not a compressor in process pipeline '{pipeline_name}'. "
-                    f"Compressors in this pipeline: {', '.join(compressors) or 'none'}."
-                    for constraint in constraints
-                    if constraint.process_unit is not None and constraint.process_unit not in compressors
-                )
-        if violations:
-            raise ValueError("\n".join(violations))
-        return self
-
-    @model_validator(mode="after")
-    def validate_process_compressors_on_shaft(self):
-        """The process simulation finds a compressor's speed through its shaft."""
-        shaft_by_compressor = self._shaft_by_compressor()
-        violations = [
-            f"Compressor '{compressor_name}' in {location} is not on a shaft."
-            for compressor_name, location in self._process_compressor_models()
-            if compressor_name not in shaft_by_compressor
-        ]
-        if violations:
-            raise ValueError(
-                "\n".join(
-                    [
-                        *violations,
-                        "Add each compressor placed in a process pipeline to COMPRESSORS of a shaft in SHAFTS.",
-                    ]
-                )
-            )
-        return self
-
-    @model_validator(mode="after")
-    def validate_pipeline_on_single_shaft(self):
-        violations = [
-            f"Process pipeline '{pipeline_name}' has compressors on multiple shafts: {', '.join(sorted(shaft_names))}."
-            for pipeline_name, shaft_names in self._shafts_by_pipeline().items()
-            if len(shaft_names) > 1
-        ]
-        if violations:
-            raise ValueError("\n".join([*violations, "Multiple shafts in one process pipeline are not supported yet."]))
-        return self
-
-    @model_validator(mode="after")
-    def validate_shaft_used_by_single_pipeline(self):
-        pipelines_by_shaft: dict[ShaftReference, set[str]] = defaultdict(set)
-        for pipeline_name, shaft_names in self._shafts_by_pipeline().items():
-            for shaft_name in shaft_names:
-                pipelines_by_shaft[shaft_name].add(pipeline_name)
-
-        violations = [
-            f"Shaft '{shaft_name}' has compressors in multiple process pipelines: {', '.join(sorted(pipeline_names))}."
-            for shaft_name, pipeline_names in pipelines_by_shaft.items()
-            if len(pipeline_names) > 1
-        ]
-        if violations:
-            raise ValueError("\n".join([*violations, "A shaft can only be used in one process pipeline."]))
-        return self
-
-    @model_validator(mode="after")
-    def validate_drive_train_shaft_references(self):
-        if self.energy_network is None:
-            return self
-
-        available_shaft_names = {shaft.name for shaft in self.shafts}
-        for unit in self.energy_network.units:
-            if isinstance(unit, YamlDriveTrain):
-                if unit.shaft not in available_shaft_names:
-                    available = ", ".join(sorted(available_shaft_names)) or "none"
-                    raise ValueError(
-                        f"Drive train '{unit.name}' references unknown shaft '{unit.shaft}'. "
-                        f"Available shafts in SHAFTS: {available}."
-                    )
-        return self
-
-    @model_validator(mode="after")
-    def validate_drive_train_mechanical_efficiency_compressors(self):
-        if self.energy_network is None:
-            return self
-
-        compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
-        violations = [
-            f"Drive train '{unit.name}' gives a mechanical efficiency for compressor '{entry.compressor}', "
-            f"which is not on its shaft '{unit.shaft}'. "
-            f"Compressors on this shaft: {', '.join(compressors_by_shaft[unit.shaft]) or 'none'}."
-            for unit in self.energy_network.units
-            if isinstance(unit, YamlDriveTrain) and unit.shaft in compressors_by_shaft
-            for entry in unit.mechanical_efficiencies
-            if entry.compressor not in compressors_by_shaft[unit.shaft]
-        ]
-        if violations:
-            raise ValueError(
-                "\n".join(
-                    [*violations, "MECHANICAL_EFFICIENCIES can only list compressors on the drive train's shaft."]
-                )
-            )
-        return self
-
-    @model_validator(mode="after")
-    def validate_shaft_used_by_single_drive_train(self):
-        if self.energy_network is None:
-            return self
-
-        drive_trains_by_shaft: dict[ShaftReference, set[str]] = defaultdict(set)
-        for unit in self.energy_network.units:
-            if isinstance(unit, YamlDriveTrain):
-                drive_trains_by_shaft[unit.shaft].add(unit.name)
-
-        for shaft_name, drive_train_names in drive_trains_by_shaft.items():
-            if len(drive_train_names) > 1:
-                raise ValueError(
-                    f"Shaft '{shaft_name}' is referenced by multiple drive trains: "
-                    f"{', '.join(sorted(drive_train_names))}. A shaft can only be used in one drive train."
-                )
-        return self
-
-    @model_validator(mode="after")
-    def validate_driven_shafts(self):
-        """
-        A DRIVE_TRAIN's demand is the shaft power of the compressors on its shaft, taken from their process
-        simulation. A driven shaft with no compressors, or with a compressor no simulation solves, would silently lose
-        demand.
-        """
-        if self.energy_network is None:
-            return self
-
-        compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
-        targeted_pipelines = {target for simulation in self.process_simulations for target in simulation.targets}
-        pipeline_by_compressor = {
-            compressor: pipeline_name
-            for pipeline_name, pipeline in self.process_pipelines.items()
-            for compressor in pipeline.compressors
-        }
-
-        violations: list[str] = []
-        for unit in self.energy_network.units:
-            if not isinstance(unit, YamlDriveTrain):
-                continue
-            compressors = compressors_by_shaft.get(unit.shaft, [])
-            if not compressors:
-                violations.append(
-                    f"Drive train '{unit.name}' drives shaft '{unit.shaft}', which has no compressors. "
-                    f"List the compressors on the shaft in COMPRESSORS of the shaft in SHAFTS."
-                )
-            for compressor_name in compressors:
-                pipeline_name = pipeline_by_compressor.get(compressor_name)
-                if pipeline_name in targeted_pipelines:
-                    continue
-                placement = (
-                    "is not placed in any process pipeline"
-                    if pipeline_name is None
-                    else f"is placed in process pipeline '{pipeline_name}', which no process simulation targets"
-                )
-                violations.append(
-                    f"Compressor '{compressor_name}' on shaft '{unit.shaft}', driven by drive train '{unit.name}', "
-                    f"{placement}."
-                )
-        if violations:
-            raise ValueError(
-                "\n".join(
-                    [
-                        *violations,
-                        "A drive train gets its demand from the process simulation of each compressor on its shaft.",
-                    ]
-                )
             )
         return self

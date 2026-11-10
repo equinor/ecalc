@@ -2,7 +2,7 @@
 Generate process and energy reference documentation from pydantic models.
 
 Two-step process:
-1. Build a tree of DocNode objects by introspecting the YamlAsset pydantic model.
+1. Build a tree of DocNode objects by introspecting the YamlNextgenModel pydantic model.
 2. Render the trees into single-page Docusaurus markdown documents.
 
 Usage:
@@ -26,7 +26,7 @@ from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
 from libecalc.common.version import Version
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlDefinitions, YamlNextgenModel
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlCompressorProcessUnitInstance
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
@@ -80,7 +80,7 @@ from libecalc.testing.process_builders import (
 )
 from libecalc.version import current_yaml_version
 
-# YamlAsset fields to document, as dot-separated python attribute paths.
+# YamlNextgenModel fields to document, as dot-separated python attribute paths.
 # A top-level name includes the whole field; a dotted path (e.g. "definitions.turbines")
 # includes only that sub-field, so a section can be split across documents.
 PROCESS_INCLUDE_FIELDS = {
@@ -786,8 +786,8 @@ def build_tree(
 
 
 def build_yaml_asset_tree(include_fields: set[str] | None) -> list[DocNode]:
-    """Build a documentation tree for selected YamlAsset sections, or the whole model if include_fields is None."""
-    return build_tree(YamlAsset, include_fields=include_fields)
+    """Build a documentation tree for selected YamlNextgenModel sections, or the whole model if include_fields is None."""
+    return build_tree(YamlNextgenModel, include_fields=include_fields)
 
 
 # --- Step 2: Render tree to markdown ---
@@ -1279,7 +1279,7 @@ def _generate_markdown(
     examples: list[Example],
     anchor_registry: dict[str, str] | None = None,
 ) -> str:
-    """Generate a reference document for selected YamlAsset sections, or the whole model if include_fields is None."""
+    """Generate a reference document for selected YamlNextgenModel sections, or the whole model if include_fields is None."""
     tree = build_yaml_asset_tree(include_fields)
 
     frontmatter = f"""\
@@ -1399,7 +1399,7 @@ This page documents the energy related YAML configuration keys for the eCalc Ass
 
 
 def generate_full_reference_markdown(anchor_registry: dict[str, str] | None = None) -> str:
-    """Generate a single reference document covering every YamlAsset root element, across all yaml versions.
+    """Generate a single reference document covering every YamlNextgenModel root element, across all yaml versions.
 
     If given, anchor_registry is populated with a dot-separated element path -> in-page anchor
     mapping, so other pages (e.g. the yaml changelog) can link straight to the relevant section.

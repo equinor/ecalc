@@ -18,7 +18,8 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlDefinitions, YamlNextgenModel
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
@@ -822,9 +823,9 @@ class YamlLegacyAssetBuilder(Builder[YamlAsset]):
         return self
 
 
-class YamlAssetBuilder(Builder[YamlAsset]):
+class YamlAssetBuilder(Builder[YamlNextgenModel]):
     """
-    Builder for the latest (currently yaml version 3) YamlAsset.
+    Builder for the latest (currently yaml version 4) YamlNextgenModel.
 
     Legacy root elements removed since v3 (FACILITY_INPUTS, MODELS, FUEL_TYPES, INSTALLATIONS) are not
     available here; use YamlLegacyAssetBuilder for a v1 document.

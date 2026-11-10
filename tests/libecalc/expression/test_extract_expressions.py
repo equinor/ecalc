@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 from libecalc.expression.extract_expressions import extract_expression_references
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidComposition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlPumpProcessInlet

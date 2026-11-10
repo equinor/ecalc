@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlNextgenModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.testing.process_builders import (
     YamlCompressorModelChartBuilder,
@@ -82,7 +82,7 @@ def test_rejects_rebundle_not_targeting_a_compressor_in_the_pipeline(change_targ
         match=f"REBUNDLE event targets '{change_target}', which is not a compressor in pipeline 'train_a'. "
         "Compressors in this pipeline: comp_a.",
     ):
-        YamlAsset.model_validate(_with_rebundle(change_target=change_target, change_to="model_b"))
+        YamlNextgenModel.model_validate(_with_rebundle(change_target=change_target, change_to="model_b"))
 
 
 @pytest.mark.parametrize(
@@ -100,7 +100,7 @@ def test_rejects_constraint_not_on_a_compressor_in_the_pipeline(process_unit):
         match=f"CONSTRAINTS PROCESS_UNIT '{process_unit}' of process simulation 'sim' is not a compressor in process "
         "pipeline 'train_a'. Compressors in this pipeline: comp_a.",
     ):
-        YamlAsset.model_validate(data)
+        YamlNextgenModel.model_validate(data)
 
 
 @pytest.mark.parametrize(

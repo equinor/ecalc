@@ -6,7 +6,7 @@ import typer
 from ecalc_cli.io.output import write_output
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlNextgenModel
 
 app = typer.Typer()
 
@@ -43,4 +43,4 @@ def show_schema(
         help="Write the schema to a file with the specified name. If not specified, it will print to stdout.",
     ),
 ):
-    write_output(json.dumps(YamlAsset.model_json_schema(by_alias=True), indent=2), output_file)
+    write_output(json.dumps(YamlNextgenModel.model_json_schema(by_alias=True), indent=2), output_file)

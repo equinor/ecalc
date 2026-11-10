@@ -26,8 +26,9 @@ from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, FileContext, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_document import validate_yaml_document
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
@@ -602,7 +603,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     def validate(self, context: YamlModelValidationContext) -> Self:  # type: ignore[override]
         try:
-            YamlAsset.model_validate(deepcopy(self._internal_datamodel), context=context)
+            validate_yaml_document(deepcopy(self._internal_datamodel), context=context)
             return self
         except PydanticValidationError as e:
             errors = []

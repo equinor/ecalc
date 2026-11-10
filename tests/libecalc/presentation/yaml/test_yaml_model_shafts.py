@@ -7,8 +7,8 @@ from libecalc.presentation.yaml.domain.energy.compressor import TimeSeriesProces
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlNextgenModel
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineCurve, YamlTurbineDefinition
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import Shaft
@@ -28,7 +28,7 @@ COMPRESSOR_A = "KA6969 Export compressor A"
 COMPRESSOR_B = "KA6970 Export compressor B"
 
 
-def _asset(mechanical_efficiencies: dict[str, YamlExpressionType]) -> YamlAsset:
+def _asset(mechanical_efficiencies: dict[str, YamlExpressionType]) -> YamlNextgenModel:
     pipeline = (
         YamlProcessPipelineBuilder()
         .with_name("export_pipeline")
@@ -69,7 +69,7 @@ def _asset(mechanical_efficiencies: dict[str, YamlExpressionType]) -> YamlAsset:
     )
 
 
-def _model(yaml_model_factory, asset: YamlAsset, variables: dict) -> YamlModel:
+def _model(yaml_model_factory, asset: YamlNextgenModel, variables: dict) -> YamlModel:
     asset_dict = asset.model_dump(serialize_as_any=True, mode="json", exclude_unset=True, by_alias=True)
     asset_dict["VARIABLES"] = variables
     stream = ResourceStream(name="test_model", stream=StringIO(PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)))

@@ -2,7 +2,7 @@ from typing import Self
 
 from libecalc.common.utils.rates import RateType
 from libecalc.ecalc_model.timeline_event import TimelineEventType
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_model import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlCurve,
