@@ -5,6 +5,7 @@ from uuid import UUID
 import pytest
 
 from libecalc.common.time_utils import Period
+from libecalc.domain.energy.model_event import EnergyUnitEventChangeType, EnergyUnitModelEvent
 from libecalc.energy import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId
@@ -22,6 +23,7 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 
 FIRST_PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
 SECOND_PERIOD = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
+THIRD_PERIOD = Period(start=datetime(2022, 1, 1), end=datetime(2023, 1, 1))
 PERIODS = [FIRST_PERIOD, SECOND_PERIOD]
 
 FIRST_CANDIDATE = EnergyUnitId(UUID(int=1))
@@ -33,6 +35,16 @@ class IdentityFuelModel:
 
     def fuel_for_power(self, power: float) -> float:
         return power
+
+
+class ScaledFuelModel:
+    """Fuel model test double whose fuel_for_power scales the power by a fixed factor."""
+
+    def __init__(self, factor: float) -> None:
+        self._factor = factor
+
+    def fuel_for_power(self, power: float) -> float:
+        return power * self._factor
 
 
 @pytest.fixture
@@ -185,3 +197,63 @@ class TestGasTurbineCapacity:
         turbine = factory.create(MechanicalPower(1), incoming_connections=connections, period=FIRST_PERIOD)
 
         assert turbine.get_capacity() == MechanicalPower(expected)
+
+
+class TestGeneratorModelEvents:
+    def _generator(self, *, model_events):
+        return TimeSeriesGeneratorFactory(
+            name="genset",
+            fuel_model=ScaledFuelModel(1.0),
+            input_energy_type=FuelGasRate,
+            model_events=model_events,
+        )
+
+    @staticmethod
+    def _rebundle(change_time, factor) -> EnergyUnitModelEvent[ScaledFuelModel]:
+        return EnergyUnitModelEvent(
+            change_type=EnergyUnitEventChangeType.REBUNDLE,
+            change_time=change_time,
+            change_to=ScaledFuelModel(factor),
+        )
+
+    def test_uses_the_active_fuel_model_per_period(self):
+        factory = self._generator(model_events=[self._rebundle(SECOND_PERIOD.start, 0.5)])
+        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (connection,) = connections
+
+        first = factory.create(ElectricalPower(10), incoming_connections=connections, period=FIRST_PERIOD)
+        second = factory.create(ElectricalPower(10), incoming_connections=connections, period=SECOND_PERIOD)
+
+        assert first.get_input_energies()[connection.id] == FuelGasRate(10)
+        assert second.get_input_energies()[connection.id] == FuelGasRate(5)
+
+    def test_latest_effective_event_wins_regardless_of_order(self):
+        factory = self._generator(
+            model_events=[self._rebundle(THIRD_PERIOD.start, 0.25), self._rebundle(SECOND_PERIOD.start, 0.5)]
+        )
+        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (connection,) = connections
+
+        first = factory.create(ElectricalPower(8), incoming_connections=connections, period=FIRST_PERIOD)
+        second = factory.create(ElectricalPower(8), incoming_connections=connections, period=SECOND_PERIOD)
+        third = factory.create(ElectricalPower(8), incoming_connections=connections, period=THIRD_PERIOD)
+
+        assert first.get_input_energies()[connection.id] == FuelGasRate(8)
+        assert second.get_input_energies()[connection.id] == FuelGasRate(4)
+        assert third.get_input_energies()[connection.id] == FuelGasRate(2)
+
+    def test_model_events_require_a_period(self):
+        factory = self._generator(model_events=[self._rebundle(SECOND_PERIOD.start, 0.5)])
+        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+
+        with pytest.raises(InvalidEnergyNetworkInputError, match="changes model over time"):
+            factory.create(ElectricalPower(10), incoming_connections=connections)
+
+    def test_without_events_the_base_model_is_used_without_a_period(self):
+        factory = self._generator(model_events=())
+        connections = incoming(factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (connection,) = connections
+
+        generator = factory.create(ElectricalPower(10), incoming_connections=connections)
+
+        assert generator.get_input_energies()[connection.id] == FuelGasRate(10)

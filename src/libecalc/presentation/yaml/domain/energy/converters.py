@@ -4,10 +4,12 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 from libecalc.common.time_utils import Period
+from libecalc.domain.energy.model_event import EnergyUnitModelEvent
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, Generator
+from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
@@ -25,26 +27,39 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
         input_energy_type: type[Energy],
+        model_events: Sequence[EnergyUnitModelEvent[GeneratorFuelModel]] = (),
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
         self.fuel_model = fuel_model
         self.input_energy_type = input_energy_type
+        self._model_events = tuple(sorted(model_events, key=lambda event: event.change_time))
 
-    @property
-    def power_to_fuel(self) -> Callable[[float], float]:
-        return self.fuel_model.fuel_for_power
+    def _fuel_model_for(self, period: Period | None) -> GeneratorFuelModel:
+        if not self._model_events:
+            return self.fuel_model
+        if period is None:
+            raise InvalidEnergyNetworkInputError(
+                f"Generator '{self.get_name()}' changes model over time but no period was given to select a model."
+            )
+        active = self.fuel_model
+        for event in self._model_events:
+            if event.change_time <= period.start:
+                active = event.change_to
+        return active
 
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Generator:
         (incoming_connection,) = incoming_connections
+        period = extra.get("period")
+        fuel_model = self._fuel_model_for(period)
         capacity = resolve_optional_energy(
             self.capacity,
             Generator.get_output_energy_type(),
-            period=extra.get("period"),
+            period=period,
             description=f"Capacity for '{self.get_name()}'",
         )
         return Generator(
             name=self.get_name(),
-            power_to_fuel=self.power_to_fuel,
+            power_to_fuel=fuel_model.fuel_for_power,
             input_energy_type=self.input_energy_type,
             energy_unit_id=self.get_id(),
             output_energy=demand,
