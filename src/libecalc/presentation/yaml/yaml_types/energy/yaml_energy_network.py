@@ -10,6 +10,7 @@ from pydantic import (
 )
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
+from libecalc.common.string.string_utils import get_duplicates
 from libecalc.energy.models.curve_interpolator import validate_curve_interpolator
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
@@ -22,7 +23,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V3, yaml_element_lifecycle
+from libecalc.presentation.yaml.yaml_types.yaml_version import V3, V4, yaml_element_lifecycle
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -32,7 +33,7 @@ def _check_non_negative[T](v: T, field_name: str) -> T:
     return v
 
 
-def _check_efficiency(v: YamlExpressionType | None) -> YamlExpressionType | None:
+def _check_efficiency[T: YamlExpressionType | None](v: T) -> T:
     if isinstance(v, (int, float)) and not (0 < v <= 1):
         raise ValueError(f"EFFICIENCY must be in (0, 1], got {v}")
     return v
@@ -439,6 +440,35 @@ class YamlMechanicalConsumer(YamlConsumerBase):
         return _check_non_negative(v, "LOAD")
 
 
+class YamlCompressorMechanicalEfficiency(YamlBase):
+    model_config = ConfigDict(
+        title="CompressorMechanicalEfficiency", json_schema_extra=yaml_element_lifecycle(available_since=V4)
+    )
+
+    compressor: Annotated[
+        CompressorReference,
+        Field(
+            title="COMPRESSOR",
+            description="Reference to a compressor on the drive train's shaft.",
+        ),
+    ]
+    efficiency: Annotated[
+        YamlExpressionType,
+        Field(
+            title="EFFICIENCY",
+            description=(
+                "Mechanical efficiency (0–1] of the compressor: gas power divided by shaft power. "
+                "Covers losses in the compressor's bearings and seals, not in the driver or transmission."
+            ),
+        ),
+    ]
+
+    @field_validator("efficiency", mode="after")
+    @classmethod
+    def _efficiency_in_range(cls, v: YamlExpressionType) -> YamlExpressionType:
+        return _check_efficiency(v)
+
+
 class YamlDriveTrain(YamlConsumerBase):
     type: Literal["DRIVE_TRAIN"]
     shaft: Annotated[
@@ -448,6 +478,31 @@ class YamlDriveTrain(YamlConsumerBase):
             description="Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand.",
         ),
     ]
+    mechanical_efficiencies: Annotated[
+        list[YamlCompressorMechanicalEfficiency],
+        Field(
+            default_factory=list,
+            title="MECHANICAL_EFFICIENCIES",
+            description=(
+                "Mechanical efficiency per compressor on the shaft. Each compressor demands its gas power "
+                "divided by its efficiency as shaft power. A compressor not listed has efficiency 1.0."
+            ),
+            json_schema_extra=yaml_element_lifecycle(available_since=V4),
+        ),
+    ]
+
+    @field_validator("mechanical_efficiencies", mode="after")
+    @classmethod
+    def _unique_compressors(
+        cls, mechanical_efficiencies: list[YamlCompressorMechanicalEfficiency]
+    ) -> list[YamlCompressorMechanicalEfficiency]:
+        duplicates = get_duplicates(entry.compressor for entry in mechanical_efficiencies)
+        if duplicates:
+            raise ValueError(
+                f"MECHANICAL_EFFICIENCIES lists compressors more than once: {', '.join(sorted(duplicates))}. "
+                f"Give one efficiency per compressor."
+            )
+        return mechanical_efficiencies
 
 
 class YamlFuelGasConsumer(YamlConsumerBase):

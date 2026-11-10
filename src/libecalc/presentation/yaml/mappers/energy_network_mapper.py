@@ -160,13 +160,19 @@ class EnergyNetworkMapper:
                 )
             elif isinstance(unit, YamlDriveTrain):
                 input_id = node_ids_by_key[unit_key(unit.input)]
+                mechanical_efficiencies = {
+                    entry.compressor: self._time_series(entry.efficiency, expression_evaluator)
+                    for entry in unit.mechanical_efficiencies
+                }
 
                 for compressor_equipment_id in self._shafts[unit.shaft].compressor_equipment_ids:
+                    compressor_name = self._get_compressor_name(compressor_equipment_id)
                     # The process mapper uses the compressor id as the process Compressor's id.
                     node = TimeSeriesProcessCompressor(
                         process_unit_id=ProcessUnitId(compressor_equipment_id),
-                        name=self._get_compressor_name(compressor_equipment_id),
+                        name=compressor_name,
                         energy_unit_id=EnergyUnitId(compressor_equipment_id),
+                        mechanical_efficiency=mechanical_efficiencies.get(compressor_name),
                     )
                     mapped_nodes.append((node, MechanicalPower, None))
                     connections.append((input_id, node.get_id()))
