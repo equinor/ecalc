@@ -1,36 +1,37 @@
 from libecalc.common.ddd import value_object
-from libecalc.process.fluid_stream.fluid_service import FluidService
-from libecalc.process.process_pipeline.process_unit import ProcessUnit
+from libecalc.ecalc_model.process.configuration_handlers import (
+    TimeSeriesChokeConfigurationHandler,
+    TimeSeriesConfigurationHandler,
+    TimeSeriesRecirculationLoopConfigurationHandler,
+)
+from libecalc.ecalc_model.process.process_units import (
+    TimeSeriesChokeProcessUnit,
+    TimeSeriesCompressorProcessUnit,
+    TimeSeriesDirectMixerProcessUnit,
+    TimeSeriesDirectSplitterProcessUnit,
+    TimeSeriesProcessUnit,
+)
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
-from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
-from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
-from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
-from libecalc.process.process_units.choke import Choke
-from libecalc.process.process_units.compressor import Compressor
-from libecalc.process.process_units.direct_mixer import DirectMixer
-from libecalc.process.process_units.direct_splitter import DirectSplitter
 
 
 @value_object
 class AssembledSection:
-    """Solver-ready process units + handlers for a given process section."""
-
-    process_units: list[ProcessUnit]
-    configuration_handlers: list[ConfigurationHandler]
+    process_units: list[TimeSeriesProcessUnit]
+    configuration_handlers: list[TimeSeriesConfigurationHandler]
 
 
 def recirculation_loop(
-    process_units: list[ProcessUnit],
-) -> tuple[RecirculationLoop, list[ProcessUnit]]:
-    mixer, splitter = DirectMixer(), DirectSplitter()
-    loop = RecirculationLoop(mixer=mixer, splitter=splitter)
+    process_units: list[TimeSeriesProcessUnit],
+) -> tuple[TimeSeriesRecirculationLoopConfigurationHandler, list[TimeSeriesProcessUnit]]:
+    mixer, splitter = TimeSeriesDirectMixerProcessUnit(), TimeSeriesDirectSplitterProcessUnit()
+    loop = TimeSeriesRecirculationLoopConfigurationHandler(mixer_id=mixer.get_id(), splitter_id=splitter.get_id())
     return loop, [mixer, *process_units, splitter]
 
 
 def individual_recirculation_loops(
-    process_units: list[ProcessUnit],
-) -> tuple[list[RecirculationLoop], list[ProcessUnit]]:
+    process_units: list[TimeSeriesProcessUnit],
+) -> tuple[list[TimeSeriesRecirculationLoopConfigurationHandler], list[TimeSeriesProcessUnit]]:
     """Wrap each compressor, and only the compressor, in its own recirculation loop.
 
     Recirculation is sized from the compressor inlet stream, so it is added directly in front of
@@ -38,10 +39,10 @@ def individual_recirculation_loops(
     mass. The recycled gas is scrubbed discharge gas, so this is equivalent to returning it
     upstream of the stage cooler and scrubber as long as these are independent of mass rate.
     """
-    solver_units: list[ProcessUnit] = []
-    loops: list[RecirculationLoop] = []
+    solver_units: list[TimeSeriesProcessUnit] = []
+    loops: list[TimeSeriesRecirculationLoopConfigurationHandler] = []
     for unit in process_units:
-        if isinstance(unit, Compressor):
+        if isinstance(unit, TimeSeriesCompressorProcessUnit):
             loop, assembled = recirculation_loop([unit])
             loops.append(loop)
             solver_units.extend(assembled)
@@ -51,13 +52,12 @@ def individual_recirculation_loops(
 
 
 def assemble_process_section(
-    process_units: list[ProcessUnit],
+    process_units: list[TimeSeriesProcessUnit],
     anti_surge: AntiSurgeType,
     pressure_control: PressureControlType,
-    fluid_service: FluidService,
 ) -> AssembledSection:
     """Assemble validated section process units into solver-ready process units and configuration handlers."""
-    handlers: list[ConfigurationHandler] = []
+    handlers: list[TimeSeriesConfigurationHandler] = []
 
     if anti_surge == AntiSurgeType.COMMON_ASV:
         loop, solver_units = recirculation_loop(process_units)
@@ -67,8 +67,8 @@ def assemble_process_section(
         handlers.extend(loops)
 
     if pressure_control in ("UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE"):
-        choke = Choke(fluid_service=fluid_service)
-        handlers.append(ChokeConfigurationHandler(choke=choke))
+        choke = TimeSeriesChokeProcessUnit()
+        handlers.append(TimeSeriesChokeConfigurationHandler(choke_id=choke.get_id()))
         if pressure_control == "UPSTREAM_CHOKE":
             solver_units = [choke, *solver_units]
         else:

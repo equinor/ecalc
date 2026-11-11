@@ -4,6 +4,18 @@ import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.process.configuration_handlers import TimeSeriesShaftConfigurationHandler
+from libecalc.ecalc_model.process.process_units import (
+    TimeSeriesChokeProcessUnit,
+    TimeSeriesCompressorProcessUnit,
+    TimeSeriesDirectMixerProcessUnit,
+    TimeSeriesDirectSplitterProcessUnit,
+    TimeSeriesInletProcessUnit,
+    TimeSeriesLiquidRemoverProcessUnit,
+    TimeSeriesOutletProcessUnit,
+    TimeSeriesPressureDropperProcessUnit,
+    TimeSeriesTemperatureSetterProcessUnit,
+)
 from libecalc.ecalc_model.process_simulation import Constraint
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService, TimelineEventType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
@@ -14,16 +26,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
-from libecalc.process.process_units.choke import Choke
-from libecalc.process.process_units.compressor import Compressor
-from libecalc.process.process_units.direct_mixer import DirectMixer
-from libecalc.process.process_units.direct_splitter import DirectSplitter
-from libecalc.process.process_units.inlet import Inlet
-from libecalc.process.process_units.liquid_remover import LiquidRemover
-from libecalc.process.process_units.outlet import Outlet
-from libecalc.process.process_units.pressure_dropper import PressureDropper
-from libecalc.process.process_units.temperature_setter import TemperatureSetter
-from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompressorChartBuilder,
@@ -121,11 +123,11 @@ def test_mapper_wraps_compressor_segment_with_mixer_and_splitter(process_simulat
     )
 
     units = pipelines[0].get_process_units()
-    assert isinstance(units[0], Inlet)
-    assert isinstance(units[-1], Outlet)
-    compressor_index = next(i for i, u in enumerate(units) if isinstance(u, Compressor))
-    assert isinstance(units[compressor_index - 1], DirectMixer)
-    assert isinstance(units[compressor_index + 1], DirectSplitter)
+    assert isinstance(units[0], TimeSeriesInletProcessUnit)
+    assert isinstance(units[-1], TimeSeriesOutletProcessUnit)
+    compressor_index = next(i for i, u in enumerate(units) if isinstance(u, TimeSeriesCompressorProcessUnit))
+    assert isinstance(units[compressor_index - 1], TimeSeriesDirectMixerProcessUnit)
+    assert isinstance(units[compressor_index + 1], TimeSeriesDirectSplitterProcessUnit)
 
 
 def test_mapper_preserves_yaml_unit_order_inside_segment(process_simulation_mapper_factory):
@@ -142,9 +144,9 @@ def test_mapper_preserves_yaml_unit_order_inside_segment(process_simulation_mapp
         return next(i for i, u in enumerate(units) if isinstance(u, unit_type))
 
     # YAML order: PressureDropper → TemperatureSetter → LiquidRemover → Compressor
-    assert position_of(PressureDropper) < position_of(TemperatureSetter)
-    assert position_of(TemperatureSetter) < position_of(LiquidRemover)
-    assert position_of(LiquidRemover) < position_of(Compressor)
+    assert position_of(TimeSeriesPressureDropperProcessUnit) < position_of(TimeSeriesTemperatureSetterProcessUnit)
+    assert position_of(TimeSeriesTemperatureSetterProcessUnit) < position_of(TimeSeriesLiquidRemoverProcessUnit)
+    assert position_of(TimeSeriesLiquidRemoverProcessUnit) < position_of(TimeSeriesCompressorProcessUnit)
 
 
 def test_mapper_adds_choke_for_downstream_choke_pressure_control(process_simulation_mapper_factory):
@@ -156,9 +158,9 @@ def test_mapper_adds_choke_for_downstream_choke_pressure_control(process_simulat
     )
 
     units = pipelines[0].get_process_units()
-    assert isinstance(units[0], Inlet)
-    assert isinstance(units[-2], Choke)
-    assert isinstance(units[-1], Outlet)
+    assert isinstance(units[0], TimeSeriesInletProcessUnit)
+    assert isinstance(units[-2], TimeSeriesChokeProcessUnit)
+    assert isinstance(units[-1], TimeSeriesOutletProcessUnit)
 
 
 def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulation_mapper_factory):
@@ -170,9 +172,9 @@ def test_mapper_adds_choke_for_upstream_choke_pressure_control(process_simulatio
     )
 
     units = pipelines[0].get_process_units()
-    assert isinstance(units[0], Inlet)
-    assert isinstance(units[1], Choke)
-    assert isinstance(units[-1], Outlet)
+    assert isinstance(units[0], TimeSeriesInletProcessUnit)
+    assert isinstance(units[1], TimeSeriesChokeProcessUnit)
+    assert isinstance(units[-1], TimeSeriesOutletProcessUnit)
 
 
 def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapper_factory):
@@ -198,18 +200,18 @@ def test_mixer_and_splitter_are_placed_between_asv_loops(process_simulation_mapp
     unit_types = [type(u).__name__ for u in units]
 
     assert unit_types == [
-        "Inlet",
-        "TemperatureSetter",
-        "DirectMixer",
-        "Compressor",
-        "DirectSplitter",  # ASV loop 1
-        "Splitter",  # between loops
-        "Mixer",  # between loops
-        "TemperatureSetter",
-        "DirectMixer",
-        "Compressor",
-        "DirectSplitter",  # ASV loop 2
-        "Outlet",
+        "TimeSeriesInletProcessUnit",
+        "TimeSeriesTemperatureSetterProcessUnit",
+        "TimeSeriesDirectMixerProcessUnit",
+        "TimeSeriesCompressorProcessUnit",
+        "TimeSeriesDirectSplitterProcessUnit",  # ASV loop 1
+        "TimeSeriesSplitterProcessUnit",  # between loops
+        "TimeSeriesMixerProcessUnit",  # between loops
+        "TimeSeriesTemperatureSetterProcessUnit",
+        "TimeSeriesDirectMixerProcessUnit",
+        "TimeSeriesCompressorProcessUnit",
+        "TimeSeriesDirectSplitterProcessUnit",  # ASV loop 2
+        "TimeSeriesOutletProcessUnit",
     ]
 
 
@@ -309,11 +311,11 @@ def test_mapper_places_trailing_units_after_last_asv_loop(process_simulation_map
     units = pipelines[0].get_process_units()
 
     # Two ASV loops = two DirectSplitters. Trailing TemperatureSetter should be after both.
-    splitter_indices = [i for i, u in enumerate(units) if isinstance(u, DirectSplitter)]
+    splitter_indices = [i for i, u in enumerate(units) if isinstance(u, TimeSeriesDirectSplitterProcessUnit)]
     assert len(splitter_indices) == 2
 
     trailing_temp_index = len(units) - 2
-    assert isinstance(units[trailing_temp_index], TemperatureSetter)
+    assert isinstance(units[trailing_temp_index], TimeSeriesTemperatureSetterProcessUnit)
     assert trailing_temp_index > max(splitter_indices)
 
 
@@ -332,7 +334,7 @@ def test_mapper_builds_single_process_problem_section(process_simulation_mapper_
     problem = simulation.process_problems[0]
 
     assert len(problem.get_configuration_handlers()) == 3
-    assert isinstance(problem.get_configuration_handlers()[0], VariableSpeedShaft)
+    assert isinstance(problem.get_configuration_handlers()[0], TimeSeriesShaftConfigurationHandler)
 
     assert len(problem.get_process_problem_sections()) == 1
 
@@ -375,7 +377,7 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
 
     # Train-wide handlers (currently only Shaft) remain on ProcessProblem.
     assert len(problem.get_configuration_handlers()) == 4
-    assert isinstance(problem.get_configuration_handlers()[0], VariableSpeedShaft)
+    assert isinstance(problem.get_configuration_handlers()[0], TimeSeriesShaftConfigurationHandler)
 
     # Each solver section owns its own constraint and section-specific handlers.
     assert len(problem.get_process_problem_sections()) == 2
@@ -447,8 +449,10 @@ def test_rebundle_changes_the_model_and_keeps_the_compressor_id(process_simulati
         refs, timeline_event_service=timeline_event_service
     ).map_process_simulation(yaml_process_simulation=yaml_simulation)
 
-    [compressor] = [unit for unit in pipelines[0].get_process_units() if isinstance(unit, Compressor)]
+    [compressor] = [
+        unit for unit in pipelines[0].get_process_units() if isinstance(unit, TimeSeriesCompressorProcessUnit)
+    ]
     [event] = pipelines[0].get_events()
-    assert isinstance(event.change_to, Compressor)
+    assert isinstance(event.change_to, TimeSeriesCompressorProcessUnit)
     assert event.change_to.get_id() == compressor.get_id()
     assert event.change_to.compressor_chart.maximum_speed == 12000.0

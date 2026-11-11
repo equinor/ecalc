@@ -1,8 +1,10 @@
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.process.chart import ChartCurve
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_solver.configuration import RecirculationConfiguration, SpeedConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.shaft import VariableSpeedShaft
@@ -34,15 +36,11 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     pd_target,
     variable_speed_compressor_train,
     compressor_stage_factory,
-    compressor_stages,
-    fluid_service,
-    variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
     compressor_factory,
     stage_units_factory,
     with_individual_asv,
-    process_pipeline_factory,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
@@ -121,7 +119,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
     recirculation_loop_ids = [loop.get_id() for loop in loops]
 
     # Currently pipeline is not used for anything but the ID, so not important which units are added ...
-    process_pipeline = process_pipeline_factory(units=units_new)
+    process_pipeline_id = ProcessPipelineId(ecalc_id_generator())
 
     runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
@@ -139,7 +137,7 @@ def test_individual_asv_rate_solver_vs_legacy_train(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        process_pipeline_id=process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
     solution = train_solver.find_solution(
         pressure_targets=[FloatConstraint(target_pressure)],
@@ -178,15 +176,11 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     pd_target,
     variable_speed_compressor_train,
     compressor_stage_factory,
-    compressor_stages,
-    fluid_service,
-    variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
     compressor_factory,
     stage_units_factory,
     with_individual_asv,
-    process_pipeline_factory,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_pressure_control_strategy_factory,
@@ -265,7 +259,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
     recirculation_loop_ids = [loop.get_id() for loop in loops]
 
     runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
-    process_pipeline = process_pipeline_factory(units=units_new)
+    process_pipeline_id = ProcessPipelineId(ecalc_id_generator())
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
@@ -281,7 +275,7 @@ def test_individual_asv_pressure_solver_vs_legacy_train(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        process_pipeline_id=process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
     solution = train_solver.find_solution(
         pressure_targets=[FloatConstraint(target_pressure)],
@@ -320,7 +314,6 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
     compressor_factory,
     stage_units_factory,
     with_individual_asv,
-    process_pipeline_factory,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
@@ -354,7 +347,7 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
     loop_ids = [loop.get_id() for loop in loops]
 
     runner = process_runner_factory(units=individual_asvs, configuration_handlers=[shaft, *loops])
-    process_pipeline = process_pipeline_factory(units=individual_asvs)
+    process_pipeline_id = ProcessPipelineId(ecalc_id_generator())
     anti_surge = individual_asv_anti_surge_strategy_factory(
         runner=runner, recirculation_loop_ids=loop_ids, compressors=compressors
     )
@@ -366,7 +359,7 @@ def test_individual_asv_anti_surge_returns_failure_when_rate_above_stonewall(
         runner=runner,
         anti_surge_strategy=anti_surge,
         pressure_control_strategy=pressure_control,
-        process_pipeline_id=process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
 
     inlet_stream = stream_factory(standard_rate_m3_per_day=5_000_000, pressure_bara=30.0)

@@ -2,6 +2,8 @@ from io import StringIO
 
 import pytest
 
+from libecalc.ecalc_model.process.configuration_handlers import TimeSeriesShaftConfigurationHandler
+from libecalc.ecalc_model.process.process_units import TimeSeriesCompressorProcessUnit
 from libecalc.energy.models.compressor_shaft_power import compressor_shaft_power
 from libecalc.presentation.yaml.domain.energy.compressor import TimeSeriesProcessCompressor
 from libecalc.presentation.yaml.model import YamlModel
@@ -10,8 +12,6 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineCurve, YamlTurbineDefinition
-from libecalc.process.process_units.compressor import Compressor
-from libecalc.process.shaft import Shaft
 from libecalc.testing.energy_builders import YamlDriveTrainBuilder, YamlEnergyNetworkBuilder
 from libecalc.testing.process_builders import (
     YamlDefinitionsBuilder,
@@ -95,7 +95,9 @@ def test_drive_train_gets_process_compressors_when_energy_is_mapped_first(model)
     pipelines, _ = model.get_process_simulations()
 
     drive_train_nodes = [consumer for consumer in consumers if isinstance(consumer, TimeSeriesProcessCompressor)]
-    process_compressors = [unit for unit in pipelines[0].get_process_units() if isinstance(unit, Compressor)]
+    process_compressors = [
+        unit for unit in pipelines[0].get_process_units() if isinstance(unit, TimeSeriesCompressorProcessUnit)
+    ]
     assert [node.get_name() for node in drive_train_nodes] == [COMPRESSOR_A, COMPRESSOR_B]
     assert [node.process_unit_id for node in drive_train_nodes] == [c.get_id() for c in process_compressors]
 
@@ -105,7 +107,11 @@ def test_compressors_on_one_shaft_share_one_solver_shaft(model):
     [problem] = simulation.process_problems
     [shaft] = model.get_shafts()
 
-    [solver_shaft] = [handler for handler in problem.get_configuration_handlers() if isinstance(handler, Shaft)]
+    [solver_shaft] = [
+        handler
+        for handler in problem.get_configuration_handlers()
+        if isinstance(handler, TimeSeriesShaftConfigurationHandler)
+    ]
 
     assert solver_shaft.get_compressor_ids() == list(shaft.compressor_equipment_ids)
 

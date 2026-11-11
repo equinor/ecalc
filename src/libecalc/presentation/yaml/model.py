@@ -5,7 +5,6 @@ from datetime import datetime
 from functools import cached_property, reduce
 from typing import Any, Self
 
-from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.component_type import ComponentType
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period, Periods
@@ -289,7 +288,6 @@ class YamlModel:
 
             mapper = ProcessSimulationMapper(
                 expression_evaluator=expression_evaluator,
-                fluid_service=NeqSimFluidService.instance(),
                 resources=facility_resources,
                 references=reference_objects,
                 timeline_event_service=timeline_event_service,

@@ -8,12 +8,13 @@ from libecalc.common.ddd.entity import Entity
 from libecalc.common.errors.exceptions import EcalcError
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.ecalc_model.process.process_units import TimeSeriesProcessUnit
 from libecalc.process.process_pipeline.process_pipeline import (
     ProcessPipelineId,
     ProcessPipelineSectionId,
     ProcessUnitConnectionId,
 )
-from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 
 
 class PipelineEventAction(StrEnum):
@@ -32,7 +33,7 @@ class PipelineEvent:
 
     action: PipelineEventAction
     change_target: ProcessUnitId
-    change_to: ProcessUnit  # Specification/definition
+    change_to: TimeSeriesProcessUnit  # Specification/definition
     change_type: PipelineEventChangeType
     change_time: datetime.datetime  # period only when evaluating "just before storing in db"
     # process_event_ref: str | None
@@ -69,7 +70,7 @@ class ProcessUnitConnection(Entity[ProcessUnitConnectionId]):
 class ProcessPipelineSection(Entity[ProcessPipelineSectionId]):
     def __init__(
         self,
-        process_units: Sequence[ProcessUnit],  # TODO: Reassure they are in order
+        process_units: Sequence[TimeSeriesProcessUnit],  # TODO: Reassure they are in order
         process_pipeline_section_id: ProcessPipelineSectionId | None = None,
     ):
         self._process_units = process_units
@@ -78,7 +79,7 @@ class ProcessPipelineSection(Entity[ProcessPipelineSectionId]):
     def get_id(self) -> ProcessPipelineSectionId:
         return self._id
 
-    def get_process_units(self) -> list[ProcessUnit]:
+    def get_process_units(self) -> list[TimeSeriesProcessUnit]:
         return list(self._process_units)
 
     @classmethod
@@ -133,7 +134,7 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
     def get_process_unit_connections(self) -> Sequence[ProcessUnitConnection]:
         return self._process_unit_connections
 
-    def get_process_units(self) -> Sequence[ProcessUnit]:
+    def get_process_units(self) -> Sequence[TimeSeriesProcessUnit]:
         return [
             process_unit
             for process_section in self.get_process_pipeline_sections()
@@ -176,7 +177,7 @@ class ProcessPipeline(Entity[ProcessPipelineId]):
         """
         process_unit_connections: list[ProcessUnitConnection] = []
 
-        previous_process_unit: ProcessUnit | None = None
+        previous_process_unit: TimeSeriesProcessUnit | None = None
         for process_section in process_pipeline_sections:  # Ordered, in sequence!
             for process_unit in process_section.get_process_units():  # Ordered, in sequence!
                 if previous_process_unit is not None:
