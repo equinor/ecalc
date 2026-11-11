@@ -199,7 +199,7 @@ class TestGeneratorModelEvents:
         )
 
     @staticmethod
-    def _rebundle_at(
+    def _upgrade_at(
         change_time, *, fuel_per_power: float = 1.0, max_power: float = 100
     ) -> EnergyUnitModelEvent[GeneratorFuelModel]:
         return EnergyUnitModelEvent(
@@ -210,34 +210,34 @@ class TestGeneratorModelEvents:
 
     def test_uses_the_active_fuel_model_per_period(self):
         generator_factory = self._generator_factory(
-            model_events=[self._rebundle_at(SECOND_PERIOD.start, fuel_per_power=0.5)]
+            model_events=[self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5)]
         )
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
         (connection,) = connections
 
         generator = generator_factory.create(ElectricalPower(10), incoming_connections=connections, period=FIRST_PERIOD)
-        generator_rebundled = generator_factory.create(
+        generator_upgraded = generator_factory.create(
             ElectricalPower(10), incoming_connections=connections, period=SECOND_PERIOD
         )
 
         assert generator.get_input_energies()[connection.id] == FuelGasRate(10)
-        assert generator_rebundled.get_input_energies()[connection.id] == FuelGasRate(5)
+        assert generator_upgraded.get_input_energies()[connection.id] == FuelGasRate(5)
 
-    def test_uses_the_latest_rebundle_in_effect_for_each_period(self):
+    def test_uses_the_latest_upgrade_in_effect_for_each_period(self):
         generator_factory = self._generator_factory(
             model_events=[
-                self._rebundle_at(THIRD_PERIOD.start, fuel_per_power=0.25),
-                self._rebundle_at(SECOND_PERIOD.start, fuel_per_power=0.5),
+                self._upgrade_at(THIRD_PERIOD.start, fuel_per_power=0.25),
+                self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5),
             ]
         )
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
         (connection,) = connections
 
         generator = generator_factory.create(ElectricalPower(8), incoming_connections=connections, period=FIRST_PERIOD)
-        generator_first_rebundle = generator_factory.create(
+        generator_first_upgrade = generator_factory.create(
             ElectricalPower(8), incoming_connections=connections, period=SECOND_PERIOD
         )
-        generator_second_rebundle = generator_factory.create(
+        generator_second_upgrade = generator_factory.create(
             ElectricalPower(8), incoming_connections=connections, period=THIRD_PERIOD
         )
         generator_carried_forward = generator_factory.create(
@@ -245,27 +245,27 @@ class TestGeneratorModelEvents:
         )
 
         assert generator.get_input_energies()[connection.id] == FuelGasRate(8)
-        assert generator_first_rebundle.get_input_energies()[connection.id] == FuelGasRate(4)
-        assert generator_second_rebundle.get_input_energies()[connection.id] == FuelGasRate(2)
+        assert generator_first_upgrade.get_input_energies()[connection.id] == FuelGasRate(4)
+        assert generator_second_upgrade.get_input_energies()[connection.id] == FuelGasRate(2)
         assert generator_carried_forward.get_input_energies()[connection.id] == FuelGasRate(2)
 
     def test_capacity_is_the_max_power_of_the_active_fuel_model(self):
         generator_factory = self._generator_factory(
-            max_power=10, model_events=[self._rebundle_at(SECOND_PERIOD.start, max_power=15)]
+            max_power=10, model_events=[self._upgrade_at(SECOND_PERIOD.start, max_power=15)]
         )
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
 
         generator = generator_factory.create(ElectricalPower(5), incoming_connections=connections, period=FIRST_PERIOD)
-        generator_rebundled = generator_factory.create(
+        generator_upgraded = generator_factory.create(
             ElectricalPower(5), incoming_connections=connections, period=SECOND_PERIOD
         )
 
         assert generator.get_capacity() == ElectricalPower(10)
-        assert generator_rebundled.get_capacity() == ElectricalPower(15)
+        assert generator_upgraded.get_capacity() == ElectricalPower(15)
 
     def test_model_events_require_a_period(self):
         generator_factory = self._generator_factory(
-            model_events=[self._rebundle_at(SECOND_PERIOD.start, fuel_per_power=0.5)]
+            model_events=[self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5)]
         )
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
 

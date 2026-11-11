@@ -777,11 +777,14 @@ def energy_network_mapper_factory():
     Call with shafts (name to ShaftEquipment) to give drive trains their compressors. Default is no shafts.
     """
 
-    def _create(shafts: dict | None = None, compressor_ids: dict | None = None, definitions=None):
+    def _create(
+        shafts: dict | None = None, compressor_ids: dict | None = None, definitions=None, timeline_event_service=None
+    ):
         return EnergyNetworkMapper(
             shafts=shafts or {},
             compressor_equipment_ids=compressor_ids or {},
             definitions=definitions,
+            timeline_event_service=timeline_event_service,
         )
 
     return _create

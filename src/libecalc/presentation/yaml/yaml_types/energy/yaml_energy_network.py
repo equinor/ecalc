@@ -22,6 +22,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
 from libecalc.presentation.yaml.yaml_types.yaml_version import V3, yaml_element_lifecycle
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
@@ -99,6 +100,35 @@ class YamlConverterBase(YamlBase):
     ]
 
 
+class YamlGeneratorEventChangeType(StrEnum):
+    REBUNDLE = "REBUNDLE"
+
+
+class YamlGeneratorModelEvent(YamlBase):
+    change_to: Annotated[
+        DefinitionReference | YamlGeneratorDefinition,
+        validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
+        Field(
+            title="CHANGE_TO",
+            description="The generator model to use from the event date on. Same physical generator, new curve.",
+        ),
+    ]
+    change_type: Annotated[
+        YamlGeneratorEventChangeType,
+        Field(
+            title="CHANGE_TYPE",
+            description="Nature of the change, e.g. REBUNDLE (curve change, same physical generator).",
+        ),
+    ] = YamlGeneratorEventChangeType.REBUNDLE
+    ref: Annotated[
+        TimelineEventReference,
+        Field(
+            title="REF",
+            description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date.",
+        ),
+    ]
+
+
 class YamlGenerator(YamlConverterBase):
     model_config = ConfigDict(title="Generator")
 
@@ -111,6 +141,14 @@ class YamlGenerator(YamlConverterBase):
             description="Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS.",
         ),
     ]
+    events: Annotated[
+        list[YamlGeneratorModelEvent],
+        Field(
+            title="EVENTS",
+            description="Events that change the generator model over time, such as a rebundle. Each event takes "
+            "effect from the date of its referenced TIMELINE.EVENTS entry.",
+        ),
+    ] = []
 
 
 class YamlGasTurbine(YamlConverterBase):
