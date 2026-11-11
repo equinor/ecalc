@@ -263,6 +263,13 @@ class TestGeneratorModelEvents:
         assert generator.get_capacity() == ElectricalPower(10)
         assert generator_upgraded.get_capacity() == ElectricalPower(15)
 
+    def test_model_events_are_exposed_in_chronological_order(self):
+        later_upgrade = self._upgrade_at(THIRD_PERIOD.start, fuel_per_power=0.25)
+        earlier_upgrade = self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5)
+        generator_factory = self._generator_factory(model_events=[later_upgrade, earlier_upgrade])
+
+        assert generator_factory.model_events == (earlier_upgrade, later_upgrade)
+
     def test_model_events_require_a_period(self):
         generator_factory = self._generator_factory(
             model_events=[self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5)]

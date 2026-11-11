@@ -4,7 +4,7 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 from libecalc.common.time_utils import Period
-from libecalc.ecalc_model.model_event import EnergyUnitModelEvent
+from libecalc.ecalc_model.model_event import EnergyUnitModelEvent, active_model
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import ElectricalPower, Energy
 from libecalc.energy.energy_unit import EnergyUnitId
@@ -31,20 +31,16 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
         super().__init__(name=name, energy_unit_id=energy_unit_id)
         self.fuel_model = fuel_model
         self.input_energy_type = input_energy_type
-        self._model_events = tuple(sorted(model_events, key=lambda event: event.change_time))
+        self.model_events = tuple(sorted(model_events, key=lambda event: event.change_time))
 
     def _fuel_model_for(self, period: Period | None) -> GeneratorFuelModel:
-        if not self._model_events:
+        if not self.model_events:
             return self.fuel_model
         if period is None:
             raise InvalidEnergyNetworkInputError(
                 f"Generator '{self.get_name()}' changes model over time but no period was given to select a model."
             )
-        active = self.fuel_model
-        for event in self._model_events:
-            if event.change_time <= period.start:
-                active = event.change_to
-        return active
+        return active_model(self.fuel_model, self.model_events, at=period.start)
 
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Generator:
         (incoming_connection,) = incoming_connections
