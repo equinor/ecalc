@@ -1,0 +1,44 @@
+---
+title: NextGen example (Experimental)
+description: A complete example of a NextGen eCalc model with process simulations and an energy network.
+---
+
+import CodeBlock from '@theme/CodeBlock';
+import yamlModel from '!!raw-loader!@examples/nextgen/model.yaml';
+import compressorChartCsv from '!!raw-loader!@examples/nextgen/compressor_chart.csv';
+import baseProfile from '!!raw-loader!@examples/nextgen/base_profile.csv';
+import sampledElCompressor from '!!raw-loader!@examples/nextgen/sampled_el_compressor.csv';
+import sampledFuelCompressor from '!!raw-loader!@examples/nextgen/sampled_fuel_compressor.csv';
+import sampledFuelTurbine from '!!raw-loader!@examples/nextgen/sampled_fuel_turbine.csv';
+import sampledMechCompressor from '!!raw-loader!@examples/nextgen/sampled_mech_compressor.csv';
+
+# NextGen model example
+
+This is an example of a NextGen eCalc model. It is generated from the model builders in the eCalc library, and verified
+by the library tests, so it always follows the latest `YAML_VERSION`. See the [Process Reference](/about/process-reference.mdx)
+and the [Energy Reference](/about/energy-reference.mdx) for a description of every element.
+
+The model contains:
+
+- Four export trains with two compressors each, defined in `COMPRESSORS`, placed on a `SHAFTS` entry per train, and run in
+  `PROCESS_PIPELINES` with a compressor model from `DEFINITIONS.COMPRESSOR_MODELS`.
+- A `TIMELINE` event that rebundles the compressors of the first export train.
+- One `PROCESS_SIMULATIONS` entry that distributes a common inlet stream between the export trains, with constraints for each
+  train.
+- An `ENERGY_NETWORK` with fuel gas and electrical sources, generator, gas turbines, electrical cable and motors, drive
+  trains for the export trains, an electrical consumer, and sampled compressors that are driven electrically,
+  mechanically and by fuel.
+
+## Full eCalc YAML model {/* #full-ecalc-yaml-model */}
+
+<CodeBlock title="model.yaml" language="yaml">{yamlModel}</CodeBlock>
+
+### Input files {/* #input-files */}
+
+<CodeBlock title="compressor_chart.csv">{compressorChartCsv}</CodeBlock>
+<CodeBlock title="base_profile.csv">{baseProfile}</CodeBlock>
+<CodeBlock title="sampled_el_compressor.csv">{sampledElCompressor}</CodeBlock>
+<CodeBlock title="sampled_fuel_compressor.csv">{sampledFuelCompressor}</CodeBlock>
+<CodeBlock title="sampled_fuel_turbine.csv">{sampledFuelTurbine}</CodeBlock>
+<CodeBlock title="sampled_mech_compressor.csv">{sampledMechCompressor}</CodeBlock>
+
