@@ -25,6 +25,7 @@ ENERGY_TYPE_COLORS: dict[EnergyType, str] = {
 CATEGORY_SOURCE = "Sources"
 CATEGORY_PROVIDER = "Providers"
 CATEGORY_CONSUMER = "Consumers"
+CATEGORIES = (CATEGORY_SOURCE, CATEGORY_PROVIDER, CATEGORY_CONSUMER)
 
 
 @dataclass(frozen=True)
@@ -78,8 +79,8 @@ def _stub_identifier(component_type: str, direction: str, energy_type: EnergyTyp
     return f"{component_type}_{direction}_{energy_type.value}"
 
 
-def generate_energy_components_mermaid() -> str:
-    lines = ["graph TB"]
+def generate_energy_components_mermaid(category: str) -> str:
+    lines = ["graph LR"]
     edges_by_energy_type: dict[EnergyType, list[int]] = {energy_type: [] for energy_type in EnergyType}
     stub_identifiers_by_energy_type: dict[EnergyType, list[str]] = {energy_type: [] for energy_type in EnergyType}
     edge_count = 0
@@ -92,26 +93,22 @@ def generate_energy_components_mermaid() -> str:
         lines.append(f'        {identifier}(["{energy_type.value}"])')
     lines.append("    end")
 
-    components = get_energy_components()
-    for category in (CATEGORY_SOURCE, CATEGORY_PROVIDER, CATEGORY_CONSUMER):
-        lines.append(f'    subgraph category_{category} ["{category}"]')
-        for component in (component for component in components if component.category == category):
-            lines.append(f'        subgraph box_{component.type} [" "]')
-            lines.append("            direction LR")
-            lines.append(f'            {component.type}["{component.type}"]')
-            for energy_type in component.input_energy:
-                identifier = _stub_identifier(component.type, "in", energy_type)
-                stub_identifiers_by_energy_type[energy_type].append(identifier)
-                lines.append(f'            {identifier}(["{energy_type.value}"]) --> {component.type}')
-                edges_by_energy_type[energy_type].append(edge_count)
-                edge_count += 1
-            for energy_type in component.output_energy:
-                identifier = _stub_identifier(component.type, "out", energy_type)
-                stub_identifiers_by_energy_type[energy_type].append(identifier)
-                lines.append(f'            {component.type} --> {identifier}(["{energy_type.value}"])')
-                edges_by_energy_type[energy_type].append(edge_count)
-                edge_count += 1
-            lines.append("        end")
+    for component in (component for component in get_energy_components() if component.category == category):
+        lines.append(f'    subgraph box_{component.type} [" "]')
+        lines.append("        direction LR")
+        lines.append(f'        {component.type}["{component.type}"]')
+        for energy_type in component.input_energy:
+            identifier = _stub_identifier(component.type, "in", energy_type)
+            stub_identifiers_by_energy_type[energy_type].append(identifier)
+            lines.append(f'        {identifier}(["{energy_type.value}"]) --> {component.type}')
+            edges_by_energy_type[energy_type].append(edge_count)
+            edge_count += 1
+        for energy_type in component.output_energy:
+            identifier = _stub_identifier(component.type, "out", energy_type)
+            stub_identifiers_by_energy_type[energy_type].append(identifier)
+            lines.append(f'        {component.type} --> {identifier}(["{energy_type.value}"])')
+            edges_by_energy_type[energy_type].append(edge_count)
+            edge_count += 1
         lines.append("    end")
 
     for energy_type, color in ENERGY_TYPE_COLORS.items():

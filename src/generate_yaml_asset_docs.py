@@ -25,7 +25,13 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
-from energy_mermaid import generate_energy_components_mermaid
+from energy_mermaid import (
+    CATEGORIES,
+    CATEGORY_CONSUMER,
+    CATEGORY_PROVIDER,
+    CATEGORY_SOURCE,
+    generate_energy_components_mermaid,
+)
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
@@ -1608,30 +1614,85 @@ See the [YAML Reference](../yaml-reference.mdx) for the full, current schema acr
 """
 
 
-def generate_energy_components_markdown() -> str:
+ENERGY_COMPONENT_CATEGORY_DETAILS: dict[str, tuple[str, str, list[str]]] = {
+    CATEGORY_SOURCE: (
+        "sources",
+        "External energy entering the network. Sources only have an output.",
+        [],
+    ),
+    CATEGORY_PROVIDER: (
+        "providers",
+        "Components that take energy in and provide energy to other components, such as converters and junctions.",
+        [
+            "`GENERATOR` accepts fuel gas or diesel and provides electrical power.",
+            "`ELECTRICAL_BUS` and `FUEL_GAS_MANIFOLD` provide the same energy type as their inputs.",
+        ],
+    ),
+    CATEGORY_CONSUMER: (
+        "consumers",
+        "Components that use energy from the network. Consumers only have an input.",
+        [
+            "`COMPRESSOR_SAMPLED` accepts fuel gas, electrical or mechanical energy, depending on the energy columns "
+            "in its `FILE`.",
+            "`DRIVE_TRAIN` accepts mechanical energy and refers to a shaft.",
+        ],
+    ),
+}
+
+ENERGY_COMPONENTS_DIRECTORY_NAME = "energy-components"
+
+
+def generate_energy_components_index_markdown() -> str:
+    links = "\n".join(
+        f"- [{category}](./{ENERGY_COMPONENT_CATEGORY_DETAILS[category][0]}.mdx): "
+        f"{ENERGY_COMPONENT_CATEGORY_DETAILS[category][1]}"
+        for category in CATEGORIES
+    )
     return f"""\
 ---
 title: Energy Components (Experimental)
-sidebar_position: 2.5
+sidebar_position: 0
 description: Overview of the energy components, by category, with the energy types they accept and provide.
 ---
 
 # Energy Components
 
-All energy components in the `ENERGY_NETWORK`, grouped as sources, providers and consumers. The connections on each
-component are coloured by energy type: inputs show what a component accepts, outputs show what it provides.
-Two components can be connected when the output colour of one matches the input colour of the next.
-See the [Energy Reference](./energy-reference.mdx) for the full description of every element.
+All energy components in the `ENERGY_NETWORK`, grouped as sources, providers and consumers. On each page, the
+connections on every component are coloured by energy type: inputs show what a component accepts, outputs show what it
+provides. Two components can be connected when the output colour of one matches the input colour of the next.
+See the [Energy Reference](../energy-reference.mdx) for the full description of every element.
+
+{links}
+"""
+
+
+def generate_energy_components_category_markdown(category: str, sidebar_position: int) -> str:
+    _, description, notes = ENERGY_COMPONENT_CATEGORY_DETAILS[category]
+    notes_markdown = "".join(f"- {note}\n" for note in notes)
+    notes_section = f"\n{notes_markdown}" if notes else ""
+    return f"""\
+---
+title: {category} (Experimental)
+sidebar_position: {sidebar_position}
+description: {description}
+---
+
+# {category}
+
+{description} Connections are coloured by the energy type they accept or provide.
 
 ```mermaid
-{generate_energy_components_mermaid()}
+{generate_energy_components_mermaid(category)}
 ```
+{notes_section}"""
 
-- `GENERATOR` accepts fuel gas or diesel and provides electrical power.
-- `ELECTRICAL_BUS` and `FUEL_GAS_MANIFOLD` provide the same energy type as their inputs.
-- `COMPRESSOR_SAMPLED` accepts fuel gas, electrical or mechanical energy, depending on the energy columns in its `FILE`.
-- `DRIVE_TRAIN` accepts mechanical energy and refers to a shaft.
-"""
+
+def generate_energy_components_pages() -> dict[str, str]:
+    pages = {"index.md": generate_energy_components_index_markdown()}
+    for position, category in enumerate(CATEGORIES, start=1):
+        file_stem = ENERGY_COMPONENT_CATEGORY_DETAILS[category][0]
+        pages[f"{file_stem}.mdx"] = generate_energy_components_category_markdown(category, position)
+    return pages
 
 
 def main():
@@ -1639,16 +1700,19 @@ def main():
     about_dir.mkdir(parents=True, exist_ok=True)
     changelog_dir = about_dir / "yaml-changelog"
     changelog_dir.mkdir(parents=True, exist_ok=True)
+    energy_components_dir = about_dir / ENERGY_COMPONENTS_DIRECTORY_NAME
+    energy_components_dir.mkdir(parents=True, exist_ok=True)
 
     anchor_registry: dict[str, str] = {}
 
     outputs = {
         about_dir / "process-reference.mdx": generate_process_markdown(),
         about_dir / "energy-reference.mdx": generate_energy_markdown(),
-        about_dir / "energy-components.mdx": generate_energy_components_markdown(),
         about_dir / "yaml-reference.mdx": generate_full_reference_markdown(anchor_registry=anchor_registry),
         changelog_dir / "index.md": generate_yaml_changelog_index_markdown(),
     }
+    for file_name, content in generate_energy_components_pages().items():
+        outputs[energy_components_dir / file_name] = content
     for version in YAML_CHANGELOG_VERSIONS:
         outputs[changelog_dir / f"v{version.major}.md"] = generate_yaml_changelog_markdown(
             version, anchor_registry=anchor_registry

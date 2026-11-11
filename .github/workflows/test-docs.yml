@@ -34,7 +34,7 @@ jobs:
           cd src
           uv run python generate_yaml_asset_docs.py
           cd ..
-          generated_paths="docs/docs/about/nextgen/process-reference.mdx docs/docs/about/nextgen/energy-reference.mdx docs/docs/about/nextgen/energy-components.mdx docs/docs/about/nextgen/yaml-reference.mdx docs/docs/about/nextgen/yaml-changelog"
+          generated_paths="docs/docs/about/nextgen/process-reference.mdx docs/docs/about/nextgen/energy-reference.mdx docs/docs/about/nextgen/energy-components docs/docs/about/nextgen/yaml-reference.mdx docs/docs/about/nextgen/yaml-changelog"
           if [ -n "$(git status --porcelain -- $generated_paths)" ]; then
             echo "::error::The generated YAML documentation is out of date. A YAML schema change must be documented with yaml_element_lifecycle(...) or removed_field(...). Run 'uv run ./generate_yaml_asset_docs.py' from libecalc/src and commit the result."
             git status --porcelain -- $generated_paths
