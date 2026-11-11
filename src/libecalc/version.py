@@ -30,7 +30,7 @@ Patch: bug fixes, e.g. fixing a typo in a description, fixing a validation rule.
 
 Initially we start with v2 as the first version of the document, since that will allow v1 and v2 elements to be used in the same document. v1 elements will be deprecated in v2, and removed in v3.
 """
-__yaml_version__ = "4.0.0"
+__yaml_version__ = "5.0.0"
 
 
 def current_yaml_version() -> Version:

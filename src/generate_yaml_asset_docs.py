@@ -1351,7 +1351,7 @@ def generate_process_markdown() -> str:
     return _generate_markdown(
         include_fields=PROCESS_INCLUDE_FIELDS,
         title="Process Reference",
-        sidebar_position=6,
+        sidebar_position=1,
         description="Complete reference for the process configuration.",
         intro="""\
 # Process Reference
@@ -1379,7 +1379,7 @@ def generate_energy_markdown() -> str:
     return _generate_markdown(
         include_fields=ENERGY_INCLUDE_FIELDS,
         title="Energy Reference",
-        sidebar_position=7,
+        sidebar_position=2,
         description="Complete reference for the energy network configuration.",
         intro="""\
 # Energy Reference
@@ -1407,7 +1407,7 @@ def generate_full_reference_markdown(anchor_registry: dict[str, str] | None = No
     return _generate_markdown(
         include_fields=None,
         title="YAML Reference",
-        sidebar_position=8,
+        sidebar_position=3,
         description="Complete reference for all YAML configuration keys, across every schema version.",
         intro="""\
 # YAML Reference
@@ -1436,6 +1436,12 @@ FIRST_YAML_CHANGELOG_VERSION = Version(current_yaml_version().major - 1, 0, 0)  
 YAML_CHANGELOG_VERSIONS: list[Version] = [
     Version(major, 0, 0) for major in range(FIRST_YAML_CHANGELOG_VERSION.major, current_yaml_version().major + 1)
 ]
+
+
+def _release_label(version: Version) -> str:
+    status = "In development" if version.major == current_yaml_version().major else "In production"
+    return f"{status} (v{version.major})"
+
 
 ChangeKind = Literal["added", "deprecated", "removed", "changed"]
 
@@ -1519,7 +1525,7 @@ def _render_changelog_section(
         breadcrumb = " › ".join(f"`{segment}`" for segment in entry.path)
         anchor = _resolve_reference_anchor(entry.path, anchor_registry) if anchor_registry is not None else None
         if anchor is not None:
-            breadcrumb = f"[{breadcrumb}](../about/yaml-reference.mdx#{anchor})"
+            breadcrumb = f"[{breadcrumb}](../yaml-reference.mdx#{anchor})"
         if entry.description:
             breadcrumb = f"{breadcrumb}: {entry.description}"
         if entry.replaced_by:
@@ -1532,7 +1538,7 @@ def _render_changelog_section(
                     else None
                 )
                 if replacement_anchor is not None:
-                    replacement = f"[{replacement}](../about/yaml-reference.mdx#{replacement_anchor})"
+                    replacement = f"[{replacement}](../yaml-reference.mdx#{replacement_anchor})"
                 replacements.append(replacement)
             breadcrumb = f"{breadcrumb}: replaced by {' and '.join(replacements)}"
         lines.append(f"- {breadcrumb}")
@@ -1552,17 +1558,18 @@ def generate_yaml_changelog_markdown(version: Version, anchor_registry: dict[str
 
     frontmatter = f"""\
 ---
-title: YAML_VERSION {version.major}
+title: YAML changelog, {_release_label(version)}
+sidebar_label: {_release_label(version)}
 sidebar_position: {version.major}
 description: YAML configuration changes introduced in YAML_VERSION {version.major}.
 ---
 """
 
     body = f"""\
-# YAML_VERSION {version.major}
+# YAML changelog, {_release_label(version)}
 
 This page lists the YAML configuration changes introduced in `YAML_VERSION: {version.major}`, compared to the
-previous version. See the [YAML Reference](../about/yaml-reference.mdx) for the full, current schema across all
+previous version. See the [YAML Reference](../yaml-reference.mdx) for the full, current schema across all
 versions.
 
 """
@@ -1580,7 +1587,7 @@ versions.
 
 def generate_yaml_changelog_index_markdown() -> str:
     """Generate the yaml changelog landing page, listing all covered versions."""
-    links = "\n".join(f"- [YAML_VERSION {version.major}](./v{version.major}.md)" for version in YAML_CHANGELOG_VERSIONS)
+    links = "\n".join(f"- [{_release_label(version)}](./v{version.major}.md)" for version in YAML_CHANGELOG_VERSIONS)
     return f"""\
 ---
 title: YAML Changelog
@@ -1594,16 +1601,16 @@ This section lists the YAML configuration changes for each `YAML_VERSION`, to he
 a previous version. Each page covers the additions, deprecations and removals introduced in that version, compared
 to the previous one.
 
-See the [YAML Reference](../about/yaml-reference.mdx) for the full, current schema across all versions.
+See the [YAML Reference](../yaml-reference.mdx) for the full, current schema across all versions.
 
 {links}
 """
 
 
 def main():
-    about_dir = Path(__file__).parent.parent / "docs" / "docs" / "about"
+    about_dir = Path(__file__).parent.parent / "docs" / "docs" / "about" / "nextgen"
     about_dir.mkdir(parents=True, exist_ok=True)
-    changelog_dir = Path(__file__).parent.parent / "docs" / "docs" / "yaml-changelog"
+    changelog_dir = about_dir / "yaml-changelog"
     changelog_dir.mkdir(parents=True, exist_ok=True)
 
     anchor_registry: dict[str, str] = {}
