@@ -170,6 +170,17 @@ Converters, junctions, and consumers forming the energy network.
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `GENERATOR` | Required |
 | `MODEL` | Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
+| [`EVENTS`](#energy_network-units-generator-events) <LifecycleBadge kind="introduced" version="4" /> | Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry. | Default: `[]` |
+
+##### EVENTS <LifecycleBadge kind="introduced" version="4" /> \{#energy_network-units-generator-events}
+
+Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry.
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `CHANGE_TO` | The generator model to use from the event date on. Same physical generator, new curve. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
+| `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (curve change, same physical generator). | Default: `REBUNDLE` |
+| `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date. | Required |
 
 
 </div>

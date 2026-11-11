@@ -23,7 +23,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorRefe
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V3, yaml_element_lifecycle
+from libecalc.presentation.yaml.yaml_types.yaml_version import V3, V4, yaml_element_lifecycle
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -147,6 +147,7 @@ class YamlGenerator(YamlConverterBase):
             title="EVENTS",
             description="Events that change the generator model over time, such as a rebundle. Each event takes "
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
+            json_schema_extra=yaml_element_lifecycle(available_since=V4),
         ),
     ] = []
 
