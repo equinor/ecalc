@@ -56,7 +56,10 @@ class PipelineSectionSolver(PipelineSolver):
         def speed_func(configuration: SpeedConfiguration) -> FluidStream:
             self._pipeline_section.get_anti_surge_strategy().reset()
             self._pipeline_section.get_runner().apply_configuration(
-                Configuration(configuration_handler_id=self._pipeline_section.get_shaft_id(), value=configuration),
+                Configuration(
+                    configuration_handler_id=self._pipeline_section.get_shaft_configuration_handler_id(),
+                    value=configuration,
+                ),
             )
             try:
                 return self._pipeline_section.get_runner().run(inlet_stream=inlet_stream)
@@ -85,7 +88,7 @@ class PipelineSectionSolver(PipelineSolver):
         pressure_target = pressure_targets[0]
 
         shaft_config = Configuration(
-            configuration_handler_id=self._pipeline_section.get_shaft_id(),
+            configuration_handler_id=self._pipeline_section.get_shaft_configuration_handler_id(),
             value=SpeedConfiguration(
                 speed=self._pipeline_section.get_speed_boundary().min
             ),  # TODO: Min or max? Or nothing because we dont know? Last x we tried?
@@ -108,7 +111,7 @@ class PipelineSectionSolver(PipelineSolver):
         speed_finding = self._find_speed_solution(pressure_constraint=pressure_target, inlet_stream=inlet_stream)
 
         shaft_config = Configuration(
-            configuration_handler_id=self._pipeline_section.get_shaft_id(),
+            configuration_handler_id=self._pipeline_section.get_shaft_configuration_handler_id(),
             value=speed_finding.configuration,
         )
 

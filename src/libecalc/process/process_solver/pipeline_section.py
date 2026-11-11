@@ -16,7 +16,7 @@ class PipelineSection(Entity[ProcessPipelineSectionId]):
 
     def __init__(
         self,
-        shaft_id: ConfigurationHandlerId,
+        shaft_configuration_handler_id: ConfigurationHandlerId,
         runner: ProcessRunner,
         anti_surge_strategy: AntiSurgeStrategy,
         pressure_control_strategy: PressureControlStrategy,
@@ -27,7 +27,7 @@ class PipelineSection(Entity[ProcessPipelineSectionId]):
     ):
         self._id: Final[ProcessPipelineSectionId] = process_pipeline_section_id or PipelineSection._create_id()
         self._process_pipeline_id: Final[ProcessPipelineId] = process_pipeline_id
-        self._shaft_id: Final[ConfigurationHandlerId] = shaft_id
+        self._shaft_configuration_handler_id: Final[ConfigurationHandlerId] = shaft_configuration_handler_id
         self._runner: Final[ProcessRunner] = runner
         self._anti_surge_strategy: AntiSurgeStrategy = anti_surge_strategy
         self._pressure_control_strategy: PressureControlStrategy = pressure_control_strategy
@@ -44,8 +44,8 @@ class PipelineSection(Entity[ProcessPipelineSectionId]):
     def _create_id(cls: type[Self]) -> ProcessPipelineSectionId:
         return ProcessPipelineSectionId(ecalc_id_generator())
 
-    def get_shaft_id(self) -> ConfigurationHandlerId:
-        return self._shaft_id
+    def get_shaft_configuration_handler_id(self) -> ConfigurationHandlerId:
+        return self._shaft_configuration_handler_id
 
     def get_runner(self) -> ProcessRunner:
         return self._runner

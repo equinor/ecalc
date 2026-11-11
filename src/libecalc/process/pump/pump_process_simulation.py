@@ -101,7 +101,7 @@ class LiquidProcessUnitConnection(Entity[ProcessUnitConnectionId]):
 class LiquidRecirculationLoop(Entity[LiquidRecirculationLoopId]):
     """Minimum-flow recirculation routing recycle from the splitter back to the mixer.
 
-    Mirrors the compressor recirculation-loop topology (``splitter_id`` + ``mixer_id``); like the
+    Mirrors the compressor recirculation-loop topology (splitter + mixer); like the
     gas recirculation loop it is its own concept with its own identity, not a serial connection.
     The recycle rate is not attributed to a node: it is a scalar on
     ``PumpEvaluationResult.recirculation_rate_m3_per_hour`` and is also implied by the connection
@@ -110,24 +110,24 @@ class LiquidRecirculationLoop(Entity[LiquidRecirculationLoopId]):
 
     def __init__(
         self,
-        splitter_id: ProcessUnitId,
-        mixer_id: ProcessUnitId,
+        splitter_process_unit_id: ProcessUnitId,
+        mixer_process_unit_id: ProcessUnitId,
         id: LiquidRecirculationLoopId | None = None,
     ):
         self._id: Final[LiquidRecirculationLoopId] = id or LiquidRecirculationLoop._create_id()
-        self._splitter_id = splitter_id
-        self._mixer_id = mixer_id
+        self._splitter_process_unit_id = splitter_process_unit_id
+        self._mixer_process_unit_id = mixer_process_unit_id
 
     def get_id(self) -> LiquidRecirculationLoopId:
         return self._id
 
     @property
-    def splitter_id(self) -> ProcessUnitId:
-        return self._splitter_id
+    def splitter_process_unit_id(self) -> ProcessUnitId:
+        return self._splitter_process_unit_id
 
     @property
-    def mixer_id(self) -> ProcessUnitId:
-        return self._mixer_id
+    def mixer_process_unit_id(self) -> ProcessUnitId:
+        return self._mixer_process_unit_id
 
     @classmethod
     def _create_id(cls: type[Self]) -> LiquidRecirculationLoopId:
@@ -200,8 +200,8 @@ class PumpProcessSimulation(Entity[PumpProcessSimulationId]):
             LiquidProcessUnitConnection(from_process_unit_id=choke.get_id(), to_process_unit_id=outlet.get_id()),
         )
         self._recirculation_loop: Final[LiquidRecirculationLoop] = LiquidRecirculationLoop(
-            splitter_id=splitter.get_id(),
-            mixer_id=mixer.get_id(),
+            splitter_process_unit_id=splitter.get_id(),
+            mixer_process_unit_id=mixer.get_id(),
         )
 
     def get_id(self) -> PumpProcessSimulationId:

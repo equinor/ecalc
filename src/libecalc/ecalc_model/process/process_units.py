@@ -2,6 +2,7 @@ from typing import Final, Self
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.process.chart.chart import ChartData
 from libecalc.process.chart.compressor import CompressorChart
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
@@ -20,9 +21,20 @@ class TimeSeriesProcessUnit(Entity[ProcessUnitId]):
 
 
 class TimeSeriesCompressorProcessUnit(TimeSeriesProcessUnit):
-    def __init__(self, *, compressor_chart: ChartData, process_unit_id: ProcessUnitId | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        compressor_chart: ChartData,
+        compressor_equipment_id: EquipmentId,
+        process_unit_id: ProcessUnitId | None = None,
+    ) -> None:
         super().__init__(process_unit_id=process_unit_id)
         self._compressor_chart = CompressorChart(compressor_chart)
+        self._compressor_equipment_id: Final[EquipmentId] = compressor_equipment_id
+
+    @property
+    def compressor_equipment_id(self) -> EquipmentId:
+        return self._compressor_equipment_id
 
     @property
     def compressor_chart(self) -> CompressorChart:

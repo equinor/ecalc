@@ -64,7 +64,7 @@ def test_pipeline_section_solver_applies_upstream_choke_when_speed_solution_is_a
     )
     pressure_control_strategy = upstream_choke_pressure_control_strategy_factory(
         runner=runner,
-        choke_id=upstream_choke_configuration_handler.get_id(),
+        choke_configuration_handler_id=upstream_choke_configuration_handler.get_id(),
         anti_surge_strategy=anti_surge_strategy,
     )
     solver = pipeline_section_solver_factory(

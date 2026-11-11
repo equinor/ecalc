@@ -41,10 +41,12 @@ class MultiPressureSolver(PipelineSolver):
 
         self._pipeline: Pipeline = pipeline
         pipeline_sections: list[PipelineSection] = pipeline.get_process_pipeline_sections()
-        shaft_ids = {pipeline_section.get_shaft_id() for pipeline_section in pipeline_sections}
-        if len(shaft_ids) != 1:
-            raise EcalcValidationException("All pipeline sections must share the same shaft_id.")
-        self._shaft_id: Final = next(iter(shaft_ids))
+        shaft_configuration_handler_ids = {
+            pipeline_section.get_shaft_configuration_handler_id() for pipeline_section in pipeline_sections
+        }
+        if len(shaft_configuration_handler_ids) != 1:
+            raise EcalcValidationException("All pipeline sections must share the same shaft configuration handler.")
+        self._shaft_configuration_handler_id: Final = next(iter(shaft_configuration_handler_ids))
         self._validate_pressure_control_placement(pipeline_sections)
         self._pipeline_sections: Final = pipeline_sections
 
@@ -97,14 +99,14 @@ class MultiPressureSolver(PipelineSolver):
             )
             if not solution_for_pipeline_section.success:
                 return solution_for_pipeline_section
-            speed_configuration = solution_for_pipeline_section.get_configuration(self._shaft_id)
+            speed_configuration = solution_for_pipeline_section.get_configuration(self._shaft_configuration_handler_id)
             assert isinstance(speed_configuration, SpeedConfiguration)
             speed_configurations.append(speed_configuration)
             pipeline_section.get_runner().apply_configurations(solution_for_pipeline_section.configuration)
             current_inlet = pipeline_section.get_runner().run(inlet_stream=current_inlet)
 
         shaft_config = Configuration(
-            configuration_handler_id=self._shaft_id,
+            configuration_handler_id=self._shaft_configuration_handler_id,
             value=max(speed_configurations),
         )
         solution: Solution[Sequence[Configuration[OperatingConfiguration]]] = Solution(configuration=[shaft_config])

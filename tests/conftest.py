@@ -19,6 +19,7 @@ from libecalc.common.variables import ExpressionEvaluator, VariablesMap
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
+from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
 from libecalc.ecalc_model.timeline_event import TimelineEventService
 from libecalc.examples import advanced, drogon, simple
 from libecalc.expression.expression import ExpressionType
@@ -729,36 +730,41 @@ def process_simulation_mapper_factory(
 
     def _create(
         references: dict | None = None,
-        compressor_ids: dict | None = None,
+        compressor_equipment_ids: dict | None = None,
         timeline_event_service: TimelineEventService | None = None,
     ):
-        if compressor_ids is None:
-            compressor_ids = _compressor_ids_for_pipelines(references or {})
+        if compressor_equipment_ids is None:
+            compressor_equipment_ids = _compressor_equipment_ids_for_pipelines(references or {})
         return ProcessSimulationMapper(
             expression_evaluator=expression_evaluator,
             references=references or {},
             resources={},
-            shaft_by_compressor=_shaft_by_compressor_for_pipelines(references or {}),
-            compressor_equipment_ids=compressor_ids,
+            shafts=_shafts_for_pipelines(references or {}, compressor_equipment_ids),
+            compressor_equipment_ids=compressor_equipment_ids,
             timeline_event_service=timeline_event_service or TimelineEventService(timeline_events=[]),
         )
 
     return _create
 
 
-def _shaft_by_compressor_for_pipelines(references: dict) -> dict:
+def _shafts_for_pipelines(references: dict, compressor_equipment_ids: dict) -> dict:
     """One shaft per referenced pipeline, with all its compressors on it, as a valid model would give."""
     return {
-        process_unit.compressor: f"{reference.name} shaft"
+        f"{reference.name} shaft": ShaftEquipment(
+            name=f"{reference.name} shaft",
+            compressor_equipment_ids=[
+                compressor_equipment_ids[process_unit.compressor]
+                for process_unit in reference.process_units
+                if isinstance(process_unit, YamlCompressorProcessUnitInstance)
+            ],
+        )
         for reference in references.values()
         if isinstance(reference, YamlProcessPipeline)
-        for process_unit in reference.process_units
-        if isinstance(process_unit, YamlCompressorProcessUnitInstance)
     }
 
 
-def _compressor_ids_for_pipelines(references: dict) -> dict:
-    """Generate a compressor id for every compressor placed in the referenced pipelines, as YamlModel would."""
+def _compressor_equipment_ids_for_pipelines(references: dict) -> dict:
+    """Generate a compressor equipment id for every compressor placed in the referenced pipelines, as YamlModel would."""
     return {
         process_unit.compressor: CompressorEquipment(name=process_unit.compressor).get_id()
         for reference in references.values()
@@ -775,10 +781,10 @@ def energy_network_mapper_factory():
     Call with shafts (name to ShaftEquipment) to give drive trains their compressors. Default is no shafts.
     """
 
-    def _create(shafts: dict | None = None, compressor_ids: dict | None = None, definitions=None):
+    def _create(shafts: dict | None = None, compressor_equipment_ids: dict | None = None, definitions=None):
         return EnergyNetworkMapper(
             shafts=shafts or {},
-            compressor_equipment_ids=compressor_ids or {},
+            compressor_equipment_ids=compressor_equipment_ids or {},
             definitions=definitions,
         )
 
