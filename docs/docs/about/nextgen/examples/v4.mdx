@@ -18,6 +18,53 @@ import resource5 from '!!raw-loader!@examples/nextgen/v4/sampled_mech_compressor
 
 # NextGen model example, In production (v4)
 
+## Energy network {/* #energy-network */}
+
+```mermaid
+graph TD
+    fuel_gas(["fuel_gas<br/>FUEL_GAS_SOURCE"])
+    fuel_gas2(["fuel_gas2<br/>FUEL_GAS_SOURCE"])
+    fuel_gas3(["fuel_gas3<br/>FUEL_GAS_SOURCE"])
+    fuel_gas4(["fuel_gas4<br/>FUEL_GAS_SOURCE"])
+    fuel_gas5(["fuel_gas5<br/>FUEL_GAS_SOURCE"])
+    el_source(["el_source<br/>ELECTRICAL_SOURCE"])
+    pfs(["pfs<br/>ELECTRICAL_SOURCE"])
+    export_turbine["export_turbine<br/>GAS_TURBINE"]
+    genset_a["genset_a<br/>GENERATOR"]
+    long_cable["long_cable<br/>ELECTRICAL_CABLE"]
+    export_motor["export_motor<br/>ELECTRICAL_MOTOR"]
+    export_train_1_drive["export_train_1_drive<br/>DRIVE_TRAIN"]
+    export_train_2_el["export_train_2_el<br/>DRIVE_TRAIN"]
+    pfs_motor["pfs_motor<br/>ELECTRICAL_MOTOR"]
+    pfs_train["pfs_train<br/>DRIVE_TRAIN"]
+    base_load["base_load<br/>ELECTRICAL_CONSUMER"]
+    el_compressor_sampled["el_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
+    fuel_compressor_sampled["fuel_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
+    sampled_turbine["sampled_turbine<br/>GAS_TURBINE"]
+    mech_compressor_sampled["mech_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
+    turbine_compressor_sampled["turbine_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
+    shaft_export_shaft_1[/"export_shaft_1<br/>SHAFT<br/>export_train_1_compressor1, export_train_1_compressor2"/]
+    shaft_export_shaft_2[/"export_shaft_2<br/>SHAFT<br/>export_train_2_compressor1, export_train_2_compressor2"/]
+    shaft_export_shaft_3[/"export_shaft_3<br/>SHAFT<br/>export_train_3_compressor1, export_train_3_compressor2"/]
+    fuel_gas --> export_turbine
+    fuel_gas2 --> genset_a
+    genset_a --> long_cable
+    long_cable --> export_motor
+    export_turbine --> export_train_1_drive
+    export_motor --> export_train_2_el
+    pfs --> pfs_motor
+    pfs_motor --> pfs_train
+    el_source --> base_load
+    genset_a --> el_compressor_sampled
+    fuel_gas3 --> fuel_compressor_sampled
+    fuel_gas4 --> sampled_turbine
+    sampled_turbine --> mech_compressor_sampled
+    fuel_gas5 --> turbine_compressor_sampled
+    export_train_1_drive --> shaft_export_shaft_1
+    export_train_2_el --> shaft_export_shaft_2
+    pfs_train --> shaft_export_shaft_3
+```
+
 This is an example of a NextGen eCalc model using `YAML_VERSION: 4`, which is in production.
 It is generated from the model builders in the eCalc library, and verified by the library tests.
 See the [Process Reference](../process-reference.mdx) and the [Energy Reference](../energy-reference.mdx) for a

@@ -3,6 +3,8 @@ from pathlib import Path
 from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 
 from .export import MODEL_FILE_NAME, example_yaml_versions, resource_paths, version_directory_name
+from .mermaid import energy_network_to_mermaid
+from .model import build_reference_model
 
 PAGE_SUFFIX = ".mdx"
 INDEX_FILE_NAME = "index.md"
@@ -53,6 +55,12 @@ description: A complete example of a NextGen eCalc model for YAML_VERSION {yaml_
 {imports}
 
 # NextGen model example, {label}
+
+## Energy network {{/* #energy-network */}}
+
+```mermaid
+{energy_network_to_mermaid(build_reference_model(yaml_version))}
+```
 
 This is an example of a NextGen eCalc model using `YAML_VERSION: {yaml_version}`, which is {release_status(yaml_version).lower()}.
 It is generated from the model builders in the eCalc library, and verified by the library tests.
