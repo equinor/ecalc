@@ -12,5 +12,5 @@ to the previous one.
 
 See the [YAML Reference](../about/yaml-reference.mdx) for the full, current schema across all versions.
 
-- [YAML_VERSION 3](./v3.md)
 - [YAML_VERSION 4](./v4.md)
+- [YAML_VERSION 5](./v5.md)
