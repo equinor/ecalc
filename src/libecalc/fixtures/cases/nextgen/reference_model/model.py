@@ -25,6 +25,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariable, YamlVariables
+from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.testing.energy_builders import (
     YamlCompressorSampledBuilder,
@@ -353,9 +354,10 @@ def _energy_network():
     return YamlEnergyNetworkBuilder().with_sources(_energy_sources()).with_units(_energy_units()).validate()
 
 
-def build_reference_model() -> YamlAsset:
+def build_reference_model(yaml_version: int = LATEST_YAML_VERSION) -> YamlAsset:
     return (
         YamlAssetBuilder()
+        .with_yaml_version(yaml_version)
         .with_start(START)
         .with_end(END)
         .with_time_series(_time_series())
