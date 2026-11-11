@@ -62,6 +62,9 @@ description: A complete example of a NextGen eCalc model for YAML_VERSION {yaml_
 {energy_network_to_mermaid(build_reference_model(yaml_version))}
 ```
 
+The energy network is shown at the top, and the energy demand from the process model (compressors and process
+pipelines) is shown in orange at the bottom.
+
 This is an example of a NextGen eCalc model using `YAML_VERSION: {yaml_version}`, which is {release_status(yaml_version).lower()}.
 It is generated from the model builders in the eCalc library, and verified by the library tests.
 See the [Process Reference](../process-reference.mdx) and the [Energy Reference](../energy-reference.mdx) for a

@@ -43,9 +43,21 @@ graph TD
     sampled_turbine["sampled_turbine<br/>GAS_TURBINE"]
     mech_compressor_sampled["mech_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
     turbine_compressor_sampled["turbine_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
-    shaft_export_shaft_1[/"export_shaft_1<br/>SHAFT<br/>export_train_1_compressor1, export_train_1_compressor2"/]
-    shaft_export_shaft_2[/"export_shaft_2<br/>SHAFT<br/>export_train_2_compressor1, export_train_2_compressor2"/]
-    shaft_export_shaft_3[/"export_shaft_3<br/>SHAFT<br/>export_train_3_compressor1, export_train_3_compressor2"/]
+    shaft_export_shaft_1[/"export_shaft_1<br/>SHAFT"/]
+    shaft_export_shaft_2[/"export_shaft_2<br/>SHAFT"/]
+    shaft_export_shaft_3[/"export_shaft_3<br/>SHAFT"/]
+    compressor_export_train_1_compressor1[["export_train_1_compressor1<br/>COMPRESSOR"]]
+    compressor_export_train_1_compressor2[["export_train_1_compressor2<br/>COMPRESSOR"]]
+    compressor_export_train_2_compressor1[["export_train_2_compressor1<br/>COMPRESSOR"]]
+    compressor_export_train_2_compressor2[["export_train_2_compressor2<br/>COMPRESSOR"]]
+    compressor_export_train_3_compressor1[["export_train_3_compressor1<br/>COMPRESSOR"]]
+    compressor_export_train_3_compressor2[["export_train_3_compressor2<br/>COMPRESSOR"]]
+    compressor_export_train_4_compressor1[["export_train_4_compressor1<br/>COMPRESSOR"]]
+    compressor_export_train_4_compressor2[["export_train_4_compressor2<br/>COMPRESSOR"]]
+    pipeline_export_train_1[["export_train_1<br/>PROCESS_PIPELINE"]]
+    pipeline_export_train_2[["export_train_2<br/>PROCESS_PIPELINE"]]
+    pipeline_export_train_3[["export_train_3<br/>PROCESS_PIPELINE"]]
+    pipeline_export_train_4[["export_train_4<br/>PROCESS_PIPELINE"]]
     fuel_gas --> export_turbine
     fuel_gas2 --> genset_a
     genset_a --> long_cable
@@ -63,7 +75,26 @@ graph TD
     export_train_1_drive --> shaft_export_shaft_1
     export_train_2_el --> shaft_export_shaft_2
     pfs_train --> shaft_export_shaft_3
+    shaft_export_shaft_1 --> compressor_export_train_1_compressor1
+    shaft_export_shaft_1 --> compressor_export_train_1_compressor2
+    shaft_export_shaft_2 --> compressor_export_train_2_compressor1
+    shaft_export_shaft_2 --> compressor_export_train_2_compressor2
+    shaft_export_shaft_3 --> compressor_export_train_3_compressor1
+    shaft_export_shaft_3 --> compressor_export_train_3_compressor2
+    compressor_export_train_1_compressor1 --> pipeline_export_train_1
+    compressor_export_train_1_compressor2 --> pipeline_export_train_1
+    compressor_export_train_2_compressor1 --> pipeline_export_train_2
+    compressor_export_train_2_compressor2 --> pipeline_export_train_2
+    compressor_export_train_3_compressor1 --> pipeline_export_train_3
+    compressor_export_train_3_compressor2 --> pipeline_export_train_3
+    compressor_export_train_4_compressor1 --> pipeline_export_train_4
+    compressor_export_train_4_compressor2 --> pipeline_export_train_4
+    classDef process fill:#fde8c8,stroke:#d98a00,color:#000
+    class compressor_export_train_1_compressor1,compressor_export_train_1_compressor2,compressor_export_train_2_compressor1,compressor_export_train_2_compressor2,compressor_export_train_3_compressor1,compressor_export_train_3_compressor2,compressor_export_train_4_compressor1,compressor_export_train_4_compressor2,pipeline_export_train_1,pipeline_export_train_2,pipeline_export_train_3,pipeline_export_train_4 process
 ```
+
+The energy network is shown at the top, and the energy demand from the process model (compressors and process
+pipelines) is shown in orange at the bottom.
 
 This is an example of a NextGen eCalc model using `YAML_VERSION: 5`, which is in development.
 It is generated from the model builders in the eCalc library, and verified by the library tests.
