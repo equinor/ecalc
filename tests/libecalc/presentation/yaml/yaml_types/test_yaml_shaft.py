@@ -9,7 +9,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
-from libecalc.testing.energy_builders import YamlEnergyNetworkBuilder
+from libecalc.testing.energy_builders import YamlDriveTrainBuilder, YamlEnergyNetworkBuilder
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompressorModelChartBuilder,
@@ -223,4 +223,35 @@ def test_rejects_same_shaft_in_multiple_drive_trains(energy_network_builder_fact
             .with_shafts([YamlShaft(name="common_shaft")])
             .with_energy_network(energy_network)
             .validate()
+        )
+
+
+def test_rejects_mechanical_efficiency_for_compressor_not_on_the_drive_trains_shaft():
+    pipeline = _pipeline("export_pipeline", "export_compressor")
+    drive_train = (
+        YamlDriveTrainBuilder()
+        .with_name("export_drive")
+        .with_input("turbine")
+        .with_shaft("export_shaft")
+        .with_mechanical_efficiency("injection_compressor", 0.95)
+        .validate()
+    )
+    energy_network = (
+        YamlEnergyNetworkBuilder()
+        .with_test_data()
+        .with_gas_turbine("turbine", "fuel_gas", TURBINE_MODEL)
+        .with_unit(drive_train)
+        .validate()
+    )
+
+    with pytest.raises(
+        ValidationError,
+        match="Drive train 'export_drive' gives a mechanical efficiency for compressor 'injection_compressor', "
+        "which is not on its shaft 'export_shaft'. Compressors on this shaft: export_compressor.",
+    ):
+        _asset(
+            shafts=[YamlShaft(name="export_shaft", compressors=["export_compressor"])],
+            pipelines=[pipeline],
+            targeted=[pipeline],
+            energy_network=energy_network,
         )

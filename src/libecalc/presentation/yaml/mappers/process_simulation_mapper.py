@@ -8,6 +8,28 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
+from libecalc.ecalc_model.process.configuration_handlers import (
+    TimeSeriesConfigurationHandler,
+    TimeSeriesShaftConfigurationHandler,
+)
+from libecalc.ecalc_model.process.process_pipeline import (
+    PipelineEvent,
+    PipelineEventAction,
+    PipelineEventChangeType,
+    ProcessPipeline,
+    ProcessPipelineSection,
+)
+from libecalc.ecalc_model.process.process_units import (
+    TimeSeriesCompressorProcessUnit,
+    TimeSeriesInletProcessUnit,
+    TimeSeriesLiquidRemoverProcessUnit,
+    TimeSeriesMixerProcessUnit,
+    TimeSeriesOutletProcessUnit,
+    TimeSeriesPressureDropperProcessUnit,
+    TimeSeriesProcessUnit,
+    TimeSeriesSplitterProcessUnit,
+    TimeSeriesTemperatureSetterProcessUnit,
+)
 from libecalc.ecalc_model.process_simulation import (
     AntiSurgeConfig,
     CommonStreamDistributionConfig,
@@ -73,28 +95,11 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorRefe
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.process.chart.chart import ChartData
-from libecalc.process.fluid_stream.fluid_service import FluidService
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
-from libecalc.process.process_pipeline.process_pipeline import (
-    PipelineEvent,
-    PipelineEventAction,
-    PipelineEventChangeType,
-    ProcessPipeline,
-    ProcessPipelineId,
-    ProcessPipelineSection,
-)
-from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_units.compressor import Compressor
-from libecalc.process.process_units.inlet import Inlet
-from libecalc.process.process_units.liquid_remover import LiquidRemover
-from libecalc.process.process_units.mixer import Mixer
-from libecalc.process.process_units.outlet import Outlet
-from libecalc.process.process_units.pressure_dropper import PressureDropper
-from libecalc.process.process_units.splitter import Splitter
-from libecalc.process.process_units.temperature_setter import TemperatureSetter
-from libecalc.process.shaft import Shaft, VariableSpeedShaft
 from libecalc.process.stream_distribution.common_stream_distribution import (
     HasExcessRate,
     Overflow,
@@ -130,7 +135,6 @@ class ProcessSimulationMapper:
     def __init__(
         self,
         expression_evaluator: ExpressionEvaluator,
-        fluid_service: FluidService,
         references: dict[InstanceReference, Any],
         resources: Resources,
         shaft_by_compressor: Mapping[CompressorReference, ShaftReference],
@@ -138,7 +142,6 @@ class ProcessSimulationMapper:
         timeline_event_service: TimelineEventService,
     ):
         self._expression_evaluator = expression_evaluator
-        self._fluid_service = fluid_service
         self._references = references
         self._resources = resources
         self._timeline_event_service = timeline_event_service
@@ -187,16 +190,6 @@ class ProcessSimulationMapper:
             return user_defined_chart_from_yaml_curves(
                 yaml_curves, units=yaml_chart.units, control_margin=control_margin_fraction
             )
-
-    def _get_compressor(
-        self, yaml_compressor_model: YamlCompressorModelChart, process_unit_id: ProcessUnitId
-    ) -> Compressor:
-        chart: ChartData = self._get_compressor_chart(yaml_compressor_model_chart=yaml_compressor_model)
-        return Compressor(
-            compressor_chart=chart,
-            fluid_service=self._fluid_service,
-            process_unit_id=process_unit_id,
-        )
 
     def _resolve_stream_reference(self, ref: str | YamlInletStream) -> YamlInletStream:
         if isinstance(ref, str):
@@ -282,7 +275,10 @@ class ProcessSimulationMapper:
             match yaml_event.change_to:
                 case YamlCompressorModelChart():
                     # Same physical compressor after the rebundle, so the new model keeps its id.
-                    change_to_unit = self._get_compressor(yaml_event.change_to, process_unit_id=change_target)
+                    change_to_unit = TimeSeriesCompressorProcessUnit(
+                        compressor_chart=self._get_compressor_chart(yaml_compressor_model_chart=yaml_event.change_to),
+                        process_unit_id=change_target,
+                    )
                 case _:
                     raise EcalcValidationException(
                         f"Pipeline event CHANGE_TO '{yaml_event.change_to}' is not a compressor model."
@@ -320,12 +316,12 @@ class ProcessSimulationMapper:
 
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
         section_builder = ProcessSectionBuilder()
-        # Created on each call, not shared: a solver shaft holds state (speed and its connected compressors).
-        solver_shafts: dict[ShaftReference, Shaft] = {}
+        # Created on each call, not shared: a shaft holds its connected compressors.
+        shafts: dict[ShaftReference, TimeSeriesShaftConfigurationHandler] = {}
         for yaml_compressor_train_item in yaml_process_simulation.targets:
-            problem_configuration_handlers = []
+            problem_configuration_handlers: list[TimeSeriesConfigurationHandler] = []
             item = self._resolve_pipeline_reference(yaml_compressor_train_item)
-            process_unit_map: dict[ProcessUnitId, ProcessUnit] = {}
+            process_unit_map: dict[ProcessUnitId, TimeSeriesProcessUnit] = {}
             unit_name_to_id: dict[InstanceReference, ProcessUnitId] = {}
             problem_time_series_configurations: dict[
                 ProcessUnitId,
@@ -343,44 +339,46 @@ class ProcessSimulationMapper:
                                 f"MODEL '{yaml_process_unit.model}' of compressor '{yaml_process_unit.compressor}' is "
                                 "not a compressor model."
                             )
-                        unit = self._get_compressor(
-                            yaml_process_unit.model,
+                        unit = TimeSeriesCompressorProcessUnit(
+                            compressor_chart=self._get_compressor_chart(
+                                yaml_compressor_model_chart=yaml_process_unit.model
+                            ),
                             process_unit_id=ProcessUnitId(self._compressor_equipment_ids[yaml_process_unit.compressor]),
                         )
                         unit_name_to_id[yaml_process_unit.get_instance_reference()] = unit.get_id()
                         shaft_name = self._shaft_by_compressor[yaml_process_unit.compressor]
-                        if shaft_name not in solver_shafts:
-                            solver_shafts[shaft_name] = VariableSpeedShaft()
-                        shaft = solver_shafts[shaft_name]
-                        shaft.connect(unit)
+                        if shaft_name not in shafts:
+                            shafts[shaft_name] = TimeSeriesShaftConfigurationHandler()
+                        shaft = shafts[shaft_name]
+                        shaft.connect(unit.get_id())
 
                         if shaft not in problem_configuration_handlers:
                             problem_configuration_handlers.append(shaft)
 
                     case YamlPressureDropperDefinition():
-                        unit = PressureDropper(fluid_service=self._fluid_service)
+                        unit = TimeSeriesPressureDropperProcessUnit()
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesPressureDropperConfiguration(
                             pressure_drop_in_bara=self._map_pressure(yaml_process_unit.pressure_drop)
                         )
 
                     case YamlTemperatureSetterDefinition():
-                        unit = TemperatureSetter(fluid_service=self._fluid_service)
+                        unit = TimeSeriesTemperatureSetterProcessUnit()
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesTemperatureSetterConfiguration(
                             temperature_in_celsius=self._map_temperature(yaml_process_unit.temperature)
                         )
 
                     case YamlLiquidRemoverDefinition():
-                        unit = LiquidRemover(fluid_service=self._fluid_service)
+                        unit = TimeSeriesLiquidRemoverProcessUnit()
 
                     case YamlMixerDefinition():
                         yaml_stream = self._resolve_stream_reference(yaml_process_unit.sidestream)
-                        unit = Mixer(fluid_service=self._fluid_service)
+                        unit = TimeSeriesMixerProcessUnit()
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesMixerConfiguration(
                             sidestream=self._map_stream(yaml_stream)
                         )
 
                     case YamlSplitterDefinition():
-                        unit = Splitter(fluid_service=self._fluid_service)
+                        unit = TimeSeriesSplitterProcessUnit()
                         problem_time_series_configurations[unit.get_id()] = TimeSeriesSplitterConfiguration(
                             offtake_rate=self._map_rate(yaml_process_unit.offtake_rate),
                         )
@@ -404,17 +402,15 @@ class ProcessSimulationMapper:
                 unit_name_to_id=unit_name_to_id,
                 pipeline_constraints=pipeline_constraints,
             )
-            assembled_sections = section_builder.assemble_sections(
-                mapped_sections=mapped_sections, fluid_service=self._fluid_service
-            )
+            assembled_sections = section_builder.assemble_sections(mapped_sections=mapped_sections)
 
             # Set up pipeline and pipeline sections
             for nr, assembled_section in enumerate(assembled_sections):
                 process_section_process_units = list(assembled_section.process_units)
                 if nr == 0:  # first section
-                    process_section_process_units.insert(0, Inlet())
+                    process_section_process_units.insert(0, TimeSeriesInletProcessUnit())
                 if nr == len(mapped_sections) - 1:  # last section
-                    process_section_process_units.append(Outlet())
+                    process_section_process_units.append(TimeSeriesOutletProcessUnit())
 
                 process_pipeline_sections.append(ProcessPipelineSection(process_units=process_section_process_units))
 

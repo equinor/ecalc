@@ -1,7 +1,9 @@
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_units.splitter import Splitter
@@ -19,7 +21,6 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     compressor_factory,
     stage_units_factory,
     with_individual_asv,
-    process_pipeline_factory,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
@@ -105,7 +106,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
     recirculation_loop_ids = [loop.get_id() for loop in loops]
 
     runner = process_runner_factory(units=units_new, configuration_handlers=[shaft_new, *loops])
-    process_pipeline = process_pipeline_factory(units=units_new)
+    process_pipeline_id = ProcessPipelineId(ecalc_id_generator())
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
         recirculation_loop_ids=recirculation_loop_ids,
@@ -121,7 +122,7 @@ def test_two_stage_train_with_interstage_splitter_vs_legacy(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        process_pipeline_id=process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
     solution = train_solver.find_solution(
         pressure_targets=[FloatConstraint(target_pressure)],

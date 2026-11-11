@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 import pandas as pd
 import pytest
 
@@ -26,7 +24,6 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 from libecalc.process.chart import ChartCurve
 from libecalc.process.chart.chart import Chart, ChartData
 from libecalc.process.chart.compressor import CompressorChart
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineSection
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
@@ -224,30 +221,6 @@ def shaft_factory():
         return VariableSpeedShaft()
 
     return create_shaft
-
-
-@pytest.fixture(scope="session")
-def name_factory():
-    name_counters = defaultdict(int)
-
-    def create_name(prefix: str) -> str:
-        name_counters[prefix] += 1
-        return f"{prefix} {name_counters[prefix]}"
-
-    return create_name
-
-
-@pytest.fixture(scope="session")
-def process_pipeline_factory(name_factory):
-    def create_process_pipeline(units: list[ProcessUnit], name: str = None) -> ProcessPipeline:
-        return ProcessPipeline(
-            process_pipeline_sections=[ProcessPipelineSection(process_units=units)],
-            name=name or name_factory("Pipeline"),
-            process_periods=[],
-            events=[],
-        )
-
-    return create_process_pipeline
 
 
 @pytest.fixture

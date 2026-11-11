@@ -5,7 +5,6 @@ from datetime import datetime
 from functools import cached_property, reduce
 from typing import Any, Self
 
-from ecalc_neqsim_wrapper.fluid_service import NeqSimFluidService
 from libecalc.common.component_type import ComponentType
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.time_utils import Period, Periods
@@ -37,6 +36,7 @@ from libecalc.domain.regularity import Regularity
 from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
+from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
@@ -83,7 +83,6 @@ from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
     YamlModelValidationContextNames,
 )
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline
 from libecalc.process.pump.pump_process_simulation import (
     PumpOperatingInput,
     PumpProcessSimulation,
@@ -289,7 +288,6 @@ class YamlModel:
 
             mapper = ProcessSimulationMapper(
                 expression_evaluator=expression_evaluator,
-                fluid_service=NeqSimFluidService.instance(),
                 resources=facility_resources,
                 references=reference_objects,
                 timeline_event_service=timeline_event_service,

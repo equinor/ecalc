@@ -1,9 +1,9 @@
 from libecalc.common.ddd import value_object
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
+from libecalc.ecalc_model.process.process_units import TimeSeriesCompressorProcessUnit, TimeSeriesProcessUnit
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import InstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
-from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 
 
 @value_object
@@ -14,7 +14,7 @@ class MappedSection:
     Pure data: units + the section's constraint. No wrapping.
     """
 
-    process_units: list[ProcessUnit]
+    process_units: list[TimeSeriesProcessUnit]
     constraint: YamlProcessConstraint
     target_process_unit_id: ProcessUnitId
 
@@ -26,7 +26,7 @@ class ProcessPartitioner:
 
     @staticmethod
     def partition(
-        process_unit_map: dict[ProcessUnitId, ProcessUnit],
+        process_unit_map: dict[ProcessUnitId, TimeSeriesProcessUnit],
         unit_name_to_id: dict[InstanceReference, ProcessUnitId],
         pipeline_constraints: list[YamlProcessConstraint],
     ) -> list[MappedSection]:
@@ -51,7 +51,7 @@ class ProcessPartitioner:
             constraint_by_unit_id[unit_id] = constraint
 
         sections: list[MappedSection] = []
-        current_units: list[ProcessUnit] = []
+        current_units: list[TimeSeriesProcessUnit] = []
 
         for process_unit in process_units:
             current_units.append(process_unit)
@@ -77,7 +77,7 @@ class ProcessPartitioner:
                     target_process_unit_id=current_units[-1].get_id(),
                 )
             )
-        elif any(isinstance(unit, Compressor) for unit in current_units):
+        elif any(isinstance(unit, TimeSeriesCompressorProcessUnit) for unit in current_units):
             raise EcalcValidationException(
                 "A compressor cannot appear after the last constraint; "
                 "every compressor must be covered by a constraint."

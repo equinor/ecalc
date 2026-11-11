@@ -65,6 +65,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlOilVolumeRate,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
 from libecalc.presentation.yaml.yaml_types.yaml_version import DEFAULT_YAML_VERSION, LATEST_YAML_VERSION
 
@@ -824,7 +825,7 @@ class YamlLegacyAssetBuilder(Builder[YamlAsset]):
 
 class YamlAssetBuilder(Builder[YamlAsset]):
     """
-    Builder for the latest (currently yaml version 3) YamlAsset.
+    Builder for the latest yaml version YamlAsset.
 
     Legacy root elements removed since v3 (FACILITY_INPUTS, MODELS, FUEL_TYPES, INSTALLATIONS) are not
     available here; use YamlLegacyAssetBuilder for a v1 document.
@@ -841,6 +842,7 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.process_pipelines = None
         self.process_simulations = None
         self.energy_network: YamlEnergyNetwork | None = None
+        self.timeline: YamlTimeline | None = None
         self.start = None
         self.end = None
 
@@ -897,6 +899,10 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
     def with_energy_network(self, energy_network: YamlEnergyNetwork) -> Self:
         self.energy_network = energy_network
+        return self
+
+    def with_timeline(self, timeline: YamlTimeline) -> Self:
+        self.timeline = timeline
         return self
 
     def with_start(self, start: str):

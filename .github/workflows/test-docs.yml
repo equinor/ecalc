@@ -42,6 +42,19 @@ jobs:
             exit 1
           fi
 
+      - name: Ensure generated nextgen example model is up to date
+        run: |
+          cd src
+          uv run python generate_fixture.py
+          cd ..
+          generated_paths="src/libecalc/examples/nextgen"
+          if [ -n "$(git status --porcelain -- $generated_paths)" ]; then
+            echo "::error::The generated nextgen example model is out of date. Run 'uv run python generate_fixture.py' from libecalc/src and commit the result."
+            git status --porcelain -- $generated_paths
+            git diff -- $generated_paths
+            exit 1
+          fi
+
       - name: Generate CLI reference
         run: |
           uv run typer src/ecalc_cli/main.py utils docs > ./docs/docs/about/getting_started/cli/cli_reference.md

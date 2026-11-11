@@ -55,6 +55,7 @@ from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
     YamlStreamRateUnit,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
+from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import (
     TimelineEventReference,
@@ -106,7 +107,7 @@ class YamlCompressorChartBuilder(Builder[YamlCompressorChart]):
         self.curves = None
         self.units = None
 
-    def with_curves(self, curves: list[YamlCurve]) -> Self:
+    def with_curves(self, curves: list[YamlCurve] | YamlFile) -> Self:
         self.curves = curves
         return self
 
@@ -360,6 +361,7 @@ class YamlInletStreamRateBuilder(Builder[YamlInletStreamRate]):
         self.value = None
         self.unit = None
         self.type = None
+        self.condition = None
 
     def with_value(self, value: YamlExpressionType) -> Self:
         self.value = value
@@ -371,6 +373,10 @@ class YamlInletStreamRateBuilder(Builder[YamlInletStreamRate]):
 
     def with_type(self, rate_type: RateType) -> Self:
         self.type = rate_type
+        return self
+
+    def with_condition(self, condition: YamlExpressionType) -> Self:
+        self.condition = condition
         return self
 
     def with_test_data(self) -> Self:

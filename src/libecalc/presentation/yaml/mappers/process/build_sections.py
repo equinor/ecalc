@@ -1,13 +1,13 @@
+from libecalc.ecalc_model.process.process_units import TimeSeriesProcessUnit
 from libecalc.presentation.yaml.mappers.process.mapped_section_validator import MappedSectionValidator
 from libecalc.presentation.yaml.mappers.process.process_partitioner import (
     MappedSection,
     ProcessPartitioner,
 )
+from libecalc.presentation.yaml.mappers.process.section_assembly import AssembledSection, assemble_process_section
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import InstanceReference
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
-from libecalc.process.fluid_stream.fluid_service import FluidService
-from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
-from libecalc.process.process_solver.section_assembly import AssembledSection, assemble_process_section
+from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 
 
 class ProcessSectionBuilder:
@@ -24,7 +24,7 @@ class ProcessSectionBuilder:
 
     def partition_and_validate(
         self,
-        process_unit_map: dict[ProcessUnitId, ProcessUnit],
+        process_unit_map: dict[ProcessUnitId, TimeSeriesProcessUnit],
         unit_name_to_id: dict[InstanceReference, ProcessUnitId],
         pipeline_constraints: list[YamlProcessConstraint],
     ) -> list[MappedSection]:
@@ -37,13 +37,12 @@ class ProcessSectionBuilder:
         return sections
 
     @staticmethod
-    def assemble_sections(mapped_sections: list[MappedSection], fluid_service: FluidService) -> list[AssembledSection]:
+    def assemble_sections(mapped_sections: list[MappedSection]) -> list[AssembledSection]:
         return [
             assemble_process_section(
                 process_units=s.process_units,
                 anti_surge=s.constraint.anti_surge,
                 pressure_control=s.constraint.pressure_control,
-                fluid_service=fluid_service,
             )
             for s in mapped_sections
         ]

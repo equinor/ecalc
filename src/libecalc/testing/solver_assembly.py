@@ -1,10 +1,7 @@
-"""Production solver assembly: wire physical components into a working solver.
+"""Test solver assembly: wire physical components into a working solver.
 
-This module contains the single source of truth for assembling a
-PipelineSectionSolver from its collaborating objects (runner, anti-surge
-strategy, pressure control strategy).  Both the YAML mapper and test
-infrastructure should use ``assemble_solver`` to ensure tests exercise
-the same wiring logic as production.
+Assembles a PipelineSectionSolver from its collaborating objects (runner,
+anti-surge strategy, pressure control strategy) for use in tests.
 """
 
 from __future__ import annotations
@@ -13,7 +10,8 @@ from collections.abc import Sequence
 from typing import assert_never
 
 from libecalc.common.ddd import value_object
-from libecalc.process.process_pipeline.process_pipeline import ProcessPipeline, ProcessPipelineSection
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessPipelineSectionId
 from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeStrategy
 from libecalc.process.process_solver.anti_surge.common_asv import CommonASVAntiSurgeStrategy
@@ -39,6 +37,8 @@ from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, ScipyRootFindingStrategy
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.process_units.direct_mixer import DirectMixer
+from libecalc.process.process_units.direct_splitter import DirectSplitter
 from libecalc.process.shaft import VariableSpeedShaft
 
 
@@ -53,11 +53,34 @@ class ProcessSolverSystem:
     solver: PipelineSectionSolver
     pipeline_section: PipelineSection
     runner: ProcessRunner
-    pipeline: ProcessPipeline
+    process_units: tuple[ProcessUnit, ...]
     shaft: VariableSpeedShaft
     compressors: tuple[Compressor, ...]
     recirculation_loops: tuple[RecirculationLoop, ...]
     choke: Choke | None
+
+
+def recirculation_loop(
+    process_units: list[ProcessUnit],
+) -> tuple[RecirculationLoop, list[ProcessUnit]]:
+    mixer, splitter = DirectMixer(), DirectSplitter()
+    loop = RecirculationLoop(mixer=mixer, splitter=splitter)
+    return loop, [mixer, *process_units, splitter]
+
+
+def individual_recirculation_loops(
+    process_units: list[ProcessUnit],
+) -> tuple[list[RecirculationLoop], list[ProcessUnit]]:
+    solver_units: list[ProcessUnit] = []
+    loops: list[RecirculationLoop] = []
+    for unit in process_units:
+        if isinstance(unit, Compressor):
+            loop, assembled = recirculation_loop([unit])
+            loops.append(loop)
+            solver_units.extend(assembled)
+        else:
+            solver_units.append(unit)
+    return loops, solver_units
 
 
 def assemble_solver(
@@ -67,7 +90,6 @@ def assemble_solver(
     compressors: Sequence[Compressor],
     recirculation_loops: Sequence[RecirculationLoop],
     shaft: VariableSpeedShaft,
-    pipeline_name: str,
     pressure_control_type: PressureControlType,
     choke: Choke | None = None,
     choke_configuration_handler: ChokeConfigurationHandler | None = None,
@@ -75,7 +97,7 @@ def assemble_solver(
 ) -> ProcessSolverSystem:
     """Assemble a fully-wired PipelineSectionSolver from physical components.
 
-    This is the production solver assembly path.  It creates the
+    It creates the
     ProcessPipelineRunner, resolves the anti-surge and pressure control
     strategies from the ``pressure_control_type``, and wires everything
     into a PipelineSectionSolver.
@@ -88,7 +110,6 @@ def assemble_solver(
         compressors: Compressor instances (for strategy wiring).
         recirculation_loops: Recirculation loops wrapping compressor stages.
         shaft: The variable-speed shaft connecting the compressors.
-        pipeline_name: Name for the ProcessPipeline.
         pressure_control_type: Determines which anti-surge and pressure
             control strategies to instantiate.
         choke: The pressure-control choke (if any).  Included in the
@@ -101,12 +122,6 @@ def assemble_solver(
     if root_finding_strategy is None:
         root_finding_strategy = ScipyRootFindingStrategy()
 
-    pipeline = ProcessPipeline(
-        name=pipeline_name,
-        process_pipeline_sections=[ProcessPipelineSection(process_units=process_units)],
-        events=[],
-        process_periods=[],
-    )
     runner = ProcessPipelineRunner(units=process_units, configuration_handlers=configuration_handlers)
 
     anti_surge_strategy = _resolve_anti_surge_strategy(
@@ -129,8 +144,8 @@ def assemble_solver(
 
     pipeline_section = PipelineSection(
         shaft_id=shaft.get_id(),
-        process_pipeline_id=pipeline.get_id(),
-        process_pipeline_section_id=pipeline.get_process_pipeline_sections()[0].get_id(),
+        process_pipeline_id=ProcessPipelineId(ecalc_id_generator()),
+        process_pipeline_section_id=ProcessPipelineSectionId(ecalc_id_generator()),
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
@@ -144,7 +159,7 @@ def assemble_solver(
         solver=solver,
         pipeline_section=pipeline_section,
         runner=runner,
-        pipeline=pipeline,
+        process_units=tuple(process_units),
         shaft=shaft,
         compressors=tuple(compressors),
         recirculation_loops=tuple(recirculation_loops),

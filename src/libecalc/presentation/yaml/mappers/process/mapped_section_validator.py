@@ -1,11 +1,13 @@
 from collections.abc import Sequence
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
+from libecalc.ecalc_model.process.process_units import (
+    TimeSeriesCompressorProcessUnit,
+    TimeSeriesMixerProcessUnit,
+    TimeSeriesSplitterProcessUnit,
+)
 from libecalc.presentation.yaml.mappers.process.process_partitioner import MappedSection
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
-from libecalc.process.process_units.compressor import Compressor
-from libecalc.process.process_units.mixer import Mixer
-from libecalc.process.process_units.splitter import Splitter
 
 _PRESSURE_CONTROL_REQUIRES_ANTI_SURGE = {
     "COMMON_ASV": AntiSurgeType.COMMON_ASV,
@@ -34,7 +36,7 @@ class MappedSectionValidator:
 
     def _validate_anti_surge_vs_compressors(self, s: MappedSection) -> None:
         location = self._section_location(s)
-        has_compressors = any(isinstance(u, Compressor) for u in s.process_units)
+        has_compressors = any(isinstance(u, TimeSeriesCompressorProcessUnit) for u in s.process_units)
         if has_compressors and s.constraint.anti_surge is AntiSurgeType.NO_ASV:
             raise EcalcValidationException(
                 f"'{s.constraint.anti_surge}' cannot be used for {location}. Sections with compressors must use "
@@ -46,14 +48,16 @@ class MappedSectionValidator:
             )
 
     def _validate_section_has_compressor(self, s: MappedSection) -> None:
-        if not any(isinstance(u, Compressor) for u in s.process_units):
+        if not any(isinstance(u, TimeSeriesCompressorProcessUnit) for u in s.process_units):
             raise EcalcValidationException(
                 f"Process sections without compressors are not supported yet for {self._section_location(s)}."
             )
 
     def _validate_common_asv_units(self, s: MappedSection) -> None:
         location = self._section_location(s)
-        if s.constraint.anti_surge == "COMMON_ASV" and any(isinstance(u, (Mixer, Splitter)) for u in s.process_units):
+        if s.constraint.anti_surge == "COMMON_ASV" and any(
+            isinstance(u, (TimeSeriesMixerProcessUnit, TimeSeriesSplitterProcessUnit)) for u in s.process_units
+        ):
             raise EcalcValidationException(
                 f"COMMON_ASV cannot be used for {location} because the section contains a mixer or splitter."
             )
