@@ -1,11 +1,13 @@
 import pytest
 
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.domain.process.compressor.core.results import CompressorTrainResultSingleTimeStep
 from libecalc.domain.process.compressor.core.train.train_evaluation_input import CompressorTrainEvaluationInput
 from libecalc.process.chart import ChartCurve
 from libecalc.process.fluid_stream.fluid_model import FluidModel
 from libecalc.process.fluid_stream.fluid_service import FluidService
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_solver.configuration import RecirculationConfiguration
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.shaft import VariableSpeedShaft
@@ -50,15 +52,11 @@ def _calc_recirculation_rate_from_loss_mw(
 def test_common_asv_solver_vs_legacy_train(
     variable_speed_compressor_train,
     compressor_stage_factory,
-    compressor_stages,
-    fluid_service,
-    variable_speed_compressor_chart_data,
     chart_data_factory,
     stream_factory,
     compressor_factory,
     stage_units_factory,
     with_common_asv,
-    process_pipeline_factory,
     process_runner_factory,
     common_asv_anti_surge_strategy_factory,
     common_asv_pressure_control_strategy_factory,
@@ -146,13 +144,13 @@ def test_common_asv_solver_vs_legacy_train(
         recirculation_loop_id=common_asv.get_id(),
         first_compressor=first_compressor,
     )
-    process_pipeline = process_pipeline_factory(units=process_units)
+    process_pipeline_id = ProcessPipelineId(ecalc_id_generator())
     train_solver = pipeline_section_solver_factory(
         shaft=shaft_new,
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        process_pipeline_id=process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
     solution = train_solver.find_solution(
         pressure_targets=[FloatConstraint(target_pressure)],

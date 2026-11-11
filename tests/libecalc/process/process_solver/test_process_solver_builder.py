@@ -129,7 +129,7 @@ def test_builder_uses_single_recirculation_loop_for_common_asv(
     assert len(system.compressors) == 2
     assert len(system.recirculation_loops) == 1
     assert system.choke is None
-    assert _unit_types(system.pipeline.get_process_units()) == (
+    assert _unit_types(system.process_units) == (
         DirectMixer,
         TemperatureSetter,
         Choke,
@@ -159,7 +159,7 @@ def test_builder_supports_multi_stage_individual_asv(
     assert len(system.compressors) == 2
     assert len(system.recirculation_loops) == 2
     assert system.choke is None
-    assert _unit_types(system.pipeline.get_process_units()) == (
+    assert _unit_types(system.process_units) == (
         TemperatureSetter,
         Choke,
         LiquidRemover,
@@ -195,7 +195,7 @@ def test_builder_places_pressure_control_choke_around_individual_asv_topology(
         fluid_service=fluid_service,
     ).build()
 
-    process_units = system.pipeline.get_process_units()
+    process_units = system.process_units
 
     assert len(system.compressors) == 2
     assert len(system.recirculation_loops) == 2

@@ -6,7 +6,7 @@ from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesTemperatureSetterConfiguration,
 )
 from libecalc.process.process_solver.process_pipeline_runner import propagate_stream_many
-from libecalc.process.shaft import Shaft
+from libecalc.process.process_units.compressor import Compressor
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlProcessPipelineBuilder,
@@ -14,6 +14,7 @@ from libecalc.testing.process_builders import (
     YamlSplitterBuilder,
     YamlTemperatureSetterBuilder,
 )
+from tests.libecalc.process.helpers.time_series_process_units import create_process_units
 
 
 def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_factory, fluid_service, period):
@@ -49,13 +50,14 @@ def test_yaml_splitter_maps_to_runnable_pipeline(process_simulation_mapper_facto
         yaml_process_simulation=yaml_simulation,
     )
 
-    units = pipelines[0].get_process_units()
+    units = create_process_units(pipelines[0].get_process_units(), fluid_service)
     problem = simulation.process_problems[0]
     configs = simulation.process_configurations[problem.get_process_pipeline_id()]
 
     # -- Configure units --
-    shaft = next(h for h in problem.get_configuration_handlers() if isinstance(h, Shaft))
-    shaft.set_speed(10000)
+    for unit in units:
+        if isinstance(unit, Compressor):
+            unit.set_speed(10000)
 
     for unit_id, config in configs.items():
         unit = next(u for u in units if u.get_id() == unit_id)

@@ -8,13 +8,17 @@ from libecalc.process.process_pipeline.process_unit import ProcessUnit
 from libecalc.process.process_solver.choke_configuration_handler import ChokeConfigurationHandler
 from libecalc.process.process_solver.recirculation_loop import RecirculationLoop
 from libecalc.process.process_solver.search_strategies import RootFindingStrategy, ScipyRootFindingStrategy
-from libecalc.process.process_solver.section_assembly import individual_recirculation_loops, recirculation_loop
 from libecalc.process.process_units.choke import Choke
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.process_units.liquid_remover import LiquidRemover
 from libecalc.process.process_units.temperature_setter import TemperatureSetter
 from libecalc.process.shaft import VariableSpeedShaft
-from libecalc.testing.solver_assembly import ProcessSolverSystem, assemble_solver
+from libecalc.testing.solver_assembly import (
+    ProcessSolverSystem,
+    assemble_solver,
+    individual_recirculation_loops,
+    recirculation_loop,
+)
 from tests.libecalc.process.helpers.process_solver_system import StageConfig
 
 
@@ -67,7 +71,6 @@ class ProcessSolverBuilder:
             compressors=compressors,
             recirculation_loops=recirculation_loops,
             shaft=shaft,
-            pipeline_name="test-pipeline",
             pressure_control_type=self._pressure_control_config.type,
             choke=choke,
             choke_configuration_handler=choke_configuration_handler,

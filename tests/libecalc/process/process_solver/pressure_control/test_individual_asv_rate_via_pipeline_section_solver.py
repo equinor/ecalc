@@ -1,6 +1,8 @@
 import pytest
 
+from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.chart import ChartCurve
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.shaft import VariableSpeedShaft
 
@@ -31,7 +33,6 @@ def test_individual_asv_rate_via_pipeline_section_solver_two_stages(
     compressor_factory,
     stage_units_factory,
     with_individual_asv,
-    process_pipeline_factory,
     process_runner_factory,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
@@ -62,7 +63,7 @@ def test_individual_asv_rate_via_pipeline_section_solver_two_stages(
     wrapped_units, loops = with_individual_asv([*units1, *units2])
     loop_ids = [loop.get_id() for loop in loops]
 
-    pipeline = process_pipeline_factory(units=wrapped_units)
+    pipeline_id = ProcessPipelineId(ecalc_id_generator())
     runner = process_runner_factory(units=wrapped_units, configuration_handlers=[shaft, *loops])
     anti_surge_strategy = individual_asv_anti_surge_strategy_factory(
         runner=runner,
@@ -79,7 +80,7 @@ def test_individual_asv_rate_via_pipeline_section_solver_two_stages(
         runner=runner,
         anti_surge_strategy=anti_surge_strategy,
         pressure_control_strategy=pressure_control_strategy,
-        process_pipeline_id=pipeline.get_id(),
+        process_pipeline_id=pipeline_id,
     )
 
     target_pressure_bara = 70.0

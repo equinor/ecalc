@@ -6,6 +6,7 @@ from libecalc.common.ddd import value_object
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.ecalc_model.process.configuration_handlers import TimeSeriesConfigurationHandler
 from libecalc.ecalc_model.time_series_configuration import (
     TimeSeriesMixerConfiguration,
     TimeSeriesPressureDropperConfiguration,
@@ -21,7 +22,6 @@ from libecalc.process.process_pipeline.process_pipeline import (
 )
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
-from libecalc.process.process_solver.configuration_handler import ConfigurationHandler
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import (
     PressureControlType,
 )
@@ -108,7 +108,7 @@ class ProcessProblem(Entity[ProcessProblemId]):
             ProcessProblemSection
         ],  # Currently we consider that ProblemSections needs to be solved in sequence, therefore we have instance here and not ID
         configuration_handlers: Sequence[
-            ConfigurationHandler
+            TimeSeriesConfigurationHandler
         ],  # inter or intra section config handlers, stored here for now
         process_pipeline_id: ProcessPipelineId,
         process_problem_id: ProcessProblemId | None = None,
@@ -131,7 +131,7 @@ class ProcessProblem(Entity[ProcessProblemId]):
     def get_process_problem_sections(self) -> Sequence[ProcessProblemSection]:
         return self._process_problem_sections
 
-    def get_configuration_handlers(self) -> Sequence[ConfigurationHandler]:
+    def get_configuration_handlers(self) -> Sequence[TimeSeriesConfigurationHandler]:
         return self._configuration_handlers
 
 

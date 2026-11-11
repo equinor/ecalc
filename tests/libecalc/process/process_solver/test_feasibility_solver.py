@@ -3,6 +3,7 @@ import pytest
 from libecalc.common.units import Unit
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.chart import ChartCurve
+from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
@@ -157,7 +158,6 @@ def compressor(fluid_service):
 @pytest.fixture
 def feasibility_solver_setup(
     process_runner_factory,
-    process_pipeline_factory,
     with_individual_asv,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
@@ -181,7 +181,7 @@ def feasibility_solver_setup(
             units=process_units,
             configuration_handlers=[shaft, *loops],
         )
-        process_pipeline = process_pipeline_factory(units=process_units)
+        process_pipeline_id = ProcessPipelineId(ecalc_id_generator())
         anti_surge = individual_asv_anti_surge_strategy_factory(
             runner=runner,
             recirculation_loop_ids=loop_ids,
@@ -197,7 +197,7 @@ def feasibility_solver_setup(
             runner=runner,
             anti_surge_strategy=anti_surge,
             pressure_control_strategy=pressure_control,
-            process_pipeline_id=process_pipeline.get_id(),
+            process_pipeline_id=process_pipeline_id,
         )
 
         return FeasibilitySolver(pipeline_section_solver=segment_solver)
@@ -354,7 +354,6 @@ class TestHeadAxisHighRate:
 def two_stage_feasibility_solver(
     stage_units_factory,
     process_runner_factory,
-    process_pipeline_factory,
     with_individual_asv,
     individual_asv_anti_surge_strategy_factory,
     individual_asv_rate_control_strategy_factory,
@@ -388,7 +387,7 @@ def two_stage_feasibility_solver(
     )
     loop_ids = [loop.get_id() for loop in loops]
     runner = process_runner_factory(units=process_units, configuration_handlers=[shaft, *loops])
-    process_pipeline = process_pipeline_factory(units=process_units)
+    process_pipeline_id = ProcessPipelineId(ecalc_id_generator())
     anti_surge = individual_asv_anti_surge_strategy_factory(
         runner=runner, recirculation_loop_ids=loop_ids, compressors=[c1, c2]
     )
@@ -400,7 +399,7 @@ def two_stage_feasibility_solver(
         runner=runner,
         anti_surge_strategy=anti_surge,
         pressure_control_strategy=pressure_control,
-        process_pipeline_id=process_pipeline.get_id(),
+        process_pipeline_id=process_pipeline_id,
     )
     return FeasibilitySolver(pipeline_section_solver=segment_solver)
 

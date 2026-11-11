@@ -1,5 +1,3 @@
-from collections import defaultdict
-
 import pandas as pd
 import pytest
 
@@ -19,7 +17,6 @@ from libecalc.domain.process.entities.process_units.legacy_splitter.legacy_split
 )
 from libecalc.domain.process.entities.process_units.rate_modifier.rate_modifier import RateModifier
 from libecalc.domain.regularity import Regularity
-from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline, ProcessPipelineSection
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import ExpressionTimeSeriesFlowRate
 from libecalc.presentation.yaml.domain.expression_time_series_power import ExpressionTimeSeriesPower
@@ -224,30 +221,6 @@ def shaft_factory():
         return VariableSpeedShaft()
 
     return create_shaft
-
-
-@pytest.fixture(scope="session")
-def name_factory():
-    name_counters = defaultdict(int)
-
-    def create_name(prefix: str) -> str:
-        name_counters[prefix] += 1
-        return f"{prefix} {name_counters[prefix]}"
-
-    return create_name
-
-
-@pytest.fixture(scope="session")
-def process_pipeline_factory(name_factory):
-    def create_process_pipeline(units: list[ProcessUnit], name: str = None) -> ProcessPipeline:
-        return ProcessPipeline(
-            process_pipeline_sections=[ProcessPipelineSection(process_units=units)],
-            name=name or name_factory("Pipeline"),
-            process_periods=[],
-            events=[],
-        )
-
-    return create_process_pipeline
 
 
 @pytest.fixture

@@ -717,7 +717,6 @@ def period():
 
 @pytest.fixture
 def process_simulation_mapper_factory(
-    fluid_service,
     expression_evaluator_factory,
     period,
 ):
@@ -737,7 +736,6 @@ def process_simulation_mapper_factory(
             compressor_ids = _compressor_ids_for_pipelines(references or {})
         return ProcessSimulationMapper(
             expression_evaluator=expression_evaluator,
-            fluid_service=fluid_service,
             references=references or {},
             resources={},
             shaft_by_compressor=_shaft_by_compressor_for_pipelines(references or {}),
