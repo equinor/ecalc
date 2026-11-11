@@ -1437,6 +1437,12 @@ YAML_CHANGELOG_VERSIONS: list[Version] = [
     Version(major, 0, 0) for major in range(FIRST_YAML_CHANGELOG_VERSION.major, current_yaml_version().major + 1)
 ]
 
+
+def _release_label(version: Version) -> str:
+    status = "In development" if version.major == current_yaml_version().major else "In production"
+    return f"{status} (v{version.major})"
+
+
 ChangeKind = Literal["added", "deprecated", "removed", "changed"]
 
 
@@ -1552,14 +1558,15 @@ def generate_yaml_changelog_markdown(version: Version, anchor_registry: dict[str
 
     frontmatter = f"""\
 ---
-title: YAML_VERSION {version.major}
+title: YAML changelog, {_release_label(version)}
+sidebar_label: {_release_label(version)}
 sidebar_position: {version.major}
 description: YAML configuration changes introduced in YAML_VERSION {version.major}.
 ---
 """
 
     body = f"""\
-# YAML_VERSION {version.major}
+# YAML changelog, {_release_label(version)}
 
 This page lists the YAML configuration changes introduced in `YAML_VERSION: {version.major}`, compared to the
 previous version. See the [YAML Reference](../yaml-reference.mdx) for the full, current schema across all
@@ -1580,7 +1587,7 @@ versions.
 
 def generate_yaml_changelog_index_markdown() -> str:
     """Generate the yaml changelog landing page, listing all covered versions."""
-    links = "\n".join(f"- [YAML_VERSION {version.major}](./v{version.major}.md)" for version in YAML_CHANGELOG_VERSIONS)
+    links = "\n".join(f"- [{_release_label(version)}](./v{version.major}.md)" for version in YAML_CHANGELOG_VERSIONS)
     return f"""\
 ---
 title: YAML Changelog
