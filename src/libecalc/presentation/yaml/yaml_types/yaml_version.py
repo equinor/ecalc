@@ -56,6 +56,7 @@ V1 = Version(1, 0, 0)
 V2 = Version(2, 0, 0)
 V3 = Version(3, 0, 0)
 V4 = Version(4, 0, 0)
+V5 = Version(5, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
 LATEST_YAML_VERSION = current_yaml_version().major
