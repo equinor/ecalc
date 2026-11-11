@@ -3,6 +3,7 @@ from typing import Final, Self
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.configuration import ConfigurationHandlerId
 
@@ -23,52 +24,58 @@ class TimeSeriesShaftConfigurationHandler(TimeSeriesConfigurationHandlerBase):
     def __init__(
         self,
         *,
-        compressor_ids: list[ProcessUnitId] | None = None,
+        shaft_equipment_id: EquipmentId,
+        compressor_process_unit_ids: list[ProcessUnitId] | None = None,
         configuration_handler_id: ConfigurationHandlerId | None = None,
     ) -> None:
         super().__init__(configuration_handler_id=configuration_handler_id)
-        self._compressor_ids: list[ProcessUnitId] = list(compressor_ids or [])
+        self._shaft_equipment_id: Final[EquipmentId] = shaft_equipment_id
+        self._compressor_process_unit_ids: list[ProcessUnitId] = list(compressor_process_unit_ids or [])
 
-    def connect(self, compressor_id: ProcessUnitId) -> None:
-        if compressor_id in self._compressor_ids:
+    @property
+    def shaft_equipment_id(self) -> EquipmentId:
+        return self._shaft_equipment_id
+
+    def connect(self, compressor_process_unit_id: ProcessUnitId) -> None:
+        if compressor_process_unit_id in self._compressor_process_unit_ids:
             raise ProgrammingError("Compressor is already registered on this shaft.")
-        self._compressor_ids.append(compressor_id)
+        self._compressor_process_unit_ids.append(compressor_process_unit_id)
 
-    def get_compressor_ids(self) -> list[ProcessUnitId]:
-        return list(self._compressor_ids)
+    def get_compressor_process_unit_ids(self) -> list[ProcessUnitId]:
+        return list(self._compressor_process_unit_ids)
 
 
 class TimeSeriesRecirculationLoopConfigurationHandler(TimeSeriesConfigurationHandlerBase):
     def __init__(
         self,
         *,
-        mixer_id: ProcessUnitId,
-        splitter_id: ProcessUnitId,
+        mixer_process_unit_id: ProcessUnitId,
+        splitter_process_unit_id: ProcessUnitId,
         configuration_handler_id: ConfigurationHandlerId | None = None,
     ) -> None:
         super().__init__(configuration_handler_id=configuration_handler_id)
-        self._mixer_id = mixer_id
-        self._splitter_id = splitter_id
+        self._mixer_process_unit_id = mixer_process_unit_id
+        self._splitter_process_unit_id = splitter_process_unit_id
 
-    def get_mixer_id(self) -> ProcessUnitId:
-        return self._mixer_id
+    def get_mixer_process_unit_id(self) -> ProcessUnitId:
+        return self._mixer_process_unit_id
 
-    def get_splitter_id(self) -> ProcessUnitId:
-        return self._splitter_id
+    def get_splitter_process_unit_id(self) -> ProcessUnitId:
+        return self._splitter_process_unit_id
 
 
 class TimeSeriesChokeConfigurationHandler(TimeSeriesConfigurationHandlerBase):
     def __init__(
         self,
         *,
-        choke_id: ProcessUnitId,
+        choke_process_unit_id: ProcessUnitId,
         configuration_handler_id: ConfigurationHandlerId | None = None,
     ) -> None:
         super().__init__(configuration_handler_id=configuration_handler_id)
-        self._choke_id = choke_id
+        self._choke_process_unit_id = choke_process_unit_id
 
-    def get_choke_id(self) -> ProcessUnitId:
-        return self._choke_id
+    def get_choke_process_unit_id(self) -> ProcessUnitId:
+        return self._choke_process_unit_id
 
 
 type TimeSeriesConfigurationHandler = (

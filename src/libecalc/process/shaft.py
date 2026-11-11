@@ -41,7 +41,7 @@ class Shaft(ConfigurationHandler, ABC):
     def reset(self) -> None:
         self.reset_speed()
 
-    def get_compressor_ids(self) -> list[ProcessUnitId]:
+    def get_compressor_process_unit_ids(self) -> list[ProcessUnitId]:
         return [compressor.get_id() for compressor in self._compressors]
 
     @abstractmethod

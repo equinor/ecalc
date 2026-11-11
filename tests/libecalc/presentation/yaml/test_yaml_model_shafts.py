@@ -81,13 +81,16 @@ def model(yaml_model_factory) -> YamlModel:
     return _model(yaml_model_factory, _asset(mechanical_efficiencies={}), variables={})
 
 
-def test_get_shafts_lists_compressor_ids_without_mapping(model):
-    compressor_ids = {compressor.name: compressor.get_id() for compressor in model.get_compressors()}
+def test_get_shafts_lists_compressor_equipment_ids_without_mapping(model):
+    compressor_equipment_ids = {compressor.name: compressor.get_id() for compressor in model.get_compressors()}
 
     [shaft] = model.get_shafts()
 
     assert shaft.name == SHAFT
-    assert shaft.compressor_equipment_ids == (compressor_ids[COMPRESSOR_A], compressor_ids[COMPRESSOR_B])
+    assert shaft.compressor_equipment_ids == (
+        compressor_equipment_ids[COMPRESSOR_A],
+        compressor_equipment_ids[COMPRESSOR_B],
+    )
 
 
 def test_drive_train_gets_process_compressors_when_energy_is_mapped_first(model):
@@ -99,11 +102,30 @@ def test_drive_train_gets_process_compressors_when_energy_is_mapped_first(model)
         unit for unit in pipelines[0].get_process_units() if isinstance(unit, TimeSeriesCompressorProcessUnit)
     ]
     assert [node.get_name() for node in drive_train_nodes] == [COMPRESSOR_A, COMPRESSOR_B]
-    assert [node.process_unit_id for node in drive_train_nodes] == [c.get_id() for c in process_compressors]
+    assert [node.compressor_equipment_id for node in drive_train_nodes] == [
+        process_compressor.compressor_equipment_id for process_compressor in process_compressors
+    ]
+
+
+def test_compressor_equipment_process_unit_and_energy_unit_ids_are_separate(model):
+    _, _, consumers, _ = model.get_energy_network()
+    pipelines, _ = model.get_process_simulations()
+    compressor_equipment_ids = {compressor.get_id() for compressor in model.get_compressors()}
+
+    compressor_energy_unit_ids = {
+        consumer.get_id() for consumer in consumers if isinstance(consumer, TimeSeriesProcessCompressor)
+    }
+    compressor_process_unit_ids = {
+        unit.get_id() for unit in pipelines[0].get_process_units() if isinstance(unit, TimeSeriesCompressorProcessUnit)
+    }
+
+    assert compressor_equipment_ids.isdisjoint(compressor_energy_unit_ids)
+    assert compressor_equipment_ids.isdisjoint(compressor_process_unit_ids)
+    assert compressor_process_unit_ids.isdisjoint(compressor_energy_unit_ids)
 
 
 def test_compressors_on_one_shaft_share_one_solver_shaft(model):
-    _, [simulation] = model.get_process_simulations()
+    pipelines, [simulation] = model.get_process_simulations()
     [problem] = simulation.process_problems
     [shaft] = model.get_shafts()
 
@@ -113,7 +135,17 @@ def test_compressors_on_one_shaft_share_one_solver_shaft(model):
         if isinstance(handler, TimeSeriesShaftConfigurationHandler)
     ]
 
-    assert solver_shaft.get_compressor_ids() == list(shaft.compressor_equipment_ids)
+    process_compressors = {
+        unit.get_id(): unit
+        for unit in pipelines[0].get_process_units()
+        if isinstance(unit, TimeSeriesCompressorProcessUnit)
+    }
+    assert solver_shaft.shaft_equipment_id == shaft.get_id()
+    assert solver_shaft.get_id() != shaft.get_id()
+    assert [
+        process_compressors[compressor_process_unit_id].compressor_equipment_id
+        for compressor_process_unit_id in solver_shaft.get_compressor_process_unit_ids()
+    ] == list(shaft.compressor_equipment_ids)
 
 
 def test_compressor_demands_gas_power_divided_by_its_mechanical_efficiency_in_each_period(yaml_model_factory):

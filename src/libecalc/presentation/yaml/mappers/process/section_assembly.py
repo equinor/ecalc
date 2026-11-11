@@ -25,7 +25,9 @@ def recirculation_loop(
     process_units: list[TimeSeriesProcessUnit],
 ) -> tuple[TimeSeriesRecirculationLoopConfigurationHandler, list[TimeSeriesProcessUnit]]:
     mixer, splitter = TimeSeriesDirectMixerProcessUnit(), TimeSeriesDirectSplitterProcessUnit()
-    loop = TimeSeriesRecirculationLoopConfigurationHandler(mixer_id=mixer.get_id(), splitter_id=splitter.get_id())
+    loop = TimeSeriesRecirculationLoopConfigurationHandler(
+        mixer_process_unit_id=mixer.get_id(), splitter_process_unit_id=splitter.get_id()
+    )
     return loop, [mixer, *process_units, splitter]
 
 
@@ -68,7 +70,7 @@ def assemble_process_section(
 
     if pressure_control in ("UPSTREAM_CHOKE", "DOWNSTREAM_CHOKE"):
         choke = TimeSeriesChokeProcessUnit()
-        handlers.append(TimeSeriesChokeConfigurationHandler(choke_id=choke.get_id()))
+        handlers.append(TimeSeriesChokeConfigurationHandler(choke_process_unit_id=choke.get_id()))
         if pressure_control == "UPSTREAM_CHOKE":
             solver_units = [choke, *solver_units]
         else:

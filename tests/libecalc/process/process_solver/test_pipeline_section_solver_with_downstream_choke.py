@@ -63,7 +63,7 @@ def test_pipeline_section_solver_applies_downstream_choke_when_speed_solution_is
     )
     pressure_control_strategy = downstream_choke_pressure_control_strategy_factory(
         runner=runner,
-        choke_id=downstream_choke_configuration_handler.get_id(),
+        choke_configuration_handler_id=downstream_choke_configuration_handler.get_id(),
     )
     solver = pipeline_section_solver_factory(
         shaft=shaft,

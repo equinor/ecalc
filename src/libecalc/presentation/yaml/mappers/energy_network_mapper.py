@@ -74,7 +74,6 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition impo
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
-from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 
 _ENERGY_CLASSES: dict[EnergyType, type[Energy]] = {
     EnergyType.FUEL_GAS: FuelGasRate,
@@ -92,8 +91,7 @@ class EnergyNetworkMapper:
         definitions: dict[str, Any] | None = None,
     ):
         self._shafts = shafts
-        self._compressor_equipment_ids = compressor_equipment_ids
-        self._compressor_names_by_id = {
+        self._compressor_names_by_equipment_id = {
             compressor_equipment_id: name for name, compressor_equipment_id in compressor_equipment_ids.items()
         }
         self._definitions = definitions or {}
@@ -129,10 +127,6 @@ class EnergyNetworkMapper:
             keys = [node_spec.key for node_spec in expansion.nodes] if expansion is not None else [unit_key(unit.name)]
             for key in keys:
                 node_ids_by_key[key] = EnergyUnitId(ecalc_id_generator())
-            if expansion is not None:
-                assert isinstance(unit, YamlCompressorSampled)
-                # The sampled compressor's own node is identified by the compressor id; a generated turbine is not.
-                node_ids_by_key[unit_key(unit.name)] = EnergyUnitId(self._compressor_equipment_ids[unit.compressor])
 
         mapped_nodes: list[tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]] = []
         connections: list[tuple[EnergyUnitId, EnergyUnitId]] = []
@@ -167,11 +161,9 @@ class EnergyNetworkMapper:
 
                 for compressor_equipment_id in self._shafts[unit.shaft].compressor_equipment_ids:
                     compressor_name = self._get_compressor_name(compressor_equipment_id)
-                    # The process mapper uses the compressor id as the process Compressor's id.
                     node = TimeSeriesProcessCompressor(
-                        process_unit_id=ProcessUnitId(compressor_equipment_id),
+                        compressor_equipment_id=compressor_equipment_id,
                         name=compressor_name,
-                        energy_unit_id=EnergyUnitId(compressor_equipment_id),
                         mechanical_efficiency=mechanical_efficiencies.get(compressor_name),
                     )
                     mapped_nodes.append((node, MechanicalPower, None))
@@ -202,7 +194,7 @@ class EnergyNetworkMapper:
         return topology, energy_unit_factories, consumers
 
     def _get_compressor_name(self, compressor_equipment_id: EquipmentId) -> str:
-        return self._compressor_names_by_id[compressor_equipment_id]
+        return self._compressor_names_by_equipment_id[compressor_equipment_id]
 
     @staticmethod
     def _check_no_duplicate_generated_names(

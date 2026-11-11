@@ -114,7 +114,7 @@ def pipeline_section_factory(root_finding_strategy):
         shaft: Shaft,
     ) -> PipelineSection:
         return PipelineSection(
-            shaft_id=shaft.get_id(),
+            shaft_configuration_handler_id=shaft.get_id(),
             process_pipeline_id=process_pipeline_id,
             process_pipeline_section_id=ProcessPipelineSectionId(
                 ecalc_id_generator()
@@ -239,12 +239,12 @@ def individual_asv_pressure_control_strategy_factory(root_finding_strategy):
 def upstream_choke_pressure_control_strategy_factory(root_finding_strategy):
     def create(
         runner: ProcessRunner,
-        choke_id: ConfigurationHandlerId,
+        choke_configuration_handler_id: ConfigurationHandlerId,
         anti_surge_strategy: AntiSurgeStrategy | None = None,
     ) -> UpstreamChokePressureControlStrategy:
         return UpstreamChokePressureControlStrategy(
             simulator=runner,
-            choke_configuration_handler_id=choke_id,
+            choke_configuration_handler_id=choke_configuration_handler_id,
             root_finding_strategy=root_finding_strategy,
             anti_surge_strategy=anti_surge_strategy or NoASVAntiSurgeStrategy(),
         )
@@ -256,11 +256,11 @@ def upstream_choke_pressure_control_strategy_factory(root_finding_strategy):
 def downstream_choke_pressure_control_strategy_factory():
     def create(
         runner: ProcessRunner,
-        choke_id: ConfigurationHandlerId,
+        choke_configuration_handler_id: ConfigurationHandlerId,
     ) -> DownstreamChokePressureControlStrategy:
         return DownstreamChokePressureControlStrategy(
             simulator=runner,
-            choke_configuration_handler_id=choke_id,
+            choke_configuration_handler_id=choke_configuration_handler_id,
         )
 
     return create

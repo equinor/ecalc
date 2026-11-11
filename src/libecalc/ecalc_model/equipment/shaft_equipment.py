@@ -13,8 +13,13 @@ class ShaftEquipment(Entity[EquipmentId]):
     Not the process solver's shaft: the solver creates its own shafts from this membership.
     """
 
-    def __init__(self, name: str, compressor_equipment_ids: Sequence[EquipmentId], shaft_id: EquipmentId | None = None):
-        self._id: Final[EquipmentId] = shaft_id or ShaftEquipment._create_id()
+    def __init__(
+        self,
+        name: str,
+        compressor_equipment_ids: Sequence[EquipmentId],
+        shaft_equipment_id: EquipmentId | None = None,
+    ):
+        self._id: Final[EquipmentId] = shaft_equipment_id or ShaftEquipment._create_id()
         self._name = name
         self._compressor_equipment_ids = tuple(compressor_equipment_ids)
 
