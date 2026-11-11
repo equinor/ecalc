@@ -25,6 +25,7 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
+from energy_mermaid import generate_energy_components_mermaid
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
@@ -1607,6 +1608,32 @@ See the [YAML Reference](../yaml-reference.mdx) for the full, current schema acr
 """
 
 
+def generate_energy_components_markdown() -> str:
+    return f"""\
+---
+title: Energy Components (Experimental)
+sidebar_position: 2.5
+description: Overview of the energy components, by category, with the energy types they accept and provide.
+---
+
+# Energy Components
+
+All energy components in the `ENERGY_NETWORK`, grouped as sources, providers and consumers. The connections on each
+component are coloured by energy type: inputs show what a component accepts, outputs show what it provides.
+Two components can be connected when the output colour of one matches the input colour of the next.
+See the [Energy Reference](./energy-reference.mdx) for the full description of every element.
+
+```mermaid
+{generate_energy_components_mermaid()}
+```
+
+- `GENERATOR` accepts fuel gas or diesel and provides electrical power.
+- `ELECTRICAL_BUS` and `FUEL_GAS_MANIFOLD` provide the same energy type as their inputs.
+- `COMPRESSOR_SAMPLED` accepts fuel gas, electrical or mechanical energy, depending on the energy columns in its `FILE`.
+- `DRIVE_TRAIN` accepts mechanical energy and refers to a shaft.
+"""
+
+
 def main():
     about_dir = Path(__file__).parent.parent / "docs" / "docs" / "about" / "nextgen"
     about_dir.mkdir(parents=True, exist_ok=True)
@@ -1618,6 +1645,7 @@ def main():
     outputs = {
         about_dir / "process-reference.mdx": generate_process_markdown(),
         about_dir / "energy-reference.mdx": generate_energy_markdown(),
+        about_dir / "energy-components.mdx": generate_energy_components_markdown(),
         about_dir / "yaml-reference.mdx": generate_full_reference_markdown(anchor_registry=anchor_registry),
         changelog_dir / "index.md": generate_yaml_changelog_index_markdown(),
     }
