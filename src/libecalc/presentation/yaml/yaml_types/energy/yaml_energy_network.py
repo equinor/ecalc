@@ -102,6 +102,8 @@ class YamlConverterBase(YamlBase):
 
 
 class YamlGeneratorEventChangeType(StrEnum):
+    """How the generator's model changes at the event. REBUNDLE: same physical generator, new model."""
+
     REBUNDLE = "REBUNDLE"
 
 
