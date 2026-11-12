@@ -328,8 +328,11 @@ def _electrical_motor(name: str, input: str):
     )
 
 
-def _drive_train(name: str, input: str, shaft: str):
-    return YamlDriveTrainBuilder().with_name(name).with_input(input).with_shaft(shaft).validate()
+def _drive_train(name: str, input: str, shaft: str, mechanical_efficiencies: dict[str, float] | None = None):
+    builder = YamlDriveTrainBuilder().with_name(name).with_input(input).with_shaft(shaft)
+    for compressor, efficiency in (mechanical_efficiencies or {}).items():
+        builder = builder.with_mechanical_efficiency(compressor, efficiency)
+    return builder.validate()
 
 
 def _generator_upgrade_events() -> list[YamlGeneratorModelEvent]:
@@ -352,8 +355,18 @@ def _energy_units():
         .with_efficiency(0.98)
         .validate(),
         _electrical_motor("export_motor", "long_cable"),
-        _drive_train("export_train_1_drive", "export_turbine", _shaft_name(1)),
-        _drive_train("export_train_2_el", "export_motor", _shaft_name(2)),
+        _drive_train(
+            "export_train_1_drive",
+            "export_turbine",
+            _shaft_name(1),
+            mechanical_efficiencies={_compressor_name(1, 1): 0.97, _compressor_name(1, 2): 0.95},
+        ),
+        _drive_train(
+            "export_train_2_el",
+            "export_motor",
+            _shaft_name(2),
+            mechanical_efficiencies={_compressor_name(2, 1): 0.96},
+        ),
         _electrical_motor("pfs_motor", "pfs"),
         _drive_train("pfs_train", "pfs_motor", _shaft_name(3)),
         YamlElectricalConsumerBuilder().with_name("base_load").with_input("el_source").with_load(5).validate(),
