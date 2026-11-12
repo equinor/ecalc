@@ -18,6 +18,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasManifold,
     YamlGasTurbine,
     YamlGenerator,
+    YamlGeneratorModelEvent,
     YamlJunctionInput,
     YamlMechanicalConsumer,
 )
@@ -166,6 +167,7 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
         self.name = None
         self.input = None
         self.model = None
+        self.events = None
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -177,6 +179,10 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
 
     def with_model(self, model: YamlGeneratorDefinition) -> Self:
         self.model = model
+        return self
+
+    def with_events(self, events: list[YamlGeneratorModelEvent]) -> Self:
+        self.events = events
         return self
 
     def with_test_data(self) -> Self:

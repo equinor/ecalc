@@ -176,10 +176,12 @@ Converters, junctions, and consumers forming the energy network.
 
 Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry.
 
+<YamlCodeBlock>{"CHANGE_TO: upgraded_generator\nREF: generator_upgrade"}</YamlCodeBlock>
+
 | Key | Description | Status |
 | --- | --- | --- |
 | `CHANGE_TO` | The generator model to use from the event date on. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
-| `CHANGE_TYPE` | Nature of the change. REBUNDLE: same physical generator with a new curve. | Default: `REBUNDLE` |
+| `CHANGE_TYPE` | Nature of the change. REBUNDLE: the generator stays the same unit in the energy network, with a new model. | Default: `REBUNDLE` |
 | `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date (inclusive). | Required |
 
 
