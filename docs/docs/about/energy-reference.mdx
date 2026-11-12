@@ -178,9 +178,9 @@ Events that change the generator model over time, such as a rebundle. Each event
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `CHANGE_TO` | The generator model to use from the event date on. Same physical generator, new curve. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
-| `CHANGE_TYPE` | Nature of the change, e.g. REBUNDLE (curve change, same physical generator). | Default: `REBUNDLE` |
-| `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date. | Required |
+| `CHANGE_TO` | The generator model to use from the event date on. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
+| `CHANGE_TYPE` | Nature of the change. REBUNDLE: same physical generator with a new curve. | Default: `REBUNDLE` |
+| `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date (inclusive). | Required |
 
 
 </div>

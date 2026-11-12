@@ -782,7 +782,7 @@ def energy_network_mapper_factory():
             shafts=shafts or {},
             compressor_equipment_ids=compressor_ids or {},
             definitions=definitions,
-            timeline_event_service=timeline_event_service,
+            timeline_event_service=timeline_event_service or TimelineEventService(timeline_events=[]),
         )
 
     return _create

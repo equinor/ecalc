@@ -106,26 +106,30 @@ class YamlGeneratorEventChangeType(StrEnum):
 
 
 class YamlGeneratorModelEvent(YamlBase):
+    """A dated change of the generator's model. The generator stays the same unit in the energy network; only the
+    model used to convert power to fuel changes."""
+
     change_to: Annotated[
         DefinitionReference | YamlGeneratorDefinition,
         validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
         Field(
             title="CHANGE_TO",
-            description="The generator model to use from the event date on. Same physical generator, new curve.",
+            description="The generator model to use from the event date on.",
         ),
     ]
     change_type: Annotated[
         YamlGeneratorEventChangeType,
         Field(
             title="CHANGE_TYPE",
-            description="Nature of the change, e.g. REBUNDLE (curve change, same physical generator).",
+            description="Nature of the change. REBUNDLE: same physical generator with a new curve.",
         ),
     ] = YamlGeneratorEventChangeType.REBUNDLE
     ref: Annotated[
         TimelineEventReference,
         Field(
             title="REF",
-            description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date.",
+            description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date "
+            "(inclusive).",
         ),
     ]
 

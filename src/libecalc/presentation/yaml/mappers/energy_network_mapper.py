@@ -92,8 +92,8 @@ class EnergyNetworkMapper:
         self,
         shafts: Mapping[ShaftReference, ShaftEquipment],
         compressor_equipment_ids: Mapping[CompressorReference, EquipmentId],
+        timeline_event_service: TimelineEventService,
         definitions: dict[str, Any] | None = None,
-        timeline_event_service: TimelineEventService | None = None,
     ):
         self._shafts = shafts
         self._compressor_equipment_ids = compressor_equipment_ids
@@ -101,7 +101,7 @@ class EnergyNetworkMapper:
             compressor_equipment_id: name for name, compressor_equipment_id in compressor_equipment_ids.items()
         }
         self._definitions = definitions or {}
-        self._timeline_event_service = timeline_event_service or TimelineEventService(timeline_events=[])
+        self._timeline_event_service = timeline_event_service
 
     def map_energy_network(
         self,
@@ -374,7 +374,7 @@ class EnergyNetworkMapper:
             raise EcalcValidationException(str(e)) from e
 
     def _map_generator_model_events(
-        self, unit: YamlGenerator, resources: Mapping[str, Resource]
+        self, unit: YamlGenerator, energy_unit_id: EnergyUnitId, resources: Mapping[str, Resource]
     ) -> list[EnergyUnitModelEvent[GeneratorFuelModel]]:
         """Resolve the generator's EVENTS into dated model events, taking each date from TIMELINE.EVENTS."""
         model_events: list[EnergyUnitModelEvent[GeneratorFuelModel]] = []
@@ -383,6 +383,7 @@ class EnergyNetworkMapper:
             timeline_event = self._timeline_event_service.get_event_by_reference(event.ref)
             model_events.append(
                 EnergyUnitModelEvent(
+                    change_target=energy_unit_id,
                     change_type=EnergyUnitEventChangeType(event.change_type.value),
                     change_time=timeline_event.from_when,
                     change_to=map_generator_fuel_model(unit.name, event.change_to, resources),
@@ -411,7 +412,7 @@ class EnergyNetworkMapper:
                         energy_unit_id=energy_unit_id,
                         fuel_model=fuel_model,
                         input_energy_type=input_energy_type,
-                        model_events=self._map_generator_model_events(unit, resources),
+                        model_events=self._map_generator_model_events(unit, energy_unit_id, resources),
                     ),
                     input_energy_type,
                     ElectricalPower,

@@ -4,7 +4,7 @@ from collections.abc import Callable, Sequence
 from typing import Any
 
 from libecalc.common.time_utils import Period
-from libecalc.ecalc_model.model_event import EnergyUnitModelEvent, active_model
+from libecalc.ecalc_model.model_event import EnergyUnitModelEvent, active_model, validate_unique_change_times
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import ElectricalPower, Energy
 from libecalc.energy.energy_unit import EnergyUnitId
@@ -31,6 +31,13 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
         super().__init__(name=name, energy_unit_id=energy_unit_id)
         self.fuel_model = fuel_model
         self.input_energy_type = input_energy_type
+        validate_unique_change_times(model_events)
+        foreign_events = [event for event in model_events if event.change_target != self.get_id()]
+        if foreign_events:
+            raise InvalidEnergyNetworkInputError(
+                f"Generator '{name}' got model events targeting another energy unit: "
+                f"{', '.join(str(event.change_target) for event in foreign_events)}."
+            )
         self.model_events = tuple(sorted(model_events, key=lambda event: event.change_time))
 
     def _fuel_model_for(self, period: Period | None) -> GeneratorFuelModel:

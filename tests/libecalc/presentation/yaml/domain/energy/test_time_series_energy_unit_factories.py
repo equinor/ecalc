@@ -30,6 +30,7 @@ PERIODS = [FIRST_PERIOD, SECOND_PERIOD]
 
 FIRST_CANDIDATE = EnergyUnitId(UUID(int=1))
 SECOND_CANDIDATE = EnergyUnitId(UUID(int=2))
+GENERATOR_ID = EnergyUnitId(UUID(int=10))
 
 
 class IdentityFuelModel:
@@ -193,6 +194,7 @@ class TestGeneratorModelEvents:
     def _generator_factory(self, *, model_events, max_power: float = 100):
         return TimeSeriesGeneratorFactory(
             name="generator",
+            energy_unit_id=GENERATOR_ID,
             fuel_model=linear_fuel_model(fuel_per_power=1.0, max_power=max_power),
             input_energy_type=FuelGasRate,
             model_events=model_events,
@@ -200,9 +202,14 @@ class TestGeneratorModelEvents:
 
     @staticmethod
     def _upgrade_at(
-        change_time, *, fuel_per_power: float = 1.0, max_power: float = 100
+        change_time,
+        *,
+        fuel_per_power: float = 1.0,
+        max_power: float = 100,
+        change_target: EnergyUnitId = GENERATOR_ID,
     ) -> EnergyUnitModelEvent[GeneratorFuelModel]:
         return EnergyUnitModelEvent(
+            change_target=change_target,
             change_type=EnergyUnitEventChangeType.REBUNDLE,
             change_time=change_time,
             change_to=linear_fuel_model(fuel_per_power=fuel_per_power, max_power=max_power),
@@ -278,6 +285,10 @@ class TestGeneratorModelEvents:
 
         with pytest.raises(InvalidEnergyNetworkInputError, match="changes model over time"):
             generator_factory.create(ElectricalPower(10), incoming_connections=connections)
+
+    def test_events_targeting_another_unit_are_rejected(self):
+        with pytest.raises(InvalidEnergyNetworkInputError, match="targeting another energy unit"):
+            self._generator_factory(model_events=[self._upgrade_at(SECOND_PERIOD.start, change_target=FIRST_CANDIDATE)])
 
     def test_without_events_the_base_model_is_used_without_a_period(self):
         generator_factory = self._generator_factory(model_events=())

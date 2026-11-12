@@ -400,3 +400,27 @@ def test_generator_event_switches_fuel_model_at_the_timeline_date(latest_network
 
     assert results_by_period_start[datetime(2020, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_FUEL)
     assert results_by_period_start[datetime(2021, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_FUEL_AFTER_UPGRADE)
+
+
+def test_generator_events_on_the_same_date_are_reported(latest_network_data_factory, yaml_model_factory):
+    data = _generator_model_data(
+        GENERATOR_MODEL,
+        {},
+        latest_network_data_factory,
+        events=[
+            {"REF": "upgrade", "CHANGE_TO": GENERATOR_MODEL_AFTER_UPGRADE},
+            {"REF": "second_upgrade", "CHANGE_TO": GENERATOR_MODEL},
+        ],
+    )
+    data["TIMELINE"] = {
+        "EVENTS": {
+            "upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"},
+            "second_upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"},
+        }
+    }
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+    )
+
+    with pytest.raises(ModelValidationException, match="Only one model event is allowed per date.*2021-01-01"):
+        model.get_energy_network()
