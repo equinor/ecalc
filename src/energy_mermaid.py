@@ -24,17 +24,18 @@ ENERGY_TYPE_COLORS: dict[EnergyType, str] = {
     EnergyType.DIESEL: "#a6a6a6",
 }
 
-CATEGORY_SOURCE = "Sources"
-CATEGORY_PROVIDER = "Providers"
-CATEGORY_CONSUMER = "Consumers"
-CATEGORIES = (CATEGORY_SOURCE, CATEGORY_PROVIDER, CATEGORY_CONSUMER)
-
-SUBCATEGORY_CONVERTERS = "Converters"
-SUBCATEGORY_JUNCTIONS = "Junctions"
-PROVIDER_SUBCATEGORY_BASE_CLASSES: dict[type, str] = {
-    YamlConverterBase: SUBCATEGORY_CONVERTERS,
-    YamlJunctionBase: SUBCATEGORY_JUNCTIONS,
-}
+CATEGORY_SOURCES = "Sources"
+CATEGORY_CONVERTERS = "Converters"
+CATEGORY_TRANSPORTERS = "Transporters"
+CATEGORY_JUNCTIONS = "Junctions"
+CATEGORY_CONSUMERS = "Consumers"
+CATEGORIES = (
+    CATEGORY_SOURCES,
+    CATEGORY_CONVERTERS,
+    CATEGORY_TRANSPORTERS,
+    CATEGORY_JUNCTIONS,
+    CATEGORY_CONSUMERS,
+)
 
 MULTIPLE_INPUTS_COUNT = 2
 SOLID_EDGE = "-->"
@@ -43,13 +44,12 @@ DASHED_LINK_STYLE = "stroke-dasharray:6 4"
 
 
 @dataclass(frozen=True)
-class EnergyComponent:
+class EnergyUnit:
     type: str
     category: str
     input_energy: tuple[EnergyType, ...]
     output_energy: tuple[EnergyType, ...]
     multiple_inputs: bool = False
-    subcategory: str | None = None
 
     @property
     def has_alternative_inputs(self) -> bool:
@@ -64,72 +64,65 @@ def _ordered(energy_types: set[EnergyType]) -> tuple[EnergyType, ...]:
     return tuple(energy_type for energy_type in EnergyType if energy_type in energy_types)
 
 
-def _component_classes() -> list[type]:
+def _unit_classes() -> list[type]:
     union = get_args(YamlComponent)[0]
     return list(get_args(union))
 
 
-def _component_type_name(component_class: type) -> str:
-    return get_args(component_class.model_fields["type"].annotation)[0]
+def _unit_type_name(unit_class: type) -> str:
+    return get_args(unit_class.model_fields["type"].annotation)[0]
 
 
-def _provider_subcategory(component_class: type) -> str | None:
-    for base_class, subcategory in PROVIDER_SUBCATEGORY_BASE_CLASSES.items():
-        if issubclass(component_class, base_class):
-            return subcategory
-    return None
-
-
-def _input_energy(component_type: str) -> set[EnergyType]:
-    if component_type == "GENERATOR":
+def _input_energy(unit_type: str) -> set[EnergyType]:
+    if unit_type == "GENERATOR":
         return set(GENERATOR_INPUT_ENERGY)
-    if component_type in FILE_DEFINED_INPUT_TYPES:
+    if unit_type in FILE_DEFINED_INPUT_TYPES:
         return set(FILE_DEFINED_INPUT_ENERGY)
-    return {INPUT_ENERGY[component_type]}
+    return {INPUT_ENERGY[unit_type]}
 
 
-def get_energy_components() -> list[EnergyComponent]:
+def _category(unit_class: type, unit_type: str, input_energy: set[EnergyType], output_energy: set[EnergyType]) -> str:
+    if unit_type in CONSUMER_TYPES:
+        return CATEGORY_CONSUMERS
+    if issubclass(unit_class, YamlJunctionBase):
+        return CATEGORY_JUNCTIONS
+    if issubclass(unit_class, YamlConverterBase) and input_energy == output_energy:
+        return CATEGORY_TRANSPORTERS
+    return CATEGORY_CONVERTERS
+
+
+def get_energy_units() -> list[EnergyUnit]:
     sources = [
-        EnergyComponent(
+        EnergyUnit(
             type=source_type.value,
-            category=CATEGORY_SOURCE,
+            category=CATEGORY_SOURCES,
             input_energy=(),
             output_energy=(SOURCE_OUTPUT_ENERGY[source_type],),
         )
         for source_type in YamlEnergySourceType
     ]
     units = []
-    for component_class in _component_classes():
-        component_type = _component_type_name(component_class)
-        is_consumer = component_type in CONSUMER_TYPES
+    for unit_class in _unit_classes():
+        unit_type = _unit_type_name(unit_class)
+        input_energy = _input_energy(unit_type)
+        output_energy = {OUTPUT_ENERGY[unit_type]} if unit_type in OUTPUT_ENERGY else set()
         units.append(
-            EnergyComponent(
-                type=component_type,
-                category=CATEGORY_CONSUMER if is_consumer else CATEGORY_PROVIDER,
-                input_energy=_ordered(_input_energy(component_type)),
-                output_energy=_ordered({OUTPUT_ENERGY[component_type]} if component_type in OUTPUT_ENERGY else set()),
-                multiple_inputs=issubclass(component_class, YamlJunctionBase),
-                subcategory=None if is_consumer else _provider_subcategory(component_class),
+            EnergyUnit(
+                type=unit_type,
+                category=_category(unit_class, unit_type, input_energy, output_energy),
+                input_energy=_ordered(input_energy),
+                output_energy=_ordered(output_energy),
+                multiple_inputs=issubclass(unit_class, YamlJunctionBase),
             )
         )
     return sources + units
 
 
-def get_subcategories(category: str) -> list[str]:
-    return list(
-        dict.fromkeys(
-            component.subcategory
-            for component in get_energy_components()
-            if component.category == category and component.subcategory is not None
-        )
-    )
+def _stub_identifier(unit_type: str, direction: str, energy_type: EnergyType, index: int = 0) -> str:
+    return f"{unit_type}_{direction}{index}_{energy_type.value}"
 
 
-def _stub_identifier(component_type: str, direction: str, energy_type: EnergyType, index: int = 0) -> str:
-    return f"{component_type}_{direction}{index}_{energy_type.value}"
-
-
-def generate_energy_components_mermaid(category: str, subcategory: str | None = None) -> str:
+def generate_energy_units_mermaid(category: str) -> str:
     lines = ["graph LR"]
     edges_by_energy_type: dict[EnergyType, list[int]] = {energy_type: [] for energy_type in EnergyType}
     dashed_edges: list[int] = []
@@ -144,29 +137,24 @@ def generate_energy_components_mermaid(category: str, subcategory: str | None = 
         lines.append(f'        {identifier}(["{energy_type.value}"])')
     lines.append("    end")
 
-    selected_components = (
-        component
-        for component in get_energy_components()
-        if component.category == category and (subcategory is None or component.subcategory == subcategory)
-    )
-    for component in selected_components:
-        lines.append(f'    subgraph box_{component.type} [" "]')
+    for unit in (unit for unit in get_energy_units() if unit.category == category):
+        lines.append(f'    subgraph box_{unit.type} [" "]')
         lines.append("        direction LR")
-        lines.append(f'        {component.type}["{component.type}"]')
-        input_edge = DASHED_EDGE if component.has_alternative_inputs else SOLID_EDGE
-        for energy_type in component.input_energy:
-            for index in range(component.input_count):
-                identifier = _stub_identifier(component.type, "in", energy_type, index)
+        lines.append(f'        {unit.type}["{unit.type}"]')
+        input_edge = DASHED_EDGE if unit.has_alternative_inputs else SOLID_EDGE
+        for energy_type in unit.input_energy:
+            for index in range(unit.input_count):
+                identifier = _stub_identifier(unit.type, "in", energy_type, index)
                 stub_identifiers_by_energy_type[energy_type].append(identifier)
-                lines.append(f'        {identifier}(["{energy_type.value}"]) {input_edge} {component.type}')
+                lines.append(f'        {identifier}(["{energy_type.value}"]) {input_edge} {unit.type}')
                 edges_by_energy_type[energy_type].append(edge_count)
-                if component.has_alternative_inputs:
+                if unit.has_alternative_inputs:
                     dashed_edges.append(edge_count)
                 edge_count += 1
-        for energy_type in component.output_energy:
-            identifier = _stub_identifier(component.type, "out", energy_type)
+        for energy_type in unit.output_energy:
+            identifier = _stub_identifier(unit.type, "out", energy_type)
             stub_identifiers_by_energy_type[energy_type].append(identifier)
-            lines.append(f'        {component.type} {SOLID_EDGE} {identifier}(["{energy_type.value}"])')
+            lines.append(f'        {unit.type} {SOLID_EDGE} {identifier}(["{energy_type.value}"])')
             edges_by_energy_type[energy_type].append(edge_count)
             edge_count += 1
         lines.append("    end")

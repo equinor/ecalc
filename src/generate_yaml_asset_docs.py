@@ -25,16 +25,7 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
-from energy_mermaid import (
-    CATEGORIES,
-    CATEGORY_CONSUMER,
-    CATEGORY_PROVIDER,
-    CATEGORY_SOURCE,
-    SUBCATEGORY_CONVERTERS,
-    SUBCATEGORY_JUNCTIONS,
-    generate_energy_components_mermaid,
-    get_subcategories,
-)
+from energy_units_docs import ENERGY_UNITS_DIRECTORY_NAME, generate_energy_units_pages
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
@@ -1617,133 +1608,13 @@ See the [YAML Reference](../yaml-reference.mdx) for the full, current schema acr
 """
 
 
-ENERGY_COMPONENT_CATEGORY_DETAILS: dict[str, tuple[str, str, list[str]]] = {
-    CATEGORY_SOURCE: (
-        "sources",
-        "External energy entering the network. Sources only have an output.",
-        [],
-    ),
-    CATEGORY_PROVIDER: (
-        "providers",
-        "Components that take energy in and provide energy to other components, such as converters and junctions.",
-        [],
-    ),
-    CATEGORY_CONSUMER: (
-        "consumers",
-        "Components that use energy from the network. Consumers only have an input.",
-        [
-            "`COMPRESSOR_SAMPLED` accepts fuel gas, electrical or mechanical energy, depending on the energy columns "
-            "in its `FILE`.",
-            "`DRIVE_TRAIN` accepts mechanical energy and refers to a shaft.",
-        ],
-    ),
-}
-
-ENERGY_COMPONENT_SUBCATEGORY_DETAILS: dict[str, tuple[str, list[str]]] = {
-    SUBCATEGORY_CONVERTERS: (
-        "Convert one energy type into another, or pass it on with losses. Each converter has one input.",
-        ["`GENERATOR` accepts fuel gas or diesel and provides electrical power."],
-    ),
-    SUBCATEGORY_JUNCTIONS: (
-        "Collect several suppliers of the same energy type and dispatch demand between them. "
-        "A junction provides the same energy type as its inputs.",
-        [],
-    ),
-}
-
-ENERGY_COMPONENTS_DIRECTORY_NAME = "energy-components"
-
-
-def generate_energy_components_index_markdown() -> str:
-    links = "\n".join(
-        f"- [{category}](./{ENERGY_COMPONENT_CATEGORY_DETAILS[category][0]}.mdx): "
-        f"{ENERGY_COMPONENT_CATEGORY_DETAILS[category][1]}"
-        for category in CATEGORIES
-    )
-    return f"""\
----
-title: Energy Components (Experimental)
-sidebar_position: 0
-description: Overview of the energy components, by category, with the energy types they accept and provide.
----
-
-# Energy Components
-
-All energy components in the `ENERGY_NETWORK`, grouped as sources, providers and consumers. On each page, the
-connections on every component are coloured by energy type: inputs show what a component accepts, outputs show what it
-provides. Two components can be connected when the output colour of one matches the input colour of the next.
-Each component shows its inputs on the left: one connection means it accepts a single supplier, two connections of the same colour
-mean it accepts two or more suppliers (junctions). Dashed connections of different colours are alternatives: the single
-input can be any one of those energy types.
-See the [Energy Reference](../energy-reference.mdx) for the full description of every element.
-
-{links}
-"""
-
-
-def _notes_markdown(notes: list[str]) -> str:
-    return "".join(f"- {note}\n" for note in notes)
-
-
-def _energy_components_diagram_sections(category: str, notes: list[str]) -> str:
-    subcategories = get_subcategories(category)
-    if not subcategories:
-        notes_section = f"\n{_notes_markdown(notes)}" if notes else ""
-        return f"""\
-```mermaid
-{generate_energy_components_mermaid(category)}
-```
-{notes_section}"""
-
-    sections = []
-    for subcategory in subcategories:
-        subcategory_description, subcategory_notes = ENERGY_COMPONENT_SUBCATEGORY_DETAILS[subcategory]
-        notes_section = f"\n{_notes_markdown(subcategory_notes)}" if subcategory_notes else ""
-        sections.append(
-            f"""\
-## {subcategory}
-
-{subcategory_description}
-
-```mermaid
-{generate_energy_components_mermaid(category, subcategory)}
-```
-{notes_section}"""
-        )
-    return "\n".join(sections)
-
-
-def generate_energy_components_category_markdown(category: str, sidebar_position: int) -> str:
-    _, description, notes = ENERGY_COMPONENT_CATEGORY_DETAILS[category]
-    return f"""\
----
-title: {category} (Experimental)
-sidebar_position: {sidebar_position}
-description: {description}
----
-
-# {category}
-
-{description} Connections are coloured by the energy type they accept or provide.
-
-{_energy_components_diagram_sections(category, notes)}"""
-
-
-def generate_energy_components_pages() -> dict[str, str]:
-    pages = {"index.md": generate_energy_components_index_markdown()}
-    for position, category in enumerate(CATEGORIES, start=1):
-        file_stem = ENERGY_COMPONENT_CATEGORY_DETAILS[category][0]
-        pages[f"{file_stem}.mdx"] = generate_energy_components_category_markdown(category, position)
-    return pages
-
-
 def main():
     about_dir = Path(__file__).parent.parent / "docs" / "docs" / "about" / "nextgen"
     about_dir.mkdir(parents=True, exist_ok=True)
     changelog_dir = about_dir / "yaml-changelog"
     changelog_dir.mkdir(parents=True, exist_ok=True)
-    energy_components_dir = about_dir / ENERGY_COMPONENTS_DIRECTORY_NAME
-    energy_components_dir.mkdir(parents=True, exist_ok=True)
+    energy_units_dir = about_dir / ENERGY_UNITS_DIRECTORY_NAME
+    energy_units_dir.mkdir(parents=True, exist_ok=True)
 
     anchor_registry: dict[str, str] = {}
 
@@ -1753,8 +1624,12 @@ def main():
         about_dir / "yaml-reference.mdx": generate_full_reference_markdown(anchor_registry=anchor_registry),
         changelog_dir / "index.md": generate_yaml_changelog_index_markdown(),
     }
-    for file_name, content in generate_energy_components_pages().items():
-        outputs[energy_components_dir / file_name] = content
+    energy_unit_pages = generate_energy_units_pages()
+    for stale_path in energy_units_dir.glob("*.md*"):
+        if stale_path.name not in energy_unit_pages:
+            stale_path.unlink()
+    for file_name, content in energy_unit_pages.items():
+        outputs[energy_units_dir / file_name] = content
     for version in YAML_CHANGELOG_VERSIONS:
         outputs[changelog_dir / f"v{version.major}.md"] = generate_yaml_changelog_markdown(
             version, anchor_registry=anchor_registry
