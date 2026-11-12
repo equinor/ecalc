@@ -10,6 +10,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     SOURCE_OUTPUT_ENERGY,
     EnergyType,
     YamlComponent,
+    YamlConverterBase,
     YamlEnergySourceType,
     YamlJunctionBase,
 )
@@ -28,6 +29,13 @@ CATEGORY_PROVIDER = "Providers"
 CATEGORY_CONSUMER = "Consumers"
 CATEGORIES = (CATEGORY_SOURCE, CATEGORY_PROVIDER, CATEGORY_CONSUMER)
 
+SUBCATEGORY_CONVERTERS = "Converters"
+SUBCATEGORY_JUNCTIONS = "Junctions"
+PROVIDER_SUBCATEGORY_BASE_CLASSES: dict[type, str] = {
+    YamlConverterBase: SUBCATEGORY_CONVERTERS,
+    YamlJunctionBase: SUBCATEGORY_JUNCTIONS,
+}
+
 MULTIPLE_INPUTS_COUNT = 2
 SOLID_EDGE = "-->"
 DASHED_EDGE = "-.->"
@@ -41,6 +49,7 @@ class EnergyComponent:
     input_energy: tuple[EnergyType, ...]
     output_energy: tuple[EnergyType, ...]
     multiple_inputs: bool = False
+    subcategory: str | None = None
 
     @property
     def has_alternative_inputs(self) -> bool:
@@ -64,6 +73,13 @@ def _component_type_name(component_class: type) -> str:
     return get_args(component_class.model_fields["type"].annotation)[0]
 
 
+def _provider_subcategory(component_class: type) -> str | None:
+    for base_class, subcategory in PROVIDER_SUBCATEGORY_BASE_CLASSES.items():
+        if issubclass(component_class, base_class):
+            return subcategory
+    return None
+
+
 def _input_energy(component_type: str) -> set[EnergyType]:
     if component_type == "GENERATOR":
         return set(GENERATOR_INPUT_ENERGY)
@@ -85,23 +101,35 @@ def get_energy_components() -> list[EnergyComponent]:
     units = []
     for component_class in _component_classes():
         component_type = _component_type_name(component_class)
+        is_consumer = component_type in CONSUMER_TYPES
         units.append(
             EnergyComponent(
                 type=component_type,
-                category=CATEGORY_CONSUMER if component_type in CONSUMER_TYPES else CATEGORY_PROVIDER,
+                category=CATEGORY_CONSUMER if is_consumer else CATEGORY_PROVIDER,
                 input_energy=_ordered(_input_energy(component_type)),
                 output_energy=_ordered({OUTPUT_ENERGY[component_type]} if component_type in OUTPUT_ENERGY else set()),
                 multiple_inputs=issubclass(component_class, YamlJunctionBase),
+                subcategory=None if is_consumer else _provider_subcategory(component_class),
             )
         )
     return sources + units
+
+
+def get_subcategories(category: str) -> list[str]:
+    return list(
+        dict.fromkeys(
+            component.subcategory
+            for component in get_energy_components()
+            if component.category == category and component.subcategory is not None
+        )
+    )
 
 
 def _stub_identifier(component_type: str, direction: str, energy_type: EnergyType, index: int = 0) -> str:
     return f"{component_type}_{direction}{index}_{energy_type.value}"
 
 
-def generate_energy_components_mermaid(category: str) -> str:
+def generate_energy_components_mermaid(category: str, subcategory: str | None = None) -> str:
     lines = ["graph LR"]
     edges_by_energy_type: dict[EnergyType, list[int]] = {energy_type: [] for energy_type in EnergyType}
     dashed_edges: list[int] = []
@@ -116,7 +144,12 @@ def generate_energy_components_mermaid(category: str) -> str:
         lines.append(f'        {identifier}(["{energy_type.value}"])')
     lines.append("    end")
 
-    for component in (component for component in get_energy_components() if component.category == category):
+    selected_components = (
+        component
+        for component in get_energy_components()
+        if component.category == category and (subcategory is None or component.subcategory == subcategory)
+    )
+    for component in selected_components:
         lines.append(f'    subgraph box_{component.type} [" "]')
         lines.append("        direction LR")
         lines.append(f'        {component.type}["{component.type}"]')

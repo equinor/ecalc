@@ -8,6 +8,10 @@ description: Components that take energy in and provide energy to other componen
 
 Components that take energy in and provide energy to other components, such as converters and junctions. Connections are coloured by the energy type they accept or provide.
 
+## Converters
+
+Convert one energy type into another, or pass it on with losses. Each converter has one input.
+
 ```mermaid
 graph LR
     subgraph legend ["Energy types"]
@@ -42,6 +46,36 @@ graph LR
         ELECTRICAL_CABLE_in0_ELECTRICAL(["ELECTRICAL"]) --> ELECTRICAL_CABLE
         ELECTRICAL_CABLE --> ELECTRICAL_CABLE_out0_ELECTRICAL(["ELECTRICAL"])
     end
+    classDef FUEL_GAS fill:#f0a35e,stroke:#f0a35e,color:#000
+    class legend_FUEL_GAS,GENERATOR_in0_FUEL_GAS,GAS_TURBINE_in0_FUEL_GAS FUEL_GAS
+    linkStyle 0,3 stroke:#f0a35e,stroke-width:3px
+    classDef ELECTRICAL fill:#5b9bd5,stroke:#5b9bd5,color:#000
+    class legend_ELECTRICAL,GENERATOR_out0_ELECTRICAL,ELECTRICAL_MOTOR_in0_ELECTRICAL,ELECTRICAL_CABLE_in0_ELECTRICAL,ELECTRICAL_CABLE_out0_ELECTRICAL ELECTRICAL
+    linkStyle 2,5,7,8 stroke:#5b9bd5,stroke-width:3px
+    classDef MECHANICAL fill:#70ad47,stroke:#70ad47,color:#000
+    class legend_MECHANICAL,GAS_TURBINE_out0_MECHANICAL,ELECTRICAL_MOTOR_out0_MECHANICAL MECHANICAL
+    linkStyle 4,6 stroke:#70ad47,stroke-width:3px
+    classDef DIESEL fill:#a6a6a6,stroke:#a6a6a6,color:#000
+    class legend_DIESEL,GENERATOR_in0_DIESEL DIESEL
+    linkStyle 1 stroke:#a6a6a6,stroke-width:3px
+    linkStyle 0,1 stroke-dasharray:6 4
+```
+
+- `GENERATOR` accepts fuel gas or diesel and provides electrical power.
+
+## Junctions
+
+Collect several suppliers of the same energy type and dispatch demand between them. A junction provides the same energy type as its inputs.
+
+```mermaid
+graph LR
+    subgraph legend ["Energy types"]
+        direction LR
+        legend_FUEL_GAS(["FUEL_GAS"])
+        legend_ELECTRICAL(["ELECTRICAL"])
+        legend_MECHANICAL(["MECHANICAL"])
+        legend_DIESEL(["DIESEL"])
+    end
     subgraph box_ELECTRICAL_BUS [" "]
         direction LR
         ELECTRICAL_BUS["ELECTRICAL_BUS"]
@@ -57,19 +91,13 @@ graph LR
         FUEL_GAS_MANIFOLD --> FUEL_GAS_MANIFOLD_out0_FUEL_GAS(["FUEL_GAS"])
     end
     classDef FUEL_GAS fill:#f0a35e,stroke:#f0a35e,color:#000
-    class legend_FUEL_GAS,GENERATOR_in0_FUEL_GAS,GAS_TURBINE_in0_FUEL_GAS,FUEL_GAS_MANIFOLD_in0_FUEL_GAS,FUEL_GAS_MANIFOLD_in1_FUEL_GAS,FUEL_GAS_MANIFOLD_out0_FUEL_GAS FUEL_GAS
-    linkStyle 0,3,12,13,14 stroke:#f0a35e,stroke-width:3px
+    class legend_FUEL_GAS,FUEL_GAS_MANIFOLD_in0_FUEL_GAS,FUEL_GAS_MANIFOLD_in1_FUEL_GAS,FUEL_GAS_MANIFOLD_out0_FUEL_GAS FUEL_GAS
+    linkStyle 3,4,5 stroke:#f0a35e,stroke-width:3px
     classDef ELECTRICAL fill:#5b9bd5,stroke:#5b9bd5,color:#000
-    class legend_ELECTRICAL,GENERATOR_out0_ELECTRICAL,ELECTRICAL_MOTOR_in0_ELECTRICAL,ELECTRICAL_CABLE_in0_ELECTRICAL,ELECTRICAL_CABLE_out0_ELECTRICAL,ELECTRICAL_BUS_in0_ELECTRICAL,ELECTRICAL_BUS_in1_ELECTRICAL,ELECTRICAL_BUS_out0_ELECTRICAL ELECTRICAL
-    linkStyle 2,5,7,8,9,10,11 stroke:#5b9bd5,stroke-width:3px
+    class legend_ELECTRICAL,ELECTRICAL_BUS_in0_ELECTRICAL,ELECTRICAL_BUS_in1_ELECTRICAL,ELECTRICAL_BUS_out0_ELECTRICAL ELECTRICAL
+    linkStyle 0,1,2 stroke:#5b9bd5,stroke-width:3px
     classDef MECHANICAL fill:#70ad47,stroke:#70ad47,color:#000
-    class legend_MECHANICAL,GAS_TURBINE_out0_MECHANICAL,ELECTRICAL_MOTOR_out0_MECHANICAL MECHANICAL
-    linkStyle 4,6 stroke:#70ad47,stroke-width:3px
+    class legend_MECHANICAL MECHANICAL
     classDef DIESEL fill:#a6a6a6,stroke:#a6a6a6,color:#000
-    class legend_DIESEL,GENERATOR_in0_DIESEL DIESEL
-    linkStyle 1 stroke:#a6a6a6,stroke-width:3px
-    linkStyle 0,1 stroke-dasharray:6 4
+    class legend_DIESEL DIESEL
 ```
-
-- `GENERATOR` accepts fuel gas or diesel and provides electrical power.
-- `ELECTRICAL_BUS` and `FUEL_GAS_MANIFOLD` provide the same energy type as their inputs.

@@ -30,7 +30,10 @@ from energy_mermaid import (
     CATEGORY_CONSUMER,
     CATEGORY_PROVIDER,
     CATEGORY_SOURCE,
+    SUBCATEGORY_CONVERTERS,
+    SUBCATEGORY_JUNCTIONS,
     generate_energy_components_mermaid,
+    get_subcategories,
 )
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
@@ -1623,10 +1626,7 @@ ENERGY_COMPONENT_CATEGORY_DETAILS: dict[str, tuple[str, str, list[str]]] = {
     CATEGORY_PROVIDER: (
         "providers",
         "Components that take energy in and provide energy to other components, such as converters and junctions.",
-        [
-            "`GENERATOR` accepts fuel gas or diesel and provides electrical power.",
-            "`ELECTRICAL_BUS` and `FUEL_GAS_MANIFOLD` provide the same energy type as their inputs.",
-        ],
+        [],
     ),
     CATEGORY_CONSUMER: (
         "consumers",
@@ -1636,6 +1636,18 @@ ENERGY_COMPONENT_CATEGORY_DETAILS: dict[str, tuple[str, str, list[str]]] = {
             "in its `FILE`.",
             "`DRIVE_TRAIN` accepts mechanical energy and refers to a shaft.",
         ],
+    ),
+}
+
+ENERGY_COMPONENT_SUBCATEGORY_DETAILS: dict[str, tuple[str, list[str]]] = {
+    SUBCATEGORY_CONVERTERS: (
+        "Convert one energy type into another, or pass it on with losses. Each converter has one input.",
+        ["`GENERATOR` accepts fuel gas or diesel and provides electrical power."],
+    ),
+    SUBCATEGORY_JUNCTIONS: (
+        "Collect several suppliers of the same energy type and dispatch demand between them. "
+        "A junction provides the same energy type as its inputs.",
+        [],
     ),
 }
 
@@ -1669,10 +1681,40 @@ See the [Energy Reference](../energy-reference.mdx) for the full description of 
 """
 
 
+def _notes_markdown(notes: list[str]) -> str:
+    return "".join(f"- {note}\n" for note in notes)
+
+
+def _energy_components_diagram_sections(category: str, notes: list[str]) -> str:
+    subcategories = get_subcategories(category)
+    if not subcategories:
+        notes_section = f"\n{_notes_markdown(notes)}" if notes else ""
+        return f"""\
+```mermaid
+{generate_energy_components_mermaid(category)}
+```
+{notes_section}"""
+
+    sections = []
+    for subcategory in subcategories:
+        subcategory_description, subcategory_notes = ENERGY_COMPONENT_SUBCATEGORY_DETAILS[subcategory]
+        notes_section = f"\n{_notes_markdown(subcategory_notes)}" if subcategory_notes else ""
+        sections.append(
+            f"""\
+## {subcategory}
+
+{subcategory_description}
+
+```mermaid
+{generate_energy_components_mermaid(category, subcategory)}
+```
+{notes_section}"""
+        )
+    return "\n".join(sections)
+
+
 def generate_energy_components_category_markdown(category: str, sidebar_position: int) -> str:
     _, description, notes = ENERGY_COMPONENT_CATEGORY_DETAILS[category]
-    notes_markdown = "".join(f"- {note}\n" for note in notes)
-    notes_section = f"\n{notes_markdown}" if notes else ""
     return f"""\
 ---
 title: {category} (Experimental)
@@ -1684,10 +1726,7 @@ description: {description}
 
 {description} Connections are coloured by the energy type they accept or provide.
 
-```mermaid
-{generate_energy_components_mermaid(category)}
-```
-{notes_section}"""
+{_energy_components_diagram_sections(category, notes)}"""
 
 
 def generate_energy_components_pages() -> dict[str, str]:
