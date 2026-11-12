@@ -25,6 +25,7 @@ from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 from pydantic_core import PydanticUndefined
 
+from energy_units_docs import ENERGY_UNITS_DIRECTORY_NAME, generate_energy_units_pages
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
@@ -1612,6 +1613,8 @@ def main():
     about_dir.mkdir(parents=True, exist_ok=True)
     changelog_dir = about_dir / "yaml-changelog"
     changelog_dir.mkdir(parents=True, exist_ok=True)
+    energy_units_dir = about_dir / ENERGY_UNITS_DIRECTORY_NAME
+    energy_units_dir.mkdir(parents=True, exist_ok=True)
 
     anchor_registry: dict[str, str] = {}
 
@@ -1621,6 +1624,12 @@ def main():
         about_dir / "yaml-reference.mdx": generate_full_reference_markdown(anchor_registry=anchor_registry),
         changelog_dir / "index.md": generate_yaml_changelog_index_markdown(),
     }
+    energy_unit_pages = generate_energy_units_pages()
+    for stale_path in energy_units_dir.glob("*.md*"):
+        if stale_path.name not in energy_unit_pages:
+            stale_path.unlink()
+    for file_name, content in energy_unit_pages.items():
+        outputs[energy_units_dir / file_name] = content
     for version in YAML_CHANGELOG_VERSIONS:
         outputs[changelog_dir / f"v{version.major}.md"] = generate_yaml_changelog_markdown(
             version, anchor_registry=anchor_registry
