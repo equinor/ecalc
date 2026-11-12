@@ -11,6 +11,10 @@ sidebar_position: 0
 Changes to the NextGen YAML types: `FLUIDS`, `PROCESS_SIMULATIONS`, `PUMP_PROCESS_SIMULATIONS` and `ENERGY_NETWORK`.
 These are not available in legacy models, so they are not part of the release changelogs.
 
+## v15.7 {/* #v15-7 */}
+
+- `ENERGY_NETWORK`: a compressor's `EFFICIENCY` in a `DRIVE_TRAIN`'s `MECHANICAL_EFFICIENCIES` covers its share of the gearbox and couplings as well as its bearings and seals, not the driver's own losses. A compressor-only value, for example from a datasheet, should be multiplied by the gearbox efficiency.
+
 ## v15.6 {/* #v15-6 */}
 
 - `DEFINITIONS`: compressor models are defined in `COMPRESSOR_MODELS`, which replaces `TYPE: COMPRESSOR` process units in `DEFINITIONS.PROCESS_UNITS`. A compressor process unit gives its model with `MODEL` instead of `TARGET`, and a `REBUNDLE` event gives the new model with `CHANGE_TO`. Both take a model in place or the name of one in `COMPRESSOR_MODELS`. `CHANGE_FROM` is removed, since the model before the event is known.

@@ -84,8 +84,10 @@ class DriveTrain(Transporter):
     """
     Mechanical transmission between a driver (gas turbine or electrical motor) and the equipment on its shaft.
 
-    Efficiency covers losses in the transmission (e.g. gearbox, couplings). Losses in the driver and in the
-    driven equipment are not included.
+    Efficiency covers transmission losses that are not part of the driven equipment's efficiency. Losses in the
+    driver are not included. A compressor's mechanical efficiency already covers its share of the gearbox and
+    couplings (see `compressor_shaft_power`), so for compressors this efficiency must stay 1.0 unless that definition
+    changes. Otherwise those losses are counted twice.
     """
 
     def __init__(
