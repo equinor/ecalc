@@ -41,3 +41,14 @@ From `yaml_types/yaml_version.py`, set on the field: `json_schema_extra=yaml_ele
   if they are out of date.
 - Check the generated example. Test builders feed it, and they skip `None`: start optional builder attributes as
   `None`, not `[]`.
+
+- From `src/`, run `generate_fixture.py` that generates the nextgen example models (`src/libecalc/examples/nextgen/`) and their
+documentation pages (`docs/docs/about/nextgen/examples/`) from the reference models in
+`libecalc.fixtures.cases.nextgen.reference_model`. It is not run by pytest and must be run separately.
+- Only the major counts. The current major is `__yaml_version__` in `src/libecalc/version.py`, to only update the examples
+for the latest major version.
+- Re-run it whenever the reference models, the YAML schema/version, or anything affecting the example output changes,
+  and commit the regenerated files.
+- Keep the script up to date when the reference model exports (`export_reference_models`, `export_example_pages`)
+  change, e.g. new versions or new output locations.
+- Never hand-edit the generated `model.yaml` files or example `.mdx` pages; change the reference models and regenerate.
