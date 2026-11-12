@@ -99,6 +99,7 @@ PROCESS_INCLUDE_FIELDS = {
 ENERGY_INCLUDE_FIELDS = {
     "definitions.turbines",
     "definitions.generators",
+    "definitions.diesel_engines",
     "energy_network",
 }
 

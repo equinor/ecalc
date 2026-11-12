@@ -74,6 +74,23 @@ def test_gas_turbine_does_not_accept_capacity():
         )
 
 
+def test_diesel_engine_capacity_is_the_curve_maximum(
+    energy_network_mapper_factory, expression_evaluator_factory, period
+):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE", "LOWER_HEATING_VALUE": 35.8}],
+            "UNITS": [{"NAME": "engine", "TYPE": "DIESEL_ENGINE", "INPUT": "diesel", "MODEL": TURBINE}],
+        }
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+
+    (engine,) = (factory for factory in factories if factory.get_name() == "engine")
+    assert engine.capacity.get_evaluated_expression() == [20]
+
+
 def test_generator_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
     yaml_network = YamlEnergyNetwork.model_validate(
         {

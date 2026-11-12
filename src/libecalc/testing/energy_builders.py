@@ -1,10 +1,12 @@
 from typing import Self
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.energy.yaml_diesel_engine_definition import YamlDieselEngineDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlCompressorSampled,
     YamlDieselConsumer,
+    YamlDieselEngine,
     YamlDispatchStrategy,
     YamlDriveTrain,
     YamlElectricalBus,
@@ -73,6 +75,19 @@ class YamlTurbineCurveBuilder(Builder[YamlTurbineCurve]):
 
 
 class YamlTurbineDefinitionBuilder(Builder[YamlTurbineDefinition]):
+    def __init__(self):
+        self.curve = None
+
+    def with_curve(self, curve: YamlTurbineCurve | YamlFile) -> Self:
+        self.curve = curve
+        return self
+
+    def with_test_data(self) -> Self:
+        self.curve = YamlTurbineCurveBuilder().with_test_data().validate()
+        return self
+
+
+class YamlDieselEngineDefinitionBuilder(Builder[YamlDieselEngineDefinition]):
     def __init__(self):
         self.curve = None
 
@@ -242,6 +257,32 @@ class YamlGasTurbineBuilder(Builder[YamlGasTurbine]):
         self.name = "gas_turbine"
         self.input = "fuel_gas"
         self.model = YamlTurbineDefinitionBuilder().with_test_data().validate()
+        return self
+
+
+class YamlDieselEngineBuilder(Builder[YamlDieselEngine]):
+    def __init__(self):
+        self.type = "DIESEL_ENGINE"
+        self.name = None
+        self.input = None
+        self.model = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_input(self, input: str) -> Self:
+        self.input = input
+        return self
+
+    def with_model(self, model: YamlDieselEngineDefinition) -> Self:
+        self.model = model
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "diesel_engine"
+        self.input = "diesel"
+        self.model = YamlDieselEngineDefinitionBuilder().with_test_data().validate()
         return self
 
 
@@ -611,6 +652,11 @@ class YamlEnergyNetworkBuilder(Builder[YamlEnergyNetwork]):
     def with_gas_turbine(self, name: str, input: str, model: YamlTurbineDefinition) -> Self:
         gas_turbine = YamlGasTurbineBuilder().with_name(name).with_input(input).with_model(model).validate()
         self.units = [*self.units, gas_turbine]
+        return self
+
+    def with_diesel_engine(self, name: str, input: str, model: YamlDieselEngineDefinition) -> Self:
+        diesel_engine = YamlDieselEngineBuilder().with_name(name).with_input(input).with_model(model).validate()
+        self.units = [*self.units, diesel_engine]
         return self
 
     def with_drive_train(self, name: str, input: str, shaft: str) -> Self:

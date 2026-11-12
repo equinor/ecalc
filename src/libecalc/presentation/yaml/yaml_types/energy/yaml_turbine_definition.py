@@ -3,7 +3,7 @@ from typing import Annotated, Any
 from pydantic import ConfigDict, Field, model_validator
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.energy.models.turbine_fuel_model import validate_turbine_curve
+from libecalc.energy.models.combustion_engine_fuel_model import validate_combustion_engine_curve
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_version import V5, removed_field
@@ -68,7 +68,7 @@ class YamlTurbineDefinition(YamlBase):
     def validate_inline_curve(self):
         if isinstance(self.curve, YamlTurbineCurve):
             try:
-                validate_turbine_curve(self.curve.load, self.curve.efficiency)
+                validate_combustion_engine_curve(self.curve.load, self.curve.efficiency, "gas turbine")
             except EcalcValidationException as e:
                 raise ValueError(str(e)) from e
         return self
