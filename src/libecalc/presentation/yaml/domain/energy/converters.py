@@ -40,19 +40,12 @@ class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
             )
         self.model_events = tuple(sorted(model_events, key=lambda event: event.change_time))
 
-    def _fuel_model_for(self, period: Period | None) -> GeneratorFuelModel:
-        if not self.model_events:
-            return self.fuel_model
-        if period is None:
-            raise InvalidEnergyNetworkInputError(
-                f"Generator '{self.get_name()}' changes model over time but no period was given to select a model."
-            )
-        return active_model(self.fuel_model, self.model_events, at=period.start)
-
     def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> Generator:
         (incoming_connection,) = incoming_connections
         period = extra.get("period")
-        fuel_model = self._fuel_model_for(period)
+        if not isinstance(period, Period):
+            raise InvalidEnergyNetworkInputError(f"Generator '{self.get_name()}' needs a period, got {period!r}.")
+        fuel_model = active_model(self.fuel_model, self.model_events, at=period.start)
         return Generator(
             name=self.get_name(),
             power_to_fuel=fuel_model.fuel_for_power,

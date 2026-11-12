@@ -277,24 +277,22 @@ class TestGeneratorModelEvents:
 
         assert generator_factory.model_events == (earlier_upgrade, later_upgrade)
 
-    def test_model_events_require_a_period(self):
-        generator_factory = self._generator_factory(
-            model_events=[self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5)]
-        )
+    def test_requires_a_period(self):
+        generator_factory = self._generator_factory(model_events=())
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
 
-        with pytest.raises(InvalidEnergyNetworkInputError, match="changes model over time"):
+        with pytest.raises(InvalidEnergyNetworkInputError, match="needs a period"):
             generator_factory.create(ElectricalPower(10), incoming_connections=connections)
 
     def test_events_targeting_another_unit_are_rejected(self):
         with pytest.raises(InvalidEnergyNetworkInputError, match="targeting another energy unit"):
             self._generator_factory(model_events=[self._upgrade_at(SECOND_PERIOD.start, change_target=FIRST_CANDIDATE)])
 
-    def test_without_events_the_base_model_is_used_without_a_period(self):
+    def test_without_events_the_base_model_is_used(self):
         generator_factory = self._generator_factory(model_events=())
         connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
         (connection,) = connections
 
-        generator = generator_factory.create(ElectricalPower(10), incoming_connections=connections)
+        generator = generator_factory.create(ElectricalPower(10), incoming_connections=connections, period=FIRST_PERIOD)
 
         assert generator.get_input_energies()[connection.id] == FuelGasRate(10)
