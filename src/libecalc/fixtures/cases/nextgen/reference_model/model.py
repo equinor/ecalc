@@ -7,7 +7,6 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsse
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergySourceType,
-    YamlGeneratorEventChangeType,
     YamlGeneratorModelEvent,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
@@ -42,8 +41,8 @@ from libecalc.testing.energy_builders import (
     YamlEnergySourceBuilder,
     YamlFileBuilder,
     YamlGasTurbineBuilder,
-    YamlGeneratorCurveBuilder,
     YamlGeneratorDefinitionBuilder,
+    YamlGeneratorModelEventBuilder,
     YamlTurbineDefinitionBuilder,
 )
 from libecalc.testing.process_builders import (
@@ -332,16 +331,7 @@ def _drive_train(name: str, input: str, shaft: str):
 
 
 def _generator_upgrade_events() -> list[YamlGeneratorModelEvent]:
-    upgraded_curve = (
-        YamlGeneratorCurveBuilder().with_power([0.0, 5.0, 10.0, 15.0]).with_fuel([0.0, 23000.0, 44000.0, 64000.0])
-    )
-    return [
-        YamlGeneratorModelEvent(
-            change_type=YamlGeneratorEventChangeType.REBUNDLE,
-            change_to=YamlGeneratorDefinitionBuilder().with_curve(upgraded_curve.validate()).validate(),
-            ref=GENERATOR_UPGRADE_EVENT,
-        )
-    ]
+    return [YamlGeneratorModelEventBuilder().with_test_data().with_ref(GENERATOR_UPGRADE_EVENT).validate()]
 
 
 def _genset_a(yaml_version: int):

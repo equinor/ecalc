@@ -28,10 +28,7 @@ from pydantic_core import PydanticUndefined
 from energy_units_docs import ENERGY_UNITS_DIRECTORY_NAME, generate_energy_units_pages
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
-    YamlEnergySourceType,
-    YamlGeneratorModelEvent,
-)
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlCompressorProcessUnitInstance
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
@@ -59,6 +56,7 @@ from libecalc.testing.energy_builders import (
     YamlGasTurbineBuilder,
     YamlGeneratorCurveBuilder,
     YamlGeneratorDefinitionBuilder,
+    YamlGeneratorModelEventBuilder,
     YamlMechanicalConsumerBuilder,
     YamlTurbineCurveBuilder,
     YamlTurbineDefinitionBuilder,
@@ -359,7 +357,7 @@ ENERGY_EXAMPLES: list[Example] = [
     ),
     Example(
         "ENERGY_NETWORK.UNITS.GENERATOR.EVENTS",
-        lambda: YamlGeneratorModelEvent(change_to="upgraded_generator", ref="generator_upgrade"),
+        lambda: YamlGeneratorModelEventBuilder().with_test_data().validate(),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.GAS_TURBINE",

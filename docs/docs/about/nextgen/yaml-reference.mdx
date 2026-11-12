@@ -1343,7 +1343,7 @@ Converters, junctions, and consumers forming the energy network.
 
 Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry.
 
-<YamlCodeBlock>{"CHANGE_TO: upgraded_generator\nREF: generator_upgrade"}</YamlCodeBlock>
+<YamlCodeBlock>{"CHANGE_TO:\n  CURVE:\n    POWER:\n    - 0.0\n    - 5.0\n    - 10.0\n    - 15.0\n    FUEL:\n    - 0.0\n    - 23000.0\n    - 44000.0\n    - 64000.0\nCHANGE_TYPE: REBUNDLE\nREF: generator_upgrade"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
