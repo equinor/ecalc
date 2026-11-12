@@ -32,7 +32,7 @@ jobs:
       - name: Ensure generated YAML reference and changelog are up to date
         run: |
           cd src
-          uv run python generate_yaml_asset_docs.py
+          uv run python generate_yaml_asset_docs.py --include-previous
           cd ..
           generated_paths="docs/docs/about/nextgen/process-reference.mdx docs/docs/about/nextgen/energy-reference.mdx docs/docs/about/nextgen/energy-units docs/docs/about/nextgen/yaml-reference.mdx docs/docs/about/nextgen/yaml-changelog"
           if [ -n "$(git status --porcelain -- $generated_paths)" ]; then
@@ -45,7 +45,7 @@ jobs:
       - name: Ensure generated nextgen example model is up to date
         run: |
           cd src
-          uv run python generate_fixture.py
+          uv run python generate_fixture.py --include-previous
           cd ..
           generated_paths="src/libecalc/examples/nextgen docs/docs/about/nextgen/examples"
           if [ -n "$(git status --porcelain -- $generated_paths)" ]; then

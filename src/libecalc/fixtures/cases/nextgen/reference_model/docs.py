@@ -2,7 +2,13 @@ from pathlib import Path
 
 from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 
-from .export import MODEL_FILE_NAME, example_yaml_versions, resource_paths, version_directory_name
+from .export import (
+    MODEL_FILE_NAME,
+    all_example_yaml_versions,
+    example_yaml_versions,
+    resource_paths,
+    version_directory_name,
+)
 from .mermaid import energy_network_to_mermaid
 from .model import build_reference_model
 
@@ -94,7 +100,7 @@ The model contains:
 def render_example_index() -> str:
     links = "\n".join(
         f"- [{release_label(version)}](./{version_directory_name(version)}.mdx)"
-        for version in reversed(example_yaml_versions())
+        for version in reversed(all_example_yaml_versions())
     )
     return f"""\
 ---
@@ -112,17 +118,20 @@ Example NextGen models, generated from the model builders in the eCalc library f
 """
 
 
-def export_example_pages(docs_directory: Path) -> list[Path]:
+def export_example_pages(docs_directory: Path, include_previous: bool = False) -> list[Path]:
     docs_directory.mkdir(parents=True, exist_ok=True)
+    all_versions = all_example_yaml_versions()
+    kept_page_names = {f"{version_directory_name(version)}{PAGE_SUFFIX}" for version in all_versions}
     for path in docs_directory.glob(f"*{PAGE_SUFFIX}"):
-        path.unlink()
+        if path.name not in kept_page_names:
+            path.unlink()
 
     index_path = docs_directory / INDEX_FILE_NAME
     index_path.write_text(render_example_index())
 
     page_paths = []
-    for position, yaml_version in enumerate(example_yaml_versions(), start=1):
+    for yaml_version in example_yaml_versions(include_previous):
         page_path = docs_directory / f"{version_directory_name(yaml_version)}{PAGE_SUFFIX}"
-        page_path.write_text(render_example_page(yaml_version, sidebar_position=position))
+        page_path.write_text(render_example_page(yaml_version, sidebar_position=all_versions.index(yaml_version) + 1))
         page_paths.append(page_path)
     return [index_path, *page_paths]

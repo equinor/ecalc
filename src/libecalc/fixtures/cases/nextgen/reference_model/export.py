@@ -74,8 +74,12 @@ def version_directory_name(yaml_version: int) -> str:
     return f"v{yaml_version}"
 
 
-def example_yaml_versions() -> list[int]:
+def all_example_yaml_versions() -> list[int]:
     return [LATEST_YAML_VERSION - 1, LATEST_YAML_VERSION]
+
+
+def example_yaml_versions(include_previous: bool = False) -> list[int]:
+    return all_example_yaml_versions() if include_previous else [LATEST_YAML_VERSION]
 
 
 def export_reference_model(output_directory: Path, yaml_version: int = LATEST_YAML_VERSION) -> list[Path]:
@@ -90,17 +94,17 @@ def export_reference_model(output_directory: Path, yaml_version: int = LATEST_YA
     return [model_path, *resource_copies]
 
 
-def export_reference_models(output_directory: Path) -> list[Path]:
+def export_reference_models(output_directory: Path, include_previous: bool = False) -> list[Path]:
     output_directory.mkdir(parents=True, exist_ok=True)
-    current_directory_names = {version_directory_name(version) for version in example_yaml_versions()}
+    kept_directory_names = {version_directory_name(version) for version in all_example_yaml_versions()}
     for path in output_directory.iterdir():
         if path.is_file() and (path.name == MODEL_FILE_NAME or path.suffix == RESOURCE_SUFFIX):
             path.unlink()
-        elif path.is_dir() and _VERSION_DIRECTORY.match(path.name) and path.name not in current_directory_names:
+        elif path.is_dir() and _VERSION_DIRECTORY.match(path.name) and path.name not in kept_directory_names:
             shutil.rmtree(path)
 
     return [
         path
-        for version in example_yaml_versions()
+        for version in example_yaml_versions(include_previous)
         for path in export_reference_model(output_directory / version_directory_name(version), version)
     ]
