@@ -111,6 +111,20 @@ class YamlGeneratorModelEvent(YamlBase):
     """A dated change of the generator's model. The generator stays the same unit in the energy network; only the
     model used to convert power to fuel changes."""
 
+    model_config = ConfigDict(
+        title="GeneratorModelEvent",
+        json_schema_extra={
+            "examples": [
+                {
+                    "CHANGE_TO": {"CURVE": {"POWER": [0, 5, 10, 15], "FUEL": [0, 23000, 44000, 64000]}},
+                    "CHANGE_TYPE": "REBUNDLE",
+                    "REF": "generator_upgrade",
+                },
+                {"CHANGE_TO": "upgraded_generator", "CHANGE_TYPE": "REBUNDLE", "REF": "generator_upgrade"},
+            ],
+        },
+    )
+
     change_to: Annotated[
         DefinitionReference | YamlGeneratorDefinition,
         validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
