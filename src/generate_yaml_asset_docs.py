@@ -11,6 +11,7 @@ Usage:
 
 from __future__ import annotations
 
+import argparse
 import inspect
 import json
 import re
@@ -1613,7 +1614,7 @@ See the [YAML Reference](../yaml-reference.mdx) for the full, current schema acr
 """
 
 
-def main():
+def main(include_previous: bool = False):
     about_dir = Path(__file__).parent.parent / "docs" / "docs" / "about" / "nextgen"
     about_dir.mkdir(parents=True, exist_ok=True)
     changelog_dir = about_dir / "yaml-changelog"
@@ -1635,7 +1636,8 @@ def main():
             stale_path.unlink()
     for file_name, content in energy_unit_pages.items():
         outputs[energy_units_dir / file_name] = content
-    for version in YAML_CHANGELOG_VERSIONS:
+    changelog_versions = YAML_CHANGELOG_VERSIONS if include_previous else YAML_CHANGELOG_VERSIONS[-1:]
+    for version in changelog_versions:
         outputs[changelog_dir / f"v{version.major}.md"] = generate_yaml_changelog_markdown(
             version, anchor_registry=anchor_registry
         )
@@ -1646,4 +1648,10 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Generate the process, energy and YAML reference documentation.")
+    parser.add_argument(
+        "--include-previous",
+        action="store_true",
+        help="Also regenerate the changelog page for the previous YAML version. By default only the current version.",
+    )
+    main(parser.parse_args().include_previous)
