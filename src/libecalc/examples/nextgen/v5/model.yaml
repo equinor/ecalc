@@ -257,10 +257,18 @@ ENERGY_NETWORK:
       INPUT: export_turbine
       TYPE: DRIVE_TRAIN
       SHAFT: export_shaft_1
+      MECHANICAL_EFFICIENCIES:
+        - COMPRESSOR: export_train_1_compressor1
+          EFFICIENCY: 0.97
+        - COMPRESSOR: export_train_1_compressor2
+          EFFICIENCY: 0.95
     - NAME: export_train_2_el
       INPUT: export_motor
       TYPE: DRIVE_TRAIN
       SHAFT: export_shaft_2
+      MECHANICAL_EFFICIENCIES:
+        - COMPRESSOR: export_train_2_compressor1
+          EFFICIENCY: 0.96
     - NAME: pfs_motor
       INPUT: pfs
       CAPACITY: 5
