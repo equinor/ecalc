@@ -47,7 +47,7 @@ jobs:
           cd src
           uv run python generate_fixture.py --include-previous
           cd ..
-          generated_paths="src/libecalc/examples/nextgen docs/docs/about/nextgen/examples"
+          generated_paths="src/libecalc/examples/nextgen docs/docs/about/nextgen/examples docs/static/examples/nextgen"
           if [ -n "$(git status --porcelain -- $generated_paths)" ]; then
             echo "::error::The generated nextgen example model is out of date. Run 'uv run python generate_fixture.py' from libecalc/src and commit the result."
             git status --porcelain -- $generated_paths
