@@ -1337,6 +1337,19 @@ Converters, junctions, and consumers forming the energy network.
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `GENERATOR` | Required |
 | `MODEL` | Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
+| [`EVENTS`](#energy_network-units-generator-events) <LifecycleBadge kind="introduced" version="5" /> | Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry. | Default: `[]` |
+
+##### EVENTS <LifecycleBadge kind="introduced" version="5" /> \{#energy_network-units-generator-events}
+
+Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry.
+
+<YamlCodeBlock>{"CHANGE_TO:\n  CURVE:\n    POWER:\n    - 0.0\n    - 5.0\n    - 10.0\n    - 15.0\n    FUEL:\n    - 0.0\n    - 23000.0\n    - 44000.0\n    - 64000.0\nCHANGE_TYPE: REBUNDLE\nREF: generator_upgrade"}</YamlCodeBlock>
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `CHANGE_TO` | The generator model to use from the event date on. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
+| `CHANGE_TYPE` | Nature of the change. REBUNDLE: the generator stays the same unit in the energy network, with a new model. | Default: `REBUNDLE` |
+| `REF` | Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date (inclusive). | Required |
 
 
 </div>

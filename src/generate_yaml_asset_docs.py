@@ -57,6 +57,7 @@ from libecalc.testing.energy_builders import (
     YamlGasTurbineBuilder,
     YamlGeneratorCurveBuilder,
     YamlGeneratorDefinitionBuilder,
+    YamlGeneratorModelEventBuilder,
     YamlMechanicalConsumerBuilder,
     YamlTurbineCurveBuilder,
     YamlTurbineDefinitionBuilder,
@@ -354,6 +355,10 @@ ENERGY_EXAMPLES: list[Example] = [
     Example(
         "ENERGY_NETWORK.UNITS.GENERATOR",
         lambda: YamlEnergyGeneratorBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.GENERATOR.EVENTS",
+        lambda: YamlGeneratorModelEventBuilder().with_test_data().validate(),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.GAS_TURBINE",

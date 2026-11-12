@@ -1,3 +1,4 @@
+from datetime import datetime
 from io import StringIO
 
 import pytest
@@ -113,6 +114,15 @@ def turbine_network_data_factory(
             .with_end("2021-01-01")
             .validate()
         )
+        return asset.model_dump(by_alias=True, exclude_unset=True, mode="json")
+
+    return create
+
+
+@pytest.fixture
+def latest_network_data_factory(yaml_asset_builder_factory):
+    def create():
+        asset = yaml_asset_builder_factory().with_start("2020-01-01").with_end("2022-01-01").validate()
         return asset.model_dump(by_alias=True, exclude_unset=True, mode="json")
 
     return create
@@ -285,29 +295,42 @@ GENERATOR_MODEL = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 EXPECTED_GENERATOR_FUEL = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
 
 
-def _generator_model_data(model, definitions, base_data_factory, load=7):
+def _generator_model_data(model, definitions, base_data_factory, load=7, events=None):
     data = base_data_factory()
     data["DEFINITIONS"] = definitions
+    generator = {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": model}
+    if events is not None:
+        generator["EVENTS"] = events
     data["ENERGY_NETWORK"] = {
         "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
         "UNITS": [
-            {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": model},
+            generator,
             {"NAME": "load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "genset", "LOAD": load},
         ],
     }
     return data
 
 
-def _run_generator(model):
+def _run_generator_per_period(model):
     topology, factories, consumers, _ = model.get_energy_network()
     simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=factories)
     (load,) = consumers
-    (period,) = load.demand.expression.get_periods()
     (load_connection,) = topology.get_incoming_connections(load.get_id())
     factories_by_name = {factory.get_name(): factory for factory in factories}
     fuel_connection = topology.get_connection(factories_by_name["fuel"].get_id(), factories_by_name["genset"].get_id())
-    result = simulation.run({load_connection.id: load.get_demand(period)}, period=period)
-    return result.get_energy()[fuel_connection.id].value, result.get_capacity_failures()
+    results_by_period_start = {}
+    for period in load.demand.expression.get_periods():
+        result = simulation.run({load_connection.id: load.get_demand(period)}, period=period)
+        results_by_period_start[period.start] = (
+            result.get_energy()[fuel_connection.id].value,
+            result.get_capacity_failures(),
+        )
+    return results_by_period_start
+
+
+def _run_generator(model):
+    (fuel_and_capacity_failures,) = _run_generator_per_period(model).values()
+    return fuel_and_capacity_failures
 
 
 def test_generator_fuel_follows_its_model(turbine_network_data_factory, yaml_model_factory):
@@ -355,3 +378,49 @@ def test_invalid_inline_generator_model_is_reported_at_the_model(turbine_network
     (error,) = exc_info.value.errors()
     assert error.location.keys[:5] == ["ENERGY_NETWORK", "UNITS", 0, "GENERATOR", "MODEL"]
     assert "must not be negative" in error.message
+
+
+GENERATOR_MODEL_AFTER_UPGRADE = {"CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
+EXPECTED_GENERATOR_FUEL_AFTER_UPGRADE = 10000 + (20000 - 10000) * (7 - 5) / (10 - 5)
+
+
+def test_generator_event_switches_fuel_model_at_the_timeline_date(latest_network_data_factory, yaml_model_factory):
+    data = _generator_model_data(
+        GENERATOR_MODEL,
+        {},
+        latest_network_data_factory,
+        events=[{"REF": "upgrade", "CHANGE_TO": GENERATOR_MODEL_AFTER_UPGRADE}],
+    )
+    data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+    )
+
+    results_by_period_start = _run_generator_per_period(model)
+
+    assert results_by_period_start[datetime(2020, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_FUEL)
+    assert results_by_period_start[datetime(2021, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_FUEL_AFTER_UPGRADE)
+
+
+def test_generator_events_on_the_same_date_are_reported(latest_network_data_factory, yaml_model_factory):
+    data = _generator_model_data(
+        GENERATOR_MODEL,
+        {},
+        latest_network_data_factory,
+        events=[
+            {"REF": "upgrade", "CHANGE_TO": GENERATOR_MODEL_AFTER_UPGRADE},
+            {"REF": "second_upgrade", "CHANGE_TO": GENERATOR_MODEL},
+        ],
+    )
+    data["TIMELINE"] = {
+        "EVENTS": {
+            "upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"},
+            "second_upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"},
+        }
+    }
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+    )
+
+    with pytest.raises(ModelValidationException, match="Only one model event is allowed per date.*2021-01-01"):
+        model.get_energy_network()

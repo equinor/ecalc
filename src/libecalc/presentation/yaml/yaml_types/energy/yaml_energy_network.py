@@ -23,7 +23,8 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_references impor
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V3, V4, yaml_element_lifecycle
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
+from libecalc.presentation.yaml.yaml_types.yaml_version import V3, V4, V5, yaml_element_lifecycle
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -100,6 +101,55 @@ class YamlConverterBase(YamlBase):
     ]
 
 
+class YamlGeneratorEventChangeType(StrEnum):
+    """How the generator's model changes at the event. REBUNDLE: same physical generator, new model."""
+
+    REBUNDLE = "REBUNDLE"
+
+
+class YamlGeneratorModelEvent(YamlBase):
+    """A dated change of the generator's model. The generator stays the same unit in the energy network; only the
+    model used to convert power to fuel changes."""
+
+    model_config = ConfigDict(
+        title="GeneratorModelEvent",
+        json_schema_extra={
+            "examples": [
+                {
+                    "CHANGE_TO": {"CURVE": {"POWER": [0, 5, 10, 15], "FUEL": [0, 23000, 44000, 64000]}},
+                    "CHANGE_TYPE": "REBUNDLE",
+                    "REF": "generator_upgrade",
+                },
+                {"CHANGE_TO": "upgraded_generator", "CHANGE_TYPE": "REBUNDLE", "REF": "generator_upgrade"},
+            ],
+        },
+    )
+
+    change_to: Annotated[
+        DefinitionReference | YamlGeneratorDefinition,
+        validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
+        Field(
+            title="CHANGE_TO",
+            description="The generator model to use from the event date on.",
+        ),
+    ]
+    change_type: Annotated[
+        YamlGeneratorEventChangeType,
+        Field(
+            title="CHANGE_TYPE",
+            description="Nature of the change. REBUNDLE: the generator stays the same unit in the energy network, with a new model.",
+        ),
+    ] = YamlGeneratorEventChangeType.REBUNDLE
+    ref: Annotated[
+        TimelineEventReference,
+        Field(
+            title="REF",
+            description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date "
+            "(inclusive).",
+        ),
+    ]
+
+
 class YamlGenerator(YamlConverterBase):
     model_config = ConfigDict(title="Generator")
 
@@ -112,6 +162,15 @@ class YamlGenerator(YamlConverterBase):
             description="Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS.",
         ),
     ]
+    events: Annotated[
+        list[YamlGeneratorModelEvent],
+        Field(
+            title="EVENTS",
+            description="Events that change the generator model over time, such as a rebundle. Each event takes "
+            "effect from the date of its referenced TIMELINE.EVENTS entry.",
+            json_schema_extra=yaml_element_lifecycle(available_since=V5),
+        ),
+    ] = []
 
 
 class YamlGasTurbine(YamlConverterBase):

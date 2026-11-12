@@ -18,6 +18,8 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasManifold,
     YamlGasTurbine,
     YamlGenerator,
+    YamlGeneratorEventChangeType,
+    YamlGeneratorModelEvent,
     YamlJunctionInput,
     YamlMechanicalConsumer,
 )
@@ -160,12 +162,39 @@ class YamlEnergySourceBuilder(Builder[YamlEnergySource]):
 # ---------------------------------------------------------------------------
 
 
+class YamlGeneratorModelEventBuilder(Builder[YamlGeneratorModelEvent]):
+    def __init__(self):
+        self.change_to = None
+        self.change_type = None
+        self.ref = None
+
+    def with_change_to(self, change_to: str | YamlGeneratorDefinition) -> Self:
+        self.change_to = change_to
+        return self
+
+    def with_change_type(self, change_type: YamlGeneratorEventChangeType) -> Self:
+        self.change_type = change_type
+        return self
+
+    def with_ref(self, ref: str) -> Self:
+        self.ref = ref
+        return self
+
+    def with_test_data(self) -> Self:
+        upgraded_curve = YamlGeneratorCurveBuilder().with_test_data().with_fuel([0.0, 23000.0, 44000.0, 64000.0])
+        self.change_to = YamlGeneratorDefinitionBuilder().with_curve(upgraded_curve.validate()).validate()
+        self.change_type = YamlGeneratorEventChangeType.REBUNDLE
+        self.ref = "generator_upgrade"
+        return self
+
+
 class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
     def __init__(self):
         self.type = "GENERATOR"
         self.name = None
         self.input = None
         self.model = None
+        self.events = None
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -177,6 +206,10 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
 
     def with_model(self, model: YamlGeneratorDefinition) -> Self:
         self.model = model
+        return self
+
+    def with_events(self, events: list[YamlGeneratorModelEvent]) -> Self:
+        self.events = events
         return self
 
     def with_test_data(self) -> Self:

@@ -1,10 +1,19 @@
 from datetime import datetime
+from uuid import UUID
 
 import pytest
 
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.timeline_event import (
+    TimelineEvent,
+    TimelineEventNotFoundException,
+    TimelineEventService,
+    TimelineEventType,
+)
 from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
+from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
+from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSeriesSourceFactory
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
@@ -46,10 +55,13 @@ def test_generator_capacity_is_the_curve_maximum(energy_network_mapper_factory, 
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
 
     (genset,) = (factory for factory in factories if factory.get_name() == "genset")
-    assert genset.capacity.get_evaluated_expression() == [10]
+    generator = genset.create(
+        ElectricalPower(0), incoming_connections=topology.get_incoming_connections(genset.get_id()), period=period
+    )
+    assert generator.get_capacity() == ElectricalPower(10)
 
 
 def test_generator_input_energy_type_follows_connected_source(
@@ -157,7 +169,6 @@ def test_maps_sources_units_connections_and_expressions(
         "grid": 20,
         "diesel": 500,
         "backup_fuel": 50,
-        "genset": 10,
         "turbine": 20,
         "motor": 5,
         "cable": 4,
@@ -237,3 +248,71 @@ class TestMappedNetworkSimulation:
         assert energy(second, "cable", "bus") == pytest.approx(15)
         assert energy(second, "wind", "bus") == pytest.approx(5)
         assert set(second.get_capacity_failures()) == {ids_by_name["wind"]}
+
+
+GENERATOR_AFTER_UPGRADE = {"CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
+
+FIRST_YEAR = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
+SECOND_YEAR = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
+
+
+class TestGeneratorModelEvents:
+    @staticmethod
+    def _upgrade_event() -> TimelineEvent:
+        return TimelineEvent(
+            reference="upgrade",
+            title="Generator upgrade",
+            type=TimelineEventType.ENERGY_EFFICIENCY_MEASURE,
+            from_when=SECOND_YEAR.start,
+            description=None,
+        )
+
+    @staticmethod
+    def _network() -> YamlEnergyNetwork:
+        return YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                "UNITS": [
+                    {
+                        "NAME": "genset",
+                        "TYPE": "GENERATOR",
+                        "INPUT": "fuel",
+                        "MODEL": GENERATOR,
+                        "EVENTS": [{"CHANGE_TO": GENERATOR_AFTER_UPGRADE, "REF": "upgrade"}],
+                    }
+                ],
+            }
+        )
+
+    def test_events_select_the_active_fuel_model_per_period(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        service = TimelineEventService(timeline_events=[self._upgrade_event()])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        _, factories, _ = energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
+            self._network(), expression_evaluator
+        )
+
+        (genset,) = (factory for factory in factories if factory.get_name() == "genset")
+        connection = EnergyConnection(
+            id=EnergyConnectionId(UUID(int=1)),
+            source_id=EnergyUnitId(UUID(int=2)),
+            target_id=genset.get_id(),
+            energy_type=FuelGasRate,
+        )
+
+        first = genset.create(ElectricalPower(5), incoming_connections=(connection,), period=FIRST_YEAR)
+        second = genset.create(ElectricalPower(5), incoming_connections=(connection,), period=SECOND_YEAR)
+
+        assert first.get_input_energies()[connection.id] == FuelGasRate(20000)
+        assert second.get_input_energies()[connection.id] == FuelGasRate(10000)
+
+    def test_unknown_event_reference_is_rejected(self, energy_network_mapper_factory, expression_evaluator_factory):
+        service = TimelineEventService(timeline_events=[])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        with pytest.raises(TimelineEventNotFoundException, match="upgrade"):
+            energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
+                self._network(), expression_evaluator
+            )

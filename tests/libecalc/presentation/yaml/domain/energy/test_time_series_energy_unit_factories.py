@@ -5,11 +5,13 @@ from uuid import UUID
 import pytest
 
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.model_event import EnergyUnitEventChangeType, EnergyUnitModelEvent
 from libecalc.energy import DieselRate, ElectricalPower, FuelGasRate, MechanicalPower
 from libecalc.energy.dispatch import PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
+from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
@@ -22,10 +24,13 @@ from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesE
 
 FIRST_PERIOD = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
 SECOND_PERIOD = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
+THIRD_PERIOD = Period(start=datetime(2022, 1, 1), end=datetime(2023, 1, 1))
+FOURTH_PERIOD = Period(start=datetime(2023, 1, 1), end=datetime(2024, 1, 1))
 PERIODS = [FIRST_PERIOD, SECOND_PERIOD]
 
 FIRST_CANDIDATE = EnergyUnitId(UUID(int=1))
 SECOND_CANDIDATE = EnergyUnitId(UUID(int=2))
+GENERATOR_ID = EnergyUnitId(UUID(int=10))
 
 
 class IdentityFuelModel:
@@ -33,6 +38,10 @@ class IdentityFuelModel:
 
     def fuel_for_power(self, power: float) -> float:
         return power
+
+
+def linear_fuel_model(*, fuel_per_power: float, max_power: float = 100) -> GeneratorFuelModel:
+    return GeneratorFuelModel(powers=[0, max_power], fuels=[0, fuel_per_power * max_power])
 
 
 @pytest.fixture
@@ -61,12 +70,6 @@ RATED_FACTORIES = [
     pytest.param(TimeSeriesSourceFactory, FuelGasRate, None, id="fuel gas source"),
     pytest.param(TimeSeriesSourceFactory, ElectricalPower, None, id="electrical source"),
     pytest.param(TimeSeriesSourceFactory, DieselRate, None, id="diesel source"),
-    pytest.param(
-        partial(TimeSeriesGeneratorFactory, fuel_model=IdentityFuelModel(), input_energy_type=FuelGasRate),
-        ElectricalPower,
-        FuelGasRate,
-        id="generator",
-    ),
     pytest.param(
         partial(TimeSeriesGasTurbineFactory, fuel_model=IdentityFuelModel()),
         MechanicalPower,
@@ -185,3 +188,111 @@ class TestGasTurbineCapacity:
         turbine = factory.create(MechanicalPower(1), incoming_connections=connections, period=FIRST_PERIOD)
 
         assert turbine.get_capacity() == MechanicalPower(expected)
+
+
+class TestGeneratorModelEvents:
+    def _generator_factory(self, *, model_events, max_power: float = 100):
+        return TimeSeriesGeneratorFactory(
+            name="generator",
+            energy_unit_id=GENERATOR_ID,
+            fuel_model=linear_fuel_model(fuel_per_power=1.0, max_power=max_power),
+            input_energy_type=FuelGasRate,
+            model_events=model_events,
+        )
+
+    @staticmethod
+    def _upgrade_at(
+        change_time,
+        *,
+        fuel_per_power: float = 1.0,
+        max_power: float = 100,
+        change_target: EnergyUnitId = GENERATOR_ID,
+    ) -> EnergyUnitModelEvent[GeneratorFuelModel]:
+        return EnergyUnitModelEvent(
+            change_target=change_target,
+            change_type=EnergyUnitEventChangeType.REBUNDLE,
+            change_time=change_time,
+            change_to=linear_fuel_model(fuel_per_power=fuel_per_power, max_power=max_power),
+        )
+
+    def test_uses_the_active_fuel_model_per_period(self):
+        generator_factory = self._generator_factory(
+            model_events=[self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5)]
+        )
+        connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (connection,) = connections
+
+        generator = generator_factory.create(ElectricalPower(10), incoming_connections=connections, period=FIRST_PERIOD)
+        generator_upgraded = generator_factory.create(
+            ElectricalPower(10), incoming_connections=connections, period=SECOND_PERIOD
+        )
+
+        assert generator.get_input_energies()[connection.id] == FuelGasRate(10)
+        assert generator_upgraded.get_input_energies()[connection.id] == FuelGasRate(5)
+
+    def test_uses_the_latest_upgrade_in_effect_for_each_period(self):
+        generator_factory = self._generator_factory(
+            model_events=[
+                self._upgrade_at(THIRD_PERIOD.start, fuel_per_power=0.25),
+                self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5),
+            ]
+        )
+        connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (connection,) = connections
+
+        generator = generator_factory.create(ElectricalPower(8), incoming_connections=connections, period=FIRST_PERIOD)
+        generator_first_upgrade = generator_factory.create(
+            ElectricalPower(8), incoming_connections=connections, period=SECOND_PERIOD
+        )
+        generator_second_upgrade = generator_factory.create(
+            ElectricalPower(8), incoming_connections=connections, period=THIRD_PERIOD
+        )
+        generator_carried_forward = generator_factory.create(
+            ElectricalPower(8), incoming_connections=connections, period=FOURTH_PERIOD
+        )
+
+        assert generator.get_input_energies()[connection.id] == FuelGasRate(8)
+        assert generator_first_upgrade.get_input_energies()[connection.id] == FuelGasRate(4)
+        assert generator_second_upgrade.get_input_energies()[connection.id] == FuelGasRate(2)
+        assert generator_carried_forward.get_input_energies()[connection.id] == FuelGasRate(2)
+
+    def test_capacity_is_the_max_power_of_the_active_fuel_model(self):
+        generator_factory = self._generator_factory(
+            max_power=10, model_events=[self._upgrade_at(SECOND_PERIOD.start, max_power=15)]
+        )
+        connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+
+        generator = generator_factory.create(ElectricalPower(5), incoming_connections=connections, period=FIRST_PERIOD)
+        generator_upgraded = generator_factory.create(
+            ElectricalPower(5), incoming_connections=connections, period=SECOND_PERIOD
+        )
+
+        assert generator.get_capacity() == ElectricalPower(10)
+        assert generator_upgraded.get_capacity() == ElectricalPower(15)
+
+    def test_model_events_are_exposed_in_chronological_order(self):
+        later_upgrade = self._upgrade_at(THIRD_PERIOD.start, fuel_per_power=0.25)
+        earlier_upgrade = self._upgrade_at(SECOND_PERIOD.start, fuel_per_power=0.5)
+        generator_factory = self._generator_factory(model_events=[later_upgrade, earlier_upgrade])
+
+        assert generator_factory.model_events == (earlier_upgrade, later_upgrade)
+
+    def test_requires_a_period(self):
+        generator_factory = self._generator_factory(model_events=())
+        connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+
+        with pytest.raises(InvalidEnergyNetworkInputError, match="needs a period"):
+            generator_factory.create(ElectricalPower(10), incoming_connections=connections)
+
+    def test_events_targeting_another_unit_are_rejected(self):
+        with pytest.raises(InvalidEnergyNetworkInputError, match="targeting another energy unit"):
+            self._generator_factory(model_events=[self._upgrade_at(SECOND_PERIOD.start, change_target=FIRST_CANDIDATE)])
+
+    def test_without_events_the_base_model_is_used(self):
+        generator_factory = self._generator_factory(model_events=())
+        connections = incoming(generator_factory.get_id(), FuelGasRate, FIRST_CANDIDATE)
+        (connection,) = connections
+
+        generator = generator_factory.create(ElectricalPower(10), incoming_connections=connections, period=FIRST_PERIOD)
+
+        assert generator.get_input_energies()[connection.id] == FuelGasRate(10)

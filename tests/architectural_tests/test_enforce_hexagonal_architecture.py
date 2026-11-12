@@ -58,9 +58,10 @@ def test_energy_to_import_energy_or_common_only(libecalc_architecture):
 
 @pytest.mark.arch
 def test_ecalc_model_to_import_ecalc_model_or_common_only(libecalc_architecture):
-    allowed_process_dependencies = [
+    allowed_ecalc_model_dependencies = [
         "libecalc.common",
         "libecalc.process",  # Should ecalc_model "module" be allowed to pick stuff from core domains (process, energy, emission)?
+        "libecalc.energy",
         "libecalc.presentation",  # TODO: timeseries stuff, to be moved to ecalc_model?
     ]
     rule = (
@@ -69,6 +70,6 @@ def test_ecalc_model_to_import_ecalc_model_or_common_only(libecalc_architecture)
         .are_named("libecalc.ecalc_model")
         .should_only()
         .import_modules_that()
-        .are_named(allowed_process_dependencies)
+        .are_named(allowed_ecalc_model_dependencies)
     )
     rule.assert_applies(libecalc_architecture())

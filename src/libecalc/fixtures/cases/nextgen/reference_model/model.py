@@ -5,7 +5,10 @@ from libecalc.ecalc_model.timeline_event import TimelineEventType
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    YamlEnergySourceType,
+    YamlGeneratorModelEvent,
+)
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlEfficiencyUnits,
     YamlHeadUnits,
@@ -39,6 +42,7 @@ from libecalc.testing.energy_builders import (
     YamlFileBuilder,
     YamlGasTurbineBuilder,
     YamlGeneratorDefinitionBuilder,
+    YamlGeneratorModelEventBuilder,
     YamlTurbineDefinitionBuilder,
 )
 from libecalc.testing.process_builders import (
@@ -72,6 +76,7 @@ COMPRESSOR_MODEL_A = "compressor_model_A"
 COMPRESSOR_MODEL_B = "compressor_model_B"
 COMPRESSOR_CHART_FILE = "compressor_chart.csv"
 TIE_IN_EVENT = "increased_gas_rate_2027"
+GENERATOR_UPGRADE_EVENT = "generator_upgrade_2030"
 
 EXPORT_TRAIN_ALIASES = [
     ["aliasA", "aliasB"],
@@ -135,6 +140,15 @@ def _timeline():
             .with_type(TimelineEventType.TIE_IN)
             .with_from_when("2025-01-01")
             .with_description("New production wells are tied in to the platform.")
+            .validate(),
+        )
+        .with_event(
+            GENERATOR_UPGRADE_EVENT,
+            YamlTimelineEventBuilder()
+            .with_title("Generator upgrade")
+            .with_type(TimelineEventType.ENERGY_EFFICIENCY_MEASURE)
+            .with_from_when("2030-01-01")
+            .with_description("Generator set genset_a gets a new generator model.")
             .validate(),
         )
         .validate()
@@ -321,6 +335,10 @@ def _drive_train(name: str, input: str, shaft: str, mechanical_efficiencies: dic
     return builder.validate()
 
 
+def _generator_upgrade_events() -> list[YamlGeneratorModelEvent]:
+    return [YamlGeneratorModelEventBuilder().with_test_data().with_ref(GENERATOR_UPGRADE_EVENT).validate()]
+
+
 def _energy_units():
     return [
         _gas_turbine("export_turbine", "fuel_gas"),
@@ -328,6 +346,7 @@ def _energy_units():
         .with_name("genset_a")
         .with_input("fuel_gas2")
         .with_model(YamlGeneratorDefinitionBuilder().with_test_data().validate())
+        .with_events(_generator_upgrade_events())
         .validate(),
         YamlElectricalCableBuilder()
         .with_name("long_cable")

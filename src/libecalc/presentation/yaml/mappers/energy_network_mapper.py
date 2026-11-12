@@ -7,11 +7,14 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.resource import Resource
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
+from libecalc.ecalc_model.model_event import EnergyUnitEventChangeType, EnergyUnitModelEvent
+from libecalc.ecalc_model.timeline_event import TimelineEventService
 from libecalc.energy.dispatch import DispatchStrategy, PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
+from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.energy import (
@@ -88,6 +91,7 @@ class EnergyNetworkMapper:
         self,
         shafts: Mapping[ShaftReference, ShaftEquipment],
         compressor_equipment_ids: Mapping[CompressorReference, EquipmentId],
+        timeline_event_service: TimelineEventService,
         definitions: dict[str, Any] | None = None,
     ):
         self._shafts = shafts
@@ -95,6 +99,7 @@ class EnergyNetworkMapper:
             compressor_equipment_id: name for name, compressor_equipment_id in compressor_equipment_ids.items()
         }
         self._definitions = definitions or {}
+        self._timeline_event_service = timeline_event_service
 
     def map_energy_network(
         self,
@@ -360,6 +365,24 @@ class EnergyNetworkMapper:
         except DefinitionReferenceError as e:
             raise EcalcValidationException(str(e)) from e
 
+    def _map_generator_model_events(
+        self, unit: YamlGenerator, energy_unit_id: EnergyUnitId, resources: Mapping[str, Resource]
+    ) -> list[EnergyUnitModelEvent[GeneratorFuelModel]]:
+        """Resolve the generator's EVENTS into dated model events, taking each date from TIMELINE.EVENTS."""
+        model_events: list[EnergyUnitModelEvent[GeneratorFuelModel]] = []
+        for event in unit.events:
+            assert isinstance(event.change_to, YamlGeneratorDefinition)
+            timeline_event = self._timeline_event_service.get_event_by_reference(event.ref)
+            model_events.append(
+                EnergyUnitModelEvent(
+                    change_target=energy_unit_id,
+                    change_type=EnergyUnitEventChangeType(event.change_type.value),
+                    change_time=timeline_event.from_when,
+                    change_to=map_generator_fuel_model(unit.name, event.change_to, resources),
+                )
+            )
+        return model_events
+
     def _map_unit(
         self,
         unit: YamlComponent,
@@ -379,9 +402,9 @@ class EnergyNetworkMapper:
                     TimeSeriesGeneratorFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
-                        capacity=self._time_series(fuel_model.max_power, expression_evaluator),
                         fuel_model=fuel_model,
                         input_energy_type=input_energy_type,
+                        model_events=self._map_generator_model_events(unit, energy_unit_id, resources),
                     ),
                     input_energy_type,
                     ElectricalPower,

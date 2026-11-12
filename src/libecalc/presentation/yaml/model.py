@@ -346,6 +346,7 @@ class YamlModel:
                 shafts=self._shafts,
                 compressor_equipment_ids=self._get_compressor_equipment_ids(),
                 definitions=self._get_definitions(),
+                timeline_event_service=self._get_timeline_event_service(),
             ).map_energy_network(yaml_energy_network, expression_evaluator, resources=facility_resources)
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
         except EcalcValidationException as e:
