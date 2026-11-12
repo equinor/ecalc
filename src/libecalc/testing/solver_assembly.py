@@ -143,7 +143,7 @@ def assemble_solver(
     )
 
     pipeline_section = PipelineSection(
-        shaft_id=shaft.get_id(),
+        shaft_configuration_handler_id=shaft.get_id(),
         process_pipeline_id=ProcessPipelineId(ecalc_id_generator()),
         process_pipeline_section_id=ProcessPipelineSectionId(ecalc_id_generator()),
         runner=runner,

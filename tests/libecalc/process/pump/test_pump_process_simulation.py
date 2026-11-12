@@ -76,8 +76,8 @@ def test_graph_structure(simulation):
     loop = simulation.get_recirculation_loop()
     splitter = next(unit for unit in units if unit.unit_type is LiquidProcessUnitType.DIRECT_SPLITTER)
     mixer = next(unit for unit in units if unit.unit_type is LiquidProcessUnitType.DIRECT_MIXER)
-    assert loop.splitter_id == splitter.get_id()
-    assert loop.mixer_id == mixer.get_id()
+    assert loop.splitter_process_unit_id == splitter.get_id()
+    assert loop.mixer_process_unit_id == mixer.get_id()
 
 
 def test_streams_projected_onto_every_connection(simulation):

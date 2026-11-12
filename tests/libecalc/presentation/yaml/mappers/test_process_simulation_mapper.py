@@ -401,9 +401,11 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
 # ---------------------------------------------------------------------------
 
 
-def test_rebundle_changes_the_model_and_keeps_the_compressor_id(process_simulation_mapper_factory):
+def test_rebundle_changes_the_model_and_keeps_the_compressor_process_unit_and_equipment_ids(
+    process_simulation_mapper_factory,
+):
     """A REBUNDLE swaps the compressor's model for the one in CHANGE_TO. It is the same physical compressor, so the new
-    model gets the process unit id of the compressor it replaces."""
+    model gets the process unit id and equipment id of the compressor it replaces."""
     model_after = (
         YamlCompressorModelChartBuilder()
         .with_test_data()
@@ -455,4 +457,5 @@ def test_rebundle_changes_the_model_and_keeps_the_compressor_id(process_simulati
     [event] = pipelines[0].get_events()
     assert isinstance(event.change_to, TimeSeriesCompressorProcessUnit)
     assert event.change_to.get_id() == compressor.get_id()
+    assert event.change_to.compressor_equipment_id == compressor.compressor_equipment_id
     assert event.change_to.compressor_chart.maximum_speed == 12000.0

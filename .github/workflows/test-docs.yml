@@ -34,7 +34,7 @@ jobs:
           cd src
           uv run python generate_yaml_asset_docs.py
           cd ..
-          generated_paths="docs/docs/about/process-reference.mdx docs/docs/about/energy-reference.mdx docs/docs/about/yaml-reference.mdx docs/docs/yaml-changelog"
+          generated_paths="docs/docs/about/nextgen/process-reference.mdx docs/docs/about/nextgen/energy-reference.mdx docs/docs/about/nextgen/energy-units docs/docs/about/nextgen/yaml-reference.mdx docs/docs/about/nextgen/yaml-changelog"
           if [ -n "$(git status --porcelain -- $generated_paths)" ]; then
             echo "::error::The generated YAML documentation is out of date. A YAML schema change must be documented with yaml_element_lifecycle(...) or removed_field(...). Run 'uv run ./generate_yaml_asset_docs.py' from libecalc/src and commit the result."
             git status --porcelain -- $generated_paths
@@ -47,7 +47,7 @@ jobs:
           cd src
           uv run python generate_fixture.py
           cd ..
-          generated_paths="src/libecalc/examples/nextgen"
+          generated_paths="src/libecalc/examples/nextgen docs/docs/about/nextgen/examples"
           if [ -n "$(git status --porcelain -- $generated_paths)" ]; then
             echo "::error::The generated nextgen example model is out of date. Run 'uv run python generate_fixture.py' from libecalc/src and commit the result."
             git status --porcelain -- $generated_paths

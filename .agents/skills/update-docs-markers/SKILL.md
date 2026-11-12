@@ -38,7 +38,7 @@ skill is the workflow.
 4. **Regenerate the docs**:
    ```bash
    (cd src && uv run python generate_yaml_asset_docs.py)
-   git diff --stat -- docs/docs/about docs/docs/yaml-changelog
+   git diff --stat -- docs/docs/about/nextgen
    ```
 
 5. **Check the generated docs**:

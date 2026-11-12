@@ -1,6 +1,6 @@
 ---
 title: YAML Reference (Experimental)
-sidebar_position: 8
+sidebar_position: 3
 toc_max_heading_level: 4
 description: Complete reference for all YAML configuration keys, across every schema version.
 ---
@@ -22,7 +22,7 @@ Elements are labelled with their lifecycle: <LifecycleBadge kind="introduced" ve
 
 Use the filter below to show only the elements available for a single YAML_VERSION.
 
-<LifecycleFilter versions={[1, 2, 3, 4]} />
+<LifecycleFilter versions={[1, 2, 3, 4, 5]} />
 
 ## YAML_VERSION \{#yaml_version}
 
@@ -1337,9 +1337,9 @@ Converters, junctions, and consumers forming the energy network.
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `GENERATOR` | Required |
 | `MODEL` | Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS. Inline definition or reference. See [DEFINITIONS.GENERATORS](#generators). | Required |
-| [`EVENTS`](#energy_network-units-generator-events) <LifecycleBadge kind="introduced" version="4" /> | Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry. | Default: `[]` |
+| [`EVENTS`](#energy_network-units-generator-events) <LifecycleBadge kind="introduced" version="5" /> | Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry. | Default: `[]` |
 
-##### EVENTS <LifecycleBadge kind="introduced" version="4" /> \{#energy_network-units-generator-events}
+##### EVENTS <LifecycleBadge kind="introduced" version="5" /> \{#energy_network-units-generator-events}
 
 Events that change the generator model over time, such as a rebundle. Each event takes effect from the date of its referenced TIMELINE.EVENTS entry.
 

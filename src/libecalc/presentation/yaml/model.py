@@ -176,7 +176,7 @@ class YamlModel:
         self._id = uuid.uuid4()  # ID used for "asset" energy container, which is the same as model?
 
     def get_compressors(self) -> list[CompressorEquipment]:
-        """The physical compressors in COMPRESSORS. Their ids are used by both process and energy results."""
+        """The physical compressors in COMPRESSORS. Process and energy units reference them by equipment id."""
         return list(self._compressors.values())
 
     def get_shafts(self) -> list[ShaftEquipment]:
@@ -203,9 +203,6 @@ class YamlModel:
         time_series_resources, _ = self._resource_service.get_time_series_resources()
 
         reference_service = self._get_reference_service()
-        shaft_by_compressor = {
-            compressor: shaft.name for shaft in self._configuration.shafts for compressor in shaft.compressors
-        }
 
         yaml_process_simulations = self._configuration.process_simulations
         mapped_process_simulations = []
@@ -291,7 +288,7 @@ class YamlModel:
                 resources=facility_resources,
                 references=reference_objects,
                 timeline_event_service=timeline_event_service,
-                shaft_by_compressor=shaft_by_compressor,
+                shafts=self._shafts,
                 compressor_equipment_ids=self._get_compressor_equipment_ids(),
             )
 

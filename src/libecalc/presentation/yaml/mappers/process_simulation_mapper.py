@@ -8,6 +8,7 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resources
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
+from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
 from libecalc.ecalc_model.process.configuration_handlers import (
     TimeSeriesConfigurationHandler,
     TimeSeriesShaftConfigurationHandler,
@@ -137,7 +138,7 @@ class ProcessSimulationMapper:
         expression_evaluator: ExpressionEvaluator,
         references: dict[InstanceReference, Any],
         resources: Resources,
-        shaft_by_compressor: Mapping[CompressorReference, ShaftReference],
+        shafts: Mapping[ShaftReference, ShaftEquipment],
         compressor_equipment_ids: Mapping[CompressorReference, EquipmentId],
         timeline_event_service: TimelineEventService,
     ):
@@ -145,7 +146,11 @@ class ProcessSimulationMapper:
         self._references = references
         self._resources = resources
         self._timeline_event_service = timeline_event_service
-        self._shaft_by_compressor = shaft_by_compressor
+        self._shaft_by_compressor_equipment_id: dict[EquipmentId, ShaftEquipment] = {
+            compressor_equipment_id: shaft
+            for shaft in shafts.values()
+            for compressor_equipment_id in shaft.compressor_equipment_ids
+        }
         self._compressor_equipment_ids = compressor_equipment_ids
 
     def _resolve_pipeline_reference(self, ref: str | YamlProcessPipeline) -> YamlProcessPipeline:
@@ -265,6 +270,7 @@ class ProcessSimulationMapper:
         self,
         yaml_pipeline: YamlProcessPipeline,
         unit_name_to_id: dict[InstanceReference, ProcessUnitId],
+        process_unit_map: dict[ProcessUnitId, TimeSeriesProcessUnit],
     ) -> list[PipelineEvent]:
         """Validate pipeline event references and map to domain objects."""
         events: list[PipelineEvent] = []
@@ -272,11 +278,17 @@ class ProcessSimulationMapper:
         for yaml_event in yaml_pipeline.events:
             timeline_event = self._timeline_event_service.get_event_by_reference(yaml_event.ref)
             change_target = unit_name_to_id[yaml_event.change_target]
+            change_target_unit = process_unit_map[change_target]
+            if not isinstance(change_target_unit, TimeSeriesCompressorProcessUnit):
+                raise EcalcValidationException(
+                    f"Pipeline event CHANGE_TARGET '{yaml_event.change_target}' is not a compressor."
+                )
             match yaml_event.change_to:
                 case YamlCompressorModelChart():
-                    # Same physical compressor after the rebundle, so the new model keeps its id.
+                    # Same compressor after the rebundle, so the new model keeps its process unit id and equipment.
                     change_to_unit = TimeSeriesCompressorProcessUnit(
                         compressor_chart=self._get_compressor_chart(yaml_compressor_model_chart=yaml_event.change_to),
+                        compressor_equipment_id=change_target_unit.compressor_equipment_id,
                         process_unit_id=change_target,
                     )
                 case _:
@@ -317,7 +329,7 @@ class ProcessSimulationMapper:
         process_pipeline_reference_to_id_map: dict[str, ProcessPipelineId] = {}
         section_builder = ProcessSectionBuilder()
         # Created on each call, not shared: a shaft holds its connected compressors.
-        shafts: dict[ShaftReference, TimeSeriesShaftConfigurationHandler] = {}
+        shafts: dict[EquipmentId, TimeSeriesShaftConfigurationHandler] = {}
         for yaml_compressor_train_item in yaml_process_simulation.targets:
             problem_configuration_handlers: list[TimeSeriesConfigurationHandler] = []
             item = self._resolve_pipeline_reference(yaml_compressor_train_item)
@@ -339,17 +351,20 @@ class ProcessSimulationMapper:
                                 f"MODEL '{yaml_process_unit.model}' of compressor '{yaml_process_unit.compressor}' is "
                                 "not a compressor model."
                             )
+                        compressor_equipment_id = self._compressor_equipment_ids[yaml_process_unit.compressor]
                         unit = TimeSeriesCompressorProcessUnit(
                             compressor_chart=self._get_compressor_chart(
                                 yaml_compressor_model_chart=yaml_process_unit.model
                             ),
-                            process_unit_id=ProcessUnitId(self._compressor_equipment_ids[yaml_process_unit.compressor]),
+                            compressor_equipment_id=compressor_equipment_id,
                         )
                         unit_name_to_id[yaml_process_unit.get_instance_reference()] = unit.get_id()
-                        shaft_name = self._shaft_by_compressor[yaml_process_unit.compressor]
-                        if shaft_name not in shafts:
-                            shafts[shaft_name] = TimeSeriesShaftConfigurationHandler()
-                        shaft = shafts[shaft_name]
+                        shaft_equipment_id = self._shaft_by_compressor_equipment_id[compressor_equipment_id].get_id()
+                        if shaft_equipment_id not in shafts:
+                            shafts[shaft_equipment_id] = TimeSeriesShaftConfigurationHandler(
+                                shaft_equipment_id=shaft_equipment_id
+                            )
+                        shaft = shafts[shaft_equipment_id]
                         shaft.connect(unit.get_id())
 
                         if shaft not in problem_configuration_handlers:
@@ -418,6 +433,7 @@ class ProcessSimulationMapper:
             pipeline_events = self._validate_and_map_pipeline_events(
                 yaml_pipeline=item,
                 unit_name_to_id=unit_name_to_id,
+                process_unit_map=process_unit_map,
             )
             # TODO: We should move this class to this module/layer
             # in particular because it creates necessary connections, which means that they will get new IDs

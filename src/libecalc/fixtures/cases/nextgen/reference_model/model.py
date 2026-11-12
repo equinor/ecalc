@@ -29,6 +29,7 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import Y
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariable, YamlVariables
+from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION, V5
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.testing.energy_builders import (
     YamlCompressorSampledBuilder,
@@ -130,19 +131,18 @@ def _variables() -> YamlVariables:
     }
 
 
-def _timeline():
-    return (
-        YamlTimelineBuilder()
-        .with_event(
-            TIE_IN_EVENT,
-            YamlTimelineEventBuilder()
-            .with_title("Tie-in of new wells")
-            .with_type(TimelineEventType.TIE_IN)
-            .with_from_when("2025-01-01")
-            .with_description("New production wells are tied in to the platform.")
-            .validate(),
-        )
-        .with_event(
+def _timeline(yaml_version: int):
+    builder = YamlTimelineBuilder().with_event(
+        TIE_IN_EVENT,
+        YamlTimelineEventBuilder()
+        .with_title("Tie-in of new wells")
+        .with_type(TimelineEventType.TIE_IN)
+        .with_from_when("2025-01-01")
+        .with_description("New production wells are tied in to the platform.")
+        .validate(),
+    )
+    if yaml_version >= V5.major:
+        builder = builder.with_event(
             GENERATOR_UPGRADE_EVENT,
             YamlTimelineEventBuilder()
             .with_title("Generator upgrade")
@@ -151,8 +151,7 @@ def _timeline():
             .with_description("Generator set genset_a gets a new generator model.")
             .validate(),
         )
-        .validate()
-    )
+    return builder.validate()
 
 
 def _shafts() -> list[YamlShaft]:
@@ -345,15 +344,22 @@ def _generator_upgrade_events() -> list[YamlGeneratorModelEvent]:
     ]
 
 
-def _energy_units():
-    return [
-        _gas_turbine("export_turbine", "fuel_gas"),
+def _genset_a(yaml_version: int):
+    builder = (
         YamlEnergyGeneratorBuilder()
         .with_name("genset_a")
         .with_input("fuel_gas2")
         .with_model(YamlGeneratorDefinitionBuilder().with_test_data().validate())
-        .with_events(_generator_upgrade_events())
-        .validate(),
+    )
+    if yaml_version >= V5.major:
+        builder = builder.with_events(_generator_upgrade_events())
+    return builder.validate()
+
+
+def _energy_units(yaml_version: int):
+    return [
+        _gas_turbine("export_turbine", "fuel_gas"),
+        _genset_a(yaml_version),
         YamlElectricalCableBuilder()
         .with_name("long_cable")
         .with_input("genset_a")
@@ -378,23 +384,24 @@ def _energy_units():
     ]
 
 
-def _energy_network():
-    return YamlEnergyNetworkBuilder().with_sources(_energy_sources()).with_units(_energy_units()).validate()
+def _energy_network(yaml_version: int):
+    return YamlEnergyNetworkBuilder().with_sources(_energy_sources()).with_units(_energy_units(yaml_version)).validate()
 
 
-def build_reference_model() -> YamlAsset:
+def build_reference_model(yaml_version: int = LATEST_YAML_VERSION) -> YamlAsset:
     return (
         YamlAssetBuilder()
+        .with_yaml_version(yaml_version)
         .with_start(START)
         .with_end(END)
         .with_time_series(_time_series())
         .with_variables(_variables())
-        .with_timeline(_timeline())
+        .with_timeline(_timeline(yaml_version))
         .with_shafts(_shafts())
         .with_compressors(_compressors())
         .with_definitions(_definitions())
         .with_process_pipelines(_process_pipelines())
         .with_process_simulations([_process_simulation()])
-        .with_energy_network(_energy_network())
+        .with_energy_network(_energy_network(yaml_version))
         .validate()
     )

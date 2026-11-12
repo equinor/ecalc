@@ -1,8 +1,8 @@
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.energy import EnergyUnitId
 from libecalc.presentation.yaml.domain.energy import TimeSeriesEnergyUnit
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 
 
 class TimeSeriesProcessCompressor(TimeSeriesEnergyUnit):
@@ -16,13 +16,13 @@ class TimeSeriesProcessCompressor(TimeSeriesEnergyUnit):
     def __init__(
         self,
         *,
-        process_unit_id: ProcessUnitId,
+        compressor_equipment_id: EquipmentId,
         name: str,
         energy_unit_id: EnergyUnitId | None = None,
         mechanical_efficiency: TimeSeriesExpression | None = None,
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id)
-        self.process_unit_id = process_unit_id
+        self.compressor_equipment_id = compressor_equipment_id
         self.mechanical_efficiency = mechanical_efficiency
 
     def get_mechanical_efficiency(self, period: Period) -> float:

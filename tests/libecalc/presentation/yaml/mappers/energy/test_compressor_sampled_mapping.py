@@ -13,7 +13,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import Yam
 
 GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 COMPRESSOR_NAME = "23KA001 Gas Compressor"
-COMPRESSOR_IDS = {COMPRESSOR_NAME: CompressorEquipment(name=COMPRESSOR_NAME).get_id()}
+COMPRESSOR_EQUIPMENT_IDS = {COMPRESSOR_NAME: CompressorEquipment(name=COMPRESSOR_NAME).get_id()}
 
 
 def _network(compressor_input: str, **compressor_fields) -> YamlEnergyNetwork:
@@ -49,7 +49,7 @@ class TestMapperExpansion:
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         topology, factories, consumers = energy_network_mapper_factory(
-            compressor_ids=COMPRESSOR_IDS
+            compressor_equipment_ids=COMPRESSOR_EQUIPMENT_IDS
         ).map_energy_network(
             _network("fuel"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel)}
         )
@@ -69,7 +69,7 @@ class TestMapperExpansion:
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         topology, factories, consumers = energy_network_mapper_factory(
-            compressor_ids=COMPRESSOR_IDS
+            compressor_equipment_ids=COMPRESSOR_EQUIPMENT_IDS
         ).map_energy_network(
             _network("genset"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, POWER=power)}
         )
@@ -85,7 +85,7 @@ class TestMapperExpansion:
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         topology, factories, consumers = energy_network_mapper_factory(
-            compressor_ids=COMPRESSOR_IDS
+            compressor_equipment_ids=COMPRESSOR_EQUIPMENT_IDS
         ).map_energy_network(
             _network("fuel"),
             evaluator,
@@ -110,7 +110,7 @@ class TestMapperExpansion:
     def test_missing_resource_rejected(self, energy_network_mapper_factory, expression_evaluator_factory, period):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         with pytest.raises(EcalcValidationException, match="FILE 'compressor.csv' not found"):
-            energy_network_mapper_factory(compressor_ids=COMPRESSOR_IDS).map_energy_network(
+            energy_network_mapper_factory(compressor_equipment_ids=COMPRESSOR_EQUIPMENT_IDS).map_energy_network(
                 _network("fuel"), evaluator, resources={}
             )
 
@@ -119,7 +119,7 @@ class TestMapperExpansion:
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
         with pytest.raises(EcalcValidationException, match="must be fed FuelGasRate"):
-            energy_network_mapper_factory(compressor_ids=COMPRESSOR_IDS).map_energy_network(
+            energy_network_mapper_factory(compressor_equipment_ids=COMPRESSOR_EQUIPMENT_IDS).map_energy_network(
                 _network("genset"), evaluator, resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel)}
             )
 
@@ -127,7 +127,9 @@ class TestMapperExpansion:
         self, energy_network_mapper_factory, expression_evaluator_factory, period, make_resource, fuel
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        _, _, consumers = energy_network_mapper_factory(compressor_ids=COMPRESSOR_IDS).map_energy_network(
+        _, _, consumers = energy_network_mapper_factory(
+            compressor_equipment_ids=COMPRESSOR_EQUIPMENT_IDS
+        ).map_energy_network(
             _network("fuel", RATE=999_999),
             evaluator,
             resources={"compressor.csv": make_resource(RATE=[1000.0, 2000.0, 3000.0], FUEL=fuel)},
@@ -158,7 +160,7 @@ class TestMapperExpansion:
             }
         )
         with pytest.raises(EcalcValidationException, match="Duplicate names.*compressor turbine"):
-            energy_network_mapper_factory(compressor_ids=COMPRESSOR_IDS).map_energy_network(
+            energy_network_mapper_factory(compressor_equipment_ids=COMPRESSOR_EQUIPMENT_IDS).map_energy_network(
                 yaml_network,
                 evaluator,
                 resources={"compressor.csv": make_resource(RATE=rates, FUEL=fuel, POWER=power)},

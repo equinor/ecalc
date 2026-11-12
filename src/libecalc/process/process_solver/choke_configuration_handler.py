@@ -14,7 +14,7 @@ class ChokeConfigurationHandler(ConfigurationHandler):
     def get_id(self) -> ConfigurationHandlerId:
         return self._id
 
-    def get_choke_id(self) -> ProcessUnitId:
+    def get_choke_process_unit_id(self) -> ProcessUnitId:
         return self._choke.get_id()
 
     def get_pressure_change(self) -> float:
