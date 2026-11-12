@@ -27,8 +27,3 @@ def load_nextgen_yaml(yaml_version: int) -> YamlCase:
 @pytest.fixture
 def nextgen_yaml() -> YamlCase:
     return load_nextgen_yaml(LATEST_YAML_VERSION)
-
-
-@pytest.fixture
-def nextgen_previous_yaml() -> YamlCase:
-    return load_nextgen_yaml(LATEST_YAML_VERSION - 1)
