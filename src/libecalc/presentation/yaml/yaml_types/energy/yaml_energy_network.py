@@ -457,8 +457,9 @@ class YamlCompressorMechanicalEfficiency(YamlBase):
         Field(
             title="EFFICIENCY",
             description=(
-                "Mechanical efficiency (0–1] of the compressor: gas power divided by shaft power. "
-                "Covers losses in the compressor's bearings and seals, not in the driver or transmission."
+                "Mechanical efficiency (0–1] of the compressor: gas power divided by the shaft power it demands "
+                "from the driver. Covers losses in the compressor's bearings and seals and its share of the gearbox "
+                "and couplings, not the driver's own losses."
             ),
         ),
     ]
