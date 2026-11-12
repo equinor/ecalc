@@ -3,10 +3,9 @@ import pytest
 from libecalc.fixtures import YamlCase
 
 
-@pytest.fixture(params=["nextgen_yaml", "nextgen_previous_yaml"])
-def nextgen_model(request: pytest.FixtureRequest):
-    yaml_case: YamlCase = request.getfixturevalue(request.param)
-    model = yaml_case.get_yaml_model()
+@pytest.fixture
+def nextgen_model(nextgen_yaml: YamlCase):
+    model = nextgen_yaml.get_yaml_model()
     model.validate_for_run()
     return model
 

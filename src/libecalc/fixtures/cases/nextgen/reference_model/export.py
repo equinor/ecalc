@@ -22,7 +22,6 @@ EXPORT_INFO_AUTHOR = "fg_ecalc@equinor.com"
 _ARCHIVE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
 _EXPORT_INFO_DATE = re.compile(r"- (\d{4}-\d{2}-\d{2}) - v\d+")
 _MIDNIGHT_DATETIME = re.compile(r"^(\d{4}-\d{2}-\d{2})T00:00:00$")
-_VERSION_DIRECTORY = re.compile(r"^v\d+$")
 _NUMBER = re.compile(r"^-?\d+(\.\d+)?$")
 _EXPRESSION_KEY = "VALUE"
 
@@ -82,40 +81,17 @@ def version_directory_name(yaml_version: int) -> str:
     return f"v{yaml_version}"
 
 
-def all_example_yaml_versions() -> list[int]:
-    return [LATEST_YAML_VERSION - 1, LATEST_YAML_VERSION]
-
-
-def example_yaml_versions(include_previous: bool = False) -> list[int]:
-    return all_example_yaml_versions() if include_previous else [LATEST_YAML_VERSION]
-
-
 def export_reference_model(output_directory: Path, yaml_version: int = LATEST_YAML_VERSION) -> list[Path]:
-    output_directory.mkdir(parents=True, exist_ok=True)
-    for file_name in generated_file_names(output_directory):
-        (output_directory / file_name).unlink()
+    version_directory = output_directory / version_directory_name(yaml_version)
+    version_directory.mkdir(parents=True, exist_ok=True)
+    for file_name in generated_file_names(version_directory):
+        (version_directory / file_name).unlink()
 
-    model_path = output_directory / MODEL_FILE_NAME
+    model_path = version_directory / MODEL_FILE_NAME
     model_path.write_text(render_model_yaml(build_reference_model(yaml_version)))
 
-    resource_copies = [Path(shutil.copy(path, output_directory / path.name)) for path in resource_paths()]
+    resource_copies = [Path(shutil.copy(path, version_directory / path.name)) for path in resource_paths()]
     return [model_path, *resource_copies]
-
-
-def export_reference_models(output_directory: Path, include_previous: bool = False) -> list[Path]:
-    output_directory.mkdir(parents=True, exist_ok=True)
-    kept_directory_names = {version_directory_name(version) for version in all_example_yaml_versions()}
-    for path in output_directory.iterdir():
-        if path.is_file() and (path.name == MODEL_FILE_NAME or path.suffix == RESOURCE_SUFFIX):
-            path.unlink()
-        elif path.is_dir() and _VERSION_DIRECTORY.match(path.name) and path.name not in kept_directory_names:
-            shutil.rmtree(path)
-
-    return [
-        path
-        for version in example_yaml_versions(include_previous)
-        for path in export_reference_model(output_directory / version_directory_name(version), version)
-    ]
 
 
 def archive_file_name(yaml_version: int) -> str:
@@ -156,7 +132,8 @@ def _existing_export_date(archive_path: Path) -> str | None:
     return match.group(1) if match else None
 
 
-def export_example_archive(archive_directory: Path, model_directory: Path, yaml_version: int) -> Path:
+def export_example_archive(archive_directory: Path, output_directory: Path, yaml_version: int) -> Path:
+    model_directory = output_directory / version_directory_name(yaml_version)
     archive_directory.mkdir(parents=True, exist_ok=True)
     archive_path = archive_directory / archive_file_name(yaml_version)
     existing_date = _existing_export_date(archive_path)
@@ -166,17 +143,3 @@ def export_example_archive(archive_directory: Path, model_directory: Path, yaml_
             return archive_path
     archive_path.write_bytes(_build_archive(model_directory, yaml_version, date.today().isoformat()))
     return archive_path
-
-
-def export_example_archives(
-    archive_directory: Path, output_directory: Path, include_previous: bool = False
-) -> list[Path]:
-    archive_directory.mkdir(parents=True, exist_ok=True)
-    kept_names = {archive_file_name(version) for version in all_example_yaml_versions()}
-    for path in archive_directory.glob(f"example_model_v*{ARCHIVE_SUFFIX}"):
-        if path.name not in kept_names:
-            path.unlink()
-    return [
-        export_example_archive(archive_directory, output_directory / version_directory_name(version), version)
-        for version in example_yaml_versions(include_previous)
-    ]
