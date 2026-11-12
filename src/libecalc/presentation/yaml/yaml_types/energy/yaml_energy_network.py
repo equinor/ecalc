@@ -123,7 +123,7 @@ class YamlGeneratorModelEvent(YamlBase):
         YamlGeneratorEventChangeType,
         Field(
             title="CHANGE_TYPE",
-            description="Nature of the change. REBUNDLE: same physical generator with a new curve.",
+            description="Nature of the change. REBUNDLE: the generator stays the same unit in the energy network, with a new model.",
         ),
     ] = YamlGeneratorEventChangeType.REBUNDLE
     ref: Annotated[
