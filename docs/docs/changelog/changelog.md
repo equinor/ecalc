@@ -1,5 +1,35 @@
 # Changelog
 
+## [15.7.0](https://github.com/equinor/ecalc/compare/v15.6.0...v15.7.0) (2026-11-13)
+
+
+### Features
+
+* **libecalc.core:** move lower heating value to fuel/diesel sources ([#1936](https://github.com/equinor/ecalc/issues/1936)) ([abec975](https://github.com/equinor/ecalc/commit/abec9754d08d88cfb66c3434bc48c32490abeaa4))
+* support generator model change at timeline events ([#1928](https://github.com/equinor/ecalc/issues/1928)) ([d4f9373](https://github.com/equinor/ecalc/commit/d4f937378b04d31da0a94cd331ee4974a2792cb7))
+
+
+### Documentation
+
+* add mechanical efficiency to the NextGen example model ([#1938](https://github.com/equinor/ecalc/issues/1938)) ([1b0026a](https://github.com/equinor/ecalc/commit/1b0026a7ff0cef593404a4d537d47fcd425ea6de))
+* generate energy diagram and components in docs [AI Assisted] ([#1935](https://github.com/equinor/ecalc/issues/1935)) ([753a1cf](https://github.com/equinor/ecalc/commit/753a1cf9910001784f370d6329481600d5e1eacf))
+
+
+### Miscellaneous Chores
+
+* bump to yaml v5 and renovate nextgen docs ([#1933](https://github.com/equinor/ecalc/issues/1933)) ([a8a4e59](https://github.com/equinor/ecalc/commit/a8a4e59cb77aebb86befd4e183afc8eaed003e9e))
+* generate fixtures from code ([#1932](https://github.com/equinor/ecalc/issues/1932)) ([671e32a](https://github.com/equinor/ecalc/commit/671e32a5c3707e642eab355eef9a4e0c7cab50b2))
+* only generate examples for latest/current version ([#1939](https://github.com/equinor/ecalc/issues/1939)) ([3b4c4cd](https://github.com/equinor/ecalc/commit/3b4c4cd57f7602da6e5b48b6f7e841a760905e07))
+* only update docs for current version by default ([#1937](https://github.com/equinor/ecalc/issues/1937)) ([f37acc3](https://github.com/equinor/ecalc/commit/f37acc38270f432d58fe6c82cf35d4dda799e353))
+* versioned docs ([221f47c](https://github.com/equinor/ecalc/commit/221f47c4fcecbbc8175fff74a1059a1332890426))
+
+
+### Code Refactoring
+
+* clarify compressor ids in process, energy and equipment domain ([abd2225](https://github.com/equinor/ecalc/commit/abd22256fda17f00b7c570549088ba5e3104714f))
+* introduce TimeSeriesProcessUnit classes ([4bd0d26](https://github.com/equinor/ecalc/commit/4bd0d2636df14d933921156e93b97d55ed53551f))
+* separate mapping classes from process domain ([0ec5796](https://github.com/equinor/ecalc/commit/0ec579645714418abc1e2020e4ebb2d8a6526c08))
+
 ## [15.6.0](https://github.com/equinor/ecalc/compare/v15.5.0...v15.6.0) (2026-11-10)
 
 
