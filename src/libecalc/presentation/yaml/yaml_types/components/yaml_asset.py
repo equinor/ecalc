@@ -45,6 +45,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V2,
     V3,
     V4,
+    V5,
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
@@ -100,6 +101,7 @@ class YamlDefinitions(YamlBase):
         "Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the "
         "last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of "
         "a DIESEL_ENGINE.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V5),
     )
 
     # REMOVED FIELDS

@@ -7,12 +7,14 @@ from libecalc.energy.models.combustion_engine_fuel_model import validate_combust
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineCurve
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
+from libecalc.presentation.yaml.yaml_types.yaml_version import V5, yaml_element_lifecycle
 
 
 class YamlDieselEngineDefinition(YamlBase):
     model_config = ConfigDict(
         title="DieselEngineDefinition",
         json_schema_extra={
+            **yaml_element_lifecycle(available_since=V5),
             "examples": [
                 {
                     "CURVE": {

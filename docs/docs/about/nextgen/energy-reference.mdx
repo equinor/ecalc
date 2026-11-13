@@ -133,7 +133,7 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 </Tabs>
 
-### DIESEL_ENGINES \{#diesel_engines}
+### DIESEL_ENGINES <LifecycleBadge kind="introduced" version="5" /> \{#diesel_engines}
 
 Defines diesel engines that can be referenced from DIESEL_ENGINE units in the ENERGY_NETWORK. Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of a DIESEL_ENGINE.
 
@@ -247,6 +247,8 @@ Events that change the generator model over time, such as a rebundle. Each event
 <TabItem value="DIESEL_ENGINE" label="DIESEL_ENGINE">
 
 <div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="5" />
 
 | Key | Description | Status |
 | --- | --- | --- |

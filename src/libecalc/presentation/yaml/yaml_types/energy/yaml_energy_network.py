@@ -208,7 +208,7 @@ class YamlGasTurbine(YamlConverterBase):
 
 
 class YamlDieselEngine(YamlConverterBase):
-    model_config = ConfigDict(title="DieselEngine")
+    model_config = ConfigDict(title="DieselEngine", json_schema_extra=yaml_element_lifecycle(available_since=V5))
 
     type: Literal["DIESEL_ENGINE"]
     model: Annotated[
