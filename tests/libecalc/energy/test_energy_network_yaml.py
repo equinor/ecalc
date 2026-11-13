@@ -33,11 +33,15 @@ def _load_network(yaml_path: Path) -> YamlEnergyNetwork:
     return YamlEnergyNetwork.model_validate(raw["ENERGY_NETWORK"])
 
 
+def _units_by_name(network: YamlEnergyNetwork) -> dict[str, YamlComponent]:
+    return {c.name: c for c in network.units if not isinstance(c, YamlCompressorSampled | YamlDriveTrain)}
+
+
 class TestExampleYamlParsing:
     def test_parses_example_yaml(self):
         network = _load_network(EXAMPLE_YAML)
         assert len(network.sources) == 5
-        assert len(network.units) == 14
+        assert len(network.units) == 15
         turbine = next(unit for unit in network.units if isinstance(unit, YamlGasTurbine))
         assert isinstance(turbine.model, YamlTurbineDefinition)
 
@@ -50,28 +54,30 @@ class TestExampleYamlParsing:
 
     def test_units_are_correct_types(self):
         network = _load_network(EXAMPLE_YAML)
-        by_name = {c.name: c for c in network.units}
+        by_name = _units_by_name(network)
 
         assert isinstance(by_name["genset_a"], YamlGenerator)
         assert isinstance(by_name["electrical_bus"], YamlElectricalBus)
         assert isinstance(by_name["subsea_cable"], YamlElectricalCable)
         assert isinstance(by_name["base_load"], YamlElectricalConsumer)
         assert isinstance(by_name["flare"], YamlFuelGasConsumer)
-        assert isinstance(by_name["export_train"], YamlDriveTrain)
-        assert isinstance(by_name["gas_compressor_sampled"], YamlCompressorSampled)
+        assert isinstance(by_name["gas_compressor_turbine"], YamlGasTurbine)
+        (drive_train,) = (unit for unit in network.units if isinstance(unit, YamlDriveTrain))
+        assert drive_train.shaft == "export_shaft"
+        (sampled_compressor,) = (unit for unit in network.units if isinstance(unit, YamlCompressorSampled))
+        assert sampled_compressor.compressor == "23KA001 Gas Compressor"
+        assert sampled_compressor.input == "gas_compressor_turbine"
 
     def test_consumers_use_load_and_rate(self):
-        network = _load_network(EXAMPLE_YAML)
-        by_name = {c.name: c for c in network.units}
+        by_name = _units_by_name(_load_network(EXAMPLE_YAML))
 
         assert by_name["base_load"].load == 5
         assert by_name["flare"].rate == 1200
         assert by_name["diesel_consumers"].rate == 500
-        assert by_name["export_train"].shaft == "export_shaft"
 
     def test_dispatch_strategy_on_junction(self):
         network = _load_network(EXAMPLE_YAML)
-        bus = next(c for c in network.units if c.name == "electrical_bus")
+        bus = _units_by_name(network)["electrical_bus"]
         assert isinstance(bus, YamlElectricalBus)
         assert bus.dispatch_strategy == "PRIORITY"
         assert [(junction_input.name, junction_input.capacity) for junction_input in bus.get_inputs()] == [
@@ -103,7 +109,6 @@ class TestNumericBounds:
         with pytest.raises(ValidationError, match="EFFICIENCY must be in"):
             _component_adapter.validate_python(
                 {
-                    "NAME": "d",
                     "TYPE": "DRIVE_TRAIN",
                     "INPUT": "t",
                     "SHAFT": "s",
@@ -156,7 +161,6 @@ class TestDriveTrainValidation:
         with pytest.raises(ValidationError, match="MECHANICAL_EFFICIENCIES lists compressors more than once: c"):
             _component_adapter.validate_python(
                 {
-                    "NAME": "d",
                     "TYPE": "DRIVE_TRAIN",
                     "INPUT": "t",
                     "SHAFT": "s",
@@ -380,7 +384,6 @@ class TestNetworkValidation:
                     {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
                     {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset"},
                     {
-                        "NAME": "compressor",
                         "TYPE": "DRIVE_TRAIN",
                         "INPUT": "motor",
                         "SHAFT": "shaft",
@@ -395,10 +398,9 @@ class TestSampledCompressor:
     def test_parses_with_file_and_lookup_variables(self):
         comp = _component_adapter.validate_python(
             {
-                "NAME": "c",
                 "TYPE": "COMPRESSOR_SAMPLED",
                 "COMPRESSOR": "C-1",
-                "INPUT": "fuel",
+                "INPUT": "turbine",
                 "FILE": "c.csv",
                 "RATE": 1000,
             }
@@ -407,14 +409,14 @@ class TestSampledCompressor:
         assert comp.file == "c.csv"
         assert comp.rate == 1000
 
-    def test_input_energy_type_is_not_checked_by_schema(self):
-        for source_type in ("FUEL_GAS_SOURCE", "ELECTRICAL_SOURCE"):
+    @pytest.mark.parametrize("source_type", ["FUEL_GAS_SOURCE", "ELECTRICAL_SOURCE", "DIESEL_SOURCE"])
+    def test_input_must_provide_mechanical_power(self, source_type):
+        with pytest.raises(ValueError, match="COMPRESSOR_SAMPLED 'C-1' .* expects MECHANICAL input"):
             YamlEnergyNetwork.model_validate(
                 {
                     "SOURCES": [{"NAME": "src", "TYPE": source_type}],
                     "UNITS": [
                         {
-                            "NAME": "c",
                             "TYPE": "COMPRESSOR_SAMPLED",
                             "COMPRESSOR": "C-1",
                             "INPUT": "src",
@@ -431,15 +433,15 @@ class TestSampledCompressor:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
+                        {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
                         {
-                            "NAME": "c",
                             "TYPE": "COMPRESSOR_SAMPLED",
                             "COMPRESSOR": "C-1",
-                            "INPUT": "fuel",
+                            "INPUT": "turbine",
                             "FILE": "c.csv",
                             "RATE": 1000,
                         },
-                        {"NAME": "load", "TYPE": "FUEL_GAS_CONSUMER", "INPUT": "c", "RATE": 5},
+                        {"NAME": "load", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "C-1", "LOAD": 5},
                     ],
                 }
             )

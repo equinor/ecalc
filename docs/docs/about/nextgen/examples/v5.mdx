@@ -12,9 +12,7 @@ import yamlModel from '!!raw-loader!@examples/nextgen/v5/model.yaml';
 import resource0 from '!!raw-loader!@examples/nextgen/v5/base_profile.csv';
 import resource1 from '!!raw-loader!@examples/nextgen/v5/compressor_chart.csv';
 import resource2 from '!!raw-loader!@examples/nextgen/v5/sampled_el_compressor.csv';
-import resource3 from '!!raw-loader!@examples/nextgen/v5/sampled_fuel_compressor.csv';
-import resource4 from '!!raw-loader!@examples/nextgen/v5/sampled_fuel_turbine.csv';
-import resource5 from '!!raw-loader!@examples/nextgen/v5/sampled_mech_compressor.csv';
+import resource3 from '!!raw-loader!@examples/nextgen/v5/sampled_mech_compressor.csv';
 
 # NextGen model example, In development (v5)
 
@@ -25,24 +23,21 @@ graph TD
     fuel_gas(["fuel_gas<br/>FUEL_GAS_SOURCE"])
     fuel_gas2(["fuel_gas2<br/>FUEL_GAS_SOURCE"])
     fuel_gas3(["fuel_gas3<br/>FUEL_GAS_SOURCE"])
-    fuel_gas4(["fuel_gas4<br/>FUEL_GAS_SOURCE"])
-    fuel_gas5(["fuel_gas5<br/>FUEL_GAS_SOURCE"])
     el_source(["el_source<br/>ELECTRICAL_SOURCE"])
     pfs(["pfs<br/>ELECTRICAL_SOURCE"])
     export_turbine["export_turbine<br/>GAS_TURBINE"]
     genset_a["genset_a<br/>GENERATOR"]
     long_cable["long_cable<br/>ELECTRICAL_CABLE"]
     export_motor["export_motor<br/>ELECTRICAL_MOTOR"]
-    export_train_1_drive["export_train_1_drive<br/>DRIVE_TRAIN"]
-    export_train_2_el["export_train_2_el<br/>DRIVE_TRAIN"]
+    drive_train_export_shaft_1["DRIVE_TRAIN"]
+    drive_train_export_shaft_2["DRIVE_TRAIN"]
     pfs_motor["pfs_motor<br/>ELECTRICAL_MOTOR"]
-    pfs_train["pfs_train<br/>DRIVE_TRAIN"]
+    drive_train_export_shaft_3["DRIVE_TRAIN"]
     base_load["base_load<br/>ELECTRICAL_CONSUMER"]
-    el_compressor_sampled["el_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
-    fuel_compressor_sampled["fuel_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
+    sampled_el_motor["sampled_el_motor<br/>ELECTRICAL_MOTOR"]
+    sampled_el_compressor["sampled_el_compressor<br/>COMPRESSOR_SAMPLED"]
     sampled_turbine["sampled_turbine<br/>GAS_TURBINE"]
-    mech_compressor_sampled["mech_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
-    turbine_compressor_sampled["turbine_compressor_sampled<br/>COMPRESSOR_SAMPLED"]
+    sampled_mech_compressor["sampled_mech_compressor<br/>COMPRESSOR_SAMPLED"]
     shaft_export_shaft_1[/"export_shaft_1<br/>SHAFT"/]
     shaft_export_shaft_2[/"export_shaft_2<br/>SHAFT"/]
     shaft_export_shaft_3[/"export_shaft_3<br/>SHAFT"/]
@@ -62,19 +57,18 @@ graph TD
     fuel_gas2 --> genset_a
     genset_a --> long_cable
     long_cable --> export_motor
-    export_turbine --> export_train_1_drive
-    export_motor --> export_train_2_el
+    export_turbine --> drive_train_export_shaft_1
+    export_motor --> drive_train_export_shaft_2
     pfs --> pfs_motor
-    pfs_motor --> pfs_train
+    pfs_motor --> drive_train_export_shaft_3
     el_source --> base_load
-    genset_a --> el_compressor_sampled
-    fuel_gas3 --> fuel_compressor_sampled
-    fuel_gas4 --> sampled_turbine
-    sampled_turbine --> mech_compressor_sampled
-    fuel_gas5 --> turbine_compressor_sampled
-    export_train_1_drive --> shaft_export_shaft_1
-    export_train_2_el --> shaft_export_shaft_2
-    pfs_train --> shaft_export_shaft_3
+    genset_a --> sampled_el_motor
+    sampled_el_motor --> sampled_el_compressor
+    fuel_gas3 --> sampled_turbine
+    sampled_turbine --> sampled_mech_compressor
+    drive_train_export_shaft_1 --> shaft_export_shaft_1
+    drive_train_export_shaft_2 --> shaft_export_shaft_2
+    drive_train_export_shaft_3 --> shaft_export_shaft_3
     shaft_export_shaft_1 --> compressor_export_train_1_compressor1
     shaft_export_shaft_1 --> compressor_export_train_1_compressor2
     shaft_export_shaft_2 --> compressor_export_train_2_compressor1
@@ -109,8 +103,8 @@ The model contains:
 - One `PROCESS_SIMULATIONS` entry that distributes a common inlet stream between the export trains, with constraints for each
   train.
 - An `ENERGY_NETWORK` with fuel gas and electrical sources, generator, gas turbines, electrical cable and motors, drive
-  trains for the export trains, an electrical consumer, and sampled compressors that are driven electrically,
-  mechanically and by fuel.
+  trains for the export trains, an electrical consumer, and sampled compressors driven by an electrical motor and by
+  a gas turbine.
 - `MECHANICAL_EFFICIENCIES` on `export_train_1_drive`, for both compressors on its shaft, and on `export_train_2_el`,
   for one compressor. The other compressor has efficiency 1.0.
 
@@ -128,6 +122,4 @@ model, the input files and `export_info.json`.
 <CodeBlock title="base_profile.csv">{resource0}</CodeBlock>
 <CodeBlock title="compressor_chart.csv">{resource1}</CodeBlock>
 <CodeBlock title="sampled_el_compressor.csv">{resource2}</CodeBlock>
-<CodeBlock title="sampled_fuel_compressor.csv">{resource3}</CodeBlock>
-<CodeBlock title="sampled_fuel_turbine.csv">{resource4}</CodeBlock>
-<CodeBlock title="sampled_mech_compressor.csv">{resource5}</CodeBlock>
+<CodeBlock title="sampled_mech_compressor.csv">{resource3}</CodeBlock>

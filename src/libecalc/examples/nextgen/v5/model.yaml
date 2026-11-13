@@ -80,9 +80,7 @@ COMPRESSORS:
   - NAME: export_train_4_compressor2
     ALIAS: aliasH
   - NAME: sampled_el_compressor
-  - NAME: sampled_fuel_compressor
   - NAME: sampled_mech_compressor
-  - NAME: sampled_turbine
 PROCESS_PIPELINES:
   export_train_1:
     NAME: export_train_1
@@ -219,10 +217,6 @@ ENERGY_NETWORK:
       TYPE: FUEL_GAS_SOURCE
     - NAME: fuel_gas3
       TYPE: FUEL_GAS_SOURCE
-    - NAME: fuel_gas4
-      TYPE: FUEL_GAS_SOURCE
-    - NAME: fuel_gas5
-      TYPE: FUEL_GAS_SOURCE
     - NAME: el_source
       TYPE: ELECTRICAL_SOURCE
     - NAME: pfs
@@ -260,18 +254,16 @@ ENERGY_NETWORK:
       CAPACITY: 5
       TYPE: ELECTRICAL_MOTOR
       EFFICIENCY: 0.95
-    - NAME: export_train_1_drive
+    - TYPE: DRIVE_TRAIN
       INPUT: export_turbine
-      TYPE: DRIVE_TRAIN
       SHAFT: export_shaft_1
       MECHANICAL_EFFICIENCIES:
         - COMPRESSOR: export_train_1_compressor1
           EFFICIENCY: 0.97
         - COMPRESSOR: export_train_1_compressor2
           EFFICIENCY: 0.95
-    - NAME: export_train_2_el
+    - TYPE: DRIVE_TRAIN
       INPUT: export_motor
-      TYPE: DRIVE_TRAIN
       SHAFT: export_shaft_2
       MECHANICAL_EFFICIENCIES:
         - COMPRESSOR: export_train_2_compressor1
@@ -281,51 +273,37 @@ ENERGY_NETWORK:
       CAPACITY: 5
       TYPE: ELECTRICAL_MOTOR
       EFFICIENCY: 0.95
-    - NAME: pfs_train
+    - TYPE: DRIVE_TRAIN
       INPUT: pfs_motor
-      TYPE: DRIVE_TRAIN
       SHAFT: export_shaft_3
     - NAME: base_load
       INPUT: el_source
       TYPE: ELECTRICAL_CONSUMER
       LOAD: 5
-    - NAME: el_compressor_sampled
+    - NAME: sampled_el_motor
       INPUT: genset_a
-      TYPE: COMPRESSOR_SAMPLED
+      CAPACITY: 5
+      TYPE: ELECTRICAL_MOTOR
+      EFFICIENCY: 0.95
+    - TYPE: COMPRESSOR_SAMPLED
+      INPUT: sampled_el_motor
       COMPRESSOR: sampled_el_compressor
       FILE: sampled_el_compressor.csv
       RATE: $var.sampled_compressor_rate
       SUCTION_PRESSURE: 20
       DISCHARGE_PRESSURE: 120
-    - NAME: fuel_compressor_sampled
-      INPUT: fuel_gas3
-      TYPE: COMPRESSOR_SAMPLED
-      COMPRESSOR: sampled_fuel_compressor
-      FILE: sampled_fuel_compressor.csv
-      RATE: $var.sampled_compressor_rate
-      SUCTION_PRESSURE: 20
-      DISCHARGE_PRESSURE: 120
     - NAME: sampled_turbine
-      INPUT: fuel_gas4
+      INPUT: fuel_gas3
       TYPE: GAS_TURBINE
       MODEL:
         LOWER_HEATING_VALUE: 38.0
         CURVE:
           LOAD: [2.352, 4.589, 6.853]
           EFFICIENCY: [0.138, 0.21, 0.255]
-    - NAME: mech_compressor_sampled
+    - TYPE: COMPRESSOR_SAMPLED
       INPUT: sampled_turbine
-      TYPE: COMPRESSOR_SAMPLED
       COMPRESSOR: sampled_mech_compressor
       FILE: sampled_mech_compressor.csv
-      RATE: $var.sampled_compressor_rate
-      SUCTION_PRESSURE: 20
-      DISCHARGE_PRESSURE: 120
-    - NAME: turbine_compressor_sampled
-      INPUT: fuel_gas5
-      TYPE: COMPRESSOR_SAMPLED
-      COMPRESSOR: sampled_turbine
-      FILE: sampled_fuel_turbine.csv
       RATE: $var.sampled_compressor_rate
       SUCTION_PRESSURE: 20
       DISCHARGE_PRESSURE: 120

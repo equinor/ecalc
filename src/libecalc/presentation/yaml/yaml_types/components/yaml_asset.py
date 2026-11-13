@@ -397,7 +397,7 @@ class YamlAsset(YamlBase):
         if self.energy_network is None:
             return []
         return [
-            (unit.compressor, f"COMPRESSOR_SAMPLED unit '{unit.name}'")
+            (unit.compressor, "a COMPRESSOR_SAMPLED unit")
             for unit in self.energy_network.units
             if isinstance(unit, YamlCompressorSampled)
         ]
@@ -412,7 +412,7 @@ class YamlAsset(YamlBase):
             return []
         compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
         drive_train_models = [
-            (compressor, f"DRIVE_TRAIN '{unit.name}' (shaft '{unit.shaft}')")
+            (compressor, f"the DRIVE_TRAIN for shaft '{unit.shaft}'")
             for unit in self.energy_network.units
             if isinstance(unit, YamlDriveTrain)
             for compressor in compressors_by_shaft.get(unit.shaft, [])
@@ -616,7 +616,7 @@ class YamlAsset(YamlBase):
                 if unit.shaft not in available_shaft_names:
                     available = ", ".join(sorted(available_shaft_names)) or "none"
                     raise ValueError(
-                        f"Drive train '{unit.name}' references unknown shaft '{unit.shaft}'. "
+                        f"A drive train references unknown shaft '{unit.shaft}'. "
                         f"Available shafts in SHAFTS: {available}."
                     )
         return self
@@ -628,8 +628,8 @@ class YamlAsset(YamlBase):
 
         compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
         violations = [
-            f"Drive train '{unit.name}' gives a mechanical efficiency for compressor '{entry.compressor}', "
-            f"which is not on its shaft '{unit.shaft}'. "
+            f"The drive train for shaft '{unit.shaft}' gives a mechanical efficiency for compressor "
+            f"'{entry.compressor}', which is not on that shaft. "
             f"Compressors on this shaft: {', '.join(compressors_by_shaft[unit.shaft]) or 'none'}."
             for unit in self.energy_network.units
             if isinstance(unit, YamlDriveTrain) and unit.shaft in compressors_by_shaft
@@ -649,16 +649,16 @@ class YamlAsset(YamlBase):
         if self.energy_network is None:
             return self
 
-        drive_trains_by_shaft: dict[ShaftReference, set[str]] = defaultdict(set)
+        drive_train_count_by_shaft: dict[ShaftReference, int] = defaultdict(int)
         for unit in self.energy_network.units:
             if isinstance(unit, YamlDriveTrain):
-                drive_trains_by_shaft[unit.shaft].add(unit.name)
+                drive_train_count_by_shaft[unit.shaft] += 1
 
-        for shaft_name, drive_train_names in drive_trains_by_shaft.items():
-            if len(drive_train_names) > 1:
+        for shaft_name, drive_train_count in drive_train_count_by_shaft.items():
+            if drive_train_count > 1:
                 raise ValueError(
-                    f"Shaft '{shaft_name}' is referenced by multiple drive trains: "
-                    f"{', '.join(sorted(drive_train_names))}. A shaft can only be used in one drive train."
+                    f"Shaft '{shaft_name}' is referenced by {drive_train_count} drive trains. "
+                    f"A shaft can only be used in one drive train."
                 )
         return self
 
@@ -687,7 +687,7 @@ class YamlAsset(YamlBase):
             compressors = compressors_by_shaft.get(unit.shaft, [])
             if not compressors:
                 violations.append(
-                    f"Drive train '{unit.name}' drives shaft '{unit.shaft}', which has no compressors. "
+                    f"A drive train drives shaft '{unit.shaft}', which has no compressors. "
                     f"List the compressors on the shaft in COMPRESSORS of the shaft in SHAFTS."
                 )
             for compressor_name in compressors:
@@ -700,8 +700,7 @@ class YamlAsset(YamlBase):
                     else f"is placed in process pipeline '{pipeline_name}', which no process simulation targets"
                 )
                 violations.append(
-                    f"Compressor '{compressor_name}' on shaft '{unit.shaft}', driven by drive train '{unit.name}', "
-                    f"{placement}."
+                    f"Compressor '{compressor_name}' on shaft '{unit.shaft}', driven by a drive train, {placement}."
                 )
         if violations:
             raise ValueError(

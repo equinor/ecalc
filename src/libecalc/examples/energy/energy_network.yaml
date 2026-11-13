@@ -9,7 +9,7 @@
 #       │
 #       ├──► export_turbine ──► export_train (export_shaft)
 #       │
-#       └──► [gas_compressor_sampled turbine] ──► gas_compressor_sampled (FILE)
+#       └──► gas_compressor_turbine ──► 23KA001 Gas Compressor (COMPRESSOR_SAMPLED, FILE)
 #
 #   flare_gas ──► flare (1200 Sm3/d)
 #
@@ -64,6 +64,15 @@ ENERGY_NETWORK:
           LOAD: [7.5, 15, 22.5, 30]  # MW
           EFFICIENCY: [0.22, 0.31, 0.35, 0.37]
 
+    - NAME: gas_compressor_turbine
+      TYPE: GAS_TURBINE
+      INPUT: fuel_gas
+      MODEL:
+        LOWER_HEATING_VALUE: 38  # MJ/Sm3
+        CURVE:
+          LOAD: [3.75, 7.5, 11.25, 15]  # MW
+          EFFICIENCY: [0.2, 0.28, 0.32, 0.34]
+
     - NAME: waterinj_motor
       TYPE: ELECTRICAL_MOTOR
       INPUT: genset_a
@@ -111,11 +120,10 @@ ENERGY_NETWORK:
       INPUT: flare_gas
       RATE: 1200  # Sm3/d
 
-    # Sampled from a FUEL+POWER table: a turbine feeding the compressor is generated automatically
-    - NAME: gas_compressor_sampled
-      TYPE: COMPRESSOR_SAMPLED
+    # Shaft power sampled in FILE, driven by a gas turbine. Named by its COMPRESSOR.
+    - TYPE: COMPRESSOR_SAMPLED
       COMPRESSOR: 23KA001 Gas Compressor
-      INPUT: fuel_gas
+      INPUT: gas_compressor_turbine
       FILE: gas_compressor_sampled.csv
       RATE: 2500000  # Sm3/d
       SUCTION_PRESSURE: 40  # bara
@@ -127,8 +135,7 @@ ENERGY_NETWORK:
       RATE: 500  # l/d
 
     # Shaft driven
-    - NAME: export_train
-      TYPE: DRIVE_TRAIN
+    - TYPE: DRIVE_TRAIN
       INPUT: export_turbine
       SHAFT: export_shaft
 

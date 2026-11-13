@@ -64,7 +64,7 @@ def test_rejects_shaft_on_compressor_process_unit_from_v3():
 def _drive_train_network(*shafts: str) -> YamlEnergyNetwork:
     builder = YamlEnergyNetworkBuilder().with_test_data().with_gas_turbine("turbine", "fuel_gas", TURBINE_MODEL)
     for shaft in shafts:
-        builder.with_drive_train(name=f"{shaft} drive", input="turbine", shaft=shaft)
+        builder.with_drive_train(input="turbine", shaft=shaft)
     return builder.validate()
 
 
@@ -190,8 +190,7 @@ def test_rejects_driven_shaft_without_solved_compressors(shafts, targeted, messa
 def test_rejects_unknown_shaft_reference_from_drive_train():
     with pytest.raises(
         ValidationError,
-        match="Drive train 'missing_shaft drive' references unknown shaft 'missing_shaft'. "
-        "Available shafts in SHAFTS: export_shaft.",
+        match="A drive train references unknown shaft 'missing_shaft'. Available shafts in SHAFTS: export_shaft.",
     ):
         (
             YamlAssetBuilder()
@@ -208,14 +207,14 @@ def test_rejects_same_shaft_in_multiple_drive_trains(energy_network_builder_fact
         .with_test_data()
         .with_gas_turbine(name="export_turbine", input="fuel_gas", model=TURBINE_MODEL)
         .with_gas_turbine(name="injection_turbine", input="fuel_gas", model=TURBINE_MODEL)
-        .with_drive_train(name="export_load", input="export_turbine", shaft="common_shaft")
-        .with_drive_train(name="injection_load", input="injection_turbine", shaft="common_shaft")
+        .with_drive_train(input="export_turbine", shaft="common_shaft")
+        .with_drive_train(input="injection_turbine", shaft="common_shaft")
         .construct()
     )
 
     with pytest.raises(
         ValidationError,
-        match="Shaft 'common_shaft' is referenced by multiple drive trains: export_load, injection_load",
+        match="Shaft 'common_shaft' is referenced by 2 drive trains. A shaft can only be used in one drive train.",
     ):
         (
             YamlAssetBuilder()
@@ -230,7 +229,6 @@ def test_rejects_mechanical_efficiency_for_compressor_not_on_the_drive_trains_sh
     pipeline = _pipeline("export_pipeline", "export_compressor")
     drive_train = (
         YamlDriveTrainBuilder()
-        .with_name("export_drive")
         .with_input("turbine")
         .with_shaft("export_shaft")
         .with_mechanical_efficiency("injection_compressor", 0.95)
@@ -246,8 +244,8 @@ def test_rejects_mechanical_efficiency_for_compressor_not_on_the_drive_trains_sh
 
     with pytest.raises(
         ValidationError,
-        match="Drive train 'export_drive' gives a mechanical efficiency for compressor 'injection_compressor', "
-        "which is not on its shaft 'export_shaft'. Compressors on this shaft: export_compressor.",
+        match="The drive train for shaft 'export_shaft' gives a mechanical efficiency for compressor "
+        "'injection_compressor', which is not on that shaft. Compressors on this shaft: export_compressor.",
     ):
         _asset(
             shafts=[YamlShaft(name="export_shaft", compressors=["export_compressor"])],
