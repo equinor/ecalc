@@ -1,0 +1,16 @@
+{
+  "latest": "v15.6",
+  "next": "/ecalc/next/",
+  "versions": [
+    {
+      "name": "v15.6",
+      "release": "v15.6.0",
+      "path": "/ecalc/v15.6/"
+    },
+    {
+      "name": "v15.5",
+      "release": "v15.5.0",
+      "path": "/ecalc/v15.5/"
+    }
+  ]
+}
