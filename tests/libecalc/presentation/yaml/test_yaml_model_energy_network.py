@@ -90,7 +90,7 @@ def _turbine_model_data(model, definitions, base_data_factory, load=5):
     data = base_data_factory()
     data["DEFINITIONS"] = definitions
     data["ENERGY_NETWORK"] = {
-        "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+        "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": TURBINE_LHV}],
         "UNITS": [
             {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": model},
             {"NAME": "load", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "turbine", "LOAD": load},
@@ -100,20 +100,9 @@ def _turbine_model_data(model, definitions, base_data_factory, load=5):
 
 
 @pytest.fixture
-def turbine_network_data_factory(
-    yaml_legacy_asset_builder_factory, minimal_installation_yaml_factory, yaml_fuel_type_builder_factory
-):
+def turbine_network_data_factory(yaml_asset_builder_factory):
     def create():
-        asset = (
-            yaml_legacy_asset_builder_factory()
-            .with_test_data()
-            .with_yaml_version(2)
-            .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name("fuel").validate()])
-            .with_installations([minimal_installation_yaml_factory(fuel_name="fuel")])
-            .with_start("2020-01-01")
-            .with_end("2021-01-01")
-            .validate()
-        )
+        asset = yaml_asset_builder_factory().with_test_data().with_start("2020-01-01").with_end("2021-01-01").validate()
         return asset.model_dump(by_alias=True, exclude_unset=True, mode="json")
 
     return create
@@ -147,7 +136,7 @@ def test_gas_turbine_fuel_follows_its_model(source, turbine_network_data_factory
     if source == "file":
         curve = {"FILE": "curve.csv"}
         resources["curve.csv"] = MemoryResource(data=[[2, 4, 8], [0.1, 0.2, 0.3]], headers=["LOAD", "EFFICIENCY"])
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": curve}
+    turbine = {"CURVE": curve}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
 
     model = yaml_model_factory(
@@ -162,7 +151,7 @@ def test_gas_turbine_fuel_follows_its_model(source, turbine_network_data_factory
 def test_gas_turbine_curve_limit_reaches_the_simulation(
     load, exceeds_curve, turbine_network_data_factory, yaml_model_factory
 ):
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": CURVE}
+    turbine = {"CURVE": CURVE}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory, load=load)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
@@ -180,7 +169,7 @@ def test_gas_turbine_curve_limit_reaches_the_simulation(
 def test_turbine_file_is_listed_as_facility_resource(
     file_key, turbine_network_data_factory, configuration_service_factory
 ):
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": {file_key: "curve.csv"}}
+    turbine = {"CURVE": {file_key: "curve.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
 
     configuration = configuration_service_factory(
@@ -205,7 +194,7 @@ def test_turbine_file_is_listed_as_facility_resource(
     ],
 )
 def test_gas_turbine_file_errors_are_reported(resources, message, turbine_network_data_factory, yaml_model_factory):
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": {"FILE": "curve.csv"}}
+    turbine = {"CURVE": {"FILE": "curve.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources=resources
@@ -216,7 +205,7 @@ def test_gas_turbine_file_errors_are_reported(resources, message, turbine_networ
 
 
 def test_invalid_inline_turbine_model_is_reported_at_the_model(turbine_network_data_factory, yaml_model_factory):
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": {"LOAD": [2, 4, 8], "EFFICIENCY": [0.1, 0.2, 1.5]}}
+    turbine = {"CURVE": {"LOAD": [2, 4, 8], "EFFICIENCY": [0.1, 0.2, 1.5]}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
@@ -232,7 +221,7 @@ def test_invalid_inline_turbine_model_is_reported_at_the_model(turbine_network_d
 
 @pytest.mark.parametrize("headers", [["load", "efficiency"], ["Load", "EFFICIENCY"]])
 def test_turbine_file_headers_are_case_insensitive(headers, turbine_network_data_factory, yaml_model_factory):
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": {"FILE": "curve.csv"}}
+    turbine = {"CURVE": {"FILE": "curve.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     resources = {"curve.csv": MemoryResource(data=[[2, 4, 8], [0.1, 0.2, 0.3]], headers=headers)}
     model = yaml_model_factory(
@@ -247,7 +236,7 @@ def test_turbine_file_headers_are_case_insensitive(headers, turbine_network_data
 def test_turbine_model_resolved_from_definitions_still_validates_file_existence(
     turbine_network_data_factory, yaml_model_factory
 ):
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": {"FILE": "missing.csv"}}
+    turbine = {"CURVE": {"FILE": "missing.csv"}}
     data = _turbine_model_data("my_turbine", {"TURBINES": {"my_turbine": turbine}}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
@@ -258,7 +247,7 @@ def test_turbine_model_resolved_from_definitions_still_validates_file_existence(
 
 
 def test_invalid_inline_turbine_file_is_still_validated_for_existence(turbine_network_data_factory, yaml_model_factory):
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": {"FILE": "missing.csv"}}
+    turbine = {"CURVE": {"FILE": "missing.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
@@ -269,7 +258,7 @@ def test_invalid_inline_turbine_file_is_still_validated_for_existence(turbine_ne
 
 
 def test_gas_turbine_model_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
-    turbine = {"LOWER_HEATING_VALUE": TURBINE_LHV, "CURVE": CURVE}
+    turbine = {"CURVE": CURVE}
     data = _turbine_model_data("my_turbine", {"TURBINES": {"my_turbine": turbine}}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}

@@ -45,11 +45,11 @@ Contains reusable definitions.
 
 Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of a GAS_TURBINE.
 
-<YamlCodeBlock>{"LOWER_HEATING_VALUE: 38.0\nCURVE:\n  LOAD:\n  - 2.352\n  - 4.589\n  - 6.853\n  EFFICIENCY:\n  - 0.138\n  - 0.21\n  - 0.255"}</YamlCodeBlock>
+<YamlCodeBlock>{"CURVE:\n  LOAD:\n  - 2.352\n  - 4.589\n  - 6.853\n  EFFICIENCY:\n  - 0.138\n  - 0.21\n  - 0.255"}</YamlCodeBlock>
 
-#### LOWER_HEATING_VALUE \{#lower_heating_value}
+#### LOWER_HEATING_VALUE <LifecycleBadge kind="removed" version="5" /> <ChangeHistory changes={[{ "version": "5", "description": "Set it on the fuel/diesel source this unit draws from instead." }]} /> \{#lower_heating_value}
 
-Lower heating value [MJ/Sm3] of the fuel.
+Removed in V5: Set it on the fuel/diesel source this unit draws from instead. Use ENERGY_NETWORK &gt; SOURCES &gt; LOWER_HEATING_VALUE instead.
 
 #### CURVE \{#curve}
 
@@ -137,19 +137,20 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 Defines the energy network configuration.
 
-<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  TYPE: GENERATOR\n  MODEL:\n    CURVE:\n      POWER:\n      - 0.0\n      - 5.0\n      - 10.0\n      - 15.0\n      FUEL:\n      - 0.0\n      - 25000.0\n      - 48000.0\n      - 70000.0\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
+<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n  LOWER_HEATING_VALUE: 38.0\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  TYPE: GENERATOR\n  MODEL:\n    CURVE:\n      POWER:\n      - 0.0\n      - 5.0\n      - 10.0\n      - 15.0\n      FUEL:\n      - 0.0\n      - 25000.0\n      - 48000.0\n      - 70000.0\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
 
 ### SOURCES \{#sources}
 
 External energy entering the system (fuel gas, electrical, diesel).
 
-<YamlCodeBlock>{"NAME: fuel_gas\nTYPE: FUEL_GAS_SOURCE\nCAPACITY: 50000"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: fuel_gas\nTYPE: FUEL_GAS_SOURCE\nCAPACITY: 50000\nLOWER_HEATING_VALUE: 38.0"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
 | `NAME` | Unique name for this energy source. | Required |
 | `TYPE` | Type of external energy source. | Required |
 | `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
+| `LOWER_HEATING_VALUE` <LifecycleBadge kind="introduced" version="5" /> | Lower heating value [MJ/Sm3 for FUEL_GAS_SOURCE, MJ/L for DIESEL_SOURCE] of the fuel, required for any GAS_TURBINE drawing from this source. | Optional |
 
 ### UNITS \{#units}
 
@@ -192,7 +193,7 @@ Events that change the generator model over time, such as a rebundle. Each event
 
 <div className="lifecycle-variant">
 
-<YamlCodeBlock>{"NAME: gas_turbine\nINPUT: fuel_gas\nTYPE: GAS_TURBINE\nMODEL:\n  LOWER_HEATING_VALUE: 38.0\n  CURVE:\n    LOAD:\n    - 2.352\n    - 4.589\n    - 6.853\n    EFFICIENCY:\n    - 0.138\n    - 0.21\n    - 0.255"}</YamlCodeBlock>
+<YamlCodeBlock>{"NAME: gas_turbine\nINPUT: fuel_gas\nTYPE: GAS_TURBINE\nMODEL:\n  CURVE:\n    LOAD:\n    - 2.352\n    - 4.589\n    - 6.853\n    EFFICIENCY:\n    - 0.138\n    - 0.21\n    - 0.255"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |

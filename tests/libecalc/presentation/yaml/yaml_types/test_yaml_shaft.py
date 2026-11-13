@@ -20,9 +20,7 @@ from libecalc.testing.process_builders import (
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
 
-TURBINE_MODEL = YamlTurbineDefinition(
-    lower_heating_value=38, curve=YamlTurbineCurve(load=[10, 20], efficiency=[0.2, 0.3])
-)
+TURBINE_MODEL = YamlTurbineDefinition(curve=YamlTurbineCurve(load=[10, 20], efficiency=[0.2, 0.3]))
 
 
 def _pipeline(name: str, *compressors: str) -> YamlProcessPipeline:

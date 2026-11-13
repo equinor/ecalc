@@ -215,12 +215,14 @@ ENERGY_NETWORK:
   SOURCES:
     - NAME: fuel_gas
       TYPE: FUEL_GAS_SOURCE
+      LOWER_HEATING_VALUE: 38.0
     - NAME: fuel_gas2
       TYPE: FUEL_GAS_SOURCE
     - NAME: fuel_gas3
       TYPE: FUEL_GAS_SOURCE
     - NAME: fuel_gas4
       TYPE: FUEL_GAS_SOURCE
+      LOWER_HEATING_VALUE: 38.0
     - NAME: fuel_gas5
       TYPE: FUEL_GAS_SOURCE
     - NAME: el_source
@@ -232,7 +234,6 @@ ENERGY_NETWORK:
       INPUT: fuel_gas
       TYPE: GAS_TURBINE
       MODEL:
-        LOWER_HEATING_VALUE: 38.0
         CURVE:
           LOAD: [2.352, 4.589, 6.853]
           EFFICIENCY: [0.138, 0.21, 0.255]
@@ -309,7 +310,6 @@ ENERGY_NETWORK:
       INPUT: fuel_gas4
       TYPE: GAS_TURBINE
       MODEL:
-        LOWER_HEATING_VALUE: 38.0
         CURVE:
           LOAD: [2.352, 4.589, 6.853]
           EFFICIENCY: [0.138, 0.21, 0.255]

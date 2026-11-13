@@ -77,11 +77,30 @@ class YamlEnergySource(YamlBase):
             description="Maximum output capacity. Omit for unlimited.",
         ),
     ] = None
+    lower_heating_value: Annotated[
+        float | None,
+        Field(
+            title="LOWER_HEATING_VALUE",
+            description="Lower heating value [MJ/Sm3 for FUEL_GAS_SOURCE, MJ/L for DIESEL_SOURCE] of the fuel, "
+            "required for any GAS_TURBINE drawing from this source.",
+            gt=0,
+            lt=100,
+            json_schema_extra=yaml_element_lifecycle(available_since=V5),
+        ),
+    ] = None
 
     @field_validator("capacity", mode="after")
     @classmethod
     def _capacity_non_negative(cls, v: YamlExpressionType | None) -> YamlExpressionType | None:
         return _check_non_negative(v, "CAPACITY")
+
+    @model_validator(mode="after")
+    def _lower_heating_value_only_for_fuel_sources(self) -> "YamlEnergySource":
+        if self.lower_heating_value is not None and self.type == YamlEnergySourceType.ELECTRICAL_SOURCE:
+            raise ValueError(
+                "LOWER_HEATING_VALUE is only valid for FUEL_GAS_SOURCE and DIESEL_SOURCE, not an ELECTRICAL_SOURCE."
+            )
+        return self
 
 
 class YamlConverterBase(YamlBase):
@@ -758,6 +777,43 @@ def get_input_names(component: YamlComponent) -> list[str]:
     return [component.input]
 
 
+def resolve_lhv_by_source_name(
+    sources: list[YamlEnergySource], units: list[YamlComponent]
+) -> tuple[dict[str, float], dict[str, frozenset[float]]]:
+    """Resolve each fuel/diesel source's lower heating value, and propagate it through any chain of
+    FUEL_GAS_MANIFOLDs feeding a GAS_TURBINE. A manifold only resolves to a value when every one of its inputs
+    resolves to that same value; an input that omits LOWER_HEATING_VALUE leaves the manifold unresolved rather
+    than being ignored, and inputs that resolve to different values are reported as a conflict instead.
+    """
+    lhv_by_name: dict[str, float] = {
+        source.name: source.lower_heating_value for source in sources if source.lower_heating_value is not None
+    }
+    manifolds_by_name = {unit.name: unit for unit in units if isinstance(unit, YamlFuelGasManifold)}
+    conflicts_by_manifold_name: dict[str, frozenset[float]] = {}
+
+    def resolve(name: str) -> float | None:
+        if name in lhv_by_name:
+            return lhv_by_name[name]
+        manifold = manifolds_by_name.get(name)
+        if manifold is None:
+            return None
+        upstream_results = [resolve(input_name) for input_name in get_input_names(manifold)]
+        upstream_lhvs = frozenset(lhv for lhv in upstream_results if lhv is not None)
+        if len(upstream_lhvs) > 1:
+            conflicts_by_manifold_name[name] = upstream_lhvs
+            return None
+        if len(upstream_lhvs) == 1 and None not in upstream_results:
+            resolved = next(iter(upstream_lhvs))
+            lhv_by_name[name] = resolved
+            return resolved
+        return None
+
+    for manifold_name in manifolds_by_name:
+        resolve(manifold_name)
+
+    return lhv_by_name, conflicts_by_manifold_name
+
+
 class YamlEnergyNetwork(YamlBase):
     model_config = ConfigDict(title="EnergyNetwork")
 
@@ -815,6 +871,30 @@ class YamlEnergyNetwork(YamlBase):
             tuple(TopologicalSorter(graph).static_order())
         except CycleError as e:
             raise ValueError(f"Cycle detected in energy network: {e}") from None
+        return self
+
+    @model_validator(mode="after")
+    def check_fuel_gas_manifold_lower_heating_value_consistency(self):
+        _, conflicts_by_manifold_name = resolve_lhv_by_source_name(self.sources, self.units)
+        for manifold_name, values in conflicts_by_manifold_name.items():
+            raise ValueError(
+                f"'{manifold_name}': inputs have conflicting LOWER_HEATING_VALUEs {sorted(values)}. All inputs "
+                "feeding a FUEL_GAS_MANIFOLD must either omit LOWER_HEATING_VALUE or agree on the same value."
+            )
+        return self
+
+    @model_validator(mode="after")
+    def check_gas_turbine_lower_heating_value(self):
+        lhv_by_source_name, _ = resolve_lhv_by_source_name(self.sources, self.units)
+        for c in self.units:
+            if c.type != "GAS_TURBINE":
+                continue
+            if lhv_by_source_name.get(c.input) is None:
+                raise ValueError(
+                    f"'{c.name}': could not resolve a single LOWER_HEATING_VALUE from '{c.input}'. Set it on the "
+                    "fuel/diesel source this unit draws from, directly or through a chain of FUEL_GAS_MANIFOLDs "
+                    "that all agree on the same value."
+                )
         return self
 
     @model_validator(mode="after")

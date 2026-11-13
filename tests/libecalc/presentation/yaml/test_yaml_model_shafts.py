@@ -43,9 +43,7 @@ def _asset(mechanical_efficiencies: dict[str, YamlExpressionType]) -> YamlAsset:
         .with_stream_distribution(YamlIndividualStreamDistributionBuilder().with_test_data().validate())
         .validate()
     )
-    turbine_model = YamlTurbineDefinition(
-        lower_heating_value=38, curve=YamlTurbineCurve(load=[10, 20], efficiency=[0.2, 0.3])
-    )
+    turbine_model = YamlTurbineDefinition(curve=YamlTurbineCurve(load=[10, 20], efficiency=[0.2, 0.3]))
     drive_train = YamlDriveTrainBuilder().with_name("export_drive").with_input("export_turbine").with_shaft(SHAFT)
     for compressor, efficiency in mechanical_efficiencies.items():
         drive_train.with_mechanical_efficiency(compressor, efficiency)

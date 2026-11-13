@@ -22,7 +22,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import
 
 EXAMPLE_YAML = Path(__file__).parents[3] / "src" / "libecalc" / "examples" / "energy" / "energy_network.yaml"
 
-TURBINE = {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
+TURBINE = {"CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
 GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 _component_adapter = TypeAdapter(YamlComponent)
@@ -85,6 +85,14 @@ class TestNumericBounds:
         with pytest.raises(ValidationError, match="CAPACITY must be non-negative"):
             YamlEnergySource.model_validate({"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": -10})
 
+    def test_lower_heating_value_on_electrical_source_rejected(self):
+        with pytest.raises(ValidationError, match="LOWER_HEATING_VALUE is only valid for"):
+            YamlEnergySource.model_validate({"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE", "LOWER_HEATING_VALUE": 38})
+
+    def test_zero_lower_heating_value_on_source_rejected(self):
+        with pytest.raises(ValidationError, match="greater than 0"):
+            YamlEnergySource.model_validate({"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 0})
+
     def test_negative_capacity_on_converter_rejected(self):
         with pytest.raises(ValidationError, match="CAPACITY must be non-negative"):
             _component_adapter.validate_python({"NAME": "m", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "g", "CAPACITY": -5})
@@ -131,6 +139,80 @@ class TestNumericBounds:
             {"NAME": "m", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "g", "CAPACITY": "$var.rate"}
         )
         assert comp.capacity == "$var.rate"
+
+
+class TestLowerHeatingValueResolution:
+    def test_gas_turbine_without_lower_heating_value_on_source_rejected(self):
+        with pytest.raises(ValueError, match="could not resolve a single LOWER_HEATING_VALUE"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                    "UNITS": [{"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE}],
+                }
+            )
+
+    def test_gas_turbine_rejects_a_manifold_with_mismatched_lower_heating_values(self):
+        with pytest.raises(ValueError, match="inputs have conflicting LOWER_HEATING_VALUEs"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [
+                        {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
+                        {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 40},
+                    ],
+                    "UNITS": [
+                        {
+                            "NAME": "manifold",
+                            "TYPE": "FUEL_GAS_MANIFOLD",
+                            "INPUT": ["fuel", "backup_fuel"],
+                            "DISPATCH_STRATEGY": "PRIORITY",
+                        },
+                        {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "manifold", "MODEL": TURBINE},
+                    ],
+                }
+            )
+
+    def test_manifold_with_mismatched_lower_heating_values_rejected_even_without_a_gas_turbine(self):
+        with pytest.raises(ValueError, match="inputs have conflicting LOWER_HEATING_VALUEs"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [
+                        {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
+                        {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 40},
+                    ],
+                    "UNITS": [
+                        {
+                            "NAME": "manifold",
+                            "TYPE": "FUEL_GAS_MANIFOLD",
+                            "INPUT": ["fuel", "backup_fuel"],
+                            "DISPATCH_STRATEGY": "PRIORITY",
+                        },
+                    ],
+                }
+            )
+
+    def test_gas_turbine_rejects_a_manifold_with_one_input_missing_lower_heating_value(self):
+        """One input with LOWER_HEATING_VALUE and one without is not a conflict, but must not silently resolve
+        to the one value that is set — the manifold stays unresolved, so a GAS_TURBINE drawing from it is
+        rejected the same way as a source with no LOWER_HEATING_VALUE at all.
+        """
+        with pytest.raises(ValueError, match="could not resolve a single LOWER_HEATING_VALUE"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [
+                        {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
+                        {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE"},
+                    ],
+                    "UNITS": [
+                        {
+                            "NAME": "manifold",
+                            "TYPE": "FUEL_GAS_MANIFOLD",
+                            "INPUT": ["fuel", "backup_fuel"],
+                            "DISPATCH_STRATEGY": "PRIORITY",
+                        },
+                        {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "manifold", "MODEL": TURBINE},
+                    ],
+                }
+            )
 
 
 class TestJunctionValidation:
@@ -353,7 +435,7 @@ class TestNetworkValidation:
         with pytest.raises(ValueError, match="expects ELECTRICAL input.*provides MECHANICAL"):
             YamlEnergyNetwork.model_validate(
                 {
-                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38}],
                     "UNITS": [
                         {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
                         {"NAME": "load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "turbine", "LOAD": 5},
