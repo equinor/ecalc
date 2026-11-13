@@ -63,15 +63,23 @@ if the official docs for more info.
 
 ### Versioning
 
-The docs are versioned. This does not include the blog/release notes and other pages that are not part of the docs
-structure. The versioning works by creating a snapshot of the current documents under /docs, and puts them under
-/versioned_docs and /versioned_sidebars.
+Each version of the docs is a separate build, published to the `gh-pages` branch by
+[publish-docs.yml](../.github/workflows/publish-docs.yml) using [deploy-versioned-docs.mjs](scripts/deploy-versioned-docs.mjs):
 
-Please see the official [versioning docs](https://docusaurus.io/docs/versioning) for details.
+| Path                  | Content                                                              | Published when                      |
+|-----------------------|----------------------------------------------------------------------|-------------------------------------|
+| `/ecalc/`             | Redirect to the latest release, keeping the path ([static-root](static-root/index.html)). Also served as `404.html`, so old links such as `/ecalc/docs/...` keep working | Every push to main |
+| `/ecalc/vX.Y/`        | One folder per minor release, the 5 newest are kept. Patches overwrite their minor | Every release |
+| `/ecalc/next/`        | Unreleased docs from main                                            | Every push to main                  |
+| `/ecalc/versions.json`| List of published versions                                           | Every deploy                        |
 
-Note the dropdown menu at the right top menu where you can select other versions than the latest. Note that the
-unreleased version (main) is named "Next". This may change in the future. The latest published version is the
-default version that the user will see when entering the docs.
+The root redirect, the version dropdown in the navbar and the banner on outdated versions all read `versions.json`
+in the browser, so a new release is the default as soon as it is published, and older builds always show the current
+list of versions. The dropdown and banner are hidden when running locally.
+
+A build is configured with the environment variables `DOCS_BASE_URL` (default `/ecalc/`) and `DOCS_VERSION`
+(default `local`). Publishing only happens from CI: pushes to main publish `next`, and release-please publishes
+each release.
 
 ### Blog / Release notes
 

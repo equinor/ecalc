@@ -1,34 +1,89 @@
 name: Generate and publish documentation
 
-on:
-  workflow_dispatch:
-  workflow_call:
+# The docs are published to the gh-pages branch as one Docusaurus build per version:
+#   /ecalc/          redirect to the latest release (docs/static-root), published from main
+#   /ecalc/vX.Y/     the newest minor releases, patch releases overwrite their minor
+#   /ecalc/next/     unreleased docs from main
+#   /ecalc/versions.json, read at runtime by the redirect, the version dropdown and the banner
+# See docs/scripts/deploy-versioned-docs.mjs.
 
+on:
+  workflow_call:
+    inputs:
+      channel:
+        description: "'next' publishes /next/, 'release' publishes /vX.Y/ (and / if it is the newest version)"
+        type: string
+        required: true
+      version:
+        description: 'Release version vX.Y.Z for the release channel. The tag must point to the triggering commit'
+        type: string
+        required: false
+        default: ''
 
 permissions: { }
 
 env:
-  GITHUB_PAGES_BRANCH: gh-pages
+  SITE_ROOT: /ecalc/
+  KEEP_VERSIONS: 5
 
 jobs:
-  publish-docs:
+  build-docs:
     permissions:
-      contents: write  # Needed to push to gh-pages branch
+      contents: read
     runs-on: ubuntu-24.04
-
-    environment:
-      name: docs-prod
+    outputs:
+      next: ${{ steps.plan.outputs.next }}
+      release: ${{ steps.plan.outputs.release }}
+      sha: ${{ steps.plan.outputs.sha }}
 
     steps:
+      # Always builds the triggering commit, never a ref passed in as input (cache poisoning).
       - name: Checkout code
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
 
+      - name: Plan what to publish
+        id: plan
+        env:
+          CHANNEL: ${{ inputs.channel }}
+          VERSION: ${{ inputs.version }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NEXT=false
+          RELEASE=""
+          case "$CHANNEL" in
+            next)
+              NEXT=true
+              ;;
+            release)
+              RELEASE="$VERSION"
+              if [[ ! "$RELEASE" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+                echo "::error::Release version must be vX.Y.Z, got '$RELEASE'."
+                exit 1
+              fi
+              TAG_SHA=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${RELEASE}" --jq .sha)
+              if [[ "$TAG_SHA" != "$(git rev-parse HEAD)" ]]; then
+                echo "::error::Tag $RELEASE points to $TAG_SHA, not the checked out commit $(git rev-parse HEAD)."
+                exit 1
+              fi
+              ;;
+            *)
+              echo "::error::Unknown channel '$CHANNEL', expected 'next' or 'release'."
+              exit 1
+              ;;
+          esac
+          {
+            echo "next=$NEXT"
+            echo "release=$RELEASE"
+            echo "sha=$(git rev-parse --short HEAD)"
+          } >> "$GITHUB_OUTPUT"
+
       - name: Install uv
         uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
         with:
-          enable-cache: true
+          # NOTE: Caching is disabled in the publishing workflow to avoid a cache-poisoning risk.
+          enable-cache: false
 
       - name: Set up Python
         run: uv python install
@@ -49,25 +104,107 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: docs/package-lock.json
+          package-manager-cache: false
 
       - name: Install dependencies
         working-directory: ./docs
         run: npm ci --ignore-scripts
-      - name: Build website
-        working-directory: ./docs
-        run: npm run build
 
-      - name: Push static files to Github Pages branch
+      - name: Build next
+        if: ${{ steps.plan.outputs.next == 'true' }}
+        working-directory: ./docs
+        env:
+          DOCS_BASE_URL: ${{ env.SITE_ROOT }}next/
+          DOCS_VERSION: next
+        run: npm run build -- --out-dir build/next
+
+      - name: Build release
+        if: ${{ steps.plan.outputs.release != '' }}
+        working-directory: ./docs
+        env:
+          RELEASE: ${{ steps.plan.outputs.release }}
         run: |
-          cd docs/build
-          CREATED_FROM_REF=$(git rev-parse --short HEAD)
-          git init
+          NAME="${RELEASE%.*}"
+          DOCS_BASE_URL="${SITE_ROOT}${NAME}/" DOCS_VERSION="$NAME" npm run build -- --out-dir build/version
+
+      - name: Upload builds
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: docs-builds
+          path: docs/build/
+          include-hidden-files: true
+          retention-days: 1
+          if-no-files-found: error
+
+  deploy-docs:
+    needs: build-docs
+    permissions:
+      contents: write  # Needed to push to gh-pages branch
+    runs-on: ubuntu-24.04
+
+    environment:
+      name: docs-prod
+      url: https://equinor.github.io/ecalc/
+
+    # Deploys read and rewrite the shared gh-pages branch, so they must never run in parallel.
+    concurrency:
+      group: gh-pages-deploy
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout deploy script and root redirect
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            docs/scripts
+            docs/static-root
+
+      - name: Checkout gh-pages
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: gh-pages
+          path: site
+          persist-credentials: false
+
+      - name: Download builds
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: docs-builds
+          path: builds
+
+      - name: Setup node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Update next
+        if: ${{ needs.build-docs.outputs.next == 'true' }}
+        run: |
+          node docs/scripts/deploy-versioned-docs.mjs --site site --channel next --build builds/next \
+            --root docs/static-root --site-root "$SITE_ROOT"
+
+      - name: Update release
+        if: ${{ needs.build-docs.outputs.release != '' }}
+        env:
+          RELEASE: ${{ needs.build-docs.outputs.release }}
+        run: |
+          node docs/scripts/deploy-versioned-docs.mjs --site site --channel release --version "$RELEASE" \
+            --build builds/version --keep "$KEEP_VERSIONS" --site-root "$SITE_ROOT"
+
+      # The branch is kept as a single commit, as it was before versioning, to avoid growing the repository.
+      - name: Push to gh-pages
+        working-directory: site
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CHANNEL: ${{ inputs.channel }}
+          RELEASE: ${{ needs.build-docs.outputs.release }}
+          SHA: ${{ needs.build-docs.outputs.sha }}
+        run: |
           git config user.name "GitHub Actions Bot"
           git config user.email "<>"
-          git checkout -b $GITHUB_PAGES_BRANCH
-          git remote add $GITHUB_PAGES_BRANCH https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/equinor/ecalc
-          git add .
-          git commit -m "Built from commit '$CREATED_FROM_REF'"
-          git push -f --set-upstream gh-pages gh-pages
+          git checkout --orphan gh-pages-deploy
+          git add -A
+          git commit --quiet -m "Docs ${CHANNEL} ${RELEASE} built from commit '${SHA}'"
+          git push -f "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}" HEAD:gh-pages

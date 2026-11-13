@@ -28,10 +28,13 @@ jobs:
       contents: read
     uses: ./.github/workflows/test-library.yml
 
+  # Publishes unreleased docs to /next/. Released docs are published by the release-please workflow.
   publish-docs:
     permissions:
       contents: write
     uses: ./.github/workflows/publish-docs.yml
+    with:
+      channel: next
 
 #  trigger-external-workflow:
 #    uses: ./.github/workflows/trigger-external-workflow.yml
