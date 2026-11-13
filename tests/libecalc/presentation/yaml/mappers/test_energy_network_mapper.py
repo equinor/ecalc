@@ -17,8 +17,8 @@ from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSeriesSourceFactory
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
-TURBINE = {"CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}}
-GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+TURBINE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}}
+GENERATOR = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 
 def test_gas_turbine_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
@@ -278,7 +278,7 @@ class TestMappedNetworkSimulation:
         assert set(second.get_capacity_failures()) == {ids_by_name["wind"]}
 
 
-GENERATOR_AFTER_UPGRADE = {"CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
+GENERATOR_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
 
 FIRST_YEAR = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
 SECOND_YEAR = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))

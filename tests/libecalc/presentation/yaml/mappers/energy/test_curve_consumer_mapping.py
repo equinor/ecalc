@@ -5,7 +5,7 @@ from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRat
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
-GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+GENERATOR = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 
 def _network(consumer_type: str, consumer_input: str, curve: dict) -> YamlEnergyNetwork:

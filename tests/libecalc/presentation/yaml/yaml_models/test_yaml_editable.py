@@ -14,8 +14,10 @@ def _datamodel() -> dict:
         "MODELS": [{"NAME": "chart", "CURVES": {"FILE": "chart.csv"}}],
         "DEFINITIONS": {
             "COMPRESSOR_MODELS": {"compressor_model": {"CHART": {"CURVES": {"FILE": "compressor_chart.csv"}}}},
-            "TURBINES": {"turbine": {"LOWER_HEATING_VALUE": 38, "CURVE": {"file": "turbine.csv"}}},
-            "GENERATORS": {"generator": {"CURVE": {"FILE": "generator.csv"}}},
+            "PERFORMANCE_CURVES": {
+                "turbine": {"TYPE": "LOAD_TO_EFFICIENCY", "LOWER_HEATING_VALUE": 38, "CURVE": {"file": "turbine.csv"}},
+                "generator": {"TYPE": "POWER_TO_FUEL", "CURVE": {"FILE": "generator.csv"}},
+            },
         },
         "PROCESS_PIPELINES": {
             "pipeline": {"PROCESS_UNITS": [{"MODEL": {"CHART": {"CURVES": {"FILE": "pipeline_chart.csv"}}}}]}
@@ -53,8 +55,10 @@ class TestFindFileReferences:
                 path=("DEFINITIONS", "COMPRESSOR_MODELS", "compressor_model", "CHART", "CURVES", "FILE"),
                 value="compressor_chart.csv",
             ),
-            YamlReference(path=("DEFINITIONS", "TURBINES", "turbine", "CURVE", "file"), value="turbine.csv"),
-            YamlReference(path=("DEFINITIONS", "GENERATORS", "generator", "CURVE", "FILE"), value="generator.csv"),
+            YamlReference(path=("DEFINITIONS", "PERFORMANCE_CURVES", "turbine", "CURVE", "file"), value="turbine.csv"),
+            YamlReference(
+                path=("DEFINITIONS", "PERFORMANCE_CURVES", "generator", "CURVE", "FILE"), value="generator.csv"
+            ),
             YamlReference(
                 path=("PROCESS_PIPELINES", "pipeline", "PROCESS_UNITS", 0, "MODEL", "CHART", "CURVES", "FILE"),
                 value="pipeline_chart.csv",
@@ -77,8 +81,8 @@ class TestEdit:
         edited = editor.edit(reference, "resources_turbine.csv")
 
         assert edited == YamlReference(path=reference.path, value="resources_turbine.csv")
-        assert datamodel["DEFINITIONS"]["TURBINES"]["turbine"]["CURVE"]["file"] == "resources_turbine.csv"
-        assert datamodel["DEFINITIONS"]["TURBINES"]["turbine"]["LOWER_HEATING_VALUE"] == 38
+        assert datamodel["DEFINITIONS"]["PERFORMANCE_CURVES"]["turbine"]["CURVE"]["file"] == "resources_turbine.csv"
+        assert datamodel["DEFINITIONS"]["PERFORMANCE_CURVES"]["turbine"]["LOWER_HEATING_VALUE"] == 38
 
     def test_edit_in_list(self):
         datamodel = _datamodel()
@@ -120,8 +124,9 @@ class TestYamlConfigurationAsEditable:
         yaml = """\
 # top comment
 DEFINITIONS:
-  TURBINES:
+  PERFORMANCE_CURVES:
     turbine:
+      TYPE: LOAD_TO_EFFICIENCY
       LOWER_HEATING_VALUE: 38 # lhv comment
       CURVE:
         FILE: resources/turbine.csv # file comment
@@ -133,7 +138,7 @@ DEFINITIONS:
 
         (reference,) = editor.find_file_references()
         assert reference == YamlReference(
-            path=("DEFINITIONS", "TURBINES", "turbine", "CURVE", "FILE"), value="resources/turbine.csv"
+            path=("DEFINITIONS", "PERFORMANCE_CURVES", "turbine", "CURVE", "FILE"), value="resources/turbine.csv"
         )
 
         editor.edit(reference, "resources_turbine.csv")

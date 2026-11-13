@@ -52,6 +52,7 @@ ENERGY_NETWORK:
       TYPE: GENERATOR
       INPUT: fuel_gas
       MODEL:
+        TYPE: POWER_TO_FUEL
         CURVE:
           POWER: [4.25, 8.5, 12.75, 17]  # MW
           FUEL: [28000, 54000, 79000, 92000]  # Sm3/day
@@ -60,6 +61,7 @@ ENERGY_NETWORK:
       TYPE: GAS_TURBINE
       INPUT: fuel_gas
       MODEL:
+        TYPE: LOAD_TO_EFFICIENCY
         CURVE:
           LOAD: [7.5, 15, 22.5, 30]  # MW
           EFFICIENCY: [0.22, 0.31, 0.35, 0.37]

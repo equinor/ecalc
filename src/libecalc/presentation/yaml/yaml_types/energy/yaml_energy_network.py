@@ -135,7 +135,10 @@ class YamlGeneratorModelEvent(YamlBase):
         json_schema_extra={
             "examples": [
                 {
-                    "CHANGE_TO": {"CURVE": {"POWER": [0, 5, 10, 15], "FUEL": [0, 23000, 44000, 64000]}},
+                    "CHANGE_TO": {
+                        "TYPE": "POWER_TO_FUEL",
+                        "CURVE": {"POWER": [0, 5, 10, 15], "FUEL": [0, 23000, 44000, 64000]},
+                    },
                     "CHANGE_TYPE": "REBUNDLE",
                     "REF": "generator_upgrade",
                 },
@@ -178,7 +181,7 @@ class YamlGenerator(YamlConverterBase):
         validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
         Field(
             title="MODEL",
-            description="Generator set model, given directly in place or as a reference to DEFINITIONS.GENERATORS.",
+            description="Generator set model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
         ),
     ]
     events: Annotated[
@@ -201,7 +204,7 @@ class YamlGasTurbine(YamlConverterBase):
         validate_definition_reference_or_inline_model(YamlTurbineDefinition),
         Field(
             title="MODEL",
-            description="Turbine model, given directly in place or as a reference to DEFINITIONS.TURBINES.",
+            description="Turbine model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
         ),
     ]
 

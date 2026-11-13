@@ -5,8 +5,10 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import
 
 
 def test_accepts_inline_and_file_curves():
-    YamlTurbineDefinition.model_validate({"CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}})
-    YamlTurbineDefinition.model_validate({"CURVE": {"FILE": "curve.csv"}})
+    YamlTurbineDefinition.model_validate(
+        {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
+    )
+    YamlTurbineDefinition.model_validate({"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"FILE": "curve.csv"}})
 
 
 @pytest.mark.parametrize(
@@ -21,4 +23,4 @@ def test_accepts_inline_and_file_curves():
 )
 def test_rejects_invalid_definition(curve, message):
     with pytest.raises(ValidationError, match=message):
-        YamlTurbineDefinition.model_validate({"CURVE": curve})
+        YamlTurbineDefinition.model_validate({"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": curve})

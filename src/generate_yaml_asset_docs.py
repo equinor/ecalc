@@ -96,8 +96,7 @@ PROCESS_INCLUDE_FIELDS = {
     "timeline",
 }
 ENERGY_INCLUDE_FIELDS = {
-    "definitions.turbines",
-    "definitions.generators",
+    "definitions.performance_curves",
     "energy_network",
 }
 
@@ -290,32 +289,31 @@ EXAMPLES: list[Example] = [
 # ---------------------------------------------------------------------------
 
 ENERGY_EXAMPLES: list[Example] = [
-    # --- DEFINITIONS.TURBINES ---
+    # --- DEFINITIONS.PERFORMANCE_CURVES ---
     Example(
-        "DEFINITIONS.TURBINES",
+        "DEFINITIONS.PERFORMANCE_CURVES.LOAD_TO_EFFICIENCY",
         lambda: YamlTurbineDefinitionBuilder().with_test_data().validate(),
         abbreviate=False,
     ),
     Example(
-        "DEFINITIONS.TURBINES.CURVE.TURBINECURVE",
+        "DEFINITIONS.PERFORMANCE_CURVES.LOAD_TO_EFFICIENCY.CURVE.TURBINECURVE",
         lambda: YamlTurbineCurveBuilder().with_test_data().validate(),
     ),
     Example(
-        "DEFINITIONS.TURBINES.CURVE.YAMLFILE",
+        "DEFINITIONS.PERFORMANCE_CURVES.LOAD_TO_EFFICIENCY.CURVE.YAMLFILE",
         lambda: YamlFileBuilder().with_test_data().validate(),
     ),
-    # --- DEFINITIONS.GENERATORS ---
     Example(
-        "DEFINITIONS.GENERATORS",
+        "DEFINITIONS.PERFORMANCE_CURVES.POWER_TO_FUEL",
         lambda: YamlGeneratorDefinitionBuilder().with_test_data().validate(),
         abbreviate=False,
     ),
     Example(
-        "DEFINITIONS.GENERATORS.CURVE.GENERATORCURVE",
+        "DEFINITIONS.PERFORMANCE_CURVES.POWER_TO_FUEL.CURVE.GENERATORCURVE",
         lambda: YamlGeneratorCurveBuilder().with_test_data().validate(),
     ),
     Example(
-        "DEFINITIONS.GENERATORS.CURVE.YAMLFILE",
+        "DEFINITIONS.PERFORMANCE_CURVES.POWER_TO_FUEL.CURVE.YAMLFILE",
         lambda: YamlFileBuilder().with_file("generator_curve.csv").validate(),
     ),
     # --- ENERGY_NETWORK ---
@@ -710,7 +708,7 @@ def build_tree(
         model: The pydantic model class to introspect.
         include_fields: If provided, only include these fields. Entries are dot-separated
             python attribute paths: "definitions" includes the whole field, while
-            "definitions.turbines" includes only the turbines sub-field of definitions.
+            "definitions.performance_curves" includes only the performance_curves sub-field of definitions.
         _depth: Current recursion depth (internal).
         _seen: Set of already-visited model types to prevent infinite recursion.
 

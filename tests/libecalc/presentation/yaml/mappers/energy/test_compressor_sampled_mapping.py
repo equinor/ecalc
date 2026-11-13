@@ -11,7 +11,7 @@ from libecalc.presentation.yaml.model_validation_exception import ModelValidatio
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
-GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+GENERATOR = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 COMPRESSOR_NAME = "23KA001 Gas Compressor"
 COMPRESSOR_EQUIPMENT_IDS = {COMPRESSOR_NAME: CompressorEquipment(name=COMPRESSOR_NAME).get_id()}
 
