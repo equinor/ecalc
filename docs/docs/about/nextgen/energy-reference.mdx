@@ -133,6 +133,44 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 </Tabs>
 
+### DIESEL_ENGINES <LifecycleBadge kind="introduced" version="5" /> \{#diesel_engines}
+
+Defines diesel engines that can be referenced from DIESEL_ENGINE units in the ENERGY_NETWORK. Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of a DIESEL_ENGINE.
+
+#### CURVE \{#curve}
+
+Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY columns.
+
+##### CURVE \{#definitions-diesel_engines-curve}
+
+<Tabs>
+<TabItem value="TURBINECURVE" label="TURBINECURVE">
+
+<div className="lifecycle-variant">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `LOAD` | Turbine loads [MW], strictly increasing. In a FILE, this is the LOAD column. | Required |
+| `EFFICIENCY` | Turbine efficiency [fraction above 0 and up to 1] for each load. In a FILE, this is the EFFICIENCY column. | Required |
+
+
+</div>
+</TabItem>
+
+<TabItem value="YAMLFILE" label="YAMLFILE">
+
+<div className="lifecycle-variant">
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `FILE` | Specifies the name of an input file. See documentation for more information. | Required |
+
+
+</div>
+</TabItem>
+
+</Tabs>
+
 ## ENERGY_NETWORK <LifecycleBadge kind="introduced" version="2" /> \{#energy_network}
 
 Defines the energy network configuration.
@@ -150,7 +188,7 @@ External energy entering the system (fuel gas, electrical, diesel).
 | `NAME` | Unique name for this energy source. | Required |
 | `TYPE` | Type of external energy source. | Required |
 | `CAPACITY` | Maximum output capacity. Omit for unlimited. | Optional |
-| `LOWER_HEATING_VALUE` <LifecycleBadge kind="introduced" version="5" /> | Lower heating value [MJ/Sm3 for FUEL_GAS_SOURCE, MJ/L for DIESEL_SOURCE] of the fuel, required for any GAS_TURBINE drawing from this source. | Optional |
+| `LOWER_HEATING_VALUE` <LifecycleBadge kind="introduced" version="5" /> | Lower heating value [MJ/Sm3 for FUEL_GAS_SOURCE, MJ/L for DIESEL_SOURCE] of the fuel, required for any GAS_TURBINE or DIESEL_ENGINE drawing from this source. | Optional |
 
 ### UNITS \{#units}
 
@@ -201,6 +239,23 @@ Events that change the generator model over time, such as a rebundle. Each event
 | `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `GAS_TURBINE` | Required |
 | `MODEL` | Turbine model, given directly in place or as a reference to DEFINITIONS.TURBINES. Inline definition or reference. See [DEFINITIONS.TURBINES](#turbines). | Required |
+
+
+</div>
+</TabItem>
+
+<TabItem value="DIESEL_ENGINE" label="DIESEL_ENGINE">
+
+<div className="lifecycle-variant">
+
+<LifecycleBadge kind="introduced" version="5" />
+
+| Key | Description | Status |
+| --- | --- | --- |
+| `NAME` | Unique name for this component. | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
+| `TYPE` | `DIESEL_ENGINE` | Required |
+| `MODEL` | Diesel engine model, given directly in place or as a reference to DEFINITIONS.DIESEL_ENGINES. Inline definition or reference. See [DEFINITIONS.DIESEL_ENGINES](#diesel_engines). | Required |
 
 
 </div>

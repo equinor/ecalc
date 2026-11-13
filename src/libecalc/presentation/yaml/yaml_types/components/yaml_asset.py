@@ -12,6 +12,7 @@ from pydantic_core.core_schema import ValidationInfo
 from libecalc.common.string.string_utils import get_duplicates
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
+from libecalc.presentation.yaml.yaml_types.energy.yaml_diesel_engine_definition import YamlDieselEngineDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlCompressorSampled,
     YamlDriveTrain,
@@ -44,6 +45,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V2,
     V3,
     V4,
+    V5,
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
@@ -90,6 +92,16 @@ class YamlDefinitions(YamlBase):
         "Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above "
         "the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a "
         "GENERATOR.",
+    )
+
+    diesel_engines: dict[str, YamlDieselEngineDefinition] = Field(
+        default_factory=dict,
+        title="DIESEL_ENGINES",
+        description="Defines diesel engines that can be referenced from DIESEL_ENGINE units in the ENERGY_NETWORK. "
+        "Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the "
+        "last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of "
+        "a DIESEL_ENGINE.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V5),
     )
 
     # REMOVED FIELDS
@@ -515,6 +527,7 @@ class YamlAsset(YamlBase):
         references.extend(self.definitions.fluids.keys())
         references.extend(self.definitions.turbines.keys())
         references.extend(self.definitions.generators.keys())
+        references.extend(self.definitions.diesel_engines.keys())
 
         for process_simulation in self.process_simulations:
             references.append(process_simulation.name)

@@ -14,6 +14,7 @@ from libecalc.common.string.string_utils import get_duplicates
 from libecalc.energy.models.curve_interpolator import validate_curve_interpolator
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.energy.yaml_diesel_engine_definition import YamlDieselEngineDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
@@ -82,7 +83,7 @@ class YamlEnergySource(YamlBase):
         Field(
             title="LOWER_HEATING_VALUE",
             description="Lower heating value [MJ/Sm3 for FUEL_GAS_SOURCE, MJ/L for DIESEL_SOURCE] of the fuel, "
-            "required for any GAS_TURBINE drawing from this source.",
+            "required for any GAS_TURBINE or DIESEL_ENGINE drawing from this source.",
             gt=0,
             lt=100,
             json_schema_extra=yaml_element_lifecycle(available_since=V5),
@@ -202,6 +203,20 @@ class YamlGasTurbine(YamlConverterBase):
         Field(
             title="MODEL",
             description="Turbine model, given directly in place or as a reference to DEFINITIONS.TURBINES.",
+        ),
+    ]
+
+
+class YamlDieselEngine(YamlConverterBase):
+    model_config = ConfigDict(title="DieselEngine", json_schema_extra=yaml_element_lifecycle(available_since=V5))
+
+    type: Literal["DIESEL_ENGINE"]
+    model: Annotated[
+        DefinitionReference | YamlDieselEngineDefinition,
+        validate_definition_reference_or_inline_model(YamlDieselEngineDefinition),
+        Field(
+            title="MODEL",
+            description="Diesel engine model, given directly in place or as a reference to DEFINITIONS.DIESEL_ENGINES.",
         ),
     ]
 
@@ -712,6 +727,7 @@ YamlComponent = Annotated[
     Union[
         YamlGenerator,
         YamlGasTurbine,
+        YamlDieselEngine,
         YamlElectricalMotor,
         YamlElectricalCable,
         YamlElectricalBus,
@@ -736,6 +752,7 @@ class EnergyType(StrEnum):
 
 INPUT_ENERGY: dict[str, EnergyType] = {
     "GAS_TURBINE": EnergyType.FUEL_GAS,
+    "DIESEL_ENGINE": EnergyType.DIESEL,
     "ELECTRICAL_MOTOR": EnergyType.ELECTRICAL,
     "ELECTRICAL_CABLE": EnergyType.ELECTRICAL,
     "ELECTRICAL_BUS": EnergyType.ELECTRICAL,
@@ -753,6 +770,7 @@ GENERATOR_INPUT_ENERGY = {EnergyType.FUEL_GAS, EnergyType.DIESEL}
 OUTPUT_ENERGY: dict[str, EnergyType] = {
     "GENERATOR": EnergyType.ELECTRICAL,
     "GAS_TURBINE": EnergyType.MECHANICAL,
+    "DIESEL_ENGINE": EnergyType.MECHANICAL,
     "ELECTRICAL_MOTOR": EnergyType.MECHANICAL,
     "ELECTRICAL_CABLE": EnergyType.ELECTRICAL,
     "ELECTRICAL_BUS": EnergyType.ELECTRICAL,
@@ -884,10 +902,10 @@ class YamlEnergyNetwork(YamlBase):
         return self
 
     @model_validator(mode="after")
-    def check_gas_turbine_lower_heating_value(self):
+    def check_combustion_engine_lower_heating_value(self):
         lhv_by_source_name, _ = resolve_lhv_by_source_name(self.sources, self.units)
         for c in self.units:
-            if c.type != "GAS_TURBINE":
+            if not isinstance(c, (YamlGasTurbine, YamlDieselEngine)):
                 continue
             if lhv_by_source_name.get(c.input) is None:
                 raise ValueError(

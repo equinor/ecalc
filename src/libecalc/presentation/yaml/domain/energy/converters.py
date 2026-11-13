@@ -8,11 +8,11 @@ from libecalc.ecalc_model.model_event import EnergyUnitModelEvent, active_model,
 from libecalc.energy.energy_network_topology import EnergyConnection
 from libecalc.energy.energy_types import ElectricalPower, Energy
 from libecalc.energy.energy_unit import EnergyUnitId
-from libecalc.energy.energy_units import ElectricalMotor, GasTurbine, Generator
+from libecalc.energy.energy_units import DieselEngine, ElectricalMotor, GasTurbine, Generator
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
+from libecalc.energy.models.combustion_engine_fuel_model import CombustionEngineFuelModel
 from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
-from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -62,7 +62,7 @@ class TimeSeriesGasTurbineFactory(TimeSeriesEnergyUnitFactory):
         self,
         *,
         name: str,
-        fuel_model: TurbineFuelModel | FuelPowerCurve,
+        fuel_model: CombustionEngineFuelModel | FuelPowerCurve,
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
     ) -> None:
@@ -82,6 +82,40 @@ class TimeSeriesGasTurbineFactory(TimeSeriesEnergyUnitFactory):
             description=f"Capacity for '{self.get_name()}'",
         )
         return GasTurbine(
+            name=self.get_name(),
+            power_to_fuel=self.power_to_fuel,
+            energy_unit_id=self.get_id(),
+            output_energy=demand,
+            input_connection_id=incoming_connection.id,
+            capacity=capacity,
+        )
+
+
+class TimeSeriesDieselEngineFactory(TimeSeriesEnergyUnitFactory):
+    def __init__(
+        self,
+        *,
+        name: str,
+        fuel_model: CombustionEngineFuelModel | FuelPowerCurve,
+        energy_unit_id: EnergyUnitId | None = None,
+        capacity: TimeSeriesExpression | None = None,
+    ) -> None:
+        super().__init__(name=name, energy_unit_id=energy_unit_id, capacity=capacity)
+        self.fuel_model = fuel_model
+
+    @property
+    def power_to_fuel(self) -> Callable[[float], float]:
+        return self.fuel_model.fuel_for_power
+
+    def create(self, demand: Energy, *, incoming_connections: Sequence[EnergyConnection], **extra: Any) -> DieselEngine:
+        (incoming_connection,) = incoming_connections
+        capacity = resolve_optional_energy(
+            self.capacity,
+            DieselEngine.get_output_energy_type(),
+            period=extra.get("period"),
+            description=f"Capacity for '{self.get_name()}'",
+        )
+        return DieselEngine(
             name=self.get_name(),
             power_to_fuel=self.power_to_fuel,
             energy_unit_id=self.get_id(),
