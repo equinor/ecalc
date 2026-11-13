@@ -2,6 +2,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any, overload
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
+from libecalc.common.errors.exceptions import EcalcError, InvalidResourceException
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.resource import Resource
@@ -18,9 +19,9 @@ from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.energy import (
-    CompressorSampledDemand,
     CurveConsumerDemand,
     ExpressionDemand,
+    TimeSeriesCompressorSampled,
     TimeSeriesConsumer,
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
@@ -33,25 +34,17 @@ from libecalc.presentation.yaml.domain.energy import (
 )
 from libecalc.presentation.yaml.domain.energy.compressor import TimeSeriesProcessCompressor
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion import (
-    ConsumerSpec,
-    Expansion,
-    NodeKey,
-    TurbineSpec,
-    expand,
-    unit_key,
-)
 from libecalc.presentation.yaml.mappers.energy.curve_consumer_mapper import (
     map_load_curve_model,
     map_rate_curve_model,
 )
 from libecalc.presentation.yaml.mappers.energy.generator_fuel_model_mapper import map_generator_fuel_model
 from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
+from libecalc.presentation.yaml.mappers.model import ResourceValidationException
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
     EnergyType,
-    YamlComponent,
     YamlCompressorSampled,
     YamlDieselConsumer,
     YamlDispatchStrategy,
@@ -70,8 +63,10 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlJunctionBase,
     YamlLoadCurve,
     YamlMechanicalConsumer,
+    YamlNamedComponent,
     YamlRateCurve,
     get_input_names,
+    get_named_units,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
@@ -95,6 +90,7 @@ class EnergyNetworkMapper:
         definitions: dict[str, Any] | None = None,
     ):
         self._shafts = shafts
+        self._compressor_equipment_ids = compressor_equipment_ids
         self._compressor_names_by_equipment_id = {
             compressor_equipment_id: name for name, compressor_equipment_id in compressor_equipment_ids.items()
         }
@@ -109,7 +105,7 @@ class EnergyNetworkMapper:
     ) -> tuple[
         EnergyNetworkTopology,
         Sequence[TimeSeriesEnergyUnitFactory],
-        Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor],
+        Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor | TimeSeriesCompressorSampled],
     ]:
         """Return topology, node factories (including junctions), and consumers.
 
@@ -118,47 +114,24 @@ class EnergyNetworkMapper:
         resources = resources or {}
         output_types = self._yaml_output_types(yaml_energy_network)
 
-        expansions: dict[str, Expansion] = {
-            unit.name: self._expand_sampled_compressor(unit, resources, output_types)
-            for unit in yaml_energy_network.units
-            if isinstance(unit, YamlCompressorSampled)
-        }
-
-        node_ids_by_key: dict[NodeKey, EnergyUnitId] = {
-            unit_key(source.name): EnergyUnitId(ecalc_id_generator()) for source in yaml_energy_network.sources
-        }
-        for unit in yaml_energy_network.units:
-            expansion = expansions.get(unit.name)
-            keys = [node_spec.key for node_spec in expansion.nodes] if expansion is not None else [unit_key(unit.name)]
-            for key in keys:
-                node_ids_by_key[key] = EnergyUnitId(ecalc_id_generator())
+        node_ids_by_name: dict[str, EnergyUnitId] = {name: EnergyUnitId(ecalc_id_generator()) for name in output_types}
 
         mapped_nodes: list[tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]] = []
         connections: list[tuple[EnergyUnitId, EnergyUnitId]] = []
 
         for source in yaml_energy_network.sources:
-            key = unit_key(source.name)
-            node, input_type, output_type = self._map_source(source, node_ids_by_key[key], expression_evaluator)
+            node, input_type, output_type = self._map_source(
+                source, node_ids_by_name[source.name], expression_evaluator
+            )
             mapped_nodes.append((node, input_type, output_type))
 
         for unit in yaml_energy_network.units:
-            expansion = expansions.get(unit.name)
-            if expansion is not None:
-                assert isinstance(unit, YamlCompressorSampled)
-                for node_spec in expansion.nodes:
-                    node_id = node_ids_by_key[node_spec.key]
-                    if isinstance(node_spec, TurbineSpec):
-                        node, input_type, output_type = self._map_turbine_spec(node_spec, node_id)
-                    else:
-                        node, input_type, output_type = self._map_consumer_spec(
-                            node_spec, node_id, unit, expression_evaluator
-                        )
-                    mapped_nodes.append((node, input_type, output_type))
-                connections.extend(
-                    (node_ids_by_key[from_key], node_ids_by_key[to_key]) for from_key, to_key in expansion.connections
-                )
+            if isinstance(unit, YamlCompressorSampled):
+                node = self._map_compressor_sampled(unit, resources, expression_evaluator)
+                mapped_nodes.append((node, node.get_input_energy_type(), None))
+                connections.append((node_ids_by_name[unit.input], node.get_id()))
             elif isinstance(unit, YamlDriveTrain):
-                input_id = node_ids_by_key[unit_key(unit.input)]
+                input_id = node_ids_by_name[unit.input]
                 mechanical_efficiencies = {
                     entry.compressor: self._time_series(entry.efficiency, expression_evaluator)
                     for entry in unit.mechanical_efficiencies
@@ -174,15 +147,12 @@ class EnergyNetworkMapper:
                     mapped_nodes.append((node, MechanicalPower, None))
                     connections.append((input_id, node.get_id()))
             else:
-                key = unit_key(unit.name)
+                node_id = node_ids_by_name.get(unit.name) or EnergyUnitId(ecalc_id_generator())
                 node, input_type, output_type = self._map_unit(
-                    unit, node_ids_by_key[key], node_ids_by_key, resources, expression_evaluator, output_types
+                    unit, node_id, node_ids_by_name, resources, expression_evaluator, output_types
                 )
                 mapped_nodes.append((node, input_type, output_type))
-                connections.extend(
-                    (node_ids_by_key[unit_key(input_name)], node_ids_by_key[key])
-                    for input_name in get_input_names(unit)
-                )
+                connections.extend((node_ids_by_name[input_name], node_id) for input_name in get_input_names(unit))
 
         self._check_no_duplicate_generated_names(mapped_nodes)
 
@@ -194,9 +164,37 @@ class EnergyNetworkMapper:
 
         energy_unit_factories = [node for node, _, _ in mapped_nodes if isinstance(node, TimeSeriesEnergyUnitFactory)]
         consumers = [
-            node for node, _, _ in mapped_nodes if isinstance(node, TimeSeriesConsumer | TimeSeriesProcessCompressor)
+            node
+            for node, _, _ in mapped_nodes
+            if isinstance(node, TimeSeriesConsumer | TimeSeriesProcessCompressor | TimeSeriesCompressorSampled)
         ]
         return topology, energy_unit_factories, consumers
+
+    def _map_compressor_sampled(
+        self,
+        unit: YamlCompressorSampled,
+        resources: Mapping[str, Resource],
+        expression_evaluator: ExpressionEvaluator,
+    ) -> TimeSeriesCompressorSampled:
+        resource = resources.get(unit.file)
+        if resource is None:
+            raise EcalcValidationException(f"'{unit.compressor}': FILE '{unit.file}' not found.")
+        try:
+            return TimeSeriesCompressorSampled(
+                compressor_equipment_id=self._compressor_equipment_ids[unit.compressor],
+                name=unit.compressor,
+                file=unit.file,
+                resource=resource,
+                rate=self._time_series(unit.rate, expression_evaluator),
+                suction_pressure=self._time_series(unit.suction_pressure, expression_evaluator),
+                discharge_pressure=self._time_series(unit.discharge_pressure, expression_evaluator),
+            )
+        except EcalcError as e:
+            raise ResourceValidationException(
+                message=f"'{unit.compressor}': {e.message}",
+                file_mark=e.file_mark if isinstance(e, InvalidResourceException) else None,
+                resource_name=unit.file,
+            ) from e
 
     def _get_compressor_name(self, compressor_equipment_id: EquipmentId) -> str:
         return self._compressor_names_by_equipment_id[compressor_equipment_id]
@@ -214,9 +212,8 @@ class EnergyNetworkMapper:
             seen.add(name)
         if duplicates:
             raise EcalcValidationException(
-                f"Duplicate names: {duplicates}. Note that a COMPRESSOR_SAMPLED unit with both FUEL and POWER "
-                "samples generates a turbine named '{unit_name} turbine' - this may be an unintended collision "
-                "with that generated name rather than a name declared directly in UNITS."
+                f"Duplicate names: {duplicates}. Note that a DRIVE_TRAIN adds a unit named after each compressor on "
+                f"its shaft, which must differ from the names of sources and units."
             )
 
     @staticmethod
@@ -227,22 +224,11 @@ class EnergyNetworkMapper:
         output_types.update(
             {
                 unit.name: _ENERGY_CLASSES[OUTPUT_ENERGY[unit.type]]
-                for unit in yaml_energy_network.units
+                for unit in get_named_units(yaml_energy_network.units)
                 if unit.type in OUTPUT_ENERGY
             }
         )
         return output_types
-
-    @staticmethod
-    def _expand_sampled_compressor(
-        unit: YamlCompressorSampled,
-        resources: Mapping[str, Resource],
-        output_types: Mapping[str, type[Energy]],
-    ) -> Expansion:
-        resource = resources.get(unit.file)
-        if resource is None:
-            raise EcalcValidationException(f"'{unit.name}': FILE '{unit.file}' not found.")
-        return expand(unit, resource, output_types[unit.input])
 
     @staticmethod
     @overload
@@ -329,36 +315,6 @@ class EnergyNetworkMapper:
             energy_type,
         )
 
-    def _map_consumer_spec(
-        self,
-        spec: ConsumerSpec,
-        energy_unit_id: EnergyUnitId,
-        unit: YamlCompressorSampled,
-        expression_evaluator: ExpressionEvaluator,
-    ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
-        consumer = TimeSeriesConsumer(
-            name=spec.name,
-            energy_unit_id=energy_unit_id,
-            demand=CompressorSampledDemand(
-                energy_type=spec.input_energy_type,
-                model=spec.model,
-                demand_source=spec.demand_source,
-                rate=self._time_series(unit.rate, expression_evaluator),
-                suction_pressure=self._time_series(unit.suction_pressure, expression_evaluator),
-                discharge_pressure=self._time_series(unit.discharge_pressure, expression_evaluator),
-            ),
-        )
-        return consumer, consumer.get_input_energy_type(), None
-
-    @staticmethod
-    def _map_turbine_spec(
-        spec: TurbineSpec, energy_unit_id: EnergyUnitId
-    ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
-        turbine = TimeSeriesGasTurbineFactory(
-            name=spec.name, energy_unit_id=energy_unit_id, fuel_model=spec.fuel_power_curve
-        )
-        return turbine, FuelGasRate, MechanicalPower
-
     def _resolve_definitions[Unit: (YamlGenerator, YamlGasTurbine)](self, unit: Unit) -> Unit:
         try:
             return expand_definitions(unit, definitions=self._definitions)
@@ -385,9 +341,9 @@ class EnergyNetworkMapper:
 
     def _map_unit(
         self,
-        unit: YamlComponent,
+        unit: YamlNamedComponent,
         energy_unit_id: EnergyUnitId,
-        node_ids_by_key: Mapping[NodeKey, EnergyUnitId],
+        node_ids_by_name: Mapping[str, EnergyUnitId],
         resources: Mapping[str, Resource],
         expression_evaluator: ExpressionEvaluator,
         output_types: Mapping[str, type[Energy]],
@@ -447,7 +403,7 @@ class EnergyNetworkMapper:
                 )
             case YamlElectricalBus():
                 dispatch_strategy, input_capacities = self._map_junction_inputs(
-                    unit, node_ids_by_key, expression_evaluator
+                    unit, node_ids_by_name, expression_evaluator
                 )
                 return (
                     TimeSeriesJunctionFactory(
@@ -462,7 +418,7 @@ class EnergyNetworkMapper:
                 )
             case YamlFuelGasManifold():
                 dispatch_strategy, input_capacities = self._map_junction_inputs(
-                    unit, node_ids_by_key, expression_evaluator
+                    unit, node_ids_by_name, expression_evaluator
                 )
                 return (
                     TimeSeriesJunctionFactory(
@@ -503,27 +459,23 @@ class EnergyNetworkMapper:
                     demand=self._rate_demand(unit.name, unit.rate, DieselRate, resources, expression_evaluator),
                 )
                 return consumer, consumer.get_input_energy_type(), None
-            case YamlDriveTrain():
-                raise AssertionError("DRIVE_TRAIN units are handled separately, never mapped directly.")
-            case YamlCompressorSampled():
-                raise AssertionError("COMPRESSOR_SAMPLED units are expanded, never mapped directly.")
 
     def _map_junction_inputs(
         self,
         junction: YamlJunctionBase,
-        node_ids_by_key: Mapping[NodeKey, EnergyUnitId],
+        node_ids_by_name: Mapping[str, EnergyUnitId],
         expression_evaluator: ExpressionEvaluator,
     ) -> tuple[DispatchStrategy, dict[EnergyUnitId, TimeSeriesExpression]]:
         inputs = junction.get_inputs()
         input_capacities = {
-            node_ids_by_key[unit_key(junction_input.name)]: TimeSeriesExpression(
+            node_ids_by_name[junction_input.name]: TimeSeriesExpression(
                 expression=junction_input.capacity, expression_evaluator=expression_evaluator
             )
             for junction_input in inputs
             if junction_input.capacity is not None
         }
         # The declared order is the priority; the topology stores connections unordered.
-        candidate_ids = tuple(node_ids_by_key[unit_key(junction_input.name)] for junction_input in inputs)
+        candidate_ids = tuple(node_ids_by_name[junction_input.name] for junction_input in inputs)
         return self._map_dispatch_strategy(junction, candidate_ids), input_capacities
 
     @staticmethod

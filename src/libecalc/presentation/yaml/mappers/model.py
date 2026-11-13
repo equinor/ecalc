@@ -42,7 +42,9 @@ def _pressure_control_mapper(
     return FixedSpeedPressureControl(model_config.pressure_control.value)
 
 
-class InvalidChartResourceException(Exception):
+class ResourceValidationException(Exception):
+    """An invalid resource FILE, reported in the file itself rather than in the YAML."""
+
     def __init__(self, message: str, file_mark: ResourceFileMark | None, resource_name: str):
         self.message = message
         self._resource_file_mark = file_mark
@@ -69,6 +71,10 @@ class InvalidChartResourceException(Exception):
             )
         else:
             return None
+
+
+class InvalidChartResourceException(ResourceValidationException):
+    pass
 
 
 def single_speed_compressor_chart_mapper(

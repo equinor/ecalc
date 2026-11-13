@@ -436,14 +436,9 @@ class YamlMechanicalConsumerBuilder(Builder[YamlMechanicalConsumer]):
 class YamlDriveTrainBuilder(Builder[YamlDriveTrain]):
     def __init__(self):
         self.type = "DRIVE_TRAIN"
-        self.name = None
         self.input = None
         self.shaft = None
         self.mechanical_efficiencies = None
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
 
     def with_input(self, input: str) -> Self:
         self.input = input
@@ -461,7 +456,6 @@ class YamlDriveTrainBuilder(Builder[YamlDriveTrain]):
         return self
 
     def with_test_data(self) -> Self:
-        self.name = "compressor_train"
         self.input = "gas_turbine"
         self.shaft = "default_shaft"
         return self
@@ -530,17 +524,12 @@ class YamlDieselConsumerBuilder(Builder[YamlDieselConsumer]):
 class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
     def __init__(self):
         self.type = "COMPRESSOR_SAMPLED"
-        self.name = None
         self.compressor = None
         self.input = None
         self.file = None
         self.rate = None
         self.suction_pressure = None
         self.discharge_pressure = None
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
 
     def with_compressor(self, compressor: CompressorReference) -> Self:
         self.compressor = compressor
@@ -567,9 +556,8 @@ class YamlCompressorSampledBuilder(Builder[YamlCompressorSampled]):
         return self
 
     def with_test_data(self) -> Self:
-        self.name = "gas_compressor_sampled"
         self.compressor = "default_sampled_compressor"
-        self.input = "fuel_gas"
+        self.input = "gas_turbine"
         self.file = "gas_compressor_sampled.csv"
         self.rate = 2500000
         self.suction_pressure = 40
@@ -613,7 +601,7 @@ class YamlEnergyNetworkBuilder(Builder[YamlEnergyNetwork]):
         self.units = [*self.units, gas_turbine]
         return self
 
-    def with_drive_train(self, name: str, input: str, shaft: str) -> Self:
-        drive_train = YamlDriveTrainBuilder().with_name(name).with_input(input).with_shaft(shaft).validate()
+    def with_drive_train(self, input: str, shaft: str) -> Self:
+        drive_train = YamlDriveTrainBuilder().with_input(input).with_shaft(shaft).validate()
         self.units = [*self.units, drive_train]
         return self

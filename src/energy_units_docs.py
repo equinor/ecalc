@@ -35,8 +35,8 @@ ENERGY_UNIT_CATEGORY_DETAILS: dict[str, tuple[str, str, list[str]]] = {
         "consumers",
         "Use energy from the network. Consumers only have an input.",
         [
-            "`COMPRESSOR_SAMPLED` accepts fuel gas, electrical or mechanical energy, depending on the energy columns "
-            "in its `FILE`.",
+            "`COMPRESSOR_SAMPLED` accepts mechanical energy and refers to a compressor. Its `FILE` has a "
+            "`SHAFT_POWER` column.",
             "`DRIVE_TRAIN` accepts mechanical energy and refers to a shaft.",
         ],
     ),

@@ -529,8 +529,21 @@ class YamlCompressorMechanicalEfficiency(YamlBase):
         return _check_efficiency(v)
 
 
-class YamlDriveTrain(YamlConsumerBase):
+class YamlDriveTrain(YamlBase):
+    model_config = ConfigDict(
+        json_schema_extra=yaml_element_lifecycle(
+            changed_in=[(V5, "Removed NAME. A drive train is identified by SHAFT.")]
+        )
+    )
+
     type: Literal["DRIVE_TRAIN"]
+    input: Annotated[
+        str,
+        Field(
+            title="INPUT",
+            description="Source or component this receives energy from.",
+        ),
+    ]
     shaft: Annotated[
         ShaftReference,
         Field(
@@ -607,24 +620,37 @@ class YamlDieselConsumer(YamlConsumerBase):
         return _check_non_negative(v, "RATE")
 
 
-class YamlCompressorSampled(YamlConsumerBase):
+class YamlCompressorSampled(YamlBase):
     """
-    A compressor whose energy usage is tabulated in `FILE` against `RATE`, `SUCTION_PRESSURE` and/or
-    `DISCHARGE_PRESSURE`. Which energy columns `FILE` has decides what the unit consumes:
+    A compressor whose shaft power is looked up in `FILE` from `RATE`, `SUCTION_PRESSURE` and/or
+    `DISCHARGE_PRESSURE`. `FILE` must have a `SHAFT_POWER` column [MW], and `INPUT` must provide mechanical power,
+    e.g. a `GAS_TURBINE` or an `ELECTRICAL_MOTOR`.
 
-    - Only `FUEL`: a fuel gas consumer. `INPUT` must provide fuel gas.
-    - Only `POWER`: a power consumer, electrical or mechanical after what `INPUT` provides.
-    - Both `FUEL` and `POWER`: a gas turbine named `<NAME> turbine` is generated and wired between `INPUT`
-      (which must provide fuel gas) and the compressor. The compressor demands the tabulated `POWER` as
-      shaft power and the turbine converts it back to the tabulated `FUEL`.
-
-    Every variable tabulated in `FILE` must be given as an expression, and every given expression must be
-    tabulated.
+    `FILE` must have a column for exactly those of `RATE`, `SUCTION_PRESSURE` and `DISCHARGE_PRESSURE` that are
+    given.
     """
 
-    model_config = ConfigDict(title="CompressorSampled")
+    model_config = ConfigDict(
+        title="CompressorSampled",
+        json_schema_extra=yaml_element_lifecycle(
+            changed_in=[
+                (
+                    V5,
+                    "Removed NAME, the unit is named by COMPRESSOR. FILE must have a SHAFT_POWER column instead of FUEL "
+                    "and/or POWER, and INPUT must provide mechanical power.",
+                )
+            ]
+        ),
+    )
 
     type: Literal["COMPRESSOR_SAMPLED"]
+    input: Annotated[
+        str,
+        Field(
+            title="INPUT",
+            description="Source or component this receives energy from.",
+        ),
+    ]
     compressor: Annotated[
         CompressorReference,
         Field(
@@ -637,8 +663,8 @@ class YamlCompressorSampled(YamlConsumerBase):
         str,
         Field(
             title="FILE",
-            description="Resource tabulating FUEL and/or POWER against RATE, SUCTION_PRESSURE and/or "
-            "DISCHARGE_PRESSURE.",
+            description="Resource with a SHAFT_POWER [MW] column, and a column for each of RATE, SUCTION_PRESSURE "
+            "and DISCHARGE_PRESSURE that is given.",
         ),
     ]
     rate: Annotated[
@@ -684,7 +710,7 @@ class YamlCompressorSampled(YamlConsumerBase):
     def check_at_least_one_variable(self):
         if self.rate is None and self.suction_pressure is None and self.discharge_pressure is None:
             raise ValueError(
-                f"'{self.name}': at least one of RATE, SUCTION_PRESSURE or DISCHARGE_PRESSURE is required."
+                f"'{self.compressor}': at least one of RATE, SUCTION_PRESSURE or DISCHARGE_PRESSURE is required."
             )
         return self
 
@@ -708,6 +734,25 @@ YamlComponent = Annotated[
 ]
 
 
+YamlNamedComponent = (
+    YamlGenerator
+    | YamlGasTurbine
+    | YamlElectricalMotor
+    | YamlElectricalCable
+    | YamlElectricalBus
+    | YamlFuelGasManifold
+    | YamlElectricalConsumer
+    | YamlMechanicalConsumer
+    | YamlFuelGasConsumer
+    | YamlDieselConsumer
+)
+
+
+def get_named_units(units: list[YamlComponent]) -> list[YamlNamedComponent]:
+    """The units with a NAME, i.e. all but COMPRESSOR_SAMPLED and DRIVE_TRAIN."""
+    return [unit for unit in units if isinstance(unit, YamlNamedComponent)]
+
+
 class EnergyType(StrEnum):
     FUEL_GAS = "FUEL_GAS"
     ELECTRICAL = "ELECTRICAL"
@@ -724,6 +769,7 @@ INPUT_ENERGY: dict[str, EnergyType] = {
     "ELECTRICAL_CONSUMER": EnergyType.ELECTRICAL,
     "MECHANICAL_CONSUMER": EnergyType.MECHANICAL,
     "DRIVE_TRAIN": EnergyType.MECHANICAL,
+    "COMPRESSOR_SAMPLED": EnergyType.MECHANICAL,
     "FUEL_GAS_CONSUMER": EnergyType.FUEL_GAS,
     "DIESEL_CONSUMER": EnergyType.DIESEL,
 }
@@ -746,9 +792,18 @@ SOURCE_OUTPUT_ENERGY: dict[YamlEnergySourceType, EnergyType] = {
     YamlEnergySourceType.ELECTRICAL_SOURCE: EnergyType.ELECTRICAL,
 }
 
-FILE_DEFINED_INPUT_TYPES = {"COMPRESSOR_SAMPLED"}
+CONSUMER_TYPES = set(INPUT_ENERGY) - set(OUTPUT_ENERGY)
 
-CONSUMER_TYPES = (set(INPUT_ENERGY) - set(OUTPUT_ENERGY)) | FILE_DEFINED_INPUT_TYPES
+
+def get_unit_label(component: YamlComponent) -> str:
+    """Human-readable identification of a unit, for units without a NAME too."""
+    match component:
+        case YamlCompressorSampled():
+            return f"COMPRESSOR_SAMPLED '{component.compressor}'"
+        case YamlDriveTrain():
+            return f"DRIVE_TRAIN for shaft '{component.shaft}'"
+        case _:
+            return f"'{component.name}'"
 
 
 def get_input_names(component: YamlComponent) -> list[str]:
@@ -777,24 +832,29 @@ class YamlEnergyNetwork(YamlBase):
         ),
     ] = []
 
+    def _named_units(self) -> list[YamlNamedComponent]:
+        return get_named_units(self.units)
+
     def _all_names(self) -> list[str]:
-        return [s.name for s in self.sources] + [c.name for c in self.units]
+        return (
+            [s.name for s in self.sources]
+            + [c.name for c in self._named_units()]
+            + [c.compressor for c in self.units if isinstance(c, YamlCompressorSampled)]
+        )
 
     def _valid_input_names(self) -> set[str]:
         names = {s.name for s in self.sources}
-        names.update(c.name for c in self.units if c.type not in CONSUMER_TYPES)
+        names.update(c.name for c in self._named_units() if c.type not in CONSUMER_TYPES)
         return names
 
     @model_validator(mode="after")
     def check_unique_names(self):
-        seen: set[str] = set()
-        duplicates: set[str] = set()
-        for name in self._all_names():
-            if name in seen:
-                duplicates.add(name)
-            seen.add(name)
+        duplicates = get_duplicates(self._all_names())
         if duplicates:
-            raise ValueError(f"Duplicate names: {duplicates}")
+            raise ValueError(
+                f"Duplicate names: {set(duplicates)}. A COMPRESSOR_SAMPLED unit is named by its COMPRESSOR, which "
+                f"must differ from the names of sources and units."
+            )
         return self
 
     @model_validator(mode="after")
@@ -803,14 +863,14 @@ class YamlEnergyNetwork(YamlBase):
         for c in self.units:
             for ref in get_input_names(c):
                 if ref not in valid:
-                    raise ValueError(f"'{c.name}' has INPUT '{ref}' which is not a known source or provider.")
+                    raise ValueError(f"{get_unit_label(c)} has INPUT '{ref}' which is not a known source or provider.")
         return self
 
     @model_validator(mode="after")
     def check_no_cycles(self):
         from graphlib import CycleError, TopologicalSorter
 
-        graph: dict[str, set[str]] = {c.name: set(get_input_names(c)) for c in self.units}
+        graph: dict[str, set[str]] = {c.name: set(get_input_names(c)) for c in self._named_units()}
         try:
             tuple(TopologicalSorter(graph).static_order())
         except CycleError as e:
@@ -822,18 +882,18 @@ class YamlEnergyNetwork(YamlBase):
         output_types: dict[str, EnergyType] = {}
         for s in self.sources:
             output_types[s.name] = SOURCE_OUTPUT_ENERGY[s.type]
-        for c in self.units:
+        for c in self._named_units():
             if c.type in OUTPUT_ENERGY:
                 output_types[c.name] = OUTPUT_ENERGY[c.type]
 
         for c in self.units:
-            if c.type in FILE_DEFINED_INPUT_TYPES:
-                continue
             if c.type == "GENERATOR":
                 allowed_inputs = GENERATOR_INPUT_ENERGY
             else:
                 if c.type not in INPUT_ENERGY:
-                    raise ValueError(f"'{c.name}': unknown component type '{c.type}' — not in energy type map.")
+                    raise ValueError(
+                        f"{get_unit_label(c)}: unknown component type '{c.type}' — not in energy type map."
+                    )
                 allowed_inputs = {INPUT_ENERGY[c.type]}
             for ref in get_input_names(c):
                 provided = output_types.get(ref)
@@ -844,6 +904,6 @@ class YamlEnergyNetwork(YamlBase):
                         else f"one of {sorted(t.value for t in allowed_inputs)}"
                     )
                     raise ValueError(
-                        f"'{c.name}' ({c.type}) expects {expected} input, but '{ref}' provides {provided}."
+                        f"{get_unit_label(c)} ({c.type}) expects {expected} input, but '{ref}' provides {provided}."
                     )
         return self

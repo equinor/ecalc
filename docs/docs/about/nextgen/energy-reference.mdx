@@ -137,7 +137,7 @@ Power and fuel values, given directly or in a FILE with POWER and FUEL columns.
 
 Defines the energy network configuration.
 
-<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  TYPE: GENERATOR\n  MODEL:\n    CURVE:\n      POWER:\n      - 0.0\n      - 5.0\n      - 10.0\n      - 15.0\n      FUEL:\n      - 0.0\n      - 25000.0\n      - 48000.0\n      - 70000.0\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- NAME: compressor_train\n  INPUT: gas_turbine\n  TYPE: DRIVE_TRAIN\n  SHAFT: default_shaft"}</YamlCodeBlock>
+<YamlCodeBlock>{"SOURCES:\n- NAME: fuel_gas\n  TYPE: FUEL_GAS_SOURCE\n- NAME: power_from_shore\n  TYPE: ELECTRICAL_SOURCE\nUNITS:\n- NAME: generator\n  INPUT: fuel_gas\n  TYPE: GENERATOR\n  MODEL:\n    CURVE:\n      POWER:\n      - 0.0\n      - 5.0\n      - 10.0\n      - 15.0\n      FUEL:\n      - 0.0\n      - 25000.0\n      - 48000.0\n      - 70000.0\n- NAME: power_from_shore_cable\n  INPUT: power_from_shore\n  CAPACITY: 20\n  TYPE: ELECTRICAL_CABLE\n  EFFICIENCY: 0.98\n- NAME: main_bus\n  INPUT:\n  - NAME: power_from_shore_cable\n    CAPACITY: 15\n  - generator\n  DISPATCH_STRATEGY: PRIORITY\n  TYPE: ELECTRICAL_BUS\n- NAME: base_load\n  INPUT: main_bus\n  TYPE: ELECTRICAL_CONSUMER\n  LOAD: 5\n- NAME: gas_turbine\n  INPUT: fuel_gas\n  TYPE: GAS_TURBINE\n  MODEL:\n    LOWER_HEATING_VALUE: 38.0\n    CURVE:\n      LOAD:\n      - 2.352\n      - 4.589\n      - 6.853\n      EFFICIENCY:\n      - 0.138\n      - 0.21\n      - 0.255\n- TYPE: DRIVE_TRAIN\n  INPUT: gas_turbine\n  SHAFT: default_shaft"}</YamlCodeBlock>
 
 ### SOURCES \{#sources}
 
@@ -421,13 +421,14 @@ Shaft power demand (MW), as an expression or a curve lookup.
 
 <div className="lifecycle-variant">
 
-<YamlCodeBlock>{"NAME: compressor_train\nINPUT: gas_turbine\nTYPE: DRIVE_TRAIN\nSHAFT: default_shaft"}</YamlCodeBlock>
+<ChangeHistory changes={[{ "version": "5", "description": "Removed NAME. A drive train is identified by SHAFT." }]} />
+
+<YamlCodeBlock>{"TYPE: DRIVE_TRAIN\nINPUT: gas_turbine\nSHAFT: default_shaft"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `NAME` | Unique name for this component. | Required |
-| `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `DRIVE_TRAIN` | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
 | `SHAFT` | Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand. | Required |
 | [`MECHANICAL_EFFICIENCIES`](#energy_network-units-drive_train-mechanical_efficiencies) <LifecycleBadge kind="introduced" version="4" /> | Mechanical efficiency per compressor on the shaft. Each compressor demands its gas power divided by its efficiency as shaft power. A compressor not listed has efficiency 1.0. | Optional |
 
@@ -572,27 +573,23 @@ Diesel consumption rate (l/d), as an expression or a curve lookup.
 
 <div className="lifecycle-variant">
 
-A compressor whose energy usage is tabulated in `FILE` against `RATE`, `SUCTION_PRESSURE` and/or
-`DISCHARGE_PRESSURE`. Which energy columns `FILE` has decides what the unit consumes:
+<ChangeHistory changes={[{ "version": "5", "description": "Removed NAME, the unit is named by COMPRESSOR. FILE must have a SHAFT_POWER column instead of FUEL and/or POWER, and INPUT must provide mechanical power." }]} />
 
-- Only `FUEL`: a fuel gas consumer. `INPUT` must provide fuel gas.
-- Only `POWER`: a power consumer, electrical or mechanical after what `INPUT` provides.
-- Both `FUEL` and `POWER`: a gas turbine named `<NAME> turbine` is generated and wired between `INPUT`
-  (which must provide fuel gas) and the compressor. The compressor demands the tabulated `POWER` as
-  shaft power and the turbine converts it back to the tabulated `FUEL`.
+A compressor whose shaft power is looked up in `FILE` from `RATE`, `SUCTION_PRESSURE` and/or
+`DISCHARGE_PRESSURE`. `FILE` must have a `SHAFT_POWER` column [MW], and `INPUT` must provide mechanical power,
+e.g. a `GAS_TURBINE` or an `ELECTRICAL_MOTOR`.
 
-Every variable tabulated in `FILE` must be given as an expression, and every given expression must be
-tabulated.
+`FILE` must have a column for exactly those of `RATE`, `SUCTION_PRESSURE` and `DISCHARGE_PRESSURE` that are
+given.
 
-<YamlCodeBlock>{"NAME: gas_compressor_sampled\nINPUT: fuel_gas\nTYPE: COMPRESSOR_SAMPLED\nCOMPRESSOR: default_sampled_compressor\nFILE: gas_compressor_sampled.csv\nRATE: 2500000\nSUCTION_PRESSURE: 40\nDISCHARGE_PRESSURE: 120"}</YamlCodeBlock>
+<YamlCodeBlock>{"TYPE: COMPRESSOR_SAMPLED\nINPUT: gas_turbine\nCOMPRESSOR: default_sampled_compressor\nFILE: gas_compressor_sampled.csv\nRATE: 2500000\nSUCTION_PRESSURE: 40\nDISCHARGE_PRESSURE: 120"}</YamlCodeBlock>
 
 | Key | Description | Status |
 | --- | --- | --- |
-| `NAME` | Unique name for this component. | Required |
-| `INPUT` | Source or component this receives energy from. | Required |
 | `TYPE` | `COMPRESSOR_SAMPLED` | Required |
+| `INPUT` | Source or component this receives energy from. | Required |
 | `COMPRESSOR` <LifecycleBadge kind="introduced" version="3" /> | Reference to a compressor defined in COMPRESSORS. | Required |
-| `FILE` | Resource tabulating FUEL and/or POWER against RATE, SUCTION_PRESSURE and/or DISCHARGE_PRESSURE. | Required |
+| `FILE` | Resource with a SHAFT_POWER [MW] column, and a column for each of RATE, SUCTION_PRESSURE and DISCHARGE_PRESSURE that is given. | Required |
 | `RATE` | Rate through the compressor (Sm³/d), looked up in FILE. | Optional |
 | `SUCTION_PRESSURE` | Compressor inlet pressure (bara), looked up in FILE. | Optional |
 | `DISCHARGE_PRESSURE` | Compressor outlet pressure (bara), looked up in FILE. | Optional |

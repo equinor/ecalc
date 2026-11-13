@@ -14,6 +14,8 @@ These are not available in legacy models, so they are not part of the release ch
 ## v15.7 {/* #v15-7 */}
 
 - `ENERGY_NETWORK`: a compressor's `EFFICIENCY` in a `DRIVE_TRAIN`'s `MECHANICAL_EFFICIENCIES` covers its share of the gearbox and couplings as well as its bearings and seals, not the driver's own losses. A compressor-only value, for example from a datasheet, should be multiplied by the gearbox efficiency.
+- `ENERGY_NETWORK`: a `COMPRESSOR_SAMPLED` unit's `FILE` has a `SHAFT_POWER` [MW] column, replacing `FUEL` and `POWER`, and its `INPUT` must provide mechanical power, e.g. a `GAS_TURBINE` or an `ELECTRICAL_MOTOR`. The gas turbine generated for a file with both `FUEL` and `POWER` is removed; declare a `GAS_TURBINE` as `INPUT` instead.
+- `ENERGY_NETWORK`: `NAME` is removed from `COMPRESSOR_SAMPLED` and `DRIVE_TRAIN`. A `COMPRESSOR_SAMPLED` unit is named by its `COMPRESSOR`, which must differ from the names of sources and units, and a `DRIVE_TRAIN` is identified by its `SHAFT`.
 
 ## v15.6 {/* #v15-6 */}
 

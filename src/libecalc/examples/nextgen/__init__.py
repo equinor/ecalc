@@ -10,8 +10,6 @@ NEXTGEN_RESOURCE_NAMES = [
     "compressor_chart.csv",
     "base_profile.csv",
     "sampled_el_compressor.csv",
-    "sampled_fuel_compressor.csv",
-    "sampled_fuel_turbine.csv",
     "sampled_mech_compressor.csv",
 ]
 

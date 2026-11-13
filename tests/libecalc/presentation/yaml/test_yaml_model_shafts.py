@@ -46,7 +46,7 @@ def _asset(mechanical_efficiencies: dict[str, YamlExpressionType]) -> YamlAsset:
     turbine_model = YamlTurbineDefinition(
         lower_heating_value=38, curve=YamlTurbineCurve(load=[10, 20], efficiency=[0.2, 0.3])
     )
-    drive_train = YamlDriveTrainBuilder().with_name("export_drive").with_input("export_turbine").with_shaft(SHAFT)
+    drive_train = YamlDriveTrainBuilder().with_input("export_turbine").with_shaft(SHAFT)
     for compressor, efficiency in mechanical_efficiencies.items():
         drive_train.with_mechanical_efficiency(compressor, efficiency)
     energy_network = (

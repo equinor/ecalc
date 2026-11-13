@@ -13,8 +13,7 @@ def make_resource():
     return _make_resource
 
 
-# Shared sample table used across both the pure expansion tests and the mapper-level tests:
-# a compressor operating at `rate` consumes `fuel` and/or produces `power`, one entry per rate.
+# Shared sample table: a consumer operating at `rate` consumes `fuel` or `shaft_power`, one entry per rate.
 @pytest.fixture
 def rates() -> list[float]:
     return [1000.0, 2000.0, 3000.0]
@@ -23,6 +22,11 @@ def rates() -> list[float]:
 @pytest.fixture
 def fuel() -> list[float]:
     return [10000.0, 20000.0, 30000.0]
+
+
+@pytest.fixture
+def shaft_power() -> list[float]:
+    return [5.0, 10.0, 15.0]
 
 
 @pytest.fixture

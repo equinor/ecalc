@@ -46,6 +46,7 @@ from libecalc.presentation.yaml.domain.category_service import CategoryService
 from libecalc.presentation.yaml.domain.container_info import ContainerInfo
 from libecalc.presentation.yaml.domain.default_process_service import DefaultProcessService
 from libecalc.presentation.yaml.domain.energy import (
+    TimeSeriesCompressorSampled,
     TimeSeriesConsumer,
     TimeSeriesEnergyUnitFactory,
 )
@@ -57,6 +58,7 @@ from libecalc.presentation.yaml.domain.time_series_collections import TimeSeries
 from libecalc.presentation.yaml.domain.time_series_resource import TimeSeriesResource
 from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
+from libecalc.presentation.yaml.mappers.model import ResourceValidationException
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.timeline_event_mapper import TimelineEventMapper
@@ -317,7 +319,7 @@ class YamlModel:
     ) -> tuple[
         EnergyNetworkTopology | None,
         Sequence[TimeSeriesEnergyUnitFactory],
-        Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor],
+        Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor | TimeSeriesCompressorSampled],
         list[Period],
     ]:
         self.validate_for_run()
@@ -349,6 +351,10 @@ class YamlModel:
                 timeline_event_service=self._get_timeline_event_service(),
             ).map_energy_network(yaml_energy_network, expression_evaluator, resources=facility_resources)
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
+        except ResourceValidationException as e:
+            raise ModelValidationException(
+                errors=[ModelValidationError(location=e.location, message=e.message, file_context=e.file_context)]
+            ) from e
         except EcalcValidationException as e:
             yaml_keys = ("ENERGY_NETWORK",)
             raise ModelValidationException(

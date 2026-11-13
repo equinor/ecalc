@@ -173,10 +173,7 @@ def _compressors() -> list[YamlCompressor]:
         for train_number in _train_numbers()
         for number in _compressor_numbers()
     ]
-    sampled_compressors = [
-        YamlCompressor(name=name)
-        for name in ("sampled_el_compressor", "sampled_fuel_compressor", "sampled_mech_compressor", "sampled_turbine")
-    ]
+    sampled_compressors = [YamlCompressor(name=name) for name in ("sampled_el_compressor", "sampled_mech_compressor")]
     return export_compressors + sampled_compressors
 
 
@@ -289,7 +286,7 @@ def _process_simulation():
 def _energy_sources():
     fuel_gas_sources = [
         YamlEnergySourceBuilder().with_name(name).with_type(YamlEnergySourceType.FUEL_GAS_SOURCE).validate()
-        for name in ("fuel_gas", "fuel_gas2", "fuel_gas3", "fuel_gas4", "fuel_gas5")
+        for name in ("fuel_gas", "fuel_gas2", "fuel_gas3")
     ]
     electrical_sources = [
         YamlEnergySourceBuilder().with_name(name).with_type(YamlEnergySourceType.ELECTRICAL_SOURCE).validate()
@@ -298,10 +295,9 @@ def _energy_sources():
     return fuel_gas_sources + electrical_sources
 
 
-def _sampled_compressor(name: str, input: str, compressor: str, file: str):
+def _sampled_compressor(input: str, compressor: str, file: str):
     return (
         YamlCompressorSampledBuilder()
-        .with_name(name)
         .with_input(input)
         .with_compressor(compressor)
         .with_file(file)
@@ -328,8 +324,8 @@ def _electrical_motor(name: str, input: str):
     )
 
 
-def _drive_train(name: str, input: str, shaft: str, mechanical_efficiencies: dict[str, float] | None = None):
-    builder = YamlDriveTrainBuilder().with_name(name).with_input(input).with_shaft(shaft)
+def _drive_train(input: str, shaft: str, mechanical_efficiencies: dict[str, float] | None = None):
+    builder = YamlDriveTrainBuilder().with_input(input).with_shaft(shaft)
     for compressor, efficiency in (mechanical_efficiencies or {}).items():
         builder = builder.with_mechanical_efficiency(compressor, efficiency)
     return builder.validate()
@@ -356,29 +352,22 @@ def _energy_units():
         .validate(),
         _electrical_motor("export_motor", "long_cable"),
         _drive_train(
-            "export_train_1_drive",
             "export_turbine",
             _shaft_name(1),
             mechanical_efficiencies={_compressor_name(1, 1): 0.97, _compressor_name(1, 2): 0.95},
         ),
         _drive_train(
-            "export_train_2_el",
             "export_motor",
             _shaft_name(2),
             mechanical_efficiencies={_compressor_name(2, 1): 0.96},
         ),
         _electrical_motor("pfs_motor", "pfs"),
-        _drive_train("pfs_train", "pfs_motor", _shaft_name(3)),
+        _drive_train("pfs_motor", _shaft_name(3)),
         YamlElectricalConsumerBuilder().with_name("base_load").with_input("el_source").with_load(5).validate(),
-        _sampled_compressor("el_compressor_sampled", "genset_a", "sampled_el_compressor", "sampled_el_compressor.csv"),
-        _sampled_compressor(
-            "fuel_compressor_sampled", "fuel_gas3", "sampled_fuel_compressor", "sampled_fuel_compressor.csv"
-        ),
-        _gas_turbine("sampled_turbine", "fuel_gas4"),
-        _sampled_compressor(
-            "mech_compressor_sampled", "sampled_turbine", "sampled_mech_compressor", "sampled_mech_compressor.csv"
-        ),
-        _sampled_compressor("turbine_compressor_sampled", "fuel_gas5", "sampled_turbine", "sampled_fuel_turbine.csv"),
+        _electrical_motor("sampled_el_motor", "genset_a"),
+        _sampled_compressor("sampled_el_motor", "sampled_el_compressor", "sampled_el_compressor.csv"),
+        _gas_turbine("sampled_turbine", "fuel_gas3"),
+        _sampled_compressor("sampled_turbine", "sampled_mech_compressor", "sampled_mech_compressor.csv"),
     ]
 
 

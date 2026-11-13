@@ -45,24 +45,21 @@ graph LR
     subgraph box_COMPRESSOR_SAMPLED [" "]
         direction LR
         COMPRESSOR_SAMPLED["COMPRESSOR_SAMPLED"]
-        COMPRESSOR_SAMPLED_in0_FUEL_GAS(["FUEL_GAS"]) -.-> COMPRESSOR_SAMPLED
-        COMPRESSOR_SAMPLED_in0_ELECTRICAL(["ELECTRICAL"]) -.-> COMPRESSOR_SAMPLED
-        COMPRESSOR_SAMPLED_in0_MECHANICAL(["MECHANICAL"]) -.-> COMPRESSOR_SAMPLED
+        COMPRESSOR_SAMPLED_in0_MECHANICAL(["MECHANICAL"]) --> COMPRESSOR_SAMPLED
     end
     classDef FUEL_GAS fill:#f0a35e,stroke:#f0a35e,color:#000
-    class legend_FUEL_GAS,FUEL_GAS_CONSUMER_in0_FUEL_GAS,COMPRESSOR_SAMPLED_in0_FUEL_GAS FUEL_GAS
-    linkStyle 3,5 stroke:#f0a35e,stroke-width:3px
+    class legend_FUEL_GAS,FUEL_GAS_CONSUMER_in0_FUEL_GAS FUEL_GAS
+    linkStyle 3 stroke:#f0a35e,stroke-width:3px
     classDef ELECTRICAL fill:#5b9bd5,stroke:#5b9bd5,color:#000
-    class legend_ELECTRICAL,ELECTRICAL_CONSUMER_in0_ELECTRICAL,COMPRESSOR_SAMPLED_in0_ELECTRICAL ELECTRICAL
-    linkStyle 0,6 stroke:#5b9bd5,stroke-width:3px
+    class legend_ELECTRICAL,ELECTRICAL_CONSUMER_in0_ELECTRICAL ELECTRICAL
+    linkStyle 0 stroke:#5b9bd5,stroke-width:3px
     classDef MECHANICAL fill:#70ad47,stroke:#70ad47,color:#000
     class legend_MECHANICAL,MECHANICAL_CONSUMER_in0_MECHANICAL,DRIVE_TRAIN_in0_MECHANICAL,COMPRESSOR_SAMPLED_in0_MECHANICAL MECHANICAL
-    linkStyle 1,2,7 stroke:#70ad47,stroke-width:3px
+    linkStyle 1,2,5 stroke:#70ad47,stroke-width:3px
     classDef DIESEL fill:#a6a6a6,stroke:#a6a6a6,color:#000
     class legend_DIESEL,DIESEL_CONSUMER_in0_DIESEL DIESEL
     linkStyle 4 stroke:#a6a6a6,stroke-width:3px
-    linkStyle 5,6,7 stroke-dasharray:6 4
 ```
 
-- `COMPRESSOR_SAMPLED` accepts fuel gas, electrical or mechanical energy, depending on the energy columns in its `FILE`.
+- `COMPRESSOR_SAMPLED` accepts mechanical energy and refers to a compressor. Its `FILE` has a `SHAFT_POWER` column.
 - `DRIVE_TRAIN` accepts mechanical energy and refers to a shaft.

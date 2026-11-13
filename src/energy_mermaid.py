@@ -3,7 +3,6 @@ from typing import get_args
 
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     CONSUMER_TYPES,
-    FILE_DEFINED_INPUT_TYPES,
     GENERATOR_INPUT_ENERGY,
     INPUT_ENERGY,
     OUTPUT_ENERGY,
@@ -14,8 +13,6 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergySourceType,
     YamlJunctionBase,
 )
-
-FILE_DEFINED_INPUT_ENERGY = {EnergyType.FUEL_GAS, EnergyType.ELECTRICAL, EnergyType.MECHANICAL}
 
 ENERGY_TYPE_COLORS: dict[EnergyType, str] = {
     EnergyType.FUEL_GAS: "#f0a35e",
@@ -76,8 +73,6 @@ def _unit_type_name(unit_class: type) -> str:
 def _input_energy(unit_type: str) -> set[EnergyType]:
     if unit_type == "GENERATOR":
         return set(GENERATOR_INPUT_ENERGY)
-    if unit_type in FILE_DEFINED_INPUT_TYPES:
-        return set(FILE_DEFINED_INPUT_ENERGY)
     return {INPUT_ENERGY[unit_type]}
 
 
