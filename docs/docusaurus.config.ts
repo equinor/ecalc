@@ -8,7 +8,15 @@ import katex from 'rehype-katex';
 import localSearch from '@easyops-cn/docusaurus-search-local';
 import { resolve } from 'path';
 
-const baseUrl = "/ecalc"
+// The docs are published as one build per version on GitHub Pages:
+//   /ecalc/          redirect to the latest release (docs/static-root, published from main)
+//   /ecalc/vX.Y/     one folder per minor release (the newest are kept)
+//   /ecalc/next/     unreleased docs built from main
+// DOCS_BASE_URL selects where this build is served, DOCS_VERSION is the label of this build.
+// See .github/workflows/publish-docs.yml and scripts/deploy-versioned-docs.mjs.
+const siteRoot = '/ecalc/';
+const baseUrl = process.env.DOCS_BASE_URL ?? siteRoot;
+const docsVersion = process.env.DOCS_VERSION ?? 'local';
 
 const config: Config = {
   future: {
@@ -20,6 +28,10 @@ const config: Config = {
   tagline: 'Documentation for eCalc™',
   url: 'https://equinor.github.io',
   baseUrl: baseUrl,
+  customFields: {
+    docsVersion,
+    docsSiteRoot: siteRoot,
+  },
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',
   onDuplicateRoutes: 'throw',
@@ -52,7 +64,7 @@ const config: Config = {
         docs: {
           sidebarPath: './sidebars.ts',
           editUrl:
-            'https://github.com/equinor/ecalc/tree/main/documentation/',
+            'https://github.com/equinor/ecalc/tree/main/docs/',
           remarkPlugins: [math],
           rehypePlugins: [katex],
         },
@@ -89,6 +101,10 @@ const config: Config = {
             sidebarId: 'changelog',
             position: 'left',
             label: 'Changelog',
+          },
+          {
+            type: 'custom-versionDropdown',
+            position: 'right',
           },
           {
             href: 'https://github.com/equinor/ecalc',

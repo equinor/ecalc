@@ -62,6 +62,17 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
 
+  # Called directly, since tags created with GITHUB_TOKEN do not trigger other workflows.
+  publish-docs:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    permissions:
+      contents: write
+    uses: ./.github/workflows/publish-docs.yml
+    with:
+      channel: release
+      version: ${{ needs.release-please.outputs.tag_name }}
+
   release-please-dry-run:
     needs: get_release_please_config_file
     if: ${{ inputs.dry_run == true }}

@@ -75,6 +75,10 @@ jobs:
         working-directory: ./docs
         run: npm ci --ignore-scripts
 
+      - name: Typecheck
+        working-directory: ./docs
+        run: npm run typecheck
+
       - name: Test by building website
         working-directory: ./docs
         run: npm run build

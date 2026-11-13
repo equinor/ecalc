@@ -1,0 +1,58 @@
+<!doctype html>
+<!--
+  Root of the published docs. Redirects to the latest release, keeping the path, e.g.
+  /ecalc/docs/about/ -> /ecalc/vX.Y/docs/about/. Also published as 404.html, so it handles every missing path.
+  Published from main by scripts/deploy-versioned-docs.mjs, which replaces __SITE_ROOT__.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="robots" content="noindex">
+  <title>eCalc™ Docs</title>
+  <script>
+    (function () {
+      var siteRoot = '__SITE_ROOT__';
+      var pathname = window.location.pathname;
+      var suffix = window.location.search + window.location.hash;
+
+      function go(path) {
+        var url = new URL(path, window.location.origin);
+        if (url.origin === window.location.origin && url.pathname.indexOf(siteRoot) === 0 && url.pathname !== pathname) {
+          window.location.replace(url.href);
+        }
+      }
+
+      function redirect(manifest) {
+        var versions = (manifest && manifest.versions) || [];
+        var roots = versions.map(function (version) { return version.path; });
+        if (manifest && manifest.next) {
+          roots.push(manifest.next);
+        }
+        // A missing page inside a published version: show the not found page of that version.
+        for (var i = 0; i < roots.length; i++) {
+          if (pathname.indexOf(roots[i]) === 0) {
+            return go(roots[i] + '404.html');
+          }
+        }
+        var latest = versions.filter(function (version) { return version.name === manifest.latest; })[0];
+        var page = pathname.indexOf(siteRoot) === 0 ? pathname.slice(siteRoot.length) : '';
+        if (latest) {
+          return go(latest.path + page + suffix);
+        }
+        if (manifest && manifest.next) {
+          return go(manifest.next + page + suffix);
+        }
+      }
+
+      fetch(siteRoot + 'versions.json', { cache: 'no-cache' })
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .catch(function () { return null; })
+        .then(redirect);
+    })();
+  </script>
+</head>
+<body>
+  <p>Redirecting to the latest eCalc™ documentation…</p>
+  <noscript><p>See the <a href="__SITE_ROOT__versions.json">list of published versions</a>.</p></noscript>
+</body>
+</html>
