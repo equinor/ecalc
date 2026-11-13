@@ -14,6 +14,18 @@ These are not available in legacy models, so they are not part of the release ch
 ## v15.7 {/* #v15-7 */}
 
 - `ENERGY_NETWORK`: a compressor's `EFFICIENCY` in a `DRIVE_TRAIN`'s `MECHANICAL_EFFICIENCIES` covers its share of the gearbox and couplings as well as its bearings and seals, not the driver's own losses. A compressor-only value, for example from a datasheet, should be multiplied by the gearbox efficiency.
+- `ENERGY_NETWORK`: a `COMPRESSOR_SAMPLED` unit's `FILE` has a `MECHANICAL_POWER` [MW] column, replacing `FUEL` and `POWER`, and its `INPUT` must provide mechanical power, e.g. a `GAS_TURBINE` or an `ELECTRICAL_MOTOR`. The gas turbine generated for a file with both `FUEL` and `POWER` is removed; declare a `GAS_TURBINE` as `INPUT` instead.
+
+  To migrate a `FILE` with both `POWER` and `FUEL`, rename `POWER` to `MECHANICAL_POWER` and drop `FUEL`. Build the `GAS_TURBINE` curve (`TYPE: LOAD_TO_EFFICIENCY`) from the same rows, with `LOAD = POWER` and `EFFICIENCY = LOAD * 86400 / (LOWER_HEATING_VALUE * FUEL)`, with `LOAD` in MW, `FUEL` in Sm³/d and `LOWER_HEATING_VALUE` in MJ/Sm³ (there are 86400 seconds in a day). Set `LOWER_HEATING_VALUE` on the fuel gas source the turbine draws from. Each `LOAD` must appear once, so remove duplicate rows and sort by `POWER`. For example, with `LOWER_HEATING_VALUE: 38.0`:
+
+  | POWER (MW) | FUEL (Sm³/d) | LOAD (MW) | EFFICIENCY |
+  |---|---|---|---|
+  | 3.23 | 31974 | 3.23 | 0.230 |
+  | 9.68 | 88376 | 9.68 | 0.249 |
+  | 16.13 | 136646 | 16.13 | 0.268 |
+
+  Between the rows, the turbine interpolates efficiency rather than fuel, so fuel can differ slightly from the old generated turbine.
+- `ENERGY_NETWORK`: `NAME` is removed from `COMPRESSOR_SAMPLED` and `DRIVE_TRAIN`. A `COMPRESSOR_SAMPLED` unit is named by its `COMPRESSOR`, which must differ from the names of sources and units, and a `DRIVE_TRAIN` is identified by its `SHAFT`.
 
 ## v15.6 {/* #v15-6 */}
 

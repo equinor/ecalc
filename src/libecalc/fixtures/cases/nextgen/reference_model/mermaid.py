@@ -1,11 +1,17 @@
 import re
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlDriveTrain, get_input_names
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    YamlComponent,
+    YamlCompressorSampled,
+    YamlDriveTrain,
+    get_input_names,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlCompressorProcessUnitInstance
 
 _UNSAFE_IDENTIFIER_CHARACTERS = re.compile(r"\W")
 _SHAFT_PREFIX = "shaft_"
+_DRIVE_TRAIN_PREFIX = "drive_train_"
 _COMPRESSOR_PREFIX = "compressor_"
 _PIPELINE_PREFIX = "pipeline_"
 _PROCESS_CLASS = "process"
@@ -20,6 +26,26 @@ def _label(*lines: str) -> str:
     return "<br/>".join(line.replace('"', "'") for line in lines)
 
 
+def _unit_identifier(unit: YamlComponent) -> str:
+    match unit:
+        case YamlDriveTrain():
+            return _node_identifier(unit.shaft, _DRIVE_TRAIN_PREFIX)
+        case YamlCompressorSampled():
+            return _node_identifier(unit.compressor)
+        case _:
+            return _node_identifier(unit.name)
+
+
+def _unit_label(unit: YamlComponent) -> str:
+    match unit:
+        case YamlDriveTrain():
+            return _label(unit.type)
+        case YamlCompressorSampled():
+            return _label(unit.compressor, unit.type)
+        case _:
+            return _label(unit.name, unit.type)
+
+
 def energy_network_to_mermaid(model: YamlAsset) -> str:
     network = model.energy_network
     if network is None:
@@ -31,7 +57,7 @@ def energy_network_to_mermaid(model: YamlAsset) -> str:
         lines.append(f'    {_node_identifier(source.name)}(["{_label(source.name, source.type)}"])')
 
     for unit in network.units:
-        lines.append(f'    {_node_identifier(unit.name)}["{_label(unit.name, unit.type)}"]')
+        lines.append(f'    {_unit_identifier(unit)}["{_unit_label(unit)}"]')
 
     drive_trains = [unit for unit in network.units if isinstance(unit, YamlDriveTrain)]
     shaft_names = list(dict.fromkeys(drive_train.shaft for drive_train in drive_trains))
@@ -65,12 +91,10 @@ def energy_network_to_mermaid(model: YamlAsset) -> str:
 
     for unit in network.units:
         for input_name in get_input_names(unit):
-            lines.append(f"    {_node_identifier(input_name)} --> {_node_identifier(unit.name)}")
+            lines.append(f"    {_node_identifier(input_name)} --> {_unit_identifier(unit)}")
 
     for drive_train in drive_trains:
-        lines.append(
-            f"    {_node_identifier(drive_train.name)} --> {_node_identifier(drive_train.shaft, _SHAFT_PREFIX)}"
-        )
+        lines.append(f"    {_unit_identifier(drive_train)} --> {_node_identifier(drive_train.shaft, _SHAFT_PREFIX)}")
 
     for shaft_name in shaft_names:
         for compressor in shaft_compressors.get(shaft_name, []):
