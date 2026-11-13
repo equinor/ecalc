@@ -72,6 +72,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlMechanicalConsumer,
     YamlRateCurve,
     get_input_names,
+    resolve_lhv_by_source_name,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
@@ -117,6 +118,7 @@ class EnergyNetworkMapper:
         """
         resources = resources or {}
         output_types = self._yaml_output_types(yaml_energy_network)
+        lhv_by_source_name, _ = resolve_lhv_by_source_name(yaml_energy_network.sources, yaml_energy_network.units)
 
         expansions: dict[str, Expansion] = {
             unit.name: self._expand_sampled_compressor(unit, resources, output_types)
@@ -176,7 +178,13 @@ class EnergyNetworkMapper:
             else:
                 key = unit_key(unit.name)
                 node, input_type, output_type = self._map_unit(
-                    unit, node_ids_by_key[key], node_ids_by_key, resources, expression_evaluator, output_types
+                    unit,
+                    node_ids_by_key[key],
+                    node_ids_by_key,
+                    resources,
+                    expression_evaluator,
+                    output_types,
+                    lhv_by_source_name,
                 )
                 mapped_nodes.append((node, input_type, output_type))
                 connections.extend(
@@ -391,6 +399,7 @@ class EnergyNetworkMapper:
         resources: Mapping[str, Resource],
         expression_evaluator: ExpressionEvaluator,
         output_types: Mapping[str, type[Energy]],
+        lhv_by_source_name: Mapping[str, float],
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
             case YamlGenerator():
@@ -412,7 +421,13 @@ class EnergyNetworkMapper:
             case YamlGasTurbine():
                 unit = self._resolve_definitions(unit)
                 assert isinstance(unit.model, YamlTurbineDefinition)
-                fuel_model = map_turbine_fuel_model(unit.name, unit.model, resources)
+                fuel_model = map_turbine_fuel_model(
+                    unit.name,
+                    unit.model,
+                    resources,
+                    source_lower_heating_value=lhv_by_source_name.get(unit.input),
+                    input_name=unit.input,
+                )
                 return (
                     TimeSeriesGasTurbineFactory(
                         name=unit.name,

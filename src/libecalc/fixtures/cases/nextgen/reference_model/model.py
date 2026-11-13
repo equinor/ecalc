@@ -287,9 +287,17 @@ def _process_simulation():
 
 
 def _energy_sources():
+    lower_heating_value_by_source = {"fuel_gas": 38.0, "fuel_gas4": 38.0}
+
+    def _fuel_gas_source(name: str):
+        builder = YamlEnergySourceBuilder().with_name(name).with_type(YamlEnergySourceType.FUEL_GAS_SOURCE)
+        lower_heating_value = lower_heating_value_by_source.get(name)
+        if lower_heating_value is not None:
+            builder = builder.with_lower_heating_value(lower_heating_value)
+        return builder.validate()
+
     fuel_gas_sources = [
-        YamlEnergySourceBuilder().with_name(name).with_type(YamlEnergySourceType.FUEL_GAS_SOURCE).validate()
-        for name in ("fuel_gas", "fuel_gas2", "fuel_gas3", "fuel_gas4", "fuel_gas5")
+        _fuel_gas_source(name) for name in ("fuel_gas", "fuel_gas2", "fuel_gas3", "fuel_gas4", "fuel_gas5")
     ]
     electrical_sources = [
         YamlEnergySourceBuilder().with_name(name).with_type(YamlEnergySourceType.ELECTRICAL_SOURCE).validate()

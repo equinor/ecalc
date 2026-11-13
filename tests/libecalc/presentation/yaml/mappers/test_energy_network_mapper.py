@@ -17,15 +17,43 @@ from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSeriesSourceFactory
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
-TURBINE = {"LOWER_HEATING_VALUE": 38, "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}}
+TURBINE = {"CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}}
 GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 
 def test_gas_turbine_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
     yaml_network = YamlEnergyNetwork.model_validate(
         {
-            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38}],
             "UNITS": [{"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE}],
+        }
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+
+    (turbine,) = (factory for factory in factories if factory.get_name() == "turbine")
+    assert turbine.capacity.get_evaluated_expression() == [20]
+
+
+def test_gas_turbine_resolves_lower_heating_value_through_a_manifold(
+    energy_network_mapper_factory, expression_evaluator_factory, period
+):
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [
+                {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
+                {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
+            ],
+            "UNITS": [
+                {
+                    "NAME": "manifold",
+                    "TYPE": "FUEL_GAS_MANIFOLD",
+                    "INPUT": ["fuel", "backup_fuel"],
+                    "DISPATCH_STRATEGY": "PRIORITY",
+                },
+                {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "manifold", "MODEL": TURBINE},
+            ],
         }
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
@@ -97,7 +125,7 @@ def test_maps_sources_units_connections_and_expressions(
     yaml_network = YamlEnergyNetwork.model_validate(
         {
             "SOURCES": [
-                {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": 100},
+                {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": 100, "LOWER_HEATING_VALUE": 38},
                 {"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE", "CAPACITY": 20},
                 {"NAME": "diesel", "TYPE": "DIESEL_SOURCE", "CAPACITY": 500},
                 {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": 50},

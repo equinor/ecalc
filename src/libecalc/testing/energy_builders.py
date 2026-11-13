@@ -74,19 +74,13 @@ class YamlTurbineCurveBuilder(Builder[YamlTurbineCurve]):
 
 class YamlTurbineDefinitionBuilder(Builder[YamlTurbineDefinition]):
     def __init__(self):
-        self.lower_heating_value = None
         self.curve = None
-
-    def with_lower_heating_value(self, lower_heating_value: float) -> Self:
-        self.lower_heating_value = lower_heating_value
-        return self
 
     def with_curve(self, curve: YamlTurbineCurve | YamlFile) -> Self:
         self.curve = curve
         return self
 
     def with_test_data(self) -> Self:
-        self.lower_heating_value = 38.0
         self.curve = YamlTurbineCurveBuilder().with_test_data().validate()
         return self
 
@@ -138,6 +132,7 @@ class YamlEnergySourceBuilder(Builder[YamlEnergySource]):
         self.name = None
         self.type = None
         self.capacity = None
+        self.lower_heating_value = None
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -151,9 +146,14 @@ class YamlEnergySourceBuilder(Builder[YamlEnergySource]):
         self.capacity = capacity
         return self
 
+    def with_lower_heating_value(self, lower_heating_value: float) -> Self:
+        self.lower_heating_value = lower_heating_value
+        return self
+
     def with_test_data(self) -> Self:
         self.name = "fuel_gas"
         self.type = YamlEnergySourceType.FUEL_GAS_SOURCE
+        self.lower_heating_value = 38.0
         return self
 
 
