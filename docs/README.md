@@ -87,6 +87,18 @@ business-related release note that should also link to migration guides and GitH
 Some pages are generated from the code, and must be generated before starting or building the docs.
 See [Generated docs](#generated-docs).
 
+### Start the docs locally
+`docs/scripts/start-docs.sh` installs the Python dependencies (and the npm dependencies if missing), generates the
+docs and starts the dev server. It works from any directory and requires uv, node and npm. Extra options are passed
+on to `docusaurus start`.
+```
+$ docs/scripts/start-docs.sh
+$ docs/scripts/start-docs.sh --no-open
+```
+Re-run `docs/scripts/generate-docs.sh` to pick up changes in generated pages while the server is running.
+
+### Manual steps
+
 To see the live development version you the docs you need to 1. install the dependencies and 2. start the development
 server. This will start a web-server that you can access in the web-browser. Follow the link in your terminal.
 ```
