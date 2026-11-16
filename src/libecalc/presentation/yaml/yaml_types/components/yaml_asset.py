@@ -44,6 +44,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V2,
     V3,
     V4,
+    V5,
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
@@ -89,6 +90,7 @@ class YamlDefinitions(YamlBase):
         "by GENERATOR) interpolates fuel directly from a power/fuel curve: below the first POWER the lowest FUEL "
         "is used, and above the last POWER the highest FUEL is used. In both cases the last point is the maximum "
         "power, which is the unit's capacity.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V5),
     )
 
     # REMOVED FIELDS
@@ -98,6 +100,18 @@ class YamlDefinitions(YamlBase):
         removed_in=V4,
         message="Compressors can no longer be defined here. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
         replaced_by=("DEFINITIONS", "COMPRESSOR_MODELS"),
+    )
+    turbines: Any = removed_field(
+        title="TURBINES",
+        removed_in=V5,
+        message="Gas turbines are now defined in DEFINITIONS > PERFORMANCE_CURVES.",
+        replaced_by=("DEFINITIONS", "PERFORMANCE_CURVES"),
+    )
+    generators: Any = removed_field(
+        title="GENERATORS",
+        removed_in=V5,
+        message="Generators are now defined in DEFINITIONS > PERFORMANCE_CURVES.",
+        replaced_by=("DEFINITIONS", "PERFORMANCE_CURVES"),
     )
     # END REMOVED FIELDS
 
