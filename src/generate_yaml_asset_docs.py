@@ -341,11 +341,11 @@ ENERGY_EXAMPLES: list[Example] = [
     ),
     # --- ENERGY_NETWORK.UNITS variants ---
     Example(
-        "ENERGY_NETWORK.UNITS.GENERATOR",
+        "ENERGY_NETWORK.UNITS.GENERATOR_SET",
         lambda: YamlEnergyGeneratorBuilder().with_test_data().validate(),
     ),
     Example(
-        "ENERGY_NETWORK.UNITS.GENERATOR.CHANGES",
+        "ENERGY_NETWORK.UNITS.GENERATOR_SET.CHANGES",
         lambda: YamlGeneratorModelChangeBuilder().with_test_data().validate(),
     ),
     Example(

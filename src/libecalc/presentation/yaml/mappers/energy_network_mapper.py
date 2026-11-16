@@ -21,7 +21,7 @@ from libecalc.energy.models.combustion_engine_fuel_model import (
     DieselEngineFuelModel,
     TurbineFuelModel,
 )
-from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
+from libecalc.energy.models.generator_set_fuel_model import GeneratorSetFuelModel
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.energy import (
@@ -70,8 +70,8 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergySourceType,
     YamlFuelGasConsumer,
     YamlGasTurbine,
-    YamlGenerator,
     YamlGeneratorModelChange,
+    YamlGeneratorSet,
     YamlJunctionBase,
     YamlLoadCurve,
     YamlMechanicalConsumer,
@@ -341,7 +341,7 @@ class EnergyNetworkMapper:
             energy_type,
         )
 
-    def _resolve_definitions[Unit: (YamlGenerator, YamlGasTurbine, YamlDieselEngine)](self, unit: Unit) -> Unit:
+    def _resolve_definitions[Unit: (YamlGeneratorSet, YamlGasTurbine, YamlDieselEngine)](self, unit: Unit) -> Unit:
         try:
             return expand_definitions(unit, definitions=self._definitions)
         except DefinitionReferenceError as e:
@@ -366,10 +366,10 @@ class EnergyNetworkMapper:
 
     @staticmethod
     def _map_generator_model(
-        unit: YamlGenerator,
+        unit: YamlGeneratorSet,
         resources: Mapping[str, Resource],
         definition: DefinitionReference | YamlGeneratorDefinition,
-    ) -> GeneratorFuelModel:
+    ) -> GeneratorSetFuelModel:
         assert isinstance(definition, YamlGeneratorDefinition)
         return map_generator_fuel_model(unit.name, definition, resources)
 
@@ -402,7 +402,7 @@ class EnergyNetworkMapper:
         lhv_by_source_name: Mapping[str, float],
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
-            case YamlGenerator():
+            case YamlGeneratorSet():
                 unit = self._resolve_definitions(unit)
                 map_model = partial(self._map_generator_model, unit, resources)
                 input_energy_type = output_types[unit.input]

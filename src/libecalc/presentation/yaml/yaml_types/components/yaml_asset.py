@@ -73,12 +73,12 @@ class YamlDefinitions(YamlBase):
         default_factory=dict,
         title="PERFORMANCE_CURVES",
         description="Defines performance curves that can be referenced from GAS_TURBINE, DIESEL_ENGINE, and "
-        "GENERATOR units in the ENERGY_NETWORK. TYPE: LOAD_TO_EFFICIENCY (referenced by GAS_TURBINE and "
+        "GENERATOR_SET units in the ENERGY_NETWORK. TYPE: LOAD_TO_EFFICIENCY (referenced by GAS_TURBINE and "
         "DIESEL_ENGINE) interpolates fuel from a load/efficiency curve: demand below the first LOAD burns the fuel "
         "of the first LOAD, and the last efficiency is used above the last LOAD. TYPE: POWER_TO_FUEL (referenced "
-        "by GENERATOR) interpolates fuel directly from a power/fuel curve: below the first POWER the lowest FUEL "
-        "is used, and above the last POWER the highest FUEL is used. In both cases the last point is the maximum "
-        "power, which is the unit's capacity.",
+        "by GENERATOR_SET) interpolates fuel directly from a power/fuel curve: below the first POWER the lowest "
+        "FUEL is used, and above the last POWER the highest FUEL is used. In both cases the last point is the "
+        "maximum power, which is the unit's capacity.",
     )
 
 

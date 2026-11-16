@@ -15,14 +15,14 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergySource,
     YamlFuelGasConsumer,
     YamlGasTurbine,
-    YamlGenerator,
+    YamlGeneratorSet,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 
 EXAMPLE_YAML = Path(__file__).parents[3] / "src" / "libecalc" / "examples" / "energy" / "energy_network.yaml"
 
 TURBINE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
-GENERATOR = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+GENERATOR_SET_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 _component_adapter = TypeAdapter(YamlComponent)
 _energy_source_adapter = TypeAdapter(YamlEnergySource)
@@ -56,7 +56,7 @@ class TestExampleYamlParsing:
         network = _load_network(EXAMPLE_YAML)
         by_name = _units_by_name(network)
 
-        assert isinstance(by_name["genset_a"], YamlGenerator)
+        assert isinstance(by_name["genset_a"], YamlGeneratorSet)
         assert isinstance(by_name["electrical_bus"], YamlElectricalBus)
         assert isinstance(by_name["subsea_cable"], YamlElectricalCable)
         assert isinstance(by_name["base_load"], YamlElectricalConsumer)
@@ -332,7 +332,7 @@ class TestNetworkValidation:
             YamlEnergyNetwork.model_validate(
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
-                    "UNITS": [{"NAME": "fuel", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR}],
+                    "UNITS": [{"NAME": "fuel", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL}],
                 }
             )
 
@@ -342,7 +342,12 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "nonexistent", "MODEL": GENERATOR},
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "nonexistent",
+                            "MODEL": GENERATOR_SET_MODEL,
+                        },
                     ],
                 }
             )
@@ -365,7 +370,7 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "a", "TYPE": "GENERATOR", "INPUT": "b", "MODEL": GENERATOR},
+                        {"NAME": "a", "TYPE": "GENERATOR_SET", "INPUT": "b", "MODEL": GENERATOR_SET_MODEL},
                         {"NAME": "b", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "a"},
                     ],
                 }
@@ -377,7 +382,7 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "a", "TYPE": "GENERATOR", "INPUT": "a", "MODEL": GENERATOR},
+                        {"NAME": "a", "TYPE": "GENERATOR_SET", "INPUT": "a", "MODEL": GENERATOR_SET_MODEL},
                     ],
                 }
             )
@@ -388,7 +393,7 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE", "CAPACITY": 10}],
                     "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "grid", "MODEL": GENERATOR},
+                        {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "grid", "MODEL": GENERATOR_SET_MODEL},
                     ],
                 }
             )
@@ -410,7 +415,7 @@ class TestNetworkValidation:
             {
                 "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
                 "UNITS": [
-                    {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "diesel", "MODEL": GENERATOR},
+                    {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "diesel", "MODEL": GENERATOR_SET_MODEL},
                 ],
             }
         )
@@ -432,7 +437,7 @@ class TestNetworkValidation:
             {
                 "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                 "UNITS": [
-                    {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
+                    {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL},
                     {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset"},
                     {
                         "TYPE": "DRIVE_TRAIN",

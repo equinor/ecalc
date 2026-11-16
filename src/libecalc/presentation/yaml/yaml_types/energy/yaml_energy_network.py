@@ -211,10 +211,10 @@ class YamlCombustionEngineModelChange(YamlBase):
     ref: YamlModelChangeReference
 
 
-class YamlGenerator(YamlConverterBase):
-    model_config = ConfigDict(title="Generator")
+class YamlGeneratorSet(YamlConverterBase):
+    model_config = ConfigDict(title="GeneratorSet")
 
-    type: Literal["GENERATOR"]
+    type: Literal["GENERATOR_SET"]
     model: Annotated[
         DefinitionReference | YamlGeneratorDefinition,
         validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
@@ -777,7 +777,7 @@ class YamlCompressorSampled(YamlBase):
 
 YamlComponent = Annotated[
     Union[
-        YamlGenerator,
+        YamlGeneratorSet,
         YamlGasTurbine,
         YamlDieselEngine,
         YamlElectricalMotor,
@@ -795,7 +795,7 @@ YamlComponent = Annotated[
 
 
 YamlNamedComponent = (
-    YamlGenerator
+    YamlGeneratorSet
     | YamlGasTurbine
     | YamlDieselEngine
     | YamlElectricalMotor
@@ -834,11 +834,11 @@ INPUT_ENERGY: dict[str, EnergyType] = {
     "DIESEL_CONSUMER": EnergyType.DIESEL,
 }
 
-# Allowed input types for GENERATOR; the actual type is inferred from its connected source.
-GENERATOR_INPUT_ENERGY = {EnergyType.FUEL_GAS, EnergyType.DIESEL}
+# Allowed input types for GENERATOR_SET; the actual type is inferred from its connected source.
+GENERATOR_SET_INPUT_ENERGY = {EnergyType.FUEL_GAS, EnergyType.DIESEL}
 
 OUTPUT_ENERGY: dict[str, EnergyType] = {
-    "GENERATOR": EnergyType.ELECTRICAL,
+    "GENERATOR_SET": EnergyType.ELECTRICAL,
     "GAS_TURBINE": EnergyType.MECHANICAL,
     "DIESEL_ENGINE": EnergyType.MECHANICAL,
     "ELECTRICAL_MOTOR": EnergyType.MECHANICAL,
@@ -969,8 +969,8 @@ class YamlEnergyNetwork(YamlBase):
                 output_types[c.name] = OUTPUT_ENERGY[c.type]
 
         for c in self.units:
-            if c.type == "GENERATOR":
-                allowed_inputs = GENERATOR_INPUT_ENERGY
+            if c.type == "GENERATOR_SET":
+                allowed_inputs = GENERATOR_SET_INPUT_ENERGY
             else:
                 if c.type not in INPUT_ENERGY:
                     raise ValueError(

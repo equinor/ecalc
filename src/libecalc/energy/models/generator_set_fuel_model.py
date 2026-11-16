@@ -8,7 +8,7 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.energy.models.curve_validation import CurveLabels, validate_curve
 
 
-class GeneratorFuelModel:
+class GeneratorSetFuelModel:
     """Generator fuel consumption [Sm3/day] from the electrical power [MW], interpolated from a curve."""
 
     def __init__(self, powers: Sequence[float], fuels: Sequence[float]) -> None:

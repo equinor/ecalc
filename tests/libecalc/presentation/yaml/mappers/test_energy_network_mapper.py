@@ -18,7 +18,7 @@ from libecalc.presentation.yaml.domain.energy import TimeSeriesConsumer, TimeSer
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
 TURBINE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.2, 0.3]}}
-GENERATOR = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+GENERATOR_SET_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 
 def test_gas_turbine_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
@@ -69,11 +69,13 @@ def test_diesel_engine_capacity_is_the_curve_maximum(
     assert diesel_engine.get_capacity() == MechanicalPower(20)
 
 
-def test_generator_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
+def test_generator_set_capacity_is_the_curve_maximum(
+    energy_network_mapper_factory, expression_evaluator_factory, period
+):
     yaml_network = YamlEnergyNetwork.model_validate(
         {
             "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
-            "UNITS": [{"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR}],
+            "UNITS": [{"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL}],
         }
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
@@ -81,19 +83,19 @@ def test_generator_capacity_is_the_curve_maximum(energy_network_mapper_factory, 
     topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
 
     (genset,) = (factory for factory in factories if factory.get_name() == "genset")
-    generator = genset.create(
+    generator_set = genset.create(
         ElectricalPower(0), incoming_connections=topology.get_incoming_connections(genset.get_id()), period=period
     )
-    assert generator.get_capacity() == ElectricalPower(10)
+    assert generator_set.get_capacity() == ElectricalPower(10)
 
 
-def test_generator_input_energy_type_follows_connected_source(
+def test_generator_set_input_energy_type_follows_connected_source(
     energy_network_mapper_factory, expression_evaluator_factory, period
 ):
     yaml_network = YamlEnergyNetwork.model_validate(
         {
             "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
-            "UNITS": [{"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "diesel", "MODEL": GENERATOR}],
+            "UNITS": [{"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "diesel", "MODEL": GENERATOR_SET_MODEL}],
         }
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
@@ -104,12 +106,14 @@ def test_generator_input_energy_type_follows_connected_source(
     assert genset.input_energy_type is DieselRate
 
 
-def test_generator_does_not_accept_capacity():
+def test_generator_set_does_not_accept_capacity():
     with pytest.raises(ValueError, match="CAPACITY"):
         YamlEnergyNetwork.model_validate(
             {
                 "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
-                "UNITS": [{"NAME": "g", "TYPE": "GENERATOR", "INPUT": "fuel", "CAPACITY": 5, "MODEL": GENERATOR}],
+                "UNITS": [
+                    {"NAME": "g", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "CAPACITY": 5, "MODEL": GENERATOR_SET_MODEL}
+                ],
             }
         )
 
@@ -126,7 +130,7 @@ def test_maps_sources_units_connections_and_expressions(
                 {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE"},
             ],
             "UNITS": [
-                {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
+                {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL},
                 {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
                 {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5, "EFFICIENCY": 0.9},
                 {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4, "EFFICIENCY": 0.96},
@@ -263,13 +267,13 @@ class TestMappedNetworkSimulation:
         assert set(second.get_capacity_failures()) == {ids_by_name["wind"]}
 
 
-GENERATOR_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
+GENERATOR_SET_MODEL_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
 
 FIRST_YEAR = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
 SECOND_YEAR = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
 
 
-class TestGeneratorModelEvents:
+class TestGeneratorSetModelEvents:
     @staticmethod
     def _upgrade_event() -> TimelineEvent:
         return TimelineEvent(
@@ -288,10 +292,10 @@ class TestGeneratorModelEvents:
                 "UNITS": [
                     {
                         "NAME": "genset",
-                        "TYPE": "GENERATOR",
+                        "TYPE": "GENERATOR_SET",
                         "INPUT": "fuel",
-                        "MODEL": GENERATOR,
-                        "CHANGES": [{"CHANGE_TO": GENERATOR_AFTER_UPGRADE, "REF": "upgrade"}],
+                        "MODEL": GENERATOR_SET_MODEL,
+                        "CHANGES": [{"CHANGE_TO": GENERATOR_SET_MODEL_AFTER_UPGRADE, "REF": "upgrade"}],
                     }
                 ],
             }

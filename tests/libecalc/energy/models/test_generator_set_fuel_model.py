@@ -3,7 +3,7 @@ import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.infrastructure.energy_components.generator_set.generator_set_model import GeneratorSetModel
-from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
+from libecalc.energy.models.generator_set_fuel_model import GeneratorSetFuelModel
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
 
 POWERS = [0.0, 4.0, 8.0, 12.0]
@@ -16,7 +16,7 @@ FUELS = [0.0, 20000.0, 38000.0, 55000.0]
     ids=["from_zero", "below_first_power"],
 )
 def test_fuel_matches_legacy_generator(powers, fuels):
-    fuel_model = GeneratorFuelModel(powers, fuels)
+    fuel_model = GeneratorSetFuelModel(powers, fuels)
     legacy = GeneratorSetModel(name="legacy", resource=MemoryResource(data=[fuels, powers], headers=["FUEL", "POWER"]))
     evaluated_powers = np.array([0.0, 0.5, 2.0, 3.0, 5.0, 8.0, 11.0, 12.0, 20.0])
 
@@ -28,7 +28,7 @@ def test_fuel_matches_legacy_generator(powers, fuels):
 
 def test_negative_power_is_rejected():
     with pytest.raises(AssertionError, match="negative"):
-        GeneratorFuelModel(POWERS, FUELS).fuel_for_power(-1)
+        GeneratorSetFuelModel(POWERS, FUELS).fuel_for_power(-1)
 
 
 @pytest.mark.parametrize(
@@ -56,4 +56,4 @@ def test_negative_power_is_rejected():
 )
 def test_rejects_invalid_generator(powers, fuels):
     with pytest.raises(EcalcValidationException):
-        GeneratorFuelModel(powers, fuels)
+        GeneratorSetFuelModel(powers, fuels)

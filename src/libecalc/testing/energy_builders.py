@@ -22,8 +22,8 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasConsumer,
     YamlFuelGasSource,
     YamlGasTurbine,
-    YamlGenerator,
     YamlGeneratorModelChange,
+    YamlGeneratorSet,
     YamlJunctionInput,
     YamlMechanicalConsumer,
 )
@@ -224,9 +224,9 @@ class YamlGeneratorModelChangeBuilder(Builder[YamlGeneratorModelChange]):
         return self
 
 
-class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
+class YamlEnergyGeneratorBuilder(Builder[YamlGeneratorSet]):
     def __init__(self):
-        self.type = "GENERATOR"
+        self.type = "GENERATOR_SET"
         self.name = None
         self.input = None
         self.model = None
