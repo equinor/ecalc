@@ -39,7 +39,8 @@ From `yaml_types/yaml_version.py`, set on the field: `json_schema_extra=yaml_ele
 - The docs pages are generated in CI for the current version by `docs/scripts/generate-docs.sh`, and are not
   committed: the reference pages, energy units and `yaml-changelog.md` in `docs/docs/about/nextgen/`, the example page
   `docs/docs/about/nextgen/examples.mdx` and its zip, the CLI reference and the JSON schema. Docs for previous versions
-  are kept in their published builds.
+  are kept in their published builds. `yaml-changelog.md` is cumulative, newest version first, from
+  `FIRST_YAML_CHANGELOG_VERSION` in `generate_yaml_asset_docs.py`, so markers on older versions stay visible.
 - Run `docs/scripts/generate-docs.sh` to check the generated pages locally, and build the docs (`cd docs && npm run
   build`) to catch broken links. Never edit the generated pages by hand; change the markers, descriptions or
   generators.

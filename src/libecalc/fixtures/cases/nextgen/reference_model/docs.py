@@ -51,7 +51,7 @@ pipelines) is shown in orange at the bottom.
 This is an example of a NextGen eCalc model using `YAML_VERSION: {LATEST_YAML_VERSION}`.
 It is generated from the model builders in the eCalc library, and verified by the library tests.
 See the [Process Reference](./process-reference.mdx) and the [Energy Reference](./energy-reference.mdx) for a
-description of every element, and the [YAML Changelog](./yaml-changelog.md) for what changed in this version.
+description of every element, and the [YAML Changelog](./yaml-changelog.md) for what changed between versions.
 
 The model contains:
 

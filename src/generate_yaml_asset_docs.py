@@ -1431,11 +1431,13 @@ Use the version filter below to show only the elements available for a chosen `Y
 # ---------------------------------------------------------------------------
 # YAML changelog
 #
-# One page for the current yaml major version, listing which elements were added,
-# deprecated or removed in that version specifically, to help users migrate
-# their own models. Changelogs for previous versions are kept in the published
-# docs for those releases.
+# One cumulative page, newest version first, listing which elements were added,
+# changed, deprecated or removed in each yaml major version, so users can gather
+# every change needed to migrate a model from any older version. V1 and V2
+# predate the lifecycle markers and are intentionally left out.
 # ---------------------------------------------------------------------------
+
+FIRST_YAML_CHANGELOG_VERSION = 3
 
 
 ChangeKind = Literal["added", "deprecated", "removed", "changed"]
@@ -1515,7 +1517,7 @@ def _render_changelog_section(
 ) -> str:
     if not entries:
         return ""
-    lines = [f"## {title}", ""]
+    lines = [f"### {title}", ""]
     for entry in entries:
         breadcrumb = " › ".join(f"`{segment}`" for segment in entry.path)
         anchor = _resolve_reference_anchor(entry.path, anchor_registry) if anchor_registry is not None else None
@@ -1542,42 +1544,48 @@ def _render_changelog_section(
     return "\n".join(lines)
 
 
+def _render_changelog_version(major: int, tree: list[DocNode], anchor_registry: dict[str, str] | None) -> str:
+    entries = _collect_changelog_entries(tree, major, path=[])
+    sections = "".join(
+        _render_changelog_section(title, [e for e in entries if e.kind == kind], anchor_registry)
+        for title, kind in (
+            ("Added", "added"),
+            ("Changed", "changed"),
+            ("Deprecated", "deprecated"),
+            ("Removed", "removed"),
+        )
+    )
+    if not sections.strip():
+        sections = "No changes recorded for this version.\n\n"
+    return f"## v{major}\n\nChanges in `YAML_VERSION: {major}`, compared to v{major - 1}.\n\n{sections}"
+
+
 def generate_yaml_changelog_markdown(version: Version, anchor_registry: dict[str, str] | None = None) -> str:
-    """Generate the yaml changelog page for a single yaml major version."""
+    """Generate the cumulative yaml changelog page, from the given yaml major version down to the first covered one."""
     tree = build_yaml_asset_tree(include_fields=None)
-    entries = _collect_changelog_entries(tree, version.major, path=[])
-    added = [e for e in entries if e.kind == "added"]
-    changed = [e for e in entries if e.kind == "changed"]
-    deprecated = [e for e in entries if e.kind == "deprecated"]
-    removed = [e for e in entries if e.kind == "removed"]
+    majors = range(version.major, FIRST_YAML_CHANGELOG_VERSION - 1, -1)
 
     frontmatter = f"""\
 ---
-title: YAML Changelog (v{version.major})
+title: YAML Changelog
 sidebar_label: YAML Changelog
 sidebar_position: 4
-description: YAML configuration changes introduced in YAML_VERSION {version.major}.
+toc_max_heading_level: 2
+description: YAML configuration changes for every YAML_VERSION, from v{FIRST_YAML_CHANGELOG_VERSION} to v{version.major}.
 ---
 """
 
     body = f"""\
-# YAML Changelog (v{version.major})
+# YAML Changelog
 
-This page lists the YAML configuration changes introduced in `YAML_VERSION: {version.major}`, compared to the
-previous version, to help you migrate your own model. See the [YAML Reference](./yaml-reference.mdx) for the full,
-current schema across all versions. Changelogs for previous versions are found in the docs for those releases.
+This page lists the YAML configuration changes in every `YAML_VERSION` from v{FIRST_YAML_CHANGELOG_VERSION} up to the
+current v{version.major}, newest first. To migrate a model from an older version, apply the changes in every version
+above it: a model on v3 needs the changes in v4 and newer.
+See the [YAML Reference](./yaml-reference.mdx) for the full, current schema across all versions.
 
 """
-    sections = (
-        _render_changelog_section("Added", added, anchor_registry)
-        + _render_changelog_section("Changed", changed, anchor_registry)
-        + _render_changelog_section("Deprecated", deprecated, anchor_registry)
-        + _render_changelog_section("Removed", removed, anchor_registry)
-    )
-    if not sections.strip():
-        sections = "No changes recorded for this version yet.\n"
-
-    return frontmatter + "\n" + body + sections
+    sections = "".join(_render_changelog_version(major, tree, anchor_registry) for major in majors)
+    return frontmatter + "\n" + body + sections.rstrip("\n") + "\n"
 
 
 def main():
