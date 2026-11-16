@@ -9,6 +9,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
     PipelineEventChangeType,
     YamlPipelineEvent,
 )
+from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlCompressorModelChartBuilder,
@@ -55,7 +56,7 @@ def _model_stream(timeline_events: dict[str, dict]) -> ResourceStream:
     asset_dict = asset.model_dump(serialize_as_any=True, mode="json", exclude_unset=True, by_alias=True)
     for legacy_key in ("FACILITY_INPUTS", "MODELS", "FUEL_TYPES", "INSTALLATIONS"):
         asset_dict.pop(legacy_key, None)
-    asset_dict["YAML_VERSION"] = 4
+    asset_dict["YAML_VERSION"] = LATEST_YAML_VERSION
     asset_dict["TIMELINE"] = {"EVENTS": timeline_events}
     return ResourceStream(name="test_model", stream=StringIO(PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)))
 

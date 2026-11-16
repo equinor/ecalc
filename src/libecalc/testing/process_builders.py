@@ -2,7 +2,7 @@ from typing import Self
 
 from libecalc.common.utils.rates import RateType
 from libecalc.ecalc_model.timeline_event import TimelineEventType
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions, YamlPerformanceCurveDefinition
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlCurve,
@@ -598,6 +598,7 @@ class YamlDefinitionsBuilder(Builder[YamlDefinitions]):
     def __init__(self):
         self.compressor_models: dict[str, YamlCompressorModelChart] = {}
         self.fluids: dict[str, YamlFluidDefinition] = {}
+        self.performance_curves: dict[str, YamlPerformanceCurveDefinition] = {}
 
     def with_compressor_model(self, name: str, model: YamlCompressorModelChart) -> Self:
         self.compressor_models[name] = model
@@ -605,6 +606,10 @@ class YamlDefinitionsBuilder(Builder[YamlDefinitions]):
 
     def with_fluid(self, name: str, definition: YamlFluidDefinition) -> Self:
         self.fluids[name] = definition
+        return self
+
+    def with_performance_curve(self, name: str, definition: YamlPerformanceCurveDefinition) -> Self:
+        self.performance_curves[name] = definition
         return self
 
     def with_fluids(self, fluids: dict[str, YamlFluidDefinition]) -> Self:
