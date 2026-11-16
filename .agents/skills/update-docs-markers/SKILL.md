@@ -1,6 +1,6 @@
 ---
 name: update-docs-markers
-description: Adds YAML lifecycle markers (yaml_element_lifecycle, removed_field) for eCalc YAML schema changes on the current branch, picks the YAML version, and checks the generated YAML reference docs, YAML changelog and example model. Use when a change adds, removes, renames or moves a YAML element or changes what it accepts, when the docs CI reports an out-of-date example model or a failing docs build, or when a reviewer asks for lifecycle markers or generate_yaml_asset_docs.py.
+description: Adds YAML lifecycle markers (yaml_element_lifecycle, removed_field) for eCalc YAML schema changes on the current branch, picks the YAML version, and checks the generated YAML reference docs, YAML changelog and example. Use when a change adds, removes, renames or moves a YAML element or changes what it accepts, when the docs CI reports a failing docs build, or when a reviewer asks for lifecycle markers or generate_yaml_asset_docs.py.
 ---
 
 # Update docs markers
@@ -35,26 +35,25 @@ skill is the workflow.
 3. **Add the markers**, choosing the marker from the rule's table. Each element in step 1 gets one; fields inside a
    new element do not.
 
-4. **Generate the docs** (not committed, generated in CI) and the example model (committed):
+4. **Generate the docs** (not committed, generated in CI):
    ```bash
    docs/scripts/generate-docs.sh
-   git status --short -- src/libecalc/examples/nextgen
    (cd docs && npm ci --ignore-scripts && npm run build)
    ```
-   Commit any changes to the example model. The build fails on broken links, e.g. an unresolved `replaced_by`.
+   The build fails on broken links, e.g. an unresolved `replaced_by`.
 
 5. **Check the generated docs**:
    - `docs/docs/about/nextgen/yaml-changelog.md` lists each element under Added, Changed or Removed, and `replaced_by` links resolve.
    - The element has its badge in the reference page.
-   - The generated example shows no empty placeholders such as `KEY: []`. If it does, fix the test builder.
+   - The generated example (`docs/docs/about/nextgen/examples.mdx`) shows no empty placeholders such as `KEY: []`. If it does, fix the test builder.
 
 6. **Verify**:
    ```bash
-   uv run pytest -q tests/libecalc/presentation/yaml tests/libecalc/energy
+   uv run pytest -q tests/libecalc/presentation/yaml tests/libecalc/energy tests/libecalc/integration/test_nextgen_example.py
    uv run basedpyright
    ```
    A test that pins an older `with_yaml_version(...)` and uses the new element now fails by design. Raise the
    version in that test, or keep the old version if the test is about the older YAML.
 
-7. **Report** the markers added (element, marker, version), the version decision and whether the example model changed. Do not
+7. **Report** the markers added (element, marker, version), the version decision and the generated docs checked. Do not
    commit or push until the user has approved it.

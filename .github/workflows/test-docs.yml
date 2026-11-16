@@ -32,16 +32,6 @@ jobs:
       - name: Generate docs
         run: docs/scripts/generate-docs.sh
 
-      - name: Ensure generated nextgen example model is up to date
-        run: |
-          generated_paths="src/libecalc/examples/nextgen"
-          if [ -n "$(git status --porcelain -- $generated_paths)" ]; then
-            echo "::error::The generated nextgen example model is out of date. Run 'docs/scripts/generate-docs.sh' (or 'uv run python src/generate_fixture.py') and commit the changes in $generated_paths."
-            git status --porcelain -- $generated_paths
-            git diff -- $generated_paths
-            exit 1
-          fi
-
       - name: Setup node
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
