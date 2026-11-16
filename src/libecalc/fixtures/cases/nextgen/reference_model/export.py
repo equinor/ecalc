@@ -16,11 +16,10 @@ from .model import RESOURCE_DIRECTORY, build_reference_model
 
 MODEL_FILE_NAME = "model.yaml"
 RESOURCE_SUFFIX = ".csv"
-ARCHIVE_SUFFIX = ".zip"
+ARCHIVE_FILE_NAME = "example_model.zip"
 EXPORT_INFO_FILE_NAME = "export_info.json"
 EXPORT_INFO_AUTHOR = "fg_ecalc@equinor.com"
 _ARCHIVE_TIMESTAMP = (1980, 1, 1, 0, 0, 0)
-_EXPORT_INFO_DATE = re.compile(r"- (\d{4}-\d{2}-\d{2}) - v\d+")
 _MIDNIGHT_DATETIME = re.compile(r"^(\d{4}-\d{2}-\d{2})T00:00:00$")
 _NUMBER = re.compile(r"^-?\d+(\.\d+)?$")
 _EXPRESSION_KEY = "VALUE"
@@ -77,39 +76,30 @@ def generated_file_names(directory: Path) -> list[str]:
     )
 
 
-def version_directory_name(yaml_version: int) -> str:
-    return f"v{yaml_version}"
+def export_reference_model(output_directory: Path) -> list[Path]:
+    output_directory.mkdir(parents=True, exist_ok=True)
+    for file_name in generated_file_names(output_directory):
+        (output_directory / file_name).unlink()
 
+    model_path = output_directory / MODEL_FILE_NAME
+    model_path.write_text(render_model_yaml(build_reference_model(LATEST_YAML_VERSION)))
 
-def export_reference_model(output_directory: Path, yaml_version: int = LATEST_YAML_VERSION) -> list[Path]:
-    version_directory = output_directory / version_directory_name(yaml_version)
-    version_directory.mkdir(parents=True, exist_ok=True)
-    for file_name in generated_file_names(version_directory):
-        (version_directory / file_name).unlink()
-
-    model_path = version_directory / MODEL_FILE_NAME
-    model_path.write_text(render_model_yaml(build_reference_model(yaml_version)))
-
-    resource_copies = [Path(shutil.copy(path, version_directory / path.name)) for path in resource_paths()]
+    resource_copies = [Path(shutil.copy(path, output_directory / path.name)) for path in resource_paths()]
     return [model_path, *resource_copies]
 
 
-def archive_file_name(yaml_version: int) -> str:
-    return f"example_model_{version_directory_name(yaml_version)}{ARCHIVE_SUFFIX}"
-
-
-def _render_export_info(yaml_version: int, export_date: str) -> bytes:
+def _render_export_info(export_date: str) -> bytes:
     info = {
         "author": EXPORT_INFO_AUTHOR,
-        "model_name": f"Example model - eCalc NextGen - {export_date} - {version_directory_name(yaml_version)}",
+        "model_name": f"Example model - eCalc NextGen - {export_date} - v{LATEST_YAML_VERSION}",
         "is_next_gen": True,
     }
     return json.dumps(info, separators=(",", ":")).encode()
 
 
-def _build_archive(model_directory: Path, yaml_version: int, export_date: str) -> bytes:
+def _build_archive(model_directory: Path, export_date: str) -> bytes:
     files = {
-        EXPORT_INFO_FILE_NAME: _render_export_info(yaml_version, export_date),
+        EXPORT_INFO_FILE_NAME: _render_export_info(export_date),
         **{name: (model_directory / name).read_bytes() for name in generated_file_names(model_directory)},
     }
     buffer = io.BytesIO()
@@ -122,24 +112,8 @@ def _build_archive(model_directory: Path, yaml_version: int, export_date: str) -
     return buffer.getvalue()
 
 
-def _existing_export_date(archive_path: Path) -> str | None:
-    if not archive_path.exists():
-        return None
-    with zipfile.ZipFile(archive_path) as archive:
-        if EXPORT_INFO_FILE_NAME not in archive.namelist():
-            return None
-        match = _EXPORT_INFO_DATE.search(archive.read(EXPORT_INFO_FILE_NAME).decode())
-    return match.group(1) if match else None
-
-
-def export_example_archive(archive_directory: Path, output_directory: Path, yaml_version: int) -> Path:
-    model_directory = output_directory / version_directory_name(yaml_version)
+def export_example_archive(archive_directory: Path, model_directory: Path) -> Path:
     archive_directory.mkdir(parents=True, exist_ok=True)
-    archive_path = archive_directory / archive_file_name(yaml_version)
-    existing_date = _existing_export_date(archive_path)
-    if existing_date is not None:
-        unchanged = _build_archive(model_directory, yaml_version, existing_date)
-        if archive_path.read_bytes() == unchanged:
-            return archive_path
-    archive_path.write_bytes(_build_archive(model_directory, yaml_version, date.today().isoformat()))
+    archive_path = archive_directory / ARCHIVE_FILE_NAME
+    archive_path.write_bytes(_build_archive(model_directory, date.today().isoformat()))
     return archive_path
