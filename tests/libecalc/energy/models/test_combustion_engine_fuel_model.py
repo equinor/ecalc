@@ -3,7 +3,7 @@ import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.domain.infrastructure.energy_components.turbine.turbine import Turbine
-from libecalc.energy.models.turbine_fuel_model import TurbineFuelModel
+from libecalc.energy.models.combustion_engine_fuel_model import TurbineFuelModel
 
 LOADS = [2.352, 4.589, 6.853]
 EFFICIENCIES = [0.138, 0.210, 0.255]

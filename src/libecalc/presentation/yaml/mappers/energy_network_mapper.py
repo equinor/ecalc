@@ -14,6 +14,7 @@ from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
+from libecalc.energy.models.combustion_engine_fuel_model import DieselEngineFuelModel, TurbineFuelModel
 from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
@@ -22,6 +23,7 @@ from libecalc.presentation.yaml.domain.energy import (
     CurveConsumerDemand,
     ExpressionDemand,
     TimeSeriesConsumer,
+    TimeSeriesDieselEngineFactory,
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
     TimeSeriesEnergyUnit,
@@ -33,6 +35,9 @@ from libecalc.presentation.yaml.domain.energy import (
 )
 from libecalc.presentation.yaml.domain.energy.compressor import TimeSeriesProcessCompressor
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
+from libecalc.presentation.yaml.mappers.energy.combustion_engine_fuel_model_mapper import (
+    map_combustion_engine_fuel_model,
+)
 from libecalc.presentation.yaml.mappers.energy.compressor_sampled_expansion import (
     ConsumerSpec,
     Expansion,
@@ -46,7 +51,6 @@ from libecalc.presentation.yaml.mappers.energy.curve_consumer_mapper import (
     map_rate_curve_model,
 )
 from libecalc.presentation.yaml.mappers.energy.generator_fuel_model_mapper import map_generator_fuel_model
-from libecalc.presentation.yaml.mappers.energy.turbine_fuel_model_mapper import map_turbine_fuel_model
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
@@ -54,6 +58,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlCompressorSampled,
     YamlDieselConsumer,
+    YamlDieselEngine,
     YamlDispatchStrategy,
     YamlDriveTrain,
     YamlElectricalBus,
@@ -367,7 +372,7 @@ class EnergyNetworkMapper:
         )
         return turbine, FuelGasRate, MechanicalPower
 
-    def _resolve_definitions[Unit: (YamlGenerator, YamlGasTurbine)](self, unit: Unit) -> Unit:
+    def _resolve_definitions[Unit: (YamlGenerator, YamlGasTurbine, YamlDieselEngine)](self, unit: Unit) -> Unit:
         try:
             return expand_definitions(unit, definitions=self._definitions)
         except DefinitionReferenceError as e:
@@ -421,12 +426,13 @@ class EnergyNetworkMapper:
             case YamlGasTurbine():
                 unit = self._resolve_definitions(unit)
                 assert isinstance(unit.model, YamlTurbineDefinition)
-                fuel_model = map_turbine_fuel_model(
+                fuel_model = map_combustion_engine_fuel_model(
                     unit.name,
                     unit.model,
                     resources,
                     source_lower_heating_value=lhv_by_source_name.get(unit.input),
                     input_name=unit.input,
+                    model_class=TurbineFuelModel,
                 )
                 return (
                     TimeSeriesGasTurbineFactory(
@@ -436,6 +442,27 @@ class EnergyNetworkMapper:
                         fuel_model=fuel_model,
                     ),
                     FuelGasRate,
+                    MechanicalPower,
+                )
+            case YamlDieselEngine():
+                unit = self._resolve_definitions(unit)
+                assert isinstance(unit.model, YamlTurbineDefinition)
+                fuel_model = map_combustion_engine_fuel_model(
+                    unit.name,
+                    unit.model,
+                    resources,
+                    source_lower_heating_value=lhv_by_source_name.get(unit.input),
+                    input_name=unit.input,
+                    model_class=DieselEngineFuelModel,
+                )
+                return (
+                    TimeSeriesDieselEngineFactory(
+                        name=unit.name,
+                        energy_unit_id=energy_unit_id,
+                        capacity=self._time_series(fuel_model.max_power, expression_evaluator),
+                        fuel_model=fuel_model,
+                    ),
+                    DieselRate,
                     MechanicalPower,
                 )
             case YamlElectricalMotor():

@@ -1,8 +1,9 @@
-from .converters import ElectricalMotor, GasTurbine, Generator
+from .converters import DieselEngine, ElectricalMotor, GasTurbine, Generator
 from .junction import Junction
 from .transporter import DriveTrain, ElectricalCable, Transporter
 
 __all__ = [
+    "DieselEngine",
     "DriveTrain",
     "ElectricalCable",
     "ElectricalMotor",
