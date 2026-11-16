@@ -43,7 +43,7 @@ skill is the workflow.
    The build fails on broken links, e.g. an unresolved `replaced_by`.
 
 5. **Check the generated docs**:
-   - `docs/docs/about/nextgen/yaml-changelog.md` lists each element under Added, Changed or Removed, and `replaced_by` links resolve.
+   - `docs/docs/about/nextgen/yaml-changelog.md` lists each element under the chosen version's Added, Changed or Removed, and `replaced_by` links resolve.
    - The element has its badge in the reference page.
    - The generated example (`docs/docs/about/nextgen/examples.mdx`) shows no empty placeholders such as `KEY: []`. If it does, fix the test builder.
 
