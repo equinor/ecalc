@@ -11,7 +11,6 @@ Usage:
 
 from __future__ import annotations
 
-import argparse
 import inspect
 import json
 import re
@@ -1432,22 +1431,11 @@ Use the version filter below to show only the elements available for a chosen `Y
 # ---------------------------------------------------------------------------
 # YAML changelog
 #
-# One page per yaml major version, listing which elements were added,
+# One page for the current yaml major version, listing which elements were added,
 # deprecated or removed in that version specifically, to help users migrate
-# their own models. V1 and V2 predate this changelog and are intentionally
-# left out — add new versions here as they're introduced.
+# their own models. Changelogs for previous versions are kept in the published
+# docs for those releases.
 # ---------------------------------------------------------------------------
-
-FIRST_YAML_CHANGELOG_VERSION = Version(current_yaml_version().major - 1, 0, 0)  # 1 version back (current + previous)
-
-YAML_CHANGELOG_VERSIONS: list[Version] = [
-    Version(major, 0, 0) for major in range(FIRST_YAML_CHANGELOG_VERSION.major, current_yaml_version().major + 1)
-]
-
-
-def _release_label(version: Version) -> str:
-    status = "In development" if version.major == current_yaml_version().major else "In production"
-    return f"{status} (v{version.major})"
 
 
 ChangeKind = Literal["added", "deprecated", "removed", "changed"]
@@ -1532,7 +1520,7 @@ def _render_changelog_section(
         breadcrumb = " › ".join(f"`{segment}`" for segment in entry.path)
         anchor = _resolve_reference_anchor(entry.path, anchor_registry) if anchor_registry is not None else None
         if anchor is not None:
-            breadcrumb = f"[{breadcrumb}](../yaml-reference.mdx#{anchor})"
+            breadcrumb = f"[{breadcrumb}](./yaml-reference.mdx#{anchor})"
         if entry.description:
             breadcrumb = f"{breadcrumb}: {entry.description}"
         if entry.replaced_by:
@@ -1545,7 +1533,7 @@ def _render_changelog_section(
                     else None
                 )
                 if replacement_anchor is not None:
-                    replacement = f"[{replacement}](../yaml-reference.mdx#{replacement_anchor})"
+                    replacement = f"[{replacement}](./yaml-reference.mdx#{replacement_anchor})"
                 replacements.append(replacement)
             breadcrumb = f"{breadcrumb}: replaced by {' and '.join(replacements)}"
         lines.append(f"- {breadcrumb}")
@@ -1565,19 +1553,19 @@ def generate_yaml_changelog_markdown(version: Version, anchor_registry: dict[str
 
     frontmatter = f"""\
 ---
-title: YAML changelog, {_release_label(version)}
-sidebar_label: {_release_label(version)}
-sidebar_position: {version.major}
+title: YAML Changelog (v{version.major})
+sidebar_label: YAML Changelog
+sidebar_position: 4
 description: YAML configuration changes introduced in YAML_VERSION {version.major}.
 ---
 """
 
     body = f"""\
-# YAML changelog, {_release_label(version)}
+# YAML Changelog (v{version.major})
 
 This page lists the YAML configuration changes introduced in `YAML_VERSION: {version.major}`, compared to the
-previous version. See the [YAML Reference](../yaml-reference.mdx) for the full, current schema across all
-versions.
+previous version, to help you migrate your own model. See the [YAML Reference](./yaml-reference.mdx) for the full,
+current schema across all versions. Changelogs for previous versions are found in the docs for those releases.
 
 """
     sections = (
@@ -1592,33 +1580,9 @@ versions.
     return frontmatter + "\n" + body + sections
 
 
-def generate_yaml_changelog_index_markdown() -> str:
-    """Generate the yaml changelog landing page, listing all covered versions."""
-    links = "\n".join(f"- [{_release_label(version)}](./v{version.major}.md)" for version in YAML_CHANGELOG_VERSIONS)
-    return f"""\
----
-title: YAML Changelog
-sidebar_position: 0
-description: YAML configuration changes, by YAML_VERSION.
----
-
-# YAML Changelog
-
-This section lists the YAML configuration changes for each `YAML_VERSION`, to help you migrate your own model from
-a previous version. Each page covers the additions, deprecations and removals introduced in that version, compared
-to the previous one.
-
-See the [YAML Reference](../yaml-reference.mdx) for the full, current schema across all versions.
-
-{links}
-"""
-
-
-def main(include_previous: bool = False):
+def main():
     about_dir = Path(__file__).parent.parent / "docs" / "docs" / "about" / "nextgen"
     about_dir.mkdir(parents=True, exist_ok=True)
-    changelog_dir = about_dir / "yaml-changelog"
-    changelog_dir.mkdir(parents=True, exist_ok=True)
     energy_units_dir = about_dir / ENERGY_UNITS_DIRECTORY_NAME
     energy_units_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1628,7 +1592,6 @@ def main(include_previous: bool = False):
         about_dir / "process-reference.mdx": generate_process_markdown(),
         about_dir / "energy-reference.mdx": generate_energy_markdown(),
         about_dir / "yaml-reference.mdx": generate_full_reference_markdown(anchor_registry=anchor_registry),
-        changelog_dir / "index.md": generate_yaml_changelog_index_markdown(),
     }
     energy_unit_pages = generate_energy_units_pages()
     for stale_path in energy_units_dir.glob("*.md*"):
@@ -1636,11 +1599,9 @@ def main(include_previous: bool = False):
             stale_path.unlink()
     for file_name, content in energy_unit_pages.items():
         outputs[energy_units_dir / file_name] = content
-    changelog_versions = YAML_CHANGELOG_VERSIONS if include_previous else YAML_CHANGELOG_VERSIONS[-1:]
-    for version in changelog_versions:
-        outputs[changelog_dir / f"v{version.major}.md"] = generate_yaml_changelog_markdown(
-            version, anchor_registry=anchor_registry
-        )
+    outputs[about_dir / "yaml-changelog.md"] = generate_yaml_changelog_markdown(
+        current_yaml_version(), anchor_registry=anchor_registry
+    )
 
     for output_path, content in outputs.items():
         output_path.write_text(content)
@@ -1648,10 +1609,4 @@ def main(include_previous: bool = False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Generate the process, energy and YAML reference documentation.")
-    parser.add_argument(
-        "--include-previous",
-        action="store_true",
-        help="Also regenerate the changelog page for the previous YAML version. By default only the current version.",
-    )
-    main(parser.parse_args().include_previous)
+    main()

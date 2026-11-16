@@ -4,7 +4,6 @@ import pytest
 
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.case_utils import YamlCaseLoader
-from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 
 NEXTGEN_RESOURCE_NAMES = [
     "compressor_chart.csv",
@@ -16,9 +15,9 @@ NEXTGEN_RESOURCE_NAMES = [
 ]
 
 
-def load_nextgen_yaml(yaml_version: int) -> YamlCase:
+def load_nextgen_yaml() -> YamlCase:
     return YamlCaseLoader.load(
-        case_path=Path(__file__).parent / f"v{yaml_version}",
+        case_path=Path(__file__).parent,
         main_file="model.yaml",
         resource_names=NEXTGEN_RESOURCE_NAMES,
     )
@@ -26,4 +25,4 @@ def load_nextgen_yaml(yaml_version: int) -> YamlCase:
 
 @pytest.fixture
 def nextgen_yaml() -> YamlCase:
-    return load_nextgen_yaml(LATEST_YAML_VERSION)
+    return load_nextgen_yaml()
