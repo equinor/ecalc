@@ -1,7 +1,6 @@
 import io
 import json
 import re
-import shutil
 import zipfile
 from datetime import date
 from pathlib import Path
@@ -70,22 +69,22 @@ def resource_paths() -> list[Path]:
     return sorted(RESOURCE_DIRECTORY.glob(f"*{RESOURCE_SUFFIX}"))
 
 
-def generated_file_names(directory: Path) -> list[str]:
-    return sorted(
-        path.name for path in directory.iterdir() if path.name == MODEL_FILE_NAME or path.suffix == RESOURCE_SUFFIX
-    )
+def example_files(model: YamlAsset | None = None) -> dict[str, str]:
+    model = model if model is not None else build_reference_model(LATEST_YAML_VERSION)
+    return {
+        MODEL_FILE_NAME: render_model_yaml(model),
+        **{path.name: path.read_text() for path in resource_paths()},
+    }
 
 
 def export_reference_model(output_directory: Path) -> list[Path]:
     output_directory.mkdir(parents=True, exist_ok=True)
-    for file_name in generated_file_names(output_directory):
-        (output_directory / file_name).unlink()
-
-    model_path = output_directory / MODEL_FILE_NAME
-    model_path.write_text(render_model_yaml(build_reference_model(LATEST_YAML_VERSION)))
-
-    resource_copies = [Path(shutil.copy(path, output_directory / path.name)) for path in resource_paths()]
-    return [model_path, *resource_copies]
+    paths = []
+    for name, content in example_files().items():
+        path = output_directory / name
+        path.write_text(content)
+        paths.append(path)
+    return paths
 
 
 def _render_export_info(export_date: str) -> bytes:
@@ -97,23 +96,23 @@ def _render_export_info(export_date: str) -> bytes:
     return json.dumps(info, separators=(",", ":")).encode()
 
 
-def _build_archive(model_directory: Path, export_date: str) -> bytes:
-    files = {
+def _build_archive(files: dict[str, str], export_date: str) -> bytes:
+    contents = {
         EXPORT_INFO_FILE_NAME: _render_export_info(export_date),
-        **{name: (model_directory / name).read_bytes() for name in generated_file_names(model_directory)},
+        **{name: content.encode() for name, content in files.items()},
     }
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
-        for name in sorted(files):
+        for name in sorted(contents):
             info = zipfile.ZipInfo(name, _ARCHIVE_TIMESTAMP)
             info.compress_type = zipfile.ZIP_DEFLATED
             info.external_attr = 0o644 << 16
-            archive.writestr(info, files[name])
+            archive.writestr(info, contents[name])
     return buffer.getvalue()
 
 
-def export_example_archive(archive_directory: Path, model_directory: Path) -> Path:
+def export_example_archive(archive_directory: Path, files: dict[str, str] | None = None) -> Path:
     archive_directory.mkdir(parents=True, exist_ok=True)
     archive_path = archive_directory / ARCHIVE_FILE_NAME
-    archive_path.write_bytes(_build_archive(model_directory, date.today().isoformat()))
+    archive_path.write_bytes(_build_archive(files or example_files(), date.today().isoformat()))
     return archive_path

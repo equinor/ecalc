@@ -1,6 +1,20 @@
+from pathlib import Path
+
 import pytest
 
 from libecalc.fixtures import YamlCase
+from libecalc.fixtures.case_utils import YamlCaseLoader
+from libecalc.fixtures.cases.nextgen.reference_model import MODEL_FILE_NAME, export_reference_model
+
+
+@pytest.fixture
+def nextgen_yaml(tmp_path: Path) -> YamlCase:
+    exported = export_reference_model(tmp_path)
+    return YamlCaseLoader.load(
+        case_path=tmp_path,
+        main_file=MODEL_FILE_NAME,
+        resource_names=[path.name for path in exported if path.name != MODEL_FILE_NAME],
+    )
 
 
 @pytest.fixture
