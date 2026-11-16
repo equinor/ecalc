@@ -136,7 +136,7 @@ def test_gas_turbine_fuel_follows_its_model(source, turbine_network_data_factory
     if source == "file":
         curve = {"FILE": "curve.csv"}
         resources["curve.csv"] = MemoryResource(data=[[2, 4, 8], [0.1, 0.2, 0.3]], headers=["LOAD", "EFFICIENCY"])
-    turbine = {"CURVE": curve}
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": curve}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
 
     model = yaml_model_factory(
@@ -151,7 +151,7 @@ def test_gas_turbine_fuel_follows_its_model(source, turbine_network_data_factory
 def test_gas_turbine_curve_limit_reaches_the_simulation(
     load, exceeds_curve, turbine_network_data_factory, yaml_model_factory
 ):
-    turbine = {"CURVE": CURVE}
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory, load=load)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
@@ -169,7 +169,7 @@ def test_gas_turbine_curve_limit_reaches_the_simulation(
 def test_turbine_file_is_listed_as_facility_resource(
     file_key, turbine_network_data_factory, configuration_service_factory
 ):
-    turbine = {"CURVE": {file_key: "curve.csv"}}
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {file_key: "curve.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
 
     configuration = configuration_service_factory(
@@ -194,7 +194,7 @@ def test_turbine_file_is_listed_as_facility_resource(
     ],
 )
 def test_gas_turbine_file_errors_are_reported(resources, message, turbine_network_data_factory, yaml_model_factory):
-    turbine = {"CURVE": {"FILE": "curve.csv"}}
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"FILE": "curve.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources=resources
@@ -205,7 +205,7 @@ def test_gas_turbine_file_errors_are_reported(resources, message, turbine_networ
 
 
 def test_invalid_inline_turbine_model_is_reported_at_the_model(turbine_network_data_factory, yaml_model_factory):
-    turbine = {"CURVE": {"LOAD": [2, 4, 8], "EFFICIENCY": [0.1, 0.2, 1.5]}}
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [2, 4, 8], "EFFICIENCY": [0.1, 0.2, 1.5]}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
@@ -221,7 +221,7 @@ def test_invalid_inline_turbine_model_is_reported_at_the_model(turbine_network_d
 
 @pytest.mark.parametrize("headers", [["load", "efficiency"], ["Load", "EFFICIENCY"]])
 def test_turbine_file_headers_are_case_insensitive(headers, turbine_network_data_factory, yaml_model_factory):
-    turbine = {"CURVE": {"FILE": "curve.csv"}}
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"FILE": "curve.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     resources = {"curve.csv": MemoryResource(data=[[2, 4, 8], [0.1, 0.2, 0.3]], headers=headers)}
     model = yaml_model_factory(
@@ -236,8 +236,10 @@ def test_turbine_file_headers_are_case_insensitive(headers, turbine_network_data
 def test_turbine_model_resolved_from_definitions_still_validates_file_existence(
     turbine_network_data_factory, yaml_model_factory
 ):
-    turbine = {"CURVE": {"FILE": "missing.csv"}}
-    data = _turbine_model_data("my_turbine", {"TURBINES": {"my_turbine": turbine}}, turbine_network_data_factory)
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"FILE": "missing.csv"}}
+    data = _turbine_model_data(
+        "my_turbine", {"PERFORMANCE_CURVES": {"my_turbine": turbine}}, turbine_network_data_factory
+    )
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
     )
@@ -247,7 +249,7 @@ def test_turbine_model_resolved_from_definitions_still_validates_file_existence(
 
 
 def test_invalid_inline_turbine_file_is_still_validated_for_existence(turbine_network_data_factory, yaml_model_factory):
-    turbine = {"CURVE": {"FILE": "missing.csv"}}
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"FILE": "missing.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
@@ -258,8 +260,10 @@ def test_invalid_inline_turbine_file_is_still_validated_for_existence(turbine_ne
 
 
 def test_gas_turbine_model_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
-    turbine = {"CURVE": CURVE}
-    data = _turbine_model_data("my_turbine", {"TURBINES": {"my_turbine": turbine}}, turbine_network_data_factory)
+    turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE}
+    data = _turbine_model_data(
+        "my_turbine", {"PERFORMANCE_CURVES": {"my_turbine": turbine}}, turbine_network_data_factory
+    )
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
     )
@@ -279,7 +283,7 @@ def test_turbine_definition_reference_not_found_is_reported(turbine_network_data
         model.get_energy_network()
 
 
-GENERATOR_MODEL = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+GENERATOR_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 # 7 MW sits between the points: fuel is interpolated linearly, so fuel = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
 EXPECTED_GENERATOR_FUEL = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
 
@@ -333,8 +337,9 @@ def test_generator_fuel_follows_its_model(turbine_network_data_factory, yaml_mod
 
 
 def test_generator_model_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
+    generator_model = GENERATOR_MODEL
     data = _generator_model_data(
-        "my_generator", {"GENERATORS": {"my_generator": GENERATOR_MODEL}}, turbine_network_data_factory
+        "my_generator", {"PERFORMANCE_CURVES": {"my_generator": generator_model}}, turbine_network_data_factory
     )
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
@@ -355,7 +360,7 @@ def test_generator_definition_reference_not_found_is_reported(turbine_network_da
 
 
 def test_invalid_inline_generator_model_is_reported_at_the_model(turbine_network_data_factory, yaml_model_factory):
-    bad_model = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, -5]}}  # fuel must not be negative
+    bad_model = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, -5]}}  # fuel must not be negative
     data = _generator_model_data(bad_model, {}, turbine_network_data_factory)
     model = yaml_model_factory(
         configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
@@ -369,7 +374,7 @@ def test_invalid_inline_generator_model_is_reported_at_the_model(turbine_network
     assert "must not be negative" in error.message
 
 
-GENERATOR_MODEL_AFTER_UPGRADE = {"CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
+GENERATOR_MODEL_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
 EXPECTED_GENERATOR_FUEL_AFTER_UPGRADE = 10000 + (20000 - 10000) * (7 - 5) / (10 - 5)
 
 

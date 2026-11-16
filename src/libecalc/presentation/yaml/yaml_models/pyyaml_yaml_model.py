@@ -26,7 +26,11 @@ from libecalc.presentation.yaml.yaml_keywords import EcalcYamlKeywords
 from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError, FileContext, YamlError
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import (
+    YamlAsset,
+    YamlDefinitions,
+    YamlPerformanceCurveDefinition,
+)
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
@@ -57,8 +61,7 @@ _PROCESS_PIPELINES_KEY = "PROCESS_PIPELINES"
 _INLET_STREAMS_KEY = "INLET_STREAMS"
 _FLUID_MODELS_KEY = "FLUID_MODELS"
 _FLUIDS_KEY = "FLUIDS"
-_TURBINES_KEY = "TURBINES"
-_GENERATORS_KEY = "GENERATORS"
+_PERFORMANCE_CURVES_KEY = "PERFORMANCE_CURVES"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _TIMELINE_KEY = "TIMELINE"
 _EVENTS_KEY = "EVENTS"
@@ -66,6 +69,7 @@ _PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
 _SHAFTS_KEY = "SHAFTS"
 _COMPRESSORS_KEY = "COMPRESSORS"
 dt_adapter = TypeAdapter(datetime.datetime)
+_performance_curve_adapter = TypeAdapter(YamlPerformanceCurveDefinition)
 
 
 def datetime_parser(key: str) -> datetime.datetime:
@@ -335,7 +339,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
         )
         if isinstance(definitions, dict):
-            for section in (_COMPRESSOR_MODELS_KEY, _TURBINES_KEY, _GENERATORS_KEY):
+            for section in (_COMPRESSOR_MODELS_KEY, _PERFORMANCE_CURVES_KEY):
                 resource_names.extend(_find_file_references(definitions.get(section)))
         for section in ("PROCESS_PIPELINES", "ENERGY_NETWORK"):
             resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
@@ -467,15 +471,13 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
     def definitions(self) -> YamlDefinitions:
         compressor_models: dict[str, YamlCompressorModelChart] = {}
         fluids: dict[str, YamlFluidDefinition] = {}
-        turbines: dict[str, YamlTurbineDefinition] = {}
-        generators: dict[str, YamlGeneratorDefinition] = {}
+        performance_curves: dict[str, YamlTurbineDefinition | YamlGeneratorDefinition] = {}
         definitions = (
             self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
         )
         raw_compressor_models = definitions.get(_COMPRESSOR_MODELS_KEY, {}) if isinstance(definitions, dict) else {}
         raw_fluids = definitions.get(_FLUIDS_KEY, {}) if isinstance(definitions, dict) else {}
-        raw_turbines = definitions.get(_TURBINES_KEY, {}) if isinstance(definitions, dict) else {}
-        raw_generators = definitions.get(_GENERATORS_KEY, {}) if isinstance(definitions, dict) else {}
+        raw_performance_curves = definitions.get(_PERFORMANCE_CURVES_KEY, {}) if isinstance(definitions, dict) else {}
 
         for name, compressor_model_data in raw_compressor_models.items():
             try:
@@ -487,22 +489,16 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 fluids[name] = TypeAdapter(YamlFluidDefinition).validate_python(fluid_data)
             except PydanticValidationError:
                 pass
-        for name, turbine_data in raw_turbines.items():
+        for name, performance_curve_data in raw_performance_curves.items():
             try:
-                turbines[name] = TypeAdapter(YamlTurbineDefinition).validate_python(turbine_data)
-            except PydanticValidationError:
-                pass
-        for name, generator_data in raw_generators.items():
-            try:
-                generators[name] = TypeAdapter(YamlGeneratorDefinition).validate_python(generator_data)
+                performance_curves[name] = _performance_curve_adapter.validate_python(performance_curve_data)
             except PydanticValidationError:
                 pass
 
         return YamlDefinitions(
             compressor_models=compressor_models,
             fluids=fluids,
-            turbines=turbines,
-            generators=generators,
+            performance_curves=performance_curves,
         )
 
     @property

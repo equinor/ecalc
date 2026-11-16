@@ -74,6 +74,7 @@ class YamlTurbineCurveBuilder(Builder[YamlTurbineCurve]):
 
 class YamlTurbineDefinitionBuilder(Builder[YamlTurbineDefinition]):
     def __init__(self):
+        self.type = "LOAD_TO_EFFICIENCY"
         self.curve = None
 
     def with_curve(self, curve: YamlTurbineCurve | YamlFile) -> Self:
@@ -111,6 +112,7 @@ class YamlGeneratorCurveBuilder(Builder[YamlGeneratorCurve]):
 
 class YamlGeneratorDefinitionBuilder(Builder[YamlGeneratorDefinition]):
     def __init__(self):
+        self.type = "POWER_TO_FUEL"
         self.curve = None
 
     def with_curve(self, curve: YamlGeneratorCurve | YamlFile) -> Self:

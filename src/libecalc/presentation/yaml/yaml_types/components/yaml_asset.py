@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Any
+from typing import Annotated, Any
 
 from pydantic import (
     ConfigDict,
@@ -52,6 +52,11 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
 )
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
+YamlPerformanceCurveDefinition = Annotated[
+    YamlTurbineDefinition | YamlGeneratorDefinition,
+    Field(discriminator="type"),
+]
+
 
 class YamlDefinitions(YamlBase):
     """Definitions section of an eCalc™ yaml file, containing reusable definitions."""
@@ -74,22 +79,16 @@ class YamlDefinitions(YamlBase):
         description="Defines fluids that can be referenced in inlet streams.",
     )
 
-    turbines: dict[str, YamlTurbineDefinition] = Field(
+    performance_curves: dict[str, YamlPerformanceCurveDefinition] = Field(
         default_factory=dict,
-        title="TURBINES",
-        description="Defines gas turbines that can be referenced from GAS_TURBINE units in the ENERGY_NETWORK. "
-        "Fuel follows the efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the "
-        "last efficiency is used above the last LOAD. The last LOAD is the maximum power, which is the capacity of "
-        "a GAS_TURBINE.",
-    )
-
-    generators: dict[str, YamlGeneratorDefinition] = Field(
-        default_factory=dict,
-        title="GENERATORS",
-        description="Defines generators that can be referenced from GENERATOR units in the ENERGY_NETWORK. "
-        "Fuel is interpolated from the POWER/FUEL curve. Below the first POWER the lowest FUEL is used, and above "
-        "the last POWER the highest FUEL is used. The last POWER is the maximum power, which is the capacity of a "
-        "GENERATOR.",
+        title="PERFORMANCE_CURVES",
+        description="Defines performance curves that can be referenced from GAS_TURBINE and GENERATOR units in the "
+        "ENERGY_NETWORK. TYPE: LOAD_TO_EFFICIENCY (referenced by GAS_TURBINE) interpolates fuel from a "
+        "load/efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last "
+        "efficiency is used above the last LOAD. TYPE: POWER_TO_FUEL (referenced by GENERATOR) interpolates fuel "
+        "directly from a power/fuel curve: below the first POWER the lowest FUEL is used, and above the last "
+        "POWER the highest FUEL is used. In both cases the last point is the maximum power, which is the unit's "
+        "capacity.",
     )
 
     # REMOVED FIELDS
@@ -513,8 +512,7 @@ class YamlAsset(YamlBase):
 
         references.extend(self.definitions.compressor_models.keys())
         references.extend(self.definitions.fluids.keys())
-        references.extend(self.definitions.turbines.keys())
-        references.extend(self.definitions.generators.keys())
+        references.extend(self.definitions.performance_curves.keys())
 
         for process_simulation in self.process_simulations:
             references.append(process_simulation.name)

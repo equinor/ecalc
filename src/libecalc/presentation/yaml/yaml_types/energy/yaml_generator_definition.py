@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -33,11 +33,13 @@ class YamlGeneratorDefinition(YamlBase):
         title="GeneratorDefinition",
         json_schema_extra={
             "examples": [
-                {"CURVE": {"POWER": [0, 5, 10, 15], "FUEL": [0, 25000, 48000, 70000]}},
-                {"CURVE": {"FILE": "generator_curve.csv"}},
+                {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [0, 5, 10, 15], "FUEL": [0, 25000, 48000, 70000]}},
+                {"TYPE": "POWER_TO_FUEL", "CURVE": {"FILE": "generator_curve.csv"}},
             ],
         },
     )
+
+    type: Literal["POWER_TO_FUEL"]
 
     curve: Annotated[
         DataOrFile[YamlGeneratorCurve],

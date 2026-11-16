@@ -22,8 +22,8 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import
 
 EXAMPLE_YAML = Path(__file__).parents[3] / "src" / "libecalc" / "examples" / "energy" / "energy_network.yaml"
 
-TURBINE = {"CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
-GENERATOR = {"CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+TURBINE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
+GENERATOR = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 _component_adapter = TypeAdapter(YamlComponent)
 

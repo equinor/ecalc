@@ -1,4 +1,4 @@
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -35,12 +35,14 @@ class YamlTurbineDefinition(YamlBase):
         json_schema_extra={
             "examples": [
                 {
+                    "TYPE": "LOAD_TO_EFFICIENCY",
                     "CURVE": {
                         "LOAD": [2.352, 4.589, 6.853],
                         "EFFICIENCY": [0.138, 0.210, 0.255],
                     },
                 },
                 {
+                    "TYPE": "LOAD_TO_EFFICIENCY",
                     "CURVE": {"FILE": "turbine_curve.csv"},
                 },
             ],
@@ -55,6 +57,8 @@ class YamlTurbineDefinition(YamlBase):
         replaced_by=("ENERGY_NETWORK", "SOURCES", "LOWER_HEATING_VALUE"),
     )
     # END REMOVED FIELDS
+
+    type: Literal["LOAD_TO_EFFICIENCY"]
 
     curve: Annotated[
         DataOrFile[YamlTurbineCurve],

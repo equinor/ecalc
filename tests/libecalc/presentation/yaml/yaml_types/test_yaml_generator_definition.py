@@ -5,8 +5,8 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition impo
 
 
 def test_accepts_inline_and_file_curves():
-    YamlGeneratorDefinition.model_validate({"CURVE": {"POWER": [0, 10], "FUEL": [0, 50000]}})
-    YamlGeneratorDefinition.model_validate({"CURVE": {"FILE": "curve.csv"}})
+    YamlGeneratorDefinition.model_validate({"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [0, 10], "FUEL": [0, 50000]}})
+    YamlGeneratorDefinition.model_validate({"TYPE": "POWER_TO_FUEL", "CURVE": {"FILE": "curve.csv"}})
 
 
 @pytest.mark.parametrize(
@@ -20,4 +20,4 @@ def test_accepts_inline_and_file_curves():
 )
 def test_rejects_invalid_definition(curve, message):
     with pytest.raises(ValidationError, match=message):
-        YamlGeneratorDefinition.model_validate({"CURVE": curve})
+        YamlGeneratorDefinition.model_validate({"TYPE": "POWER_TO_FUEL", "CURVE": curve})
