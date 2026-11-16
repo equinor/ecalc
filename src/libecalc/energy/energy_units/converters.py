@@ -1,7 +1,7 @@
 from collections.abc import Callable
 
 from libecalc.energy.converter import Converter
-from libecalc.energy.energy_types import ElectricalPower, Energy, FuelGasRate, MechanicalPower
+from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.ids import EnergyConnectionId, EnergyUnitId
 
 
@@ -78,6 +78,40 @@ class GasTurbine(Converter):
 
     def get_input_energies(self) -> dict[EnergyConnectionId, Energy]:
         return {self._input_connection_id: FuelGasRate(self._power_to_fuel(self._output_energy.value))}
+
+
+class DieselEngine(Converter):
+    """Diesel engine converting diesel to mechanical power (e.g. for compressor drive)."""
+
+    def __init__(
+        self,
+        name: str,
+        output_energy: Energy,
+        *,
+        input_connection_id: EnergyConnectionId,
+        power_to_fuel: Callable[[float], float],
+        capacity: Energy | None = None,
+        energy_unit_id: EnergyUnitId | None = None,
+    ) -> None:
+        super().__init__(
+            name,
+            output_energy=output_energy,
+            input_connection_id=input_connection_id,
+            capacity=capacity,
+            energy_unit_id=energy_unit_id,
+        )
+        self._power_to_fuel = power_to_fuel
+
+    @classmethod
+    def get_input_energy_type(cls) -> type[DieselRate]:
+        return DieselRate
+
+    @classmethod
+    def get_output_energy_type(cls) -> type[MechanicalPower]:
+        return MechanicalPower
+
+    def get_input_energies(self) -> dict[EnergyConnectionId, Energy]:
+        return {self._input_connection_id: DieselRate(self._power_to_fuel(self._output_energy.value))}
 
 
 class ElectricalMotor(Converter):

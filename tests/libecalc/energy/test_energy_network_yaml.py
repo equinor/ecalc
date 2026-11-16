@@ -214,6 +214,15 @@ class TestLowerHeatingValueResolution:
                 }
             )
 
+    def test_diesel_engine_without_lower_heating_value_on_source_rejected(self):
+        with pytest.raises(ValueError, match="could not resolve a single LOWER_HEATING_VALUE"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
+                    "UNITS": [{"NAME": "engine", "TYPE": "DIESEL_ENGINE", "INPUT": "diesel", "MODEL": TURBINE}],
+                }
+            )
+
 
 class TestJunctionValidation:
     def test_dispatch_strategy_required(self):
@@ -453,6 +462,17 @@ class TestNetworkValidation:
             }
         )
         assert len(network.units) == 1
+
+    def test_diesel_engine_rejects_fuel_gas_input(self):
+        with pytest.raises(ValueError, match="expects DIESEL input.*provides FUEL_GAS"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38}],
+                    "UNITS": [
+                        {"NAME": "engine", "TYPE": "DIESEL_ENGINE", "INPUT": "fuel", "MODEL": TURBINE},
+                    ],
+                }
+            )
 
     def test_compatible_chain_accepted(self):
         network = YamlEnergyNetwork.model_validate(
