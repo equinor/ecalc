@@ -11,7 +11,6 @@ from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import DieselEngine, ElectricalMotor, GasTurbine, Generator
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.energy.models.combustion_engine_fuel_model import DieselEngineFuelModel, TurbineFuelModel
-from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
@@ -62,7 +61,7 @@ class TimeSeriesGasTurbineFactory(TimeSeriesEnergyUnitFactory):
         self,
         *,
         name: str,
-        fuel_model: TurbineFuelModel | FuelPowerCurve,
+        fuel_model: TurbineFuelModel,
         energy_unit_id: EnergyUnitId | None = None,
         capacity: TimeSeriesExpression | None = None,
     ) -> None:

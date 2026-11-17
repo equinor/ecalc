@@ -56,14 +56,12 @@ class SampledCompressorFactory:
         rate_values: list[float] | None = None,
         suction_pressure_values: list[float] | None = None,
         discharge_pressure_values: list[float] | None = None,
-        power_interpolation_values: list[float] | None = None,
     ) -> SampledCompressor:
         table = SampledCompressorData.from_raw_lists(
             energy_usage_values,
             rate_values,
             suction_pressure_values,
             discharge_pressure_values,
-            power_interpolation_values,
         )
         try:
             model_cls = _MODEL_CLASS_BY_ACTIVE_VARIABLES[table.active_variables]

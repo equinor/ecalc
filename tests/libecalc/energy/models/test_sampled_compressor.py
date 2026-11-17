@@ -516,48 +516,6 @@ def test_3d_direct_matches_legacy():
         )
 
 
-def test_power_interpolation():
-    # power_interpolation_values map energy_usage (not rate) to power - using distinct
-    # rate/energy_usage values here (rather than numerically identical ones) makes that
-    # unambiguous.
-    model = SampledCompressorFactory.create(
-        energy_usage_values=[20.0, 30.0, 40.0],
-        rate_values=[2.0, 3.0, 4.0],
-        power_interpolation_values=[200.0, 300.0, 400.0],
-    )
-    # Inside the sampled range: power = 10x the interpolated energy usage.
-    for rate, expected_energy_usage, expected_power in [(2.0, 20.0, 200.0), (3.0, 30.0, 300.0), (4.0, 40.0, 400.0)]:
-        result = model.evaluate(rate=rate, suction_pressure=1.0, discharge_pressure=1.0)
-        assert result.power is not None
-        _assert_allclose(result.energy_usage, expected_energy_usage)
-        _assert_allclose(result.power, expected_power)
-
-    # Below the lowest sampled rate: both energy usage and power extrapolate to 0.
-    below_range = model.evaluate(rate=0.0, suction_pressure=1.0, discharge_pressure=1.0)
-    assert below_range.power is not None
-    _assert_allclose(below_range.energy_usage, 0.0)
-    _assert_allclose(below_range.power, 0.0)
-
-    # Above the highest sampled rate: both are NaN (no extrapolation for power).
-    above_range = model.evaluate(rate=5.0, suction_pressure=1.0, discharge_pressure=1.0)
-    assert above_range.power is not None
-    assert np.isnan(above_range.energy_usage)
-    assert np.isnan(above_range.power)
-
-
-def test_power_interpolation_rejects_duplicate_fuel_with_different_power():
-    # Two operating points reporting the same fuel usage but different power make the
-    # fuel -> power mapping ambiguous (which power value should evaluate() report for
-    # that fuel?) - this must be rejected rather than silently resolved by picking
-    # whichever duplicate scipy's interpolator happens to prefer.
-    with pytest.raises(IllegalStateException, match="strictly monotonic"):
-        SampledCompressorFactory.create(
-            energy_usage_values=[10.0, 10.0, 20.0],
-            rate_values=[1.0, 2.0, 3.0],
-            power_interpolation_values=[1.0, 2.0, 3.0],
-        )
-
-
 def test_get_max_standard_rate_matches_legacy():
     data = {
         "energy_usage_values": [52765, 71918, 139839, 144574],
