@@ -10,9 +10,9 @@ import CompressorSampledConverter from '@site/src/components/CompressorSampledCo
 # Migrate COMPRESSOR_SAMPLED
 
 A [`COMPRESSOR_SAMPLED`](./energy-reference.mdx#energy_network-units) unit's `FILE` has a `MECHANICAL_POWER` [MW]
-column, and its `INPUT` must provide mechanical power, e.g. a `GAS_TURBINE` or an `ELECTRICAL_MOTOR`. Earlier, a
+column, and its `INPUT` must provide mechanical power. Earlier, a
 `FILE` with both `POWER` and `FUEL` generated a gas turbine between `INPUT` and the compressor. That turbine must now
-be declared as a `GAS_TURBINE` unit. See the [NextGen changelog](../../changelog/nextgen.md) for the full change.
+be declared as a `GAS_TURBINE` unit.
 
 ## Conversion {/* #conversion */}
 
@@ -20,7 +20,13 @@ be declared as a `GAS_TURBINE` unit. See the [NextGen changelog](../../changelog
 - **Gas turbine curve:** a [`LOAD_TO_EFFICIENCY`](./energy-reference.mdx#load_to_efficiency) curve built from the
   same rows, one row per `POWER`, sorted by `POWER`:
 
-  `LOAD = POWER` and `EFFICIENCY = LOAD * 86400 / (LOWER_HEATING_VALUE * FUEL)`
+  $$
+  \mathrm{LOAD} = \mathrm{POWER}
+  $$
+
+  $$
+  \mathrm{EFFICIENCY} = \frac{\mathrm{LOAD} \times 86400}{\mathrm{LOWER\_HEATING\_VALUE} \times \mathrm{FUEL}}
+  $$
 
   with `LOAD` in MW, `FUEL` in Sm³/d and `LOWER_HEATING_VALUE` in MJ/Sm³. There are 86400 seconds in a day. Rows with
   zero `POWER` or `FUEL` are left out, as eCalc requires efficiencies above 0.
