@@ -58,11 +58,11 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlElectricalCable,
     YamlElectricalConsumer,
     YamlElectricalMotor,
+    YamlElectricalSource,
     YamlEnergyNetwork,
     YamlEnergySource,
     YamlEnergySourceType,
     YamlFuelGasConsumer,
-    YamlFuelGasManifold,
     YamlGasTurbine,
     YamlGenerator,
     YamlJunctionBase,
@@ -119,7 +119,7 @@ class EnergyNetworkMapper:
         """
         resources = resources or {}
         output_types = self._yaml_output_types(yaml_energy_network)
-        lhv_by_source_name, _ = resolve_lhv_by_source_name(yaml_energy_network.sources, yaml_energy_network.units)
+        lhv_by_source_name = resolve_lhv_by_source_name(yaml_energy_network.sources)
 
         node_ids_by_name: dict[str, EnergyUnitId] = {name: EnergyUnitId(ecalc_id_generator()) for name in output_types}
 
@@ -315,7 +315,11 @@ class EnergyNetworkMapper:
         energy_unit_id: EnergyUnitId,
         expression_evaluator: ExpressionEvaluator,
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
-        capacity = self._time_series(source.capacity, expression_evaluator)
+        capacity = (
+            self._time_series(source.capacity, expression_evaluator)
+            if isinstance(source, YamlElectricalSource)
+            else None
+        )
         match source.type:
             case YamlEnergySourceType.FUEL_GAS_SOURCE:
                 energy_type = FuelGasRate
@@ -458,21 +462,6 @@ class EnergyNetworkMapper:
                     ),
                     ElectricalPower,
                     ElectricalPower,
-                )
-            case YamlFuelGasManifold():
-                dispatch_strategy, input_capacities = self._map_junction_inputs(
-                    unit, node_ids_by_name, expression_evaluator
-                )
-                return (
-                    TimeSeriesJunctionFactory(
-                        name=unit.name,
-                        energy_unit_id=energy_unit_id,
-                        energy_type=FuelGasRate,
-                        dispatch_strategy=dispatch_strategy,
-                        input_capacities=input_capacities,
-                    ),
-                    FuelGasRate,
-                    FuelGasRate,
                 )
             case YamlElectricalConsumer():
                 consumer = TimeSeriesConsumer(

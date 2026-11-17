@@ -21,9 +21,8 @@ def map_combustion_engine_fuel_model[T: CombustionEngineFuelModel](
 ) -> T:
     if source_lower_heating_value is None:
         raise EcalcValidationException(
-            f"'{unit_name}': could not resolve a single LOWER_HEATING_VALUE from '{input_name}'. Set it on the "
-            "fuel/diesel source this unit draws from, directly or through a chain of FUEL_GAS_MANIFOLDs that all "
-            "agree on the same value."
+            f"'{unit_name}': could not resolve a LOWER_HEATING_VALUE from '{input_name}'. Set it on the "
+            "fuel/diesel source this unit draws from."
         )
     curve = definition.curve
     return map_curve_model(

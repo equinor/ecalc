@@ -7,17 +7,19 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlCompressorSampled,
     YamlDieselConsumer,
     YamlDieselEngine,
+    YamlDieselSource,
     YamlDispatchStrategy,
     YamlDriveTrain,
     YamlElectricalBus,
     YamlElectricalCable,
     YamlElectricalConsumer,
     YamlElectricalMotor,
+    YamlElectricalSource,
     YamlEnergyNetwork,
     YamlEnergySource,
     YamlEnergySourceType,
     YamlFuelGasConsumer,
-    YamlFuelGasManifold,
+    YamlFuelGasSource,
     YamlGasTurbine,
     YamlGenerator,
     YamlGeneratorEventChangeType,
@@ -131,23 +133,14 @@ class YamlGeneratorDefinitionBuilder(Builder[YamlGeneratorDefinition]):
 # ---------------------------------------------------------------------------
 
 
-class YamlEnergySourceBuilder(Builder[YamlEnergySource]):
+class YamlFuelGasSourceBuilder(Builder[YamlFuelGasSource]):
     def __init__(self):
         self.name = None
-        self.type = None
-        self.capacity = None
+        self.type = YamlEnergySourceType.FUEL_GAS_SOURCE
         self.lower_heating_value = None
 
     def with_name(self, name: str) -> Self:
         self.name = name
-        return self
-
-    def with_type(self, type: YamlEnergySourceType) -> Self:
-        self.type = type
-        return self
-
-    def with_capacity(self, capacity: YamlExpressionType) -> Self:
-        self.capacity = capacity
         return self
 
     def with_lower_heating_value(self, lower_heating_value: float) -> Self:
@@ -156,8 +149,46 @@ class YamlEnergySourceBuilder(Builder[YamlEnergySource]):
 
     def with_test_data(self) -> Self:
         self.name = "fuel_gas"
-        self.type = YamlEnergySourceType.FUEL_GAS_SOURCE
         self.lower_heating_value = 38.0
+        return self
+
+
+class YamlDieselSourceBuilder(Builder[YamlDieselSource]):
+    def __init__(self):
+        self.name = None
+        self.type = YamlEnergySourceType.DIESEL_SOURCE
+        self.lower_heating_value = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_lower_heating_value(self, lower_heating_value: float) -> Self:
+        self.lower_heating_value = lower_heating_value
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "diesel"
+        self.lower_heating_value = 38.0
+        return self
+
+
+class YamlElectricalSourceBuilder(Builder[YamlElectricalSource]):
+    def __init__(self):
+        self.name = None
+        self.type = YamlEnergySourceType.ELECTRICAL_SOURCE
+        self.capacity = None
+
+    def with_name(self, name: str) -> Self:
+        self.name = name
+        return self
+
+    def with_capacity(self, capacity: YamlExpressionType) -> Self:
+        self.capacity = capacity
+        return self
+
+    def with_test_data(self) -> Self:
+        self.name = "power_from_shore"
         return self
 
 
@@ -368,32 +399,6 @@ class YamlElectricalBusBuilder(Builder[YamlElectricalBus]):
             YamlJunctionInput(name="power_from_shore_cable", capacity=15),
             "generator",
         ]
-        self.dispatch_strategy = YamlDispatchStrategy.PRIORITY
-        return self
-
-
-class YamlFuelGasManifoldBuilder(Builder[YamlFuelGasManifold]):
-    def __init__(self):
-        self.type = "FUEL_GAS_MANIFOLD"
-        self.name = None
-        self.input = None
-        self.dispatch_strategy = None
-
-    def with_name(self, name: str) -> Self:
-        self.name = name
-        return self
-
-    def with_input(self, input: list[str | YamlJunctionInput]) -> Self:
-        self.input = input
-        return self
-
-    def with_dispatch_strategy(self, dispatch_strategy: YamlDispatchStrategy) -> Self:
-        self.dispatch_strategy = dispatch_strategy
-        return self
-
-    def with_test_data(self) -> Self:
-        self.name = "fuel_gas_manifold"
-        self.input = ["fuel_gas", "imported_fuel_gas"]
         self.dispatch_strategy = YamlDispatchStrategy.PRIORITY
         return self
 
@@ -610,7 +615,7 @@ class YamlEnergyNetworkBuilder(Builder[YamlEnergyNetwork]):
         self.units: list[YamlComponent] = []
 
     def with_test_data(self) -> Self:
-        self.sources = [YamlEnergySourceBuilder().with_test_data().validate()]
+        self.sources = [YamlFuelGasSourceBuilder().with_test_data().validate()]
         self.units = []
         return self
 

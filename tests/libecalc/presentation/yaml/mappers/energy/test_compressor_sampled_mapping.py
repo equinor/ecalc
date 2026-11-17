@@ -17,15 +17,15 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type impor
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlCompressorSampled,
     YamlEnergyNetwork,
-    YamlEnergySourceType,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineCurve, YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.testing.energy_builders import (
     YamlCompressorSampledBuilder,
     YamlElectricalMotorBuilder,
+    YamlElectricalSourceBuilder,
     YamlEnergyNetworkBuilder,
-    YamlEnergySourceBuilder,
+    YamlFuelGasSourceBuilder,
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
 
@@ -51,11 +51,12 @@ def _unit(**kwargs) -> YamlCompressorSampled:
     return _unit_builder(**kwargs).validate()
 
 
-def _source(name: str, source_type: YamlEnergySourceType):
-    builder = YamlEnergySourceBuilder().with_name(name).with_type(source_type)
-    if source_type == YamlEnergySourceType.FUEL_GAS_SOURCE:
-        builder = builder.with_lower_heating_value(FUEL_GAS_LOWER_HEATING_VALUE)
-    return builder.validate()
+def _fuel_source(name: str = "fuel"):
+    return YamlFuelGasSourceBuilder().with_name(name).with_lower_heating_value(FUEL_GAS_LOWER_HEATING_VALUE).validate()
+
+
+def _electrical_source(name: str = "el"):
+    return YamlElectricalSourceBuilder().with_name(name).validate()
 
 
 def _network(compressor_input: str = "turbine", **unit_kwargs) -> YamlEnergyNetwork:
@@ -63,8 +64,8 @@ def _network(compressor_input: str = "turbine", **unit_kwargs) -> YamlEnergyNetw
         YamlEnergyNetworkBuilder()
         .with_sources(
             [
-                _source("fuel", YamlEnergySourceType.FUEL_GAS_SOURCE),
-                _source("el", YamlEnergySourceType.ELECTRICAL_SOURCE),
+                _fuel_source("fuel"),
+                _electrical_source("el"),
             ]
         )
         .with_gas_turbine("turbine", "fuel", TURBINE_MODEL)
@@ -208,7 +209,7 @@ class TestYamlCompressorSampled:
         DUPLICATE_COMPRESSOR_NAME = "shared name"
         network = (
             YamlEnergyNetworkBuilder()
-            .with_sources([_source("fuel", YamlEnergySourceType.FUEL_GAS_SOURCE)])
+            .with_sources([_fuel_source("fuel")])
             .with_gas_turbine(DUPLICATE_COMPRESSOR_NAME, "fuel", TURBINE_MODEL)
             .with_unit(_unit(compressor=DUPLICATE_COMPRESSOR_NAME, input=DUPLICATE_COMPRESSOR_NAME))
         )
@@ -219,7 +220,7 @@ class TestYamlCompressorSampled:
 def _asset(file: str) -> YamlAsset:
     energy_network = (
         YamlEnergyNetworkBuilder()
-        .with_sources([_source("fuel", YamlEnergySourceType.FUEL_GAS_SOURCE)])
+        .with_sources([_fuel_source("fuel")])
         .with_gas_turbine("turbine", "fuel", TURBINE_MODEL)
         .with_unit(_unit(file=file, rate=1500))
         .validate()

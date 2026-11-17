@@ -11,7 +11,7 @@ from libecalc.testing.energy_builders import (
     YamlElectricalConsumerBuilder,
     YamlEnergyGeneratorBuilder,
     YamlEnergyNetworkBuilder,
-    YamlEnergySourceBuilder,
+    YamlFuelGasSourceBuilder,
     YamlGeneratorDefinitionBuilder,
 )
 from libecalc.testing.process_builders import (
@@ -29,7 +29,7 @@ COMPRESSOR_MODEL = "compressor_model"
 
 
 def _energy_network(generator_model: str | YamlGeneratorDefinition) -> YamlEnergyNetwork:
-    source = YamlEnergySourceBuilder().with_test_data().validate()
+    source = YamlFuelGasSourceBuilder().with_test_data().validate()
     generator = (
         YamlEnergyGeneratorBuilder().with_test_data().with_input(source.name).with_model(generator_model).validate()
     )
