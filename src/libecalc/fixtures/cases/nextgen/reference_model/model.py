@@ -32,6 +32,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSI
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.testing.energy_builders import (
     YamlCompressorSampledBuilder,
+    YamlDieselEngineBuilder,
     YamlDriveTrainBuilder,
     YamlElectricalCableBuilder,
     YamlElectricalConsumerBuilder,
@@ -77,6 +78,8 @@ COMPRESSOR_MODEL_B = "compressor_model_B"
 COMPRESSOR_CHART_FILE = "compressor_chart.csv"
 TIE_IN_EVENT = "increased_gas_rate_2027"
 GENERATOR_UPGRADE_EVENT = "generator_upgrade_2030"
+
+TURBINE_PERFORMANCE_CURVE = "turbine_performance_curve"
 
 EXPORT_TRAIN_ALIASES = [
     ["aliasA", "aliasB"],
@@ -199,6 +202,7 @@ def _definitions():
         .with_fluid(FLUID_NAME, YamlPredefinedFluidDefinitionBuilder().with_test_data().validate())
         .with_compressor_model(COMPRESSOR_MODEL_A, _compressor_model())
         .with_compressor_model(COMPRESSOR_MODEL_B, _compressor_model())
+        .with_performance_curve(TURBINE_PERFORMANCE_CURVE, YamlTurbineDefinitionBuilder().with_test_data().validate())
         .validate()
     )
 
@@ -298,7 +302,14 @@ def _energy_sources():
         YamlEnergySourceBuilder().with_name(name).with_type(YamlEnergySourceType.ELECTRICAL_SOURCE).validate()
         for name in ("el_source", "pfs")
     ]
-    return fuel_gas_sources + electrical_sources
+    diesel_sources = [
+        YamlEnergySourceBuilder()
+        .with_name("diesel")
+        .with_type(YamlEnergySourceType.DIESEL_SOURCE)
+        .with_lower_heating_value(35.7)
+        .validate()
+    ]
+    return fuel_gas_sources + electrical_sources + diesel_sources
 
 
 def _sampled_compressor(input: str, compressor: str, file: str):
@@ -315,13 +326,11 @@ def _sampled_compressor(input: str, compressor: str, file: str):
 
 
 def _gas_turbine(name: str, input: str):
-    return (
-        YamlGasTurbineBuilder()
-        .with_name(name)
-        .with_input(input)
-        .with_model(YamlTurbineDefinitionBuilder().with_test_data().validate())
-        .validate()
-    )
+    return YamlGasTurbineBuilder().with_name(name).with_input(input).with_model(TURBINE_PERFORMANCE_CURVE).validate()
+
+
+def _diesel_engine(name: str, input: str):
+    return YamlDieselEngineBuilder().with_name(name).with_input(input).with_model(TURBINE_PERFORMANCE_CURVE).validate()
 
 
 def _electrical_motor(name: str, input: str):
@@ -366,6 +375,12 @@ def _energy_units():
             "export_motor",
             _shaft_name(2),
             mechanical_efficiencies={_compressor_name(2, 1): 0.96},
+        ),
+        _diesel_engine("backup_diesel_engine", "diesel"),
+        _drive_train(
+            "backup_diesel_engine",
+            _shaft_name(4),
+            mechanical_efficiencies={_compressor_name(4, 1): 0.95, _compressor_name(4, 2): 0.93},
         ),
         _electrical_motor("pfs_motor", "pfs"),
         _drive_train("pfs_motor", _shaft_name(3)),

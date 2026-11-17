@@ -1,6 +1,7 @@
 from typing import Self
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlCompressorSampled,
@@ -237,7 +238,7 @@ class YamlGasTurbineBuilder(Builder[YamlGasTurbine]):
         self.input = input
         return self
 
-    def with_model(self, model: YamlTurbineDefinition) -> Self:
+    def with_model(self, model: DefinitionReference | YamlTurbineDefinition) -> Self:
         self.model = model
         return self
 
@@ -263,7 +264,7 @@ class YamlDieselEngineBuilder(Builder[YamlDieselEngine]):
         self.input = input
         return self
 
-    def with_model(self, model: YamlTurbineDefinition) -> Self:
+    def with_model(self, model: DefinitionReference | YamlTurbineDefinition) -> Self:
         self.model = model
         return self
 
