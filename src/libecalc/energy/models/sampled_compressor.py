@@ -1,7 +1,7 @@
 """Dependency-free reimplementation of the legacy sampled compressor model: interpolates
-energy usage (and, optionally, power) from a table of sampled points over rate, suction
-pressure (ps), and/or discharge pressure (pd), dropping any missing or degenerate
-(constant) input from the model.
+energy usage from a table of sampled points over rate, suction pressure (ps), and/or
+discharge pressure (pd), dropping any missing or degenerate (constant) input from the
+model.
 
 Build a model via SampledCompressorFactory.create() (in the sibling
 sampled_compressor_factory module), which validates the raw sample table, derives
@@ -41,7 +41,6 @@ from libecalc.energy.models.convex_hull import (
     get_lower_upper_qhull,
     sort_ndarray_by_column,
 )
-from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 from libecalc.energy.models.sampled_compressor_data import (
     PD_NAME,
     PS_NAME,
@@ -60,7 +59,6 @@ class SampledCompressorResult:
     """The result of one SampledCompressor.evaluate() query."""
 
     energy_usage: float
-    power: float | None = None
 
 
 def _evaluate_interp1d(function: interp1d, value: float) -> float:
@@ -293,10 +291,6 @@ class SampledCompressor(ABC):
         discharge_pressure: float | None = None,
     ) -> float: ...
 
-    @abstractmethod
-    def get_fuel_power_curve(self) -> FuelPowerCurve | None:
-        """This model's fuel/power relation, if it has one."""
-
 
 class SampledCompressorBase(SampledCompressor):
     """Shared base for every concrete SampledCompressor implementation: takes an
@@ -349,9 +343,6 @@ class SampledCompressorBase(SampledCompressor):
     def _degenerated_pd(self) -> float:
         return self._table.degenerated_pd
 
-    def get_fuel_power_curve(self) -> FuelPowerCurve | None:
-        return self._table.fuel_power_curve
-
     def evaluate(
         self,
         rate: float | None = None,
@@ -373,9 +364,7 @@ class SampledCompressorBase(SampledCompressor):
         pd_ok = discharge_pressure_value is None or discharge_pressure_value <= self._degenerated_pd
         if math.isnan(energy_usage) and rate_ok and ps_ok and pd_ok:
             energy_usage = self._evaluate_active(rate_value, suction_pressure_value, discharge_pressure_value)
-        curve = self.get_fuel_power_curve()
-        power = None if curve is None else curve.power_for_fuel(energy_usage)
-        return SampledCompressorResult(energy_usage=energy_usage, power=power)
+        return SampledCompressorResult(energy_usage=energy_usage)
 
     @abstractmethod
     def _evaluate_active(

@@ -20,7 +20,6 @@ from libecalc.common.errors.ecalc_validation_error import (
 )
 from libecalc.common.errors.exceptions import IllegalStateException, InvalidColumnException
 from libecalc.energy.models.convex_hull import FloatArray
-from libecalc.energy.models.fuel_power_curve import FuelPowerCurve
 
 VariableName = Literal["RATE", "SUCTION_PRESSURE", "DISCHARGE_PRESSURE"]
 
@@ -33,31 +32,11 @@ def _as_float_array(values: list[float] | NDArray[np.float64]) -> FloatArray:
     return np.asarray(values, dtype=np.float64)
 
 
-def _require_strictly_monotonic_fuel_power_samples(
-    fuel_values: FloatArray, power_values: FloatArray
-) -> tuple[FloatArray, FloatArray]:
-    """Deduplicates exact-duplicate (fuel, power) rows, sorts by fuel, and requires both
-    to come out strictly increasing (a genuine, invertible one-to-one mapping). A table
-    where the same fuel maps to different power (or vice versa) is rejected rather than
-    silently resolved - a deliberate choice for the new energy domain."""
-    unique_pairs = np.unique(np.column_stack([fuel_values, power_values]), axis=0)
-    sorted_fuel, sorted_power = unique_pairs[:, 0], unique_pairs[:, 1]
-    if np.any(np.diff(sorted_fuel) <= 0) or np.any(np.diff(sorted_power) <= 0):
-        raise IllegalStateException(
-            "power_interpolation_values must be a strictly monotonic function of "
-            "energy_usage_values (after removing exact-duplicate sample rows): each "
-            "distinct fuel value must map to exactly one power value and vice versa, "
-            "so the fuel<->power relationship is invertible in both directions."
-        )
-    return sorted_fuel, sorted_power
-
-
 def _validate_raw_lists(
     energy_usage_values: list[float],
     rate_values: list[float] | None,
     suction_pressure_values: list[float] | None,
     discharge_pressure_values: list[float] | None,
-    power_interpolation_values: list[float] | None,
 ) -> None:
     if not rate_values and not suction_pressure_values and not discharge_pressure_values:
         raise ProcessMissingVariableValidationException(
@@ -69,7 +48,6 @@ def _validate_raw_lists(
         ("rate_values", rate_values),
         ("suction_pressure_values", suction_pressure_values),
         ("discharge_pressure_values", discharge_pressure_values),
-        ("power_interpolation_values", power_interpolation_values),
     )
     for name, values in named_values:
         if name != "energy_usage_values" and values is not None and len(values) != count:
@@ -109,10 +87,9 @@ def _determine_active_variables(
 class SampledCompressorData:
     """Validated, derived state built once from a SampledCompressor's raw sample-table
     inputs: each variable's raw values (unfiltered - degenerate or not), which of those
-    variables turned out non-degenerate ("active"), each degenerate variable's clamp
-    limit, and the optional fuel/power curve. from_raw_lists() runs all
-    validation up front, so every leaf class and SampledCompressorFactory can build one
-    and treat it as already-valid.
+    variables turned out non-degenerate ("active"), and each degenerate variable's clamp
+    limit. from_raw_lists() runs all validation up front, so every leaf class and
+    SampledCompressorFactory can build one and treat it as already-valid.
 
     eq/hash are left at object identity (eq=False) rather than derived: several fields
     are lists/dicts/ndarrays, which are unhashable and whose "==" raises on ndarrays
@@ -122,14 +99,12 @@ class SampledCompressorData:
     rate_values: list[float] | None
     suction_pressure_values: list[float] | None
     discharge_pressure_values: list[float] | None
-    power_interpolation_values: list[float] | None
     provided_variables: dict[VariableName, FloatArray]
     required_variables: list[VariableName]
     active_variables: tuple[VariableName, ...]
     degenerated_rate: float
     degenerated_ps: float
     degenerated_pd: float
-    fuel_power_curve: FuelPowerCurve | None
 
     @classmethod
     def from_raw_lists(
@@ -138,21 +113,13 @@ class SampledCompressorData:
         rate_values: list[float] | None = None,
         suction_pressure_values: list[float] | None = None,
         discharge_pressure_values: list[float] | None = None,
-        power_interpolation_values: list[float] | None = None,
     ) -> SampledCompressorData:
         _validate_raw_lists(
             energy_usage_values,
             rate_values,
             suction_pressure_values,
             discharge_pressure_values,
-            power_interpolation_values,
         )
-        fuel_power_curve: FuelPowerCurve | None = None
-        if power_interpolation_values is not None:
-            fuel_values = _as_float_array(energy_usage_values)
-            power_values_array = _as_float_array(power_interpolation_values)
-            sorted_fuel, sorted_power = _require_strictly_monotonic_fuel_power_samples(fuel_values, power_values_array)
-            fuel_power_curve = FuelPowerCurve(sorted_fuel=sorted_fuel.tolist(), sorted_power=sorted_power.tolist())
         provided_variables: dict[VariableName, FloatArray] = {
             name: _as_float_array(values)
             for name, values in cast(
@@ -189,14 +156,12 @@ class SampledCompressorData:
             rate_values=rate_values,
             suction_pressure_values=suction_pressure_values,
             discharge_pressure_values=discharge_pressure_values,
-            power_interpolation_values=power_interpolation_values,
             provided_variables=provided_variables,
             required_variables=required_variables,
             active_variables=active_variables,
             degenerated_rate=degenerated_rate,
             degenerated_ps=degenerated_ps,
             degenerated_pd=degenerated_pd,
-            fuel_power_curve=fuel_power_curve,
         )
 
 
