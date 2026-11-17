@@ -86,13 +86,16 @@ TURBINE_LHV = 38
 EXPECTED_FUEL = 5 * 86400 / TURBINE_LHV / 0.225
 
 
-def _turbine_model_data(model, definitions, base_data_factory, load=5):
+def _turbine_model_data(model, definitions, base_data_factory, load=5, events=None):
     data = base_data_factory()
     data["DEFINITIONS"] = definitions
+    turbine = {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": model}
+    if events is not None:
+        turbine["EVENTS"] = events
     data["ENERGY_NETWORK"] = {
         "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": TURBINE_LHV}],
         "UNITS": [
-            {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": model},
+            turbine,
             {"NAME": "load", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "turbine", "LOAD": load},
         ],
     }
@@ -117,16 +120,26 @@ def latest_network_data_factory(yaml_asset_builder_factory):
     return create
 
 
-def _run_turbine(model):
+def _run_turbine_per_period(model):
     topology, factories, consumers, _ = model.get_energy_network()
     simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=factories)
     (load,) = consumers
-    (period,) = load.demand.expression.get_periods()
     (load_connection,) = topology.get_incoming_connections(load.get_id())
     factories_by_name = {factory.get_name(): factory for factory in factories}
     fuel_connection = topology.get_connection(factories_by_name["fuel"].get_id(), factories_by_name["turbine"].get_id())
-    result = simulation.run({load_connection.id: load.get_demand(period)}, period=period)
-    return result.get_energy()[fuel_connection.id].value, result.get_capacity_failures()
+    results_by_period_start = {}
+    for period in load.demand.expression.get_periods():
+        result = simulation.run({load_connection.id: load.get_demand(period)}, period=period)
+        results_by_period_start[period.start] = (
+            result.get_energy()[fuel_connection.id].value,
+            result.get_capacity_failures(),
+        )
+    return results_by_period_start
+
+
+def _run_turbine(model):
+    (fuel_and_capacity_failures,) = _run_turbine_per_period(model).values()
+    return fuel_and_capacity_failures
 
 
 @pytest.mark.parametrize("source", ["inline", "file"])
@@ -280,6 +293,59 @@ def test_turbine_definition_reference_not_found_is_reported(turbine_network_data
     )
 
     with pytest.raises(ModelValidationException, match="missing_turbine.*not found. Available definitions"):
+        model.get_energy_network()
+
+
+TURBINE_AFTER_UPGRADE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [2, 4, 8], "EFFICIENCY": [0.2, 0.4, 0.6]}}
+# The upgraded curve doubles every efficiency, so the same load burns half the fuel.
+EXPECTED_FUEL_AFTER_UPGRADE = EXPECTED_FUEL / 2
+
+
+@pytest.mark.parametrize(
+    ("change_to", "definitions"),
+    [
+        pytest.param(TURBINE_AFTER_UPGRADE, {}, id="inline"),
+        pytest.param(
+            "upgraded_turbine", {"PERFORMANCE_CURVES": {"upgraded_turbine": TURBINE_AFTER_UPGRADE}}, id="reference"
+        ),
+    ],
+)
+def test_gas_turbine_event_switches_fuel_model_at_the_timeline_date(
+    change_to, definitions, latest_network_data_factory, yaml_model_factory
+):
+    data = _turbine_model_data(
+        {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE},
+        definitions,
+        latest_network_data_factory,
+        events=[{"REF": "upgrade", "CHANGE_TO": change_to}],
+    )
+    data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+    )
+
+    results_by_period_start = _run_turbine_per_period(model)
+
+    assert results_by_period_start[datetime(2020, 1, 1)][0] == pytest.approx(EXPECTED_FUEL)
+    assert results_by_period_start[datetime(2021, 1, 1)][0] == pytest.approx(EXPECTED_FUEL_AFTER_UPGRADE)
+
+
+def test_gas_turbine_event_with_a_generator_model_is_reported(latest_network_data_factory, yaml_model_factory):
+    data = _turbine_model_data(
+        {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE},
+        {"PERFORMANCE_CURVES": {"generator": {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [1, 2]}}}},
+        latest_network_data_factory,
+        events=[{"REF": "upgrade", "CHANGE_TO": "generator"}],
+    )
+    data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+    )
+
+    with pytest.raises(
+        ModelValidationException,
+        match="resolved to type .YamlGeneratorDefinition., but expected one of: YamlTurbineDefinition",
+    ):
         model.get_energy_network()
 
 

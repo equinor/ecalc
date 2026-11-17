@@ -6,6 +6,7 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    YamlCombustionEngineModelEvent,
     YamlEnergySource,
     YamlGeneratorModelEvent,
 )
@@ -31,6 +32,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariab
 from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.testing.energy_builders import (
+    YamlCombustionEngineModelEventBuilder,
     YamlCompressorSampledBuilder,
     YamlDieselEngineBuilder,
     YamlDieselSourceBuilder,
@@ -80,6 +82,7 @@ COMPRESSOR_MODEL_B = "compressor_model_B"
 COMPRESSOR_CHART_FILE = "compressor_chart.csv"
 TIE_IN_EVENT = "increased_gas_rate_2027"
 GENERATOR_UPGRADE_EVENT = "generator_upgrade_2030"
+TURBINE_UPGRADE_EVENT = "turbine_upgrade_2028"
 
 TURBINE_PERFORMANCE_CURVE = "turbine_performance_curve"
 
@@ -145,6 +148,15 @@ def _timeline():
             .with_type(TimelineEventType.TIE_IN)
             .with_from_when("2025-01-01")
             .with_description("New production wells are tied in to the platform.")
+            .validate(),
+        )
+        .with_event(
+            TURBINE_UPGRADE_EVENT,
+            YamlTimelineEventBuilder()
+            .with_title("Turbine upgrade")
+            .with_type(TimelineEventType.ENERGY_EFFICIENCY_MEASURE)
+            .with_from_when("2028-01-01")
+            .with_description("Gas turbine export_turbine gets a new turbine model.")
             .validate(),
         )
         .with_event(
@@ -324,8 +336,15 @@ def _sampled_compressor(input: str, compressor: str, file: str):
     )
 
 
-def _gas_turbine(name: str, input: str):
-    return YamlGasTurbineBuilder().with_name(name).with_input(input).with_model(TURBINE_PERFORMANCE_CURVE).validate()
+def _gas_turbine(name: str, input: str, events: list[YamlCombustionEngineModelEvent] | None = None):
+    return (
+        YamlGasTurbineBuilder()
+        .with_name(name)
+        .with_input(input)
+        .with_model(TURBINE_PERFORMANCE_CURVE)
+        .with_events(events or [])
+        .validate()
+    )
 
 
 def _diesel_engine(name: str, input: str):
@@ -349,9 +368,13 @@ def _generator_upgrade_events() -> list[YamlGeneratorModelEvent]:
     return [YamlGeneratorModelEventBuilder().with_test_data().with_ref(GENERATOR_UPGRADE_EVENT).validate()]
 
 
+def _turbine_upgrade_events() -> list[YamlCombustionEngineModelEvent]:
+    return [YamlCombustionEngineModelEventBuilder().with_test_data().with_ref(TURBINE_UPGRADE_EVENT).validate()]
+
+
 def _energy_units():
     return [
-        _gas_turbine("export_turbine", "fuel_gas"),
+        _gas_turbine("export_turbine", "fuel_gas", events=_turbine_upgrade_events()),
         YamlEnergyGeneratorBuilder()
         .with_name("genset_a")
         .with_input("fuel_gas2")
