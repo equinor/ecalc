@@ -1,0 +1,53 @@
+---
+title: Migrate COMPRESSOR_SAMPLED
+sidebar_label: Migrate COMPRESSOR_SAMPLED
+sidebar_position: 6
+description: Convert a COMPRESSOR_SAMPLED FILE with POWER and FUEL into a MECHANICAL_POWER file and a gas turbine curve.
+---
+
+import CompressorSampledConverter from '@site/src/components/CompressorSampledConverter';
+
+# Migrate COMPRESSOR_SAMPLED
+
+A [`COMPRESSOR_SAMPLED`](./energy-reference.mdx#energy_network-units) unit's `FILE` has a `MECHANICAL_POWER` [MW]
+column, and its `INPUT` must provide mechanical power, e.g. a `GAS_TURBINE` or an `ELECTRICAL_MOTOR`. Earlier, a
+`FILE` with both `POWER` and `FUEL` generated a gas turbine between `INPUT` and the compressor. That turbine must now
+be declared as a `GAS_TURBINE` unit. See the [NextGen changelog](../../changelog/nextgen.md) for the full change.
+
+## Conversion {/* #conversion */}
+
+- **Compressor `FILE`:** rename `POWER` to `MECHANICAL_POWER` and remove `FUEL`. The other columns are unchanged.
+- **Gas turbine curve:** a [`LOAD_TO_EFFICIENCY`](./energy-reference.mdx#load_to_efficiency) curve built from the
+  same rows, one row per `POWER`, sorted by `POWER`:
+
+  `LOAD = POWER` and `EFFICIENCY = LOAD * 86400 / (LOWER_HEATING_VALUE * FUEL)`
+
+  with `LOAD` in MW, `FUEL` in Sm³/d and `LOWER_HEATING_VALUE` in MJ/Sm³. There are 86400 seconds in a day. Rows with
+  zero `POWER` or `FUEL` are left out, as eCalc requires efficiencies above 0.
+
+For example, with `LOWER_HEATING_VALUE: 38.0`:
+
+| POWER (MW) | FUEL (Sm³/d) | LOAD (MW) | EFFICIENCY |
+|---|---|---|---|
+| 3.23 | 31974 | 3.23 | 0.230 |
+| 9.68 | 88376 | 9.68 | 0.249 |
+| 16.13 | 136646 | 16.13 | 0.268 |
+
+Between the rows, the turbine interpolates efficiency rather than fuel, so fuel can differ slightly from the old
+generated turbine.
+
+## Converter {/* #converter */}
+
+Paste the content of the old `FILE` and give the `LOWER_HEATING_VALUE` of the fuel gas. The conversion runs in the
+browser. eCalc validates both tables when the model is loaded.
+
+<CompressorSampledConverter />
+
+## Use the tables {/* #use-the-tables */}
+
+1. Save the compressor table as the `COMPRESSOR_SAMPLED` unit's `FILE`.
+2. Add a [`GAS_TURBINE`](./energy-reference.mdx#energy_network-units) unit with `MODEL: TYPE: LOAD_TO_EFFICIENCY`,
+   and give the turbine table as its `CURVE`, in a `FILE` or as inline `LOAD` and `EFFICIENCY` values.
+3. Set `LOWER_HEATING_VALUE` on the fuel gas [source](./energy-reference.mdx#sources) the turbine takes as `INPUT`.
+4. Set the gas turbine as the `COMPRESSOR_SAMPLED` unit's `INPUT`, and remove `NAME` from the unit. It is named by its
+   `COMPRESSOR`.
