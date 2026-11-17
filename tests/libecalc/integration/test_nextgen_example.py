@@ -25,6 +25,12 @@ def nextgen_model(nextgen_yaml: YamlCase):
     return model
 
 
+def test_nextgen_example_is_valid(nextgen_yaml: YamlCase):
+    model = nextgen_yaml.get_yaml_model()
+
+    assert model.validate_nextgen() is model
+
+
 def test_nextgen_example_runs(nextgen_model):
     pipelines, simulations = nextgen_model.get_process_simulations()
 

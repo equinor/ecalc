@@ -33,6 +33,7 @@ from libecalc.domain.process.evaluation_input import (
 )
 from libecalc.domain.process.pump.pump import PumpModel
 from libecalc.domain.regularity import Regularity
+from libecalc.domain.resource import Resource
 from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
@@ -40,6 +41,7 @@ from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
+from libecalc.energy.errors import EnergyDomainError
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
 from libecalc.presentation.yaml.domain.category_service import CategoryService
@@ -78,6 +80,7 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_reference_service import YamlReferenceService
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_validation_context import (
     ModelContext,
@@ -206,113 +209,132 @@ class YamlModel:
 
         reference_service = self._get_reference_service()
 
-        yaml_process_simulations = self._configuration.process_simulations
         mapped_process_simulations = []
         mapped_process_pipelines = []
-        for yaml_process_simulation in yaml_process_simulations:
+        errors: list[ModelValidationError] = []
+        for yaml_process_simulation in self._configuration.process_simulations:
             try:
-                yaml_process_simulation = expand_definitions(
-                    yaml_process_simulation,
-                    definitions=self._get_definitions(),
-                )
-            except DefinitionReferenceError as e:
-                yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
-                raise ModelValidationException(
-                    errors=[
-                        ModelValidationError(
-                            location=Location(keys=yaml_keys),
-                            message=str(e),
-                            file_context=self._configuration.get_file_context(yaml_keys),
-                        )
-                    ]
-                ) from e
-            process_simulation_references = reference_service.get_references(yaml_process_simulation)
-
-            reference_objects = {}
-            expression_references = extract_expression_references(yaml_process_simulation)
-            for process_simulation_reference in process_simulation_references:
-                try:
-                    reference_object = reference_service.get_reference(process_simulation_reference)
-                except InvalidReferenceException as e:
-                    yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
-                    raise ModelValidationException(
-                        errors=[
-                            ModelValidationError(
-                                location=Location(keys=yaml_keys),
-                                message=str(e),
-                                file_context=self._configuration.get_file_context(yaml_keys),
-                            )
-                        ]
-                    ) from e
-                try:
-                    reference_object = expand_definitions(
-                        reference_object,
-                        definitions=self._get_definitions(),
-                    )
-                except DefinitionReferenceError as e:
-                    reference_yaml_path = reference_service.get_yaml_path(process_simulation_reference)
-                    reference_keys = reference_yaml_path.keys
-                    raise ModelValidationException(
-                        errors=[
-                            ModelValidationError(
-                                location=Location(
-                                    keys=reference_keys,
-                                ),
-                                message=str(e),
-                                file_context=self._configuration.get_file_context(reference_keys),
-                            )
-                        ]
-                    ) from e
-                reference_object_expression_references = extract_expression_references(reference_object)
-
-                reference_objects[process_simulation_reference] = reference_object
-                expression_references.update(reference_object_expression_references)
-
-            time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}
-            time_series_name_map = {
-                time_series_file_name_map[ts.file]: time_series_resources[ts.file]
-                for ts in self._configuration.time_series
-            }
-
-            end = self._configuration.end
-            assert end is not None
-            expression_evaluator = StrictExpressionEvaluator.from_expression_references(
-                expression_references=expression_references,
-                variables=self._configuration.variables,
-                time_series_resources=time_series_name_map,
-                start=self._configuration.start,
-                end=end,
-                additional_dates=timeline_event_service.get_event_dates(),
-            )
-
-            mapper = ProcessSimulationMapper(
-                expression_evaluator=expression_evaluator,
-                resources=facility_resources,
-                references=reference_objects,
-                timeline_event_service=timeline_event_service,
-                shafts=self._shafts,
-                compressor_equipment_ids=self._get_compressor_equipment_ids(),
-            )
-
-            try:
-                process_pipelines, process_simulation = mapper.map_process_simulation(
+                process_pipelines, process_simulation = self._map_process_simulation(
                     yaml_process_simulation=yaml_process_simulation,
+                    reference_service=reference_service,
+                    timeline_event_service=timeline_event_service,
+                    facility_resources=facility_resources,
+                    time_series_resources=time_series_resources,
                 )
-            except EcalcValidationException as e:
-                yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
-                raise ModelValidationException(
-                    errors=[
-                        ModelValidationError(
-                            location=Location(keys=yaml_keys),
-                            message=str(e),
-                            file_context=self._configuration.get_file_context(yaml_keys),
-                        )
-                    ]
-                ) from e
+            except ModelValidationException as e:
+                errors.extend(e.errors())
+                continue
             mapped_process_pipelines.extend(process_pipelines)
             mapped_process_simulations.append(process_simulation)
 
+        if errors:
+            raise ModelValidationException(errors=errors)
+
         return mapped_process_pipelines, mapped_process_simulations
+
+    def _map_process_simulation(
+        self,
+        yaml_process_simulation: YamlProcessSimulation,
+        reference_service: ReferenceService,
+        timeline_event_service: TimelineEventService,
+        facility_resources: dict[str, Resource],
+        time_series_resources: dict[str, TimeSeriesResource],
+    ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
+        yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
+
+        def _simulation_error(e: Exception) -> ModelValidationException:
+            return ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        location=Location(keys=yaml_keys),
+                        message=str(e),
+                        file_context=self._configuration.get_file_context(yaml_keys),
+                    )
+                ]
+            )
+
+        try:
+            yaml_process_simulation = expand_definitions(
+                yaml_process_simulation,
+                definitions=self._get_definitions(),
+            )
+        except DefinitionReferenceError as e:
+            raise _simulation_error(e) from e
+        process_simulation_references = reference_service.get_references(yaml_process_simulation)
+
+        reference_objects = {}
+        expression_references = extract_expression_references(yaml_process_simulation)
+        for process_simulation_reference in process_simulation_references:
+            try:
+                reference_object = reference_service.get_reference(process_simulation_reference)
+            except InvalidReferenceException as e:
+                raise _simulation_error(e) from e
+            try:
+                reference_object = expand_definitions(
+                    reference_object,
+                    definitions=self._get_definitions(),
+                )
+            except DefinitionReferenceError as e:
+                reference_yaml_path = reference_service.get_yaml_path(process_simulation_reference)
+                reference_keys = reference_yaml_path.keys
+                raise ModelValidationException(
+                    errors=[
+                        ModelValidationError(
+                            location=Location(
+                                keys=reference_keys,
+                            ),
+                            message=str(e),
+                            file_context=self._configuration.get_file_context(reference_keys),
+                        )
+                    ]
+                ) from e
+            reference_object_expression_references = extract_expression_references(reference_object)
+
+            reference_objects[process_simulation_reference] = reference_object
+            expression_references.update(reference_object_expression_references)
+
+        time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}
+        time_series_name_map = {
+            time_series_file_name_map[ts.file]: time_series_resources[ts.file] for ts in self._configuration.time_series
+        }
+
+        end = self._configuration.end
+        assert end is not None
+        expression_evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references=expression_references,
+            variables=self._configuration.variables,
+            time_series_resources=time_series_name_map,
+            start=self._configuration.start,
+            end=end,
+            additional_dates=timeline_event_service.get_event_dates(),
+        )
+
+        mapper = ProcessSimulationMapper(
+            expression_evaluator=expression_evaluator,
+            resources=facility_resources,
+            references=reference_objects,
+            timeline_event_service=timeline_event_service,
+            shafts=self._shafts,
+            compressor_equipment_ids=self._get_compressor_equipment_ids(),
+        )
+
+        try:
+            return mapper.map_process_simulation(
+                yaml_process_simulation=yaml_process_simulation,
+            )
+        except EcalcValidationException as e:
+            raise _simulation_error(e) from e
+        except ResourceValidationException as e:
+            raise ModelValidationException(
+                errors=[
+                    ModelValidationError(
+                        location=e.location,
+                        message=e.message,
+                        file_context=e.file_context,
+                        docs_reference=e.docs_reference,
+                    )
+                ]
+            ) from e
 
     def get_energy_network(
         self,
@@ -362,17 +384,30 @@ class YamlModel:
                     )
                 ]
             ) from e
-        except EcalcValidationException as e:
+        except (EcalcValidationException, EnergyDomainError) as e:
             yaml_keys = ("ENERGY_NETWORK",)
             raise ModelValidationException(
                 errors=[
                     ModelValidationError(
                         location=Location(keys=yaml_keys),
-                        message=str(e),
+                        message=e.message,
                         file_context=self._configuration.get_file_context(yaml_keys),
                     )
                 ]
             ) from e
+
+    def validate_nextgen(self) -> Self:
+        errors: list[ModelValidationError] = []
+        for map_nextgen in (self.get_process_simulations, self.get_energy_network):
+            try:
+                map_nextgen()
+            except ModelValidationException as e:
+                errors.extend(error for error in e.errors() if error not in errors)
+
+        if errors:
+            raise ModelValidationException(errors=errors)
+
+        return self
 
     def get_timeline_events(self) -> list[TimelineEvent]:
         return TimelineEventMapper().map_events(self._configuration.timeline_events)

@@ -208,7 +208,7 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
         self.input = input
         return self
 
-    def with_model(self, model: YamlGeneratorDefinition) -> Self:
+    def with_model(self, model: str | YamlGeneratorDefinition) -> Self:
         self.model = model
         return self
 
