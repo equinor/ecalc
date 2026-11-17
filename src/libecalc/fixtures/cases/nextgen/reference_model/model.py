@@ -6,7 +6,7 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
-    YamlEnergySourceType,
+    YamlEnergySource,
     YamlGeneratorModelEvent,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
@@ -33,14 +33,16 @@ from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiS
 from libecalc.testing.energy_builders import (
     YamlCompressorSampledBuilder,
     YamlDieselEngineBuilder,
+    YamlDieselSourceBuilder,
     YamlDriveTrainBuilder,
     YamlElectricalCableBuilder,
     YamlElectricalConsumerBuilder,
     YamlElectricalMotorBuilder,
+    YamlElectricalSourceBuilder,
     YamlEnergyGeneratorBuilder,
     YamlEnergyNetworkBuilder,
-    YamlEnergySourceBuilder,
     YamlFileBuilder,
+    YamlFuelGasSourceBuilder,
     YamlGasTurbineBuilder,
     YamlGeneratorDefinitionBuilder,
     YamlGeneratorModelEventBuilder,
@@ -287,27 +289,24 @@ def _process_simulation():
     return builder.with_stream_distribution(stream_distribution).validate()
 
 
-def _energy_sources():
-    def _fuel_gas_source(name: str, lower_heating_value: float | None):
-        builder = YamlEnergySourceBuilder().with_name(name).with_type(YamlEnergySourceType.FUEL_GAS_SOURCE)
+def _energy_sources() -> list[YamlEnergySource]:
+    lower_heating_value_by_source = {"fuel_gas": 38.0, "fuel_gas3": 38.0}
+
+    def _fuel_gas_source(name: str):
+        builder = YamlFuelGasSourceBuilder().with_name(name)
+        lower_heating_value = lower_heating_value_by_source.get(name)
         if lower_heating_value is not None:
             builder = builder.with_lower_heating_value(lower_heating_value)
         return builder.validate()
 
-    fuel_gas_sources = [
-        _fuel_gas_source(name, lower_heating_value=lhv)
-        for name, lhv in (("fuel_gas", 38.0), ("fuel_gas2", None), ("fuel_gas3", 38.0))
+    fuel_gas_sources: list[YamlEnergySource] = [
+        _fuel_gas_source(name) for name in ("fuel_gas", "fuel_gas2", "fuel_gas3")
     ]
-    electrical_sources = [
-        YamlEnergySourceBuilder().with_name(name).with_type(YamlEnergySourceType.ELECTRICAL_SOURCE).validate()
-        for name in ("el_source", "pfs")
+    electrical_sources: list[YamlEnergySource] = [
+        YamlElectricalSourceBuilder().with_name(name).validate() for name in ("el_source", "pfs")
     ]
-    diesel_sources = [
-        YamlEnergySourceBuilder()
-        .with_name("diesel")
-        .with_type(YamlEnergySourceType.DIESEL_SOURCE)
-        .with_lower_heating_value(35.7)
-        .validate()
+    diesel_sources: list[YamlEnergySource] = [
+        YamlDieselSourceBuilder().with_name("diesel").with_lower_heating_value(35.7).validate()
     ]
     return fuel_gas_sources + electrical_sources + diesel_sources
 

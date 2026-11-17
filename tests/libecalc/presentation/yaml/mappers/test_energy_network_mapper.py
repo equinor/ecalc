@@ -36,34 +36,6 @@ def test_gas_turbine_capacity_is_the_curve_maximum(energy_network_mapper_factory
     assert turbine.capacity.get_evaluated_expression() == [20]
 
 
-def test_gas_turbine_resolves_lower_heating_value_through_a_manifold(
-    energy_network_mapper_factory, expression_evaluator_factory, period
-):
-    yaml_network = YamlEnergyNetwork.model_validate(
-        {
-            "SOURCES": [
-                {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
-                {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
-            ],
-            "UNITS": [
-                {
-                    "NAME": "manifold",
-                    "TYPE": "FUEL_GAS_MANIFOLD",
-                    "INPUT": ["fuel", "backup_fuel"],
-                    "DISPATCH_STRATEGY": "PRIORITY",
-                },
-                {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "manifold", "MODEL": TURBINE},
-            ],
-        }
-    )
-    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
-
-    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
-
-    (turbine,) = (factory for factory in factories if factory.get_name() == "turbine")
-    assert turbine.capacity.get_evaluated_expression() == [20]
-
-
 def test_gas_turbine_does_not_accept_capacity():
     with pytest.raises(ValueError, match="CAPACITY"):
         YamlEnergyNetwork.model_validate(
@@ -142,10 +114,10 @@ def test_maps_sources_units_connections_and_expressions(
     yaml_network = YamlEnergyNetwork.model_validate(
         {
             "SOURCES": [
-                {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": 100, "LOWER_HEATING_VALUE": 38},
+                {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
                 {"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE", "CAPACITY": 20},
-                {"NAME": "diesel", "TYPE": "DIESEL_SOURCE", "CAPACITY": 500},
-                {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE", "CAPACITY": 50},
+                {"NAME": "diesel", "TYPE": "DIESEL_SOURCE"},
+                {"NAME": "backup_fuel", "TYPE": "FUEL_GAS_SOURCE"},
             ],
             "UNITS": [
                 {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
@@ -153,15 +125,9 @@ def test_maps_sources_units_connections_and_expressions(
                 {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset", "CAPACITY": 5, "EFFICIENCY": 0.9},
                 {"NAME": "cable", "TYPE": "ELECTRICAL_CABLE", "INPUT": "grid", "CAPACITY": 4, "EFFICIENCY": 0.96},
                 {"NAME": "bus", "TYPE": "ELECTRICAL_BUS", "INPUT": ["cable", "grid"], "DISPATCH_STRATEGY": "PRIORITY"},
-                {
-                    "NAME": "manifold",
-                    "TYPE": "FUEL_GAS_MANIFOLD",
-                    "INPUT": ["fuel", "backup_fuel"],
-                    "DISPATCH_STRATEGY": "PRIORITY",
-                },
                 {"NAME": "electrical_load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "bus", "LOAD": 5},
                 {"NAME": "mechanical_load", "TYPE": "MECHANICAL_CONSUMER", "INPUT": "motor", "LOAD": 2},
-                {"NAME": "fuel_load", "TYPE": "FUEL_GAS_CONSUMER", "INPUT": "manifold", "RATE": 10},
+                {"NAME": "fuel_load", "TYPE": "FUEL_GAS_CONSUMER", "INPUT": "backup_fuel", "RATE": 10},
                 {"NAME": "diesel_load", "TYPE": "DIESEL_CONSUMER", "INPUT": "diesel", "RATE": 20},
             ],
         }
@@ -210,10 +176,7 @@ def test_maps_sources_units_connections_and_expressions(
     factories_by_name = {factory.get_name(): factory for factory in energy_unit_factories}
 
     expected_capacities = {
-        "fuel": 100,
         "grid": 20,
-        "diesel": 500,
-        "backup_fuel": 50,
         "turbine": 20,
         "motor": 5,
         "cable": 4,

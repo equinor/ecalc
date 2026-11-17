@@ -28,7 +28,6 @@ from pydantic_core import PydanticUndefined
 from energy_units_docs import ENERGY_UNITS_DIRECTORY_NAME, generate_energy_units_pages
 from libecalc.common.version import Version
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergySourceType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlCompressorProcessUnitInstance
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
@@ -48,12 +47,12 @@ from libecalc.testing.energy_builders import (
     YamlElectricalCableBuilder,
     YamlElectricalConsumerBuilder,
     YamlElectricalMotorBuilder,
+    YamlElectricalSourceBuilder,
     YamlEnergyGeneratorBuilder,
     YamlEnergyNetworkBuilder,
-    YamlEnergySourceBuilder,
     YamlFileBuilder,
     YamlFuelGasConsumerBuilder,
-    YamlFuelGasManifoldBuilder,
+    YamlFuelGasSourceBuilder,
     YamlGasTurbineBuilder,
     YamlGeneratorCurveBuilder,
     YamlGeneratorDefinitionBuilder,
@@ -324,11 +323,8 @@ ENERGY_EXAMPLES: list[Example] = [
             YamlEnergyNetworkBuilder()
             .with_sources(
                 [
-                    YamlEnergySourceBuilder().with_test_data().validate(),
-                    YamlEnergySourceBuilder()
-                    .with_name("power_from_shore")
-                    .with_type(YamlEnergySourceType.ELECTRICAL_SOURCE)
-                    .validate(),
+                    YamlFuelGasSourceBuilder().with_test_data().validate(),
+                    YamlElectricalSourceBuilder().with_name("power_from_shore").validate(),
                 ]
             )
             .with_units(
@@ -347,7 +343,7 @@ ENERGY_EXAMPLES: list[Example] = [
     ),
     Example(
         "ENERGY_NETWORK.SOURCES",
-        lambda: YamlEnergySourceBuilder().with_test_data().with_capacity(50000).validate(),
+        lambda: YamlElectricalSourceBuilder().with_name("power_from_shore").with_capacity(50000).validate(),
     ),
     # --- ENERGY_NETWORK.UNITS variants ---
     Example(
@@ -377,10 +373,6 @@ ENERGY_EXAMPLES: list[Example] = [
     Example(
         "ENERGY_NETWORK.UNITS.ELECTRICAL_BUS",
         lambda: YamlElectricalBusBuilder().with_test_data().validate(),
-    ),
-    Example(
-        "ENERGY_NETWORK.UNITS.FUEL_GAS_MANIFOLD",
-        lambda: YamlFuelGasManifoldBuilder().with_test_data().validate(),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.ELECTRICAL_CONSUMER",
