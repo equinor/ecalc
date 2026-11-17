@@ -139,21 +139,23 @@ class PumpOperatingInput:
     """The physical input for a single pump evaluation.
 
     ``inlet_stream`` always carries a physical inlet (positive pressure and density); its rate may
-    be zero, which the pump treats as not running (zero power, outlet pressure equal to the inlet
-    pressure). ``required_discharge_pressure_bara`` is the duty target; it is only meaningful while
-    the pump runs. This domain is time-agnostic: any period/time mapping is kept by the caller.
+    be zero, which the pump treats as not running (zero power, operational discharge pressure equal
+    to the inlet pressure). ``requested_outlet_pressure_bara`` is the pressure requested downstream
+    of the choke. It gives the required head while the pump runs; at zero rate it does not affect
+    power or head. This domain is time-agnostic: any period/time mapping is kept by the caller.
     """
 
     inlet_stream: LiquidStream
-    required_discharge_pressure_bara: float
+    requested_outlet_pressure_bara: float
 
 
 @value_object
 class PumpOperatingResult:
     """Result of one evaluation: the pump operating result plus the stream on every connection.
 
-    An evaluation where the pump does not run (zero rate) still produces a result - zero power, the
-    outlet pressure equal to the inlet pressure, and zero-flow streams on every connection.
+    An evaluation where the pump does not run (zero rate) also produces a result: zero power,
+    operational discharge pressure equal to the inlet pressure, and zero-flow streams on every
+    connection.
     """
 
     pump_result: PumpEvaluationResult
@@ -237,7 +239,7 @@ class PumpProcessSimulation(Entity[PumpProcessSimulationId]):
     def _evaluate_one(self, operating_input: PumpOperatingInput) -> PumpOperatingResult:
         pump_result = self._pump.evaluate(
             inlet_stream=operating_input.inlet_stream,
-            discharge_pressure_bara=operating_input.required_discharge_pressure_bara,
+            requested_outlet_pressure_bara=operating_input.requested_outlet_pressure_bara,
         )
         return PumpOperatingResult(
             pump_result=pump_result,
@@ -247,9 +249,16 @@ class PumpProcessSimulation(Entity[PumpProcessSimulationId]):
     def _project_streams(self, pump_result: PumpEvaluationResult) -> Mapping[ProcessUnitConnectionId, LiquidStream]:
         """Project the closed-form pump result onto the stream of each serial connection.
 
-        Recirculation raises the operating rate between the mixer and the splitter; the requested
-        rate is restored downstream. The choke drops the operating discharge pressure to
-        the required discharge pressure when the pump over-delivers head.
+        Recirculation: the mixer adds recirculated liquid so the pump runs at no less than its minimum
+        flow, and the splitter takes it out again, so the requested rate continues downstream.
+
+        Choke: the choke acts only when the required head at the operating rate is below the chart's
+        minimum head. The pump cannot operate below its chart, so the choke adds back-pressure at the
+        pump discharge: the pump runs at its minimum head for that rate, and the choke drops the
+        operational discharge pressure to the requested outlet pressure. In every other case the choke
+        has no pressure drop. Within the chart the pump delivers the required head. Above the chart's
+        maximum head the pump runs at that maximum head, its operational discharge pressure falls short
+        of the requested outlet pressure, and the result is flagged infeasible.
         """
         requested_stream = pump_result.inlet_stream
         operating_stream_at_suction = requested_stream.with_mass_rate(
@@ -258,19 +267,15 @@ class PumpProcessSimulation(Entity[PumpProcessSimulationId]):
         operating_stream_after_pump = operating_stream_at_suction.with_pressure(
             pump_result.operational_discharge_pressure_bara
         )
-        delivered_stream_before_choke = requested_stream.with_pressure(pump_result.operational_discharge_pressure_bara)
-        delivered_pressure_bara = min(
-            pump_result.operational_discharge_pressure_bara,
-            pump_result.required_discharge_pressure_bara,
-        )
-        delivered_stream_after_choke = requested_stream.with_pressure(delivered_pressure_bara)
+        discharge_stream = requested_stream.with_pressure(pump_result.operational_discharge_pressure_bara)
+        outlet_stream = requested_stream.with_pressure(pump_result.operational_outlet_pressure_bara)
 
         streams = (
             requested_stream,
             operating_stream_at_suction,
             operating_stream_after_pump,
-            delivered_stream_before_choke,
-            delivered_stream_after_choke,
+            discharge_stream,
+            outlet_stream,
         )
         return MappingProxyType(
             {connection.get_id(): stream for connection, stream in zip(self._connections, streams, strict=True)}

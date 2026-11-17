@@ -36,14 +36,14 @@ def simulation(single_speed_chart):
     )
 
 
-def _operating_input(rate_m3_per_hour, *, discharge=100.0):
+def _operating_input(rate_m3_per_hour, *, outlet_pressure=100.0):
     return PumpOperatingInput(
         inlet_stream=LiquidStream.from_volumetric_rate(
             volumetric_rate_m3_per_day=rate_m3_per_hour * 24.0,
             pressure_bara=5.0,
             density_kg_per_m3=DENSITY,
         ),
-        required_discharge_pressure_bara=discharge,
+        requested_outlet_pressure_bara=outlet_pressure,
     )
 
 
@@ -97,11 +97,11 @@ def test_streams_projected_onto_every_connection(simulation):
     assert mixer_to_pump.volumetric_rate_m3_per_hour == pytest.approx(
         pump_result.operational_volumetric_rate_m3_per_hour
     )
-    # The pump raises pressure; the choke drops it back toward the required discharge.
+    # The pump raises pressure; the choke drops it back toward the requested outlet pressure.
     assert pump_to_splitter.pressure_bara == pytest.approx(pump_result.operational_discharge_pressure_bara)
     assert choke_to_outlet.pressure_bara <= pump_to_splitter.pressure_bara
     assert choke_to_outlet.pressure_bara == pytest.approx(
-        min(pump_result.operational_discharge_pressure_bara, pump_result.required_discharge_pressure_bara)
+        min(pump_result.operational_discharge_pressure_bara, pump_result.requested_outlet_pressure_bara)
     )
 
 
@@ -117,10 +117,10 @@ def test_recirculation_raises_operating_flow_between_mixer_and_splitter(simulati
     assert mixer_to_pump.mass_rate_kg_per_h > inlet_to_mixer.mass_rate_kg_per_h
 
 
-def test_shortfall_outlet_stream_is_at_the_deliverable_pressure(simulation):
-    # Duty above the pump's capacity -> outlet edge must carry the operational (lower) pressure,
-    # not the required one; a choke cannot add pressure back.
-    (result,) = simulation.evaluate([_operating_input(600.0, discharge=250.0)])
+def test_shortfall_outlet_stream_is_at_the_operational_discharge_pressure(simulation):
+    # Required head above the chart's maximum head -> the outlet edge carries the operational
+    # discharge pressure, not the requested outlet pressure; a choke cannot add pressure.
+    (result,) = simulation.evaluate([_operating_input(600.0, outlet_pressure=250.0)])
 
     connections = simulation.get_process_unit_connections()
     choke_to_outlet = result.connection_streams[connections[-1].get_id()]
@@ -128,12 +128,12 @@ def test_shortfall_outlet_stream_is_at_the_deliverable_pressure(simulation):
 
     assert pump_result.pressure_shortfall_bara > 0
     assert choke_to_outlet.pressure_bara == pytest.approx(pump_result.operational_discharge_pressure_bara)
-    assert choke_to_outlet.pressure_bara < pump_result.required_discharge_pressure_bara
+    assert choke_to_outlet.pressure_bara < pump_result.requested_outlet_pressure_bara
 
 
 def test_zero_rate_produces_zero_result_at_inlet_pressure(simulation):
-    # Pump off (rate 0): still a full result - zero power, outlet = inlet pressure, zero-flow streams.
-    (result,) = simulation.evaluate([_operating_input(0.0, discharge=200.0)])
+    # Pump off (rate 0): a full result - zero power, discharge = inlet pressure, zero-flow streams.
+    (result,) = simulation.evaluate([_operating_input(0.0, outlet_pressure=200.0)])
 
     assert result.pump_result.shaft_power_mw == 0.0
     assert result.pump_result.operational_discharge_pressure_bara == pytest.approx(5.0)

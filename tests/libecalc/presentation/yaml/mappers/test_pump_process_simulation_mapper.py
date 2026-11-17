@@ -5,11 +5,19 @@ import pytest
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.presentation.yaml.model import YamlModel
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 
 
 def _pump_yaml_model(
-    simple_yaml, configuration_service_factory, *, rate=None, pressure="10", density="1010", discharge="200"
+    simple_yaml,
+    configuration_service_factory,
+    *,
+    rate=None,
+    pressure="10",
+    density="1010",
+    outlet_pressure="200",
+    outlet_pressure_keyword="OUTLET_PRESSURE",
 ):
     rate_expression = rate if rate is not None else "$var.produced_water_reinjection_total_system_rate_m3_per_day"
     yaml_text = (
@@ -26,7 +34,7 @@ PUMP_PROCESS_SIMULATIONS:
       RATE: {rate_expression}
       PRESSURE: {pressure}
       DENSITY: {density}
-    REQUIRED_DISCHARGE_PRESSURE: {discharge}
+    {outlet_pressure_keyword}: {outlet_pressure}
 """
     )
     configuration = configuration_service_factory(
@@ -78,16 +86,18 @@ def test_pump_requires_positive_suction_and_density(
         yaml_model.get_pump_process_simulations()
 
 
-def test_pump_rejects_non_positive_discharge_in_running_periods(simple_yaml, configuration_service_factory):
-    yaml_model = _pump_yaml_model(simple_yaml, configuration_service_factory, rate="100", discharge="0")
+def test_pump_rejects_non_positive_outlet_pressure_in_running_periods(simple_yaml, configuration_service_factory):
+    yaml_model = _pump_yaml_model(simple_yaml, configuration_service_factory, rate="100", outlet_pressure="0")
 
-    with pytest.raises(EcalcValidationException, match="Pump required discharge pressure .* must be greater than 0"):
+    with pytest.raises(EcalcValidationException, match="Pump outlet pressure .* must be greater than 0"):
         yaml_model.get_pump_process_simulations()
 
 
-def test_pump_off_periods_allow_invalid_discharge(simple_yaml, configuration_service_factory):
-    # Rate 0 -> pump off. A zero required discharge is tolerated; the outlet takes the inlet pressure.
-    yaml_model = _pump_yaml_model(simple_yaml, configuration_service_factory, rate="0", pressure="3", discharge="0")
+def test_pump_off_periods_allow_non_positive_outlet_pressure(simple_yaml, configuration_service_factory):
+    # Rate 0 -> pump off. A zero outlet pressure is tolerated and replaced by the suction pressure.
+    yaml_model = _pump_yaml_model(
+        simple_yaml, configuration_service_factory, rate="0", pressure="3", outlet_pressure="0"
+    )
 
     simulation, operating_inputs, _periods = yaml_model.get_pump_process_simulations()[0]
     results = simulation.evaluate(operating_inputs)
@@ -96,3 +106,12 @@ def test_pump_off_periods_allow_invalid_discharge(simple_yaml, configuration_ser
     for result in results:
         assert result.pump_result.shaft_power_mw == 0.0
         assert result.pump_result.operational_discharge_pressure_bara == pytest.approx(3.0)
+
+
+def test_pump_rejects_removed_required_discharge_pressure(simple_yaml, configuration_service_factory):
+    yaml_model = _pump_yaml_model(
+        simple_yaml, configuration_service_factory, outlet_pressure_keyword="REQUIRED_DISCHARGE_PRESSURE"
+    )
+
+    with pytest.raises(ModelValidationException, match="PUMP_PROCESS_SIMULATIONS > OUTLET_PRESSURE"):
+        yaml_model.get_pump_process_simulations()
