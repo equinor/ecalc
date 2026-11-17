@@ -2,6 +2,7 @@ from io import StringIO
 
 import pytest
 
+from libecalc.common.errors.docs_reference import DocsPage
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
 from libecalc.energy.energy_types import MechanicalPower
@@ -267,3 +268,4 @@ class TestEndToEnd:
         (validation_error,) = error.value.errors()
         assert validation_error.file_context.name == "compressor.csv"
         assert validation_error.file_context.start.column == "FUEL"
+        assert validation_error.docs_reference.page == DocsPage.MIGRATE_COMPRESSOR_SAMPLED

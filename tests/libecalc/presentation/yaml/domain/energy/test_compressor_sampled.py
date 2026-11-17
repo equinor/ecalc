@@ -2,6 +2,7 @@ from datetime import datetime
 
 import pytest
 
+from libecalc.common.errors.docs_reference import DocsPage
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import HeaderNotFoundException, InvalidColumnException
 from libecalc.common.time_utils import Period, Periods
@@ -58,6 +59,7 @@ def test_fuel_and_power_columns_rejected(replaced):
     with pytest.raises(InvalidColumnException, match=f"Column '{replaced}' is not supported") as error:
         _compressor(_resource(RATE=RATES, MECHANICAL_POWER=MECHANICAL_POWER, **{replaced: MECHANICAL_POWER}), rate=1500)
     assert error.value.file_mark.column == replaced
+    assert error.value.docs_reference.page == DocsPage.MIGRATE_COMPRESSOR_SAMPLED
 
 
 def test_missing_mechanical_power_rejected():

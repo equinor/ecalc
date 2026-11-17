@@ -9,6 +9,7 @@ from pydantic import ValidationError as PydanticValidationError
 from pydantic_core import ErrorDetails
 from yaml import Dumper
 
+from libecalc.common.errors.docs_reference import DocsReference
 from libecalc.common.logger import logger
 from libecalc.presentation.yaml.file_context import FileContext
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
@@ -98,6 +99,7 @@ class ModelValidationError:
     file_context: FileContext | None
     data: dict | None = None
     name: str | None = None
+    docs_reference: DocsReference | None = None
 
     @property
     def yaml(self) -> str | None:
