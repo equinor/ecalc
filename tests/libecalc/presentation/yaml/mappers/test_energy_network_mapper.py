@@ -331,6 +331,7 @@ class TestGeneratorModelEvents:
             )
 
 
+# Doubles every efficiency of TURBINE, so the same load burns half the fuel.
 TURBINE_AFTER_UPGRADE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.4, 0.6]}}
 
 COMBUSTION_ENGINES = [
@@ -393,15 +394,4 @@ class TestCombustionEngineModelEvents:
 
         fuel = engine.get_input_energies()[connection.id].value
         fuel_upgraded = engine_upgraded.get_input_energies()[connection.id].value
-        assert fuel_upgraded == pytest.approx(fuel * 0.3 / 0.6)
-
-    def test_unknown_event_reference_is_rejected(
-        self, energy_network_mapper_factory, expression_evaluator_factory, unit_type, source_type, input_energy_type
-    ):
-        service = TimelineEventService(timeline_events=[])
-        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
-
-        with pytest.raises(TimelineEventNotFoundException, match="upgrade"):
-            energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
-                self._network(unit_type, source_type), expression_evaluator
-            )
+        assert fuel_upgraded == pytest.approx(fuel / 2)

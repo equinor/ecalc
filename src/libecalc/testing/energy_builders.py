@@ -1,7 +1,6 @@
 from typing import Self
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlCombustionEngineModelEvent,
     YamlComponent,
@@ -36,6 +35,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import
     YamlTurbineCurve,
     YamlTurbineDefinition,
 )
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.testing.yaml_builder import Builder

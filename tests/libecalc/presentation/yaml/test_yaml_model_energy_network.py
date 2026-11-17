@@ -330,7 +330,7 @@ def test_gas_turbine_event_switches_fuel_model_at_the_timeline_date(
     assert results_by_period_start[datetime(2021, 1, 1)][0] == pytest.approx(EXPECTED_FUEL_AFTER_UPGRADE)
 
 
-def test_gas_turbine_event_with_a_generator_model_is_reported(latest_network_data_factory, yaml_model_factory):
+def test_gas_turbine_event_rejects_a_generator_curve(latest_network_data_factory, yaml_model_factory):
     data = _turbine_model_data(
         {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE},
         {"PERFORMANCE_CURVES": {"generator": {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [1, 2]}}}},
