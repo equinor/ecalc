@@ -1,6 +1,8 @@
 import enum
 from dataclasses import dataclass
 
+from libecalc.common.errors.docs_reference import DocsReference
+
 
 class EcalcErrorType(enum.StrEnum):
     """Valid error types in libecalc."""
@@ -15,12 +17,19 @@ class EcalcErrorType(enum.StrEnum):
 class EcalcError(Exception):
     """Base eCalc library exception."""
 
-    def __init__(self, title: str | None, message: str, error_type: EcalcErrorType = EcalcErrorType.CLIENT_ERROR):
+    def __init__(
+        self,
+        title: str | None,
+        message: str,
+        error_type: EcalcErrorType = EcalcErrorType.CLIENT_ERROR,
+        docs_reference: DocsReference | None = None,
+    ):
         super().__init__()
 
         self.title: str | None = title
         self.message: str = message
         self.error_type = error_type
+        self.docs_reference = docs_reference
 
     def __str__(self):
         if self.title:
@@ -78,11 +87,19 @@ class InvalidResourceException(EcalcError):
     Base exception for resource
     """
 
-    def __init__(self, title: str, message: str, file_mark: ResourceFileMark = None):
+    def __init__(
+        self,
+        title: str,
+        message: str,
+        file_mark: ResourceFileMark | None = None,
+        docs_reference: DocsReference | None = None,
+    ):
         self.title = title
         self.message = message
         self.file_mark = file_mark
-        super().__init__(title=title, message=message, error_type=EcalcErrorType.CLIENT_ERROR)
+        super().__init__(
+            title=title, message=message, error_type=EcalcErrorType.CLIENT_ERROR, docs_reference=docs_reference
+        )
 
 
 class InvalidHeaderException(InvalidResourceException):
@@ -116,14 +133,19 @@ class ColumnNotFoundException(InvalidResourceException):
 
 
 class InvalidColumnException(InvalidResourceException):
-    def __init__(self, header: str, message: str, row_index: int = None):
+    def __init__(
+        self, header: str, message: str, row_index: int | None = None, docs_reference: DocsReference | None = None
+    ):
         self.header = header
         if row_index is not None:
             self.row = row_index + 1
         else:
             self.row = 0
         super().__init__(
-            title="Invalid column", message=message, file_mark=ResourceFileMark(row=self.row, column=header)
+            title="Invalid column",
+            message=message,
+            file_mark=ResourceFileMark(row=self.row, column=header),
+            docs_reference=docs_reference,
         )
 
 

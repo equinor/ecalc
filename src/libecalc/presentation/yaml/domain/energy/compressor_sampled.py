@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import math
 
+from libecalc.common.errors.docs_reference import DocsPage, DocsReference
 from libecalc.common.errors.exceptions import InvalidColumnException
 from libecalc.common.time_utils import Period
 from libecalc.domain.resource import Resource
@@ -64,6 +65,10 @@ class TimeSeriesCompressorSampled(TimeSeriesEnergyUnit):
                     header=headers[replaced.lower()],
                     message=f"Column '{replaced}' is not supported, give {MECHANICAL_POWER} instead. Model a fuel or power "
                     f"driven compressor with a GAS_TURBINE or an ELECTRICAL_MOTOR as INPUT.",
+                    docs_reference=DocsReference(
+                        page=DocsPage.MIGRATE_COMPRESSOR_SAMPLED,
+                        message="Convert a FILE with POWER and FUEL into MECHANICAL_POWER and a gas turbine curve",
+                    ),
                 )
 
         mechanical_power_values = self.resource.get_float_column(MECHANICAL_POWER)

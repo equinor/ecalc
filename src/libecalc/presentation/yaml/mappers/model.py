@@ -1,3 +1,4 @@
+from libecalc.common.errors.docs_reference import DocsReference
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import InvalidResourceException, ResourceFileMark
 from libecalc.common.fixed_speed_pressure_control import FixedSpeedPressureControl
@@ -45,10 +46,17 @@ def _pressure_control_mapper(
 class ResourceValidationException(Exception):
     """An invalid resource FILE, reported in the file itself rather than in the YAML."""
 
-    def __init__(self, message: str, file_mark: ResourceFileMark | None, resource_name: str):
+    def __init__(
+        self,
+        message: str,
+        file_mark: ResourceFileMark | None,
+        resource_name: str,
+        docs_reference: DocsReference | None = None,
+    ):
         self.message = message
         self._resource_file_mark = file_mark
         self.resource_name = resource_name
+        self.docs_reference = docs_reference
         super().__init__(message)
 
     @property

@@ -353,7 +353,14 @@ class YamlModel:
             return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
         except ResourceValidationException as e:
             raise ModelValidationException(
-                errors=[ModelValidationError(location=e.location, message=e.message, file_context=e.file_context)]
+                errors=[
+                    ModelValidationError(
+                        location=e.location,
+                        message=e.message,
+                        file_context=e.file_context,
+                        docs_reference=e.docs_reference,
+                    )
+                ]
             ) from e
         except EcalcValidationException as e:
             yaml_keys = ("ENERGY_NETWORK",)

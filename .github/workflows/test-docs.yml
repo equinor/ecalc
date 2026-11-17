@@ -50,3 +50,6 @@ jobs:
       - name: Test by building website
         working-directory: ./docs
         run: npm run build
+
+      - name: Check docs pages referenced from libecalc
+        run: uv run python src/check_docs_links.py docs/build

@@ -207,6 +207,7 @@ class EnergyNetworkMapper:
                 message=f"'{unit.compressor}': {e.message}",
                 file_mark=e.file_mark if isinstance(e, InvalidResourceException) else None,
                 resource_name=unit.file,
+                docs_reference=e.docs_reference,
             ) from e
 
     def _get_compressor_name(self, compressor_equipment_id: EquipmentId) -> str:

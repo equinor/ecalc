@@ -356,24 +356,6 @@
                 }
             }
         ],
-        "./src/libecalc/common/errors/exceptions.py": [
-            {
-                "code": "reportArgumentType",
-                "range": {
-                    "startColumn": 79,
-                    "endColumn": 83,
-                    "lineCount": 1
-                }
-            },
-            {
-                "code": "reportArgumentType",
-                "range": {
-                    "startColumn": 67,
-                    "endColumn": 71,
-                    "lineCount": 1
-                }
-            }
-        ],
         "./src/libecalc/common/math/numbers.py": [
             {
                 "code": "reportReturnType",
