@@ -73,37 +73,37 @@ def _inlet(rate_m3_per_hour, suction_pressure, density=DENSITY):
 
 
 @pytest.mark.parametrize(
-    "chart_name, rate_m3h, suction, discharge",
+    "chart_name, rate_m3h, suction, outlet_pressure",
     [
         ("single_speed_chart", 600, 5.0, 100.0),  # normal
         ("single_speed_chart", 150, 5.0, 100.0),  # below min flow -> recirculation
-        ("single_speed_chart", 600, 5.0, 50.0),  # required head below curve -> over-delivery / choke
+        ("single_speed_chart", 600, 5.0, 50.0),  # required head below curve -> choke pressure drop
         ("variable_speed_chart", 600, 5.0, 100.0),  # normal
         ("variable_speed_chart", 150, 5.0, 100.0),  # below min flow -> recirculation
-        ("variable_speed_chart", 600, 5.0, 50.0),  # required head below curve -> over-delivery / choke
+        ("variable_speed_chart", 600, 5.0, 50.0),  # required head below curve -> choke pressure drop
         ("variable_speed_chart", 1200, 5.0, 100.0),  # rate above max, but head still within the max-speed curve
     ],
 )
-def test_power_matches_legacy(request, chart_name, rate_m3h, suction, discharge):
+def test_power_matches_legacy(request, chart_name, rate_m3h, suction, outlet_pressure):
     """Parity with the legacy pump for every point the pump can actually serve."""
     chart_data = request.getfixturevalue(chart_name)
     pump = Pump(chart_data, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
     legacy_power, _, _ = PumpModel(pump_chart=chart_data).simulate(
-        rate=rate_m3h * 24.0, suction_pressure=suction, discharge_pressure=discharge, fluid_density=DENSITY
+        rate=rate_m3h * 24.0, suction_pressure=suction, discharge_pressure=outlet_pressure, fluid_density=DENSITY
     )
-    result = pump.evaluate(_inlet(rate_m3h, suction), discharge_pressure_bara=discharge)
+    result = pump.evaluate(_inlet(rate_m3h, suction), requested_outlet_pressure_bara=outlet_pressure)
     assert result.shaft_power_mw == pytest.approx(legacy_power)
 
 
 @pytest.mark.parametrize(
-    "chart_name, rate_m3h, discharge, legacy_power",
+    "chart_name, rate_m3h, outlet_pressure, legacy_power",
     [
         ("single_speed_chart", 600, 250.0, 8.580233942705052),
         ("single_speed_chart", 1200, 100.0, 4.490451881262998),
         ("variable_speed_chart", 600, 250.0, 6.904430715116509),
     ],
 )
-def test_power_diverges_from_legacy_above_chart_capacity(request, chart_name, rate_m3h, discharge, legacy_power):
+def test_power_diverges_from_legacy_above_chart_capacity(request, chart_name, rate_m3h, outlet_pressure, legacy_power):
     """Above the envelope we deliberately bound the head, where legacy did not.
 
     Legacy computes power at the requested (unachievable) head; we compute it at the pump's actual
@@ -111,7 +111,7 @@ def test_power_diverges_from_legacy_above_chart_capacity(request, chart_name, ra
     """
     chart_data = request.getfixturevalue(chart_name)
     pump = Pump(chart_data, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    result = pump.evaluate(_inlet(rate_m3h, 5.0), discharge_pressure_bara=discharge)
+    result = pump.evaluate(_inlet(rate_m3h, 5.0), requested_outlet_pressure_bara=outlet_pressure)
 
     assert not result.is_valid
     assert result.shaft_power_mw < legacy_power  # bounded below the legacy value
@@ -119,7 +119,7 @@ def test_power_diverges_from_legacy_above_chart_capacity(request, chart_name, ra
 
 def test_recirculation_up_to_minimum_flow(single_speed_chart):
     pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=600.0)
-    result = pump.evaluate(_inlet(400, suction_pressure=5.0), discharge_pressure_bara=90.0)
+    result = pump.evaluate(_inlet(400, suction_pressure=5.0), requested_outlet_pressure_bara=90.0)
     assert result.operational_volumetric_rate_m3_per_hour == pytest.approx(600.0)
     assert result.recirculation_rate_m3_per_hour == pytest.approx(200.0)
     assert result.efficiency is not None
@@ -132,41 +132,43 @@ def test_recirculation_up_to_minimum_flow(single_speed_chart):
     )
 
 
-def test_over_delivery_exposes_operating_vs_required_and_choke(single_speed_chart):
-    # Single-speed head is pinned to the curve, so a low target over-delivers and needs a choke.
+def test_required_head_below_chart_gives_choke_pressure_drop(single_speed_chart):
+    # A single-speed pump runs on its curve, so a required head below it gives a choke pressure drop.
     pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    result = pump.evaluate(_inlet(600, suction_pressure=5.0), discharge_pressure_bara=50.0)
+    result = pump.evaluate(_inlet(600, suction_pressure=5.0), requested_outlet_pressure_bara=50.0)
     assert result.operational_head_joule_per_kg > result.required_head_joule_per_kg
-    assert result.operational_discharge_pressure_bara > result.required_discharge_pressure_bara
+    assert result.operational_discharge_pressure_bara > result.requested_outlet_pressure_bara
     assert result.choke_pressure_drop_bara == pytest.approx(
-        result.operational_discharge_pressure_bara - result.required_discharge_pressure_bara
+        result.operational_discharge_pressure_bara - result.requested_outlet_pressure_bara
     )
     assert result.is_valid
 
 
 def test_head_is_bounded_by_chart_maximum(single_speed_chart):
-    # A duty above the chart's capacity is bounded to the maximum-speed curve, not left unbounded.
+    # A required head above the chart's maximum head is bounded to the maximum-speed curve.
     pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    result = pump.evaluate(_inlet(666, suction_pressure=5.0), discharge_pressure_bara=250.0)
+    result = pump.evaluate(_inlet(666, suction_pressure=5.0), requested_outlet_pressure_bara=250.0)
 
     max_head = float(Chart(single_speed_chart).maximum_head_as_function_of_rate(666.0))
     assert result.operational_head_joule_per_kg == pytest.approx(max_head)
     assert result.required_head_joule_per_kg > result.operational_head_joule_per_kg
-    assert result.operational_discharge_pressure_bara < result.required_discharge_pressure_bara
+    assert result.operational_discharge_pressure_bara < result.requested_outlet_pressure_bara
     assert result.pressure_shortfall_bara > 0
     assert result.choke_pressure_drop_bara == 0.0
 
 
 @pytest.mark.parametrize(
-    "discharge, expect_choke, expect_shortfall",
+    "outlet_pressure, expect_choke, expect_shortfall",
     [
-        (50.0, True, False),  # below the min-speed curve -> over-delivery, choked
+        (50.0, True, False),  # below the min-speed curve -> choke pressure drop
         (250.0, False, True),  # above the max-speed curve -> shortfall
     ],
 )
-def test_choke_and_shortfall_are_mutually_exclusive(variable_speed_chart, discharge, expect_choke, expect_shortfall):
+def test_choke_and_shortfall_are_mutually_exclusive(
+    variable_speed_chart, outlet_pressure, expect_choke, expect_shortfall
+):
     pump = Pump(variable_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    result = pump.evaluate(_inlet(666, suction_pressure=5.0), discharge_pressure_bara=discharge)
+    result = pump.evaluate(_inlet(666, suction_pressure=5.0), requested_outlet_pressure_bara=outlet_pressure)
 
     assert not (result.choke_pressure_drop_bara > 0 and result.pressure_shortfall_bara > 0)
     assert (result.choke_pressure_drop_bara > 0) is expect_choke
@@ -176,7 +178,7 @@ def test_choke_and_shortfall_are_mutually_exclusive(variable_speed_chart, discha
 def test_efficiency_above_capacity_is_taken_at_the_operating_rate(single_speed_chart):
     # The clamped point lies on the curve, so efficiency is exact, not projected from a different rate.
     pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    result = pump.evaluate(_inlet(666, suction_pressure=5.0), discharge_pressure_bara=250.0)
+    result = pump.evaluate(_inlet(666, suction_pressure=5.0), requested_outlet_pressure_bara=250.0)
     chart = Chart(single_speed_chart)
     expected = float(chart.curves[0].efficiency_as_function_of_rate(666.0))
     assert result.efficiency == pytest.approx(expected, rel=1e-3)
@@ -184,7 +186,7 @@ def test_efficiency_above_capacity_is_taken_at_the_operating_rate(single_speed_c
 
 def test_variable_speed_in_band_sits_on_target_with_interpolated_speed(variable_speed_chart):
     pump = Pump(variable_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    result = pump.evaluate(_inlet(600, suction_pressure=5.0), discharge_pressure_bara=140.0)
+    result = pump.evaluate(_inlet(600, suction_pressure=5.0), requested_outlet_pressure_bara=140.0)
     assert result.operational_discharge_pressure_bara == pytest.approx(140.0)
     assert result.choke_pressure_drop_bara == pytest.approx(0.0)
     assert result.speed_rpm is not None
@@ -199,24 +201,24 @@ def test_variable_speed_in_band_sits_on_target_with_interpolated_speed(variable_
 
 
 @pytest.mark.parametrize(
-    "chart_name, rate_m3h, discharge, expected_status",
+    "chart_name, rate_m3h, outlet_pressure, expected_status",
     [
         ("single_speed_chart", 600, 250.0, PumpFailureStatus.ABOVE_MAXIMUM_HEAD_AT_RATE),
         ("variable_speed_chart", 1200, 100.0, PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE),
         ("single_speed_chart", 1200, 100.0, PumpFailureStatus.ABOVE_MAXIMUM_PUMP_RATE_AND_MAXIMUM_HEAD_AT_RATE),
     ],
 )
-def test_feasibility_status(request, chart_name, rate_m3h, discharge, expected_status):
+def test_feasibility_status(request, chart_name, rate_m3h, outlet_pressure, expected_status):
     chart_data = request.getfixturevalue(chart_name)
     pump = Pump(chart_data, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    result = pump.evaluate(_inlet(rate_m3h, suction_pressure=5.0), discharge_pressure_bara=discharge)
+    result = pump.evaluate(_inlet(rate_m3h, suction_pressure=5.0), requested_outlet_pressure_bara=outlet_pressure)
     assert result.failure_status == expected_status
     assert not result.is_valid
 
 
 def test_not_running_when_rate_is_zero(single_speed_chart):
     pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
-    result = pump.evaluate(_inlet(0.0, suction_pressure=5.0), discharge_pressure_bara=100.0)
+    result = pump.evaluate(_inlet(0.0, suction_pressure=5.0), requested_outlet_pressure_bara=100.0)
     assert result.shaft_power_mw == 0.0
     assert result.efficiency is None
     assert result.specific_shaft_work_joule_per_kg is None
@@ -224,11 +226,11 @@ def test_not_running_when_rate_is_zero(single_speed_chart):
     assert result.is_valid
 
 
-def test_evaluate_rejects_non_positive_discharge_pressure(single_speed_chart):
+def test_evaluate_rejects_non_positive_outlet_pressure(single_speed_chart):
     pump = Pump(single_speed_chart, minimum_flow_rate_m3_per_hour=CHART_MIN_FLOW)
 
     with pytest.raises(NonPositivePressureException):
-        pump.evaluate(_inlet(600, suction_pressure=5.0), discharge_pressure_bara=0.0)
+        pump.evaluate(_inlet(600, suction_pressure=5.0), requested_outlet_pressure_bara=0.0)
 
 
 def test_rejects_zero_efficiency_pump_chart(chart_data_factory):
@@ -250,7 +252,7 @@ def test_rejects_zero_efficiency_pump_chart(chart_data_factory):
 def test_result_carries_process_unit_id(single_speed_chart):
     provided_id = ProcessUnitId(ecalc_id_generator())
     pump = Pump(single_speed_chart, CHART_MIN_FLOW, process_unit_id=provided_id)
-    running = pump.evaluate(_inlet(600, suction_pressure=5.0), discharge_pressure_bara=100.0)
-    not_running = pump.evaluate(_inlet(0.0, suction_pressure=5.0), discharge_pressure_bara=100.0)
+    running = pump.evaluate(_inlet(600, suction_pressure=5.0), requested_outlet_pressure_bara=100.0)
+    not_running = pump.evaluate(_inlet(0.0, suction_pressure=5.0), requested_outlet_pressure_bara=100.0)
     assert running.process_unit_id == provided_id
     assert not_running.process_unit_id == provided_id

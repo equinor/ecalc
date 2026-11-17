@@ -69,10 +69,10 @@ class PumpProcessSimulationMapper:
                 expression=yaml_process_simulation.inlet.pressure,
             ),
         )
-        discharge_pressure = ExpressionTimeSeriesPressure(
+        outlet_pressure = ExpressionTimeSeriesPressure(
             time_series_expression=TimeSeriesExpression(
                 expression_evaluator=self._expression_evaluator,
-                expression=yaml_process_simulation.required_discharge_pressure,
+                expression=yaml_process_simulation.outlet_pressure,
             ),
         )
         density = ExpressionTimeSeriesFluidDensity(
@@ -82,8 +82,8 @@ class PumpProcessSimulationMapper:
             )
         )
 
-        suction_values = suction_pressure.get_values()
-        discharge_values = discharge_pressure.get_values()
+        suction_pressure_values = suction_pressure.get_values()
+        outlet_pressure_values = outlet_pressure.get_values()
         density_values = density.get_values()
 
         # The domain is time-agnostic: build one physical input per period and keep the period
@@ -92,14 +92,14 @@ class PumpProcessSimulationMapper:
         operating_inputs = [
             self._to_operating_input(
                 rate_value=rate_value,
-                suction_pressure_bara=suction,
-                required_discharge_pressure_bara=discharge,
+                suction_pressure_bara=suction_pressure_value,
+                requested_outlet_pressure_bara=outlet_pressure_value,
                 density_kg_per_m3=density_value,
             )
-            for rate_value, suction, discharge, density_value in zip(
+            for rate_value, suction_pressure_value, outlet_pressure_value, density_value in zip(
                 rate_values,
-                suction_values,
-                discharge_values,
+                suction_pressure_values,
+                outlet_pressure_values,
                 density_values,
                 strict=True,
             )
@@ -112,7 +112,7 @@ class PumpProcessSimulationMapper:
         self,
         rate_value: float,
         suction_pressure_bara: float,
-        required_discharge_pressure_bara: float,
+        requested_outlet_pressure_bara: float,
         density_kg_per_m3: float,
     ) -> PumpOperatingInput:
         # Suction pressure and density describe the physical inlet fluid; they must be positive
@@ -126,19 +126,20 @@ class PumpProcessSimulationMapper:
         )
 
         if rate_value > 0:
-            self._require_positive(required_discharge_pressure_bara, "required discharge pressure [bara]")
-            discharge = required_discharge_pressure_bara
+            self._require_positive(requested_outlet_pressure_bara, "outlet pressure [bara]")
+            outlet_pressure = requested_outlet_pressure_bara
         else:
-            # Pump off (zero rate): the required discharge is a meaningless duty target. Keep the
-            # user's value when it is a valid absolute pressure, otherwise fall back to the inlet
-            # pressure (the pump delivers no head, so the outlet equals the inlet).
-            discharge = (
-                required_discharge_pressure_bara if required_discharge_pressure_bara > 0 else suction_pressure_bara
+            # Pump off (zero rate): the outlet pressure does not affect power or head. Input data may
+            # hold a non-positive value for idle periods, which ``Pump.evaluate`` rejects, so such a
+            # value is replaced by the suction pressure.
+            # TODO: Validate in mapper/model layer that the output pressure >= inlet for all periods.
+            outlet_pressure = (
+                requested_outlet_pressure_bara if requested_outlet_pressure_bara > 0 else suction_pressure_bara
             )
 
         return PumpOperatingInput(
             inlet_stream=inlet_stream,
-            required_discharge_pressure_bara=discharge,
+            requested_outlet_pressure_bara=outlet_pressure,
         )
 
     @staticmethod
