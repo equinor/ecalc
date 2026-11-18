@@ -66,10 +66,10 @@ def energy_network_to_mermaid(model: YamlAsset) -> str:
         lines.append(f'    {_node_identifier(shaft_name, _SHAFT_PREFIX)}[/"{_label(shaft_name, "SHAFT")}"/]')
 
     pipeline_compressors = {
-        pipeline_name: [
+        pipeline.name: [
             unit.compressor for unit in pipeline.process_units if isinstance(unit, YamlCompressorProcessUnitInstance)
         ]
-        for pipeline_name, pipeline in (model.process_pipelines or {}).items()
+        for pipeline in model.process_pipelines
     }
     process_compressors = list(
         dict.fromkeys(

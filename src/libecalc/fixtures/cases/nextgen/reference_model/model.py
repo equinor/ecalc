@@ -247,12 +247,11 @@ def _export_train(train_number: int, changes: list[YamlPipelineChange] | None = 
     return builder.validate()
 
 
-def _process_pipelines() -> dict[str, YamlProcessPipeline]:
-    pipelines = [
+def _process_pipelines() -> list[YamlProcessPipeline]:
+    return [
         _export_train(train_number, changes=_rebundle_changes(train_number) if train_number == 1 else None)
         for train_number in _train_numbers()
     ]
-    return {pipeline.name: pipeline for pipeline in pipelines}
 
 
 def _process_simulation():

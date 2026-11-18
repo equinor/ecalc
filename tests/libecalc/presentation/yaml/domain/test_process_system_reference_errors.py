@@ -42,7 +42,7 @@ def _get_process_simulations(yaml_model_factory, pipeline: YamlProcessPipeline):
         .with_test_data()
         .with_shafts([shaft_for(pipeline)])
         .with_compressors(compressors_in(pipeline))
-        .with_process_pipelines({pipeline.name: pipeline})
+        .with_process_pipelines([pipeline])
         .with_process_simulations([simulation])
         .with_definitions(
             YamlDefinitionsBuilder()
@@ -106,5 +106,5 @@ def test_definition_reference_of_wrong_type_is_reported_at_the_pipeline(yaml_mod
         _get_process_simulations(yaml_model_factory, pipeline)
 
     [error] = exc_info.value.errors()
-    assert error.location.keys == ("PROCESS_PIPELINES", "train_1")
+    assert error.location.keys == ("PROCESS_PIPELINES", 0)
     assert f"'{COMPRESSOR_MODEL}' resolved to type 'YamlCompressorModelChart'" in error.message

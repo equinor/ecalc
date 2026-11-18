@@ -87,7 +87,7 @@ class TestTargetReferencesNonexistentPipeline:
             .with_test_data()
             .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
-            .with_process_pipelines({"train_1": pipeline})
+            .with_process_pipelines([pipeline])
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
@@ -100,7 +100,7 @@ class TestTargetReferencesNonexistentPipeline:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 49
+	Object starting on line 48
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: train_1, my_sim
 """)
@@ -135,7 +135,7 @@ class TestConstraintReferencesInvalid:
             .with_test_data()
             .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
-            .with_process_pipelines({"train_1": pipeline})
+            .with_process_pipelines([pipeline])
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
@@ -148,7 +148,7 @@ class TestConstraintReferencesInvalid:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 49
+	Object starting on line 48
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: train_1, my_sim
 """)
@@ -175,7 +175,7 @@ Validation error
             .with_test_data()
             .with_shafts(_shafts_for(pipeline_1, pipeline_2))
             .with_compressors(compressors_in(pipeline_1, pipeline_2))
-            .with_process_pipelines({"train_1": pipeline_1, "train_2": pipeline_2})
+            .with_process_pipelines([pipeline_1, pipeline_2])
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
@@ -188,7 +188,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 88
+	Object starting on line 86
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Missing constraint for process system 'train_2'
 """)
@@ -220,7 +220,7 @@ class TestInletStreamReferenceNotFound:
             .with_test_data()
             .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
-            .with_process_pipelines({"train_1": pipeline})
+            .with_process_pipelines([pipeline])
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
@@ -233,7 +233,7 @@ class TestInletStreamReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 49
+	Object starting on line 48
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_stream'. Available references: train_1, my_sim
 """)
@@ -276,7 +276,7 @@ class TestPipelineEventRefNotFound:
             .with_test_data()
             .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
-            .with_process_pipelines({"train_1": pipeline})
+            .with_process_pipelines([pipeline])
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
@@ -289,7 +289,7 @@ class TestPipelineEventRefNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 80
+	Object starting on line 79
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Event reference 'nonexistent_event' does not match any event in TIMELINE.EVENTS.
 """)
@@ -322,7 +322,7 @@ class TestOverflowReferenceNotFound:
             .with_test_data()
             .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
-            .with_process_pipelines({"train_1": pipeline})
+            .with_process_pipelines([pipeline])
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
@@ -335,7 +335,7 @@ class TestOverflowReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 49
+	Object starting on line 48
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: train_1, my_sim
 """)
@@ -364,7 +364,7 @@ Validation error
             .with_test_data()
             .with_shafts(_shafts_for(pipeline))
             .with_compressors(compressors_in(pipeline))
-            .with_process_pipelines({"train_1": pipeline})
+            .with_process_pipelines([pipeline])
             .with_process_simulations([simulation])
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
@@ -377,7 +377,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 49
+	Object starting on line 48
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: train_1, my_sim
 """)

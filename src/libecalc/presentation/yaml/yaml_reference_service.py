@@ -111,14 +111,14 @@ class YamlReferenceService(ReferenceService):
             reference_yaml_context[fuel_type.name] = fuel_type_path
 
         streams_path = YamlPath(keys=("INLET_STREAMS",))
-        for stream_key, stream in configuration.inlet_streams.items():
-            stream_path = streams_path.append(stream_key)
+        for stream_index, stream in enumerate(configuration.inlet_streams):
+            stream_path = streams_path.append(stream_index)
             references[stream.name] = stream
             reference_yaml_context[stream.name] = stream_path
 
         process_pipelines_path = YamlPath(keys=("PROCESS_PIPELINES",))
-        for process_pipeline_key, process_pipeline in configuration.process_pipelines.items():
-            process_pipeline_path = process_pipelines_path.append(process_pipeline_key)
+        for process_pipeline_index, process_pipeline in enumerate(configuration.process_pipelines):
+            process_pipeline_path = process_pipelines_path.append(process_pipeline_index)
             references[process_pipeline.name] = process_pipeline
             reference_yaml_context[process_pipeline.name] = process_pipeline_path
 

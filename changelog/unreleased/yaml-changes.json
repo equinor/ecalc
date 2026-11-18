@@ -1,6 +1,20 @@
 {
   "entries": [
     {
+      "kind": "changed",
+      "path": [
+        "INLET_STREAMS"
+      ],
+      "description": "A list in which each inlet stream is identified by its NAME, instead of a mapping keyed by name. Names must be unique. To migrate, drop each key and keep its entry, with its NAME, as a list item."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "PROCESS_PIPELINES"
+      ],
+      "description": "A list in which each process pipeline is identified by its NAME, instead of a mapping keyed by name. Names must be unique. To migrate, drop each key and keep its entry, with its NAME, as a list item."
+    },
+    {
       "kind": "removed",
       "path": [
         "YAML_VERSION"

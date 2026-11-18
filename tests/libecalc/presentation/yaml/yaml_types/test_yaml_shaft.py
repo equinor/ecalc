@@ -58,7 +58,7 @@ def _asset(
         .with_shafts(shafts)
         .with_compressors(compressors_in(*pipelines))
         .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
-        .with_process_pipelines({pipeline.name: pipeline for pipeline in pipelines})
+        .with_process_pipelines(pipelines)
         .with_process_simulations(simulations)
     )
     if energy_network is not None:
