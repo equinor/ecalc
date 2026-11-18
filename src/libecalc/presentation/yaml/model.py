@@ -80,6 +80,7 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_reference_service import YamlReferenceService
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork, get_input_names
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_validation_context import (
@@ -349,6 +350,8 @@ class YamlModel:
         if yaml_energy_network is None:
             return None, (), (), []
 
+        self._check_sources_connected(yaml_energy_network)
+
         time_series_resources, _ = self._resource_service.get_time_series_resources()
         time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}
         time_series_name_map = {
@@ -395,6 +398,23 @@ class YamlModel:
                     )
                 ]
             ) from e
+
+    def _check_sources_connected(self, yaml_energy_network: YamlEnergyNetwork) -> None:
+        used_input_names = {name for unit in yaml_energy_network.units for name in get_input_names(unit)}
+        errors = []
+        for index, source in enumerate(yaml_energy_network.sources):
+            if source.name in used_input_names:
+                continue
+            yaml_keys = ("ENERGY_NETWORK", "SOURCES", index)
+            errors.append(
+                ModelValidationError(
+                    location=Location(keys=yaml_keys),
+                    message=f"Source '{source.name}' is not connected to any unit. Use it as INPUT or remove it.",
+                    file_context=self._configuration.get_file_context(yaml_keys),
+                )
+            )
+        if errors:
+            raise ModelValidationException(errors=errors)
 
     def validate_nextgen(self) -> Self:
         errors: list[ModelValidationError] = []
