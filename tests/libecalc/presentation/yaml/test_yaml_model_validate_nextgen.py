@@ -114,6 +114,26 @@ def test_errors_from_process_simulations_and_energy_network_are_combined(yaml_mo
     assert errors[2].location.keys[0] == "ENERGY_NETWORK"
 
 
+def test_unconnected_source_is_reported(yaml_model_factory):
+    connected_network = _energy_network(YamlGeneratorDefinitionBuilder().with_test_data().validate())
+    unconnected_source = YamlFuelGasSourceBuilder().with_test_data().with_name("unconnected_fuel_gas").validate()
+    energy_network = (
+        YamlEnergyNetworkBuilder()
+        .with_sources([*connected_network.sources, unconnected_source])
+        .with_units(connected_network.units)
+        .validate()
+    )
+    model = _create_model(yaml_model_factory, compressor_models=[COMPRESSOR_MODEL], energy_network=energy_network)
+
+    with pytest.raises(ModelValidationException) as exc_info:
+        model.validate_nextgen()
+
+    (error,) = exc_info.value.errors()
+    assert "unconnected_fuel_gas" in error.message
+    assert error.location.as_dot_separated() == "ENERGY_NETWORK.SOURCES[1]"
+    assert error.file_context is not None
+
+
 def test_validate_for_run_errors_are_reported_once(yaml_model_factory):
     model = _create_model(
         yaml_model_factory,
