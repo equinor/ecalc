@@ -77,13 +77,13 @@ class YamlProcessSimulation(YamlBase):
                         raise ValueError(
                             f"Expected {number_of_targets} RATE_FRACTIONS in common stream setting "
                             f"{setting_number}, got {number_of_rate_fractions}. "
-                            "Each setting must specify one rate fraction per process simulation target."
+                            "Each setting must specify one rate fraction per compressor simulation target."
                         )
             case YamlIndividualStreamDistribution():
                 number_of_inlet_streams = len(self.stream_distribution.inlet_streams)
                 if number_of_inlet_streams != number_of_targets:
                     raise ValueError(
-                        f"Expected {number_of_targets} INLET_STREAMS for the process simulation targets, "
+                        f"Expected {number_of_targets} INLET_STREAMS for the compressor simulation targets, "
                         f"got {number_of_inlet_streams}. "
                         "Specify one inlet stream per target."
                     )

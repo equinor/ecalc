@@ -47,7 +47,7 @@ def test_rejects_shaft_on_compressor_process_unit_from_v3():
 
     with pytest.raises(
         ValidationError,
-        match=r"PROCESS_PIPELINES > export_pipeline > PROCESS_UNITS\[0\] > SHAFT",
+        match=r"COMPRESSOR_PIPELINES\[0\] > PROCESS_UNITS\[0\] > SHAFT",
     ):
         (
             YamlAssetBuilder()
@@ -56,7 +56,7 @@ def test_rejects_shaft_on_compressor_process_unit_from_v3():
             .with_shafts([YamlShaft(name="export_shaft", compressors=["lp_compressor"])])
             .with_compressors(compressors_in(pipeline))
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
-            .with_process_pipelines({pipeline.name: pipeline})
+            .with_compressor_pipelines([pipeline])
             .validate()
         )
 
@@ -89,8 +89,8 @@ def _asset(
         .with_shafts(shafts)
         .with_compressors(compressors_in(*pipelines))
         .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
-        .with_process_pipelines({pipeline.name: pipeline for pipeline in pipelines})
-        .with_process_simulations(simulations)
+        .with_compressor_pipelines(pipelines)
+        .with_compressor_simulations(simulations)
     )
     if energy_network is not None:
         builder.with_energy_network(energy_network)
@@ -142,7 +142,7 @@ def _asset(
                 _pipeline("export_pipeline", "export_compressor"),
                 _pipeline("injection_pipeline", "injection_compressor"),
             ],
-            "has compressors in multiple process pipelines",
+            "has compressors in multiple compressor pipelines",
             id="shaft in two pipelines",
         ),
         pytest.param(
@@ -170,7 +170,7 @@ def test_rejects_invalid_shaft_membership(shafts, pipelines, message):
         pytest.param(
             [YamlShaft(name="export_shaft", compressors=["lp_compressor"])],
             False,
-            "which no process simulation targets",
+            "which no compressor simulation targets",
             id="compressor in untargeted pipeline",
         ),
     ],

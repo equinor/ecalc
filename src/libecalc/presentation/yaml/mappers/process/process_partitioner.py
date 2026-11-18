@@ -37,7 +37,7 @@ class ProcessPartitioner:
         for constraint in pipeline_constraints:
             if constraint.process_unit is None:
                 if terminal_constraint is not None:
-                    raise EcalcValidationException("Only one constraint can target the process pipeline outlet.")
+                    raise EcalcValidationException("Only one constraint can target the compressor pipeline outlet.")
                 terminal_constraint = constraint
                 continue
             unit_id = unit_name_to_id.get(constraint.process_unit)

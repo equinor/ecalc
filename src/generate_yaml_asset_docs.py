@@ -91,9 +91,9 @@ PROCESS_INCLUDE_FIELDS = {
     "definitions.fluids",
     "shafts",
     "compressors",
-    "process_pipelines",
+    "compressor_pipelines",
     "inlet_streams",
-    "process_simulations",
+    "compressor_simulations",
     "timeline",
 }
 ENERGY_INCLUDE_FIELDS = {
@@ -110,7 +110,7 @@ class Example:
     An example YAML snippet associated with a path in the documentation tree.
 
     Attributes:
-        path: Dot-separated YAML key path (e.g. "PROCESS_PIPELINES.PROCESS_UNITS.PRESSURE_DROPPER").
+        path: Dot-separated YAML key path (e.g. "COMPRESSOR_PIPELINES.PROCESS_UNITS.PRESSURE_DROPPER").
               For discriminated union variants, the variant name is used as the last segment.
         builder: A callable that returns a validated pydantic model instance.
         abbreviate: Whether fields with their own registered example are shown as '...'.
@@ -196,31 +196,31 @@ EXAMPLES: list[Example] = [
         "DEFINITIONS.COMPRESSOR_MODELS.CHART.CURVES.YAMLCURVE",
         lambda: YamlCurveBuilder().with_test_data().validate(),
     ),
-    # --- PROCESS_PIPELINES.PROCESS_UNITS variants ---
+    # --- COMPRESSOR_PIPELINES.PROCESS_UNITS variants ---
     Example(
-        "PROCESS_PIPELINES.PROCESS_UNITS.COMPRESSOR",
+        "COMPRESSOR_PIPELINES.PROCESS_UNITS.COMPRESSOR",
         lambda: YamlCompressorProcessUnitInstance.model_validate(
             {"TYPE": "COMPRESSOR", "COMPRESSOR": "default_compressor", "MODEL": "default_compressor_model"}
         ),
     ),
     Example(
-        "PROCESS_PIPELINES.PROCESS_UNITS.PRESSURE_DROPPER",
+        "COMPRESSOR_PIPELINES.PROCESS_UNITS.PRESSURE_DROPPER",
         lambda: YamlPressureDropperBuilder().with_test_data().validate(),
     ),
     Example(
-        "PROCESS_PIPELINES.PROCESS_UNITS.TEMPERATURE_SETTER",
+        "COMPRESSOR_PIPELINES.PROCESS_UNITS.TEMPERATURE_SETTER",
         lambda: YamlTemperatureSetterBuilder().with_test_data().validate(),
     ),
     Example(
-        "PROCESS_PIPELINES.PROCESS_UNITS.LIQUID_REMOVER",
+        "COMPRESSOR_PIPELINES.PROCESS_UNITS.LIQUID_REMOVER",
         lambda: YamlLiquidRemoverBuilder().with_test_data().validate(),
     ),
     Example(
-        "PROCESS_PIPELINES.PROCESS_UNITS.MIXER",
+        "COMPRESSOR_PIPELINES.PROCESS_UNITS.MIXER",
         lambda: YamlMixerBuilder().with_test_data().validate(),
     ),
     Example(
-        "PROCESS_PIPELINES.PROCESS_UNITS.SPLITTER",
+        "COMPRESSOR_PIPELINES.PROCESS_UNITS.SPLITTER",
         lambda: YamlSplitterBuilder().with_test_data().validate(),
     ),
     # --- DEFINITIONS.FLUIDS variants ---
@@ -251,9 +251,9 @@ EXAMPLES: list[Example] = [
         "COMPRESSORS",
         lambda: YamlCompressor(name="default_compressor", alias="RIA"),
     ),
-    # --- PROCESS_PIPELINES ---
+    # --- COMPRESSOR_PIPELINES ---
     Example(
-        "PROCESS_PIPELINES",
+        "COMPRESSOR_PIPELINES",
         lambda: (
             YamlProcessPipelineBuilder()
             .with_name("DefaultPipeline")
@@ -265,17 +265,17 @@ EXAMPLES: list[Example] = [
         ),
         abbreviate=False,
     ),
-    # --- PROCESS_SIMULATIONS ---
+    # --- COMPRESSOR_SIMULATIONS ---
     Example(
-        "PROCESS_SIMULATIONS",
+        "COMPRESSOR_SIMULATIONS",
         lambda: YamlProcessSimulationBuilder().with_test_data().validate(),
     ),
     Example(
-        "PROCESS_SIMULATIONS.STREAM_DISTRIBUTION.COMMON_STREAM",
+        "COMPRESSOR_SIMULATIONS.STREAM_DISTRIBUTION.COMMON_STREAM",
         lambda: YamlCommonStreamDistributionBuilder().with_test_data().validate(),
     ),
     Example(
-        "PROCESS_SIMULATIONS.STREAM_DISTRIBUTION.INDIVIDUAL_STREAMS",
+        "COMPRESSOR_SIMULATIONS.STREAM_DISTRIBUTION.INDIVIDUAL_STREAMS",
         lambda: YamlIndividualStreamDistributionBuilder().with_test_data().validate(),
     ),
     # --- TIMELINE ---
@@ -810,8 +810,8 @@ SIDEBAR_DEPTH: dict[str, int] = {
     "inlet_streams": 2,  # INLET_STREAMS only (h2)
     "shafts": 2,  # SHAFTS only (h2)
     "compressors": 2,  # COMPRESSORS only (h2)
-    "process_pipelines": 2,  # PROCESS_PIPELINES only (h2)
-    "process_simulations": 2,  # PROCESS_SIMULATIONS only (h2)
+    "compressor_pipelines": 2,  # COMPRESSOR_PIPELINES only (h2)
+    "compressor_simulations": 2,  # COMPRESSOR_SIMULATIONS only (h2)
     "timeline": 2,  # TIMELINE only (h2)
     "energy_network": 3,  # ENERGY_NETWORK only (h2)
 }
@@ -1372,8 +1372,8 @@ This page documents the YAML configuration keys for the eCalc Asset model, cover
 - [INLET_STREAMS](#inlet_streams)
 - [SHAFTS](#shafts)
 - [COMPRESSORS](#compressors)
-- [PROCESS_PIPELINES](#process_pipelines)
-- [PROCESS_SIMULATIONS](#process_simulations)
+- [COMPRESSOR_PIPELINES](#compressor_pipelines)
+- [COMPRESSOR_SIMULATIONS](#compressor_simulations)
 - [TIMELINE](#timeline)
 
 """

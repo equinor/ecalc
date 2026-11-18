@@ -28,7 +28,7 @@ COMPRESSOR_MODEL = "compressor_model"
 
 
 def _get_process_simulations(yaml_model_factory, pipeline: YamlProcessPipeline):
-    """Map a model with the pipeline in one process simulation, read from YAML as a user's file is.
+    """Map a model with the pipeline in one compressor simulation, read from YAML as a user's file is.
     DEFINITIONS has one compressor model, COMPRESSOR_MODEL."""
     simulation = (
         YamlProcessSimulationBuilder()
@@ -42,8 +42,8 @@ def _get_process_simulations(yaml_model_factory, pipeline: YamlProcessPipeline):
         .with_test_data()
         .with_shafts([shaft_for(pipeline)])
         .with_compressors(compressors_in(pipeline))
-        .with_process_pipelines({pipeline.name: pipeline})
-        .with_process_simulations([simulation])
+        .with_compressor_pipelines([pipeline])
+        .with_compressor_simulations([simulation])
         .with_definitions(
             YamlDefinitionsBuilder()
             .with_compressor_model(COMPRESSOR_MODEL, YamlCompressorModelChartBuilder().with_test_data().validate())
@@ -104,5 +104,5 @@ def test_definition_reference_of_wrong_type_is_reported_at_the_pipeline(yaml_mod
         _get_process_simulations(yaml_model_factory, pipeline)
 
     [error] = exc_info.value.errors()
-    assert error.location.keys == ("PROCESS_PIPELINES", "train_1")
+    assert error.location.keys == ("COMPRESSOR_PIPELINES", 0)
     assert f"'{COMPRESSOR_MODEL}' resolved to type 'YamlCompressorModelChart'" in error.message

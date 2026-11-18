@@ -40,8 +40,8 @@ def _asset_data() -> dict:
         )
         .with_shafts([shaft_for(train_a, name="shaft_a"), shaft_for(train_b, name="shaft_b")])
         .with_compressors(compressors_in(train_a, train_b))
-        .with_process_pipelines({"train_a": train_a, "train_b": train_b})
-        .with_process_simulations(
+        .with_compressor_pipelines([train_a, train_b])
+        .with_compressor_simulations(
             [
                 YamlProcessSimulationBuilder()
                 .with_name("sim")
@@ -57,7 +57,7 @@ def _asset_data() -> dict:
 
 def _with_rebundle(change_target: str, change_to: str | dict) -> dict:
     data = _asset_data()
-    data["PROCESS_PIPELINES"]["train_a"]["CHANGES"] = [
+    data["COMPRESSOR_PIPELINES"][0]["CHANGES"] = [
         {
             "TYPE": "CHANGE",
             "CHANGE_TARGET": change_target,
@@ -94,11 +94,11 @@ def test_rejects_rebundle_not_targeting_a_compressor_in_the_pipeline(change_targ
 )
 def test_rejects_constraint_not_on_a_compressor_in_the_pipeline(process_unit):
     data = _asset_data()
-    data["PROCESS_SIMULATIONS"][0]["CONSTRAINTS"]["train_a"][0]["PROCESS_UNIT"] = process_unit
+    data["COMPRESSOR_SIMULATIONS"][0]["CONSTRAINTS"]["train_a"][0]["PROCESS_UNIT"] = process_unit
     with pytest.raises(
         ValidationError,
-        match=f"CONSTRAINTS PROCESS_UNIT '{process_unit}' of process simulation 'sim' is not a compressor in process "
-        "pipeline 'train_a'. Compressors in this pipeline: comp_a.",
+        match=f"CONSTRAINTS PROCESS_UNIT '{process_unit}' of compressor simulation 'sim' is not a compressor in "
+        "compressor pipeline 'train_a'. Compressors in this pipeline: comp_a.",
     ):
         YamlAsset.model_validate(data)
 
@@ -126,7 +126,7 @@ def test_invalid_process_unit_reports_only_its_own_errors(process_unit, location
 
 def test_events_on_pipeline_points_to_changes():
     data = _asset_data()
-    data["PROCESS_PIPELINES"]["train_a"]["EVENTS"] = []
+    data["COMPRESSOR_PIPELINES"][0]["EVENTS"] = []
 
-    with pytest.raises(ValidationError, match="Use PROCESS_PIPELINES > CHANGES instead"):
+    with pytest.raises(ValidationError, match="Use COMPRESSOR_PIPELINES > CHANGES instead"):
         YamlAsset.model_validate(data)

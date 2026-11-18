@@ -55,7 +55,7 @@ class YamlCompressorProcessUnitInstance(YamlBase):
         available_since=V2,
         removed_in=V4,
         message="Other PROCESS_UNITS can no longer be defined with TARGET.",
-        replaced_by=("PROCESS_PIPELINES", "PROCESS_UNITS", "MODEL"),
+        replaced_by=("COMPRESSOR_PIPELINES", "PROCESS_UNITS", "MODEL"),
     )
     shaft: Any = removed_field(title="SHAFT", available_since=V2, removed_in=V3, replaced_by=("SHAFTS", "COMPRESSORS"))
     # END REMOVED FIELDS
@@ -159,7 +159,7 @@ class YamlProcessPipeline(YamlBase):
     events: Any = removed_field(
         title="EVENTS",
         removed_in=V5,
-        replaced_by=("PROCESS_PIPELINES", "CHANGES"),
+        replaced_by=("COMPRESSOR_PIPELINES", "CHANGES"),
     )
     # END REMOVED FIELDS
 

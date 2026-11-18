@@ -213,7 +213,7 @@ class YamlModel:
         mapped_process_simulations = []
         mapped_process_pipelines = []
         errors: list[ModelValidationError] = []
-        for yaml_process_simulation in self._configuration.process_simulations:
+        for yaml_process_simulation in self._configuration.compressor_simulations:
             try:
                 process_pipelines, process_simulation = self._map_process_simulation(
                     yaml_process_simulation=yaml_process_simulation,
@@ -241,7 +241,7 @@ class YamlModel:
         facility_resources: dict[str, Resource],
         time_series_resources: dict[str, TimeSeriesResource],
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
-        yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
+        yaml_keys = ("COMPRESSOR_SIMULATIONS", yaml_process_simulation.name)
 
         def _simulation_error(e: Exception) -> ModelValidationException:
             return ModelValidationException(

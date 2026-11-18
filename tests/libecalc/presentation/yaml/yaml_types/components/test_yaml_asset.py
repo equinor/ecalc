@@ -6,6 +6,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlDefinitionsBuilder,
+    YamlInletStreamBuilder,
     YamlProcessPipelineBuilder,
     YamlProcessSimulationBuilder,
     YamlTimelineBuilder,
@@ -36,6 +37,16 @@ def test_default_yaml_version_is_v1():
     assert asset.yaml_version == 1
 
 
+def test_inlet_streams_as_mapping_is_rejected_with_guidance():
+    dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
+    stream = YamlInletStreamBuilder().with_test_data().with_name("inlet").validate()
+
+    with pytest.raises(ValidationError, match="INLET_STREAMS is a list of inlet streams identified by NAME"):
+        YamlAsset.model_validate(
+            {"YAML_VERSION": 6, "END": "2025-01-01", "INLET_STREAMS": {stream.name: stream.model_dump(**dump_kwargs)}}
+        )
+
+
 def test_pipeline_can_only_be_targeted_by_one_simulation():
     pipeline = YamlProcessPipelineBuilder().with_test_data().validate()
 
@@ -56,13 +67,13 @@ def test_pipeline_can_only_be_targeted_by_one_simulation():
 
     with pytest.raises(
         ValidationError,
-        match="A process pipeline can currently only be targeted by one process simulation",
+        match="A compressor pipeline can currently only be targeted by one compressor simulation",
     ):
         (
             YamlAssetBuilder()
             .with_test_data()
-            .with_process_pipelines({pipeline.name: pipeline})
-            .with_process_simulations([simulation_1, simulation_2])
+            .with_compressor_pipelines([pipeline])
+            .with_compressor_simulations([simulation_1, simulation_2])
             .validate()
         )
 
@@ -109,9 +120,9 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
         .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         .with_shafts([shaft_for(pipeline_1, name="shaft_1"), shaft_for(pipeline_2, name="shaft_2")])
         .with_compressors([YamlCompressor(name="compressor_1"), YamlCompressor(name="compressor_2")])
-        .with_process_pipelines({pipeline_1.name: pipeline_1, pipeline_2.name: pipeline_2})
-        .with_process_simulations([simulation_1, simulation_2])
+        .with_compressor_pipelines([pipeline_1, pipeline_2])
+        .with_compressor_simulations([simulation_1, simulation_2])
         .validate()
     )
 
-    assert [simulation.name for simulation in asset.process_simulations] == ["simulation_1", "simulation_2"]
+    assert [simulation.name for simulation in asset.compressor_simulations] == ["simulation_1", "simulation_2"]

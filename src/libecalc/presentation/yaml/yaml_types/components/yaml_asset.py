@@ -45,6 +45,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     V3,
     V4,
     V5,
+    V6,
     YamlMajorVersion,
     get_required_field_names,
     get_unavailable_elements,
@@ -70,7 +71,7 @@ class YamlDefinitions(YamlBase):
         default_factory=dict,
         title="COMPRESSOR_MODELS",
         description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
-        "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE change.",
+        "in COMPRESSOR_PIPELINES, and from CHANGE_TO of a REBUNDLE change.",
         json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
 
@@ -98,7 +99,7 @@ class YamlDefinitions(YamlBase):
         title="PROCESS_UNITS",
         available_since=V2,
         removed_in=V4,
-        message="Compressors can no longer be defined here. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
+        message="Compressors can no longer be defined here. Other process units are defined inline in COMPRESSOR_PIPELINES > PROCESS_UNITS.",
         replaced_by=("DEFINITIONS", "COMPRESSOR_MODELS"),
     )
     turbines: Any = removed_field(
@@ -159,11 +160,14 @@ class YamlAsset(YamlBase):
         description="Defines fluid models that can be referenced by inlet streams.",
         json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
-    inlet_streams: dict[str, YamlInletStream] = Field(
-        default_factory=dict,
+    inlet_streams: list[YamlInletStream] = Field(
+        default_factory=list,
         title="INLET_STREAMS",
-        description="Defines inlet streams that can be referenced by process system and stream distribution.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        description="Defines inlet streams, each identified by NAME, that a STREAM_DISTRIBUTION can refer to by name.",
+        json_schema_extra=yaml_element_lifecycle(
+            available_since=V2,
+            changed_in=[(V6, "Changed from a mapping keyed by name to a list. An inlet stream is identified by NAME.")],
+        ),
     )
     models: list[YamlConsumerModel] = Field(
         default_factory=list,
@@ -197,21 +201,23 @@ class YamlAsset(YamlBase):
     compressors: list[YamlCompressor] = Field(
         default_factory=list,
         title="COMPRESSORS",
-        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
+        description="Defines the physical compressors in the model. Compressor process units in COMPRESSOR_PIPELINES and "
         "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
         json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
-    process_pipelines: dict[str, YamlProcessPipeline] = Field(
-        default_factory=dict,
-        title="PROCESS_PIPELINES",
-        description="Defines process pipelines to use in process simulations.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
-    )
-    process_simulations: list[YamlProcessSimulation] = Field(
+    compressor_pipelines: list[YamlProcessPipeline] = Field(
         default_factory=list,
-        title="PROCESS_SIMULATIONS",
-        description="Defines one or more process simulations to be run.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
+        title="COMPRESSOR_PIPELINES",
+        description="Defines compressor pipelines, each identified by NAME. A compressor pipeline is the process units "
+        "a gas stream passes through, in flow order. A compressor simulation refers to it by name in TARGETS.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V6),
+    )
+    compressor_simulations: list[YamlProcessSimulation] = Field(
+        default_factory=list,
+        title="COMPRESSOR_SIMULATIONS",
+        description="Defines one or more compressor simulations to be run. A compressor simulation distributes its "
+        "inlet streams between the compressor pipelines in TARGETS and solves them against their CONSTRAINTS.",
+        json_schema_extra=yaml_element_lifecycle(available_since=V6),
     )
 
     energy_network: YamlEnergyNetwork | None = Field(
@@ -268,6 +274,18 @@ class YamlAsset(YamlBase):
         available_since=V2,
         removed_in=V4,
         replaced_by=("TIMELINE", "EVENTS"),
+    )
+    process_pipelines: Any = removed_field(
+        title="PROCESS_PIPELINES",
+        available_since=V2,
+        removed_in=V6,
+        replaced_by=("COMPRESSOR_PIPELINES",),
+    )
+    process_simulations: Any = removed_field(
+        title="PROCESS_SIMULATIONS",
+        available_since=V2,
+        removed_in=V6,
+        replaced_by=("COMPRESSOR_SIMULATIONS",),
     )
     # END REMOVED FIELDS
 
@@ -332,9 +350,9 @@ class YamlAsset(YamlBase):
 
     @model_validator(mode="after")
     def validate_pipeline_targeted_by_single_simulation(self):
-        """A process pipeline can currently only be solved by a single process simulation."""
+        """A compressor pipeline can currently only be solved by a single compressor simulation."""
         simulations_by_target: dict[str, list[str]] = defaultdict(list)
-        for process_simulation in self.process_simulations:
+        for process_simulation in self.compressor_simulations:
             for target in process_simulation.targets:
                 simulations_by_target[target].append(process_simulation.name)
 
@@ -349,7 +367,7 @@ class YamlAsset(YamlBase):
                 f"'{target}' is targeted by {simulation_names}" for target, simulation_names in conflicts.items()
             )
             raise ValueError(
-                "A process pipeline can currently only be targeted by one process simulation. "
+                "A compressor pipeline can currently only be targeted by one compressor simulation. "
                 f"Conflicts found: {conflict_descriptions}."
             )
 
@@ -397,11 +415,21 @@ class YamlAsset(YamlBase):
             )
         return compressors
 
+    @field_validator("inlet_streams", mode="before")
+    @classmethod
+    def validate_inlet_streams_is_list(cls, inlet_streams: Any) -> Any:
+        if isinstance(inlet_streams, dict):
+            raise ValueError(
+                f"INLET_STREAMS is a list of inlet streams identified by NAME since YAML_VERSION {V6.major}. "
+                "Give each inlet stream as a list item with NAME, not as a key in a mapping."
+            )
+        return inlet_streams
+
     def _process_compressor_models(self) -> list[tuple[CompressorReference, str]]:
         """Every model of a compressor in the process domain, as (compressor, human-readable location)."""
         return [
-            (compressor, f"process pipeline '{pipeline_name}'")
-            for pipeline_name, pipeline in self.process_pipelines.items()
+            (compressor, f"compressor pipeline '{pipeline.name}'")
+            for pipeline in self.compressor_pipelines
             for compressor in pipeline.compressors
         ]
 
@@ -440,15 +468,15 @@ class YamlAsset(YamlBase):
         return {compressor: shaft.name for shaft in self.shafts for compressor in shaft.compressors}
 
     def _shafts_by_pipeline(self) -> dict[str, set[ShaftReference]]:
-        """The shafts of the compressors in each process pipeline. A compressor on no shaft is reported elsewhere."""
+        """The shafts of the compressors in each compressor pipeline. A compressor on no shaft is reported elsewhere."""
         shaft_by_compressor = self._shaft_by_compressor()
         return {
-            pipeline_name: {
+            pipeline.name: {
                 shaft_by_compressor[compressor]
                 for compressor in pipeline.compressors
                 if compressor in shaft_by_compressor
             }
-            for pipeline_name, pipeline in self.process_pipelines.items()
+            for pipeline in self.compressor_pipelines
         }
 
     @model_validator(mode="after")
@@ -522,13 +550,13 @@ class YamlAsset(YamlBase):
         for fuel_type in self.fuel_types:
             references.append(fuel_type.name)
 
-        references.extend(self.process_pipelines.keys())
+        references.extend(pipeline.name for pipeline in self.compressor_pipelines)
 
         references.extend(self.definitions.compressor_models.keys())
         references.extend(self.definitions.fluids.keys())
         references.extend(self.definitions.performance_curves.keys())
 
-        for process_simulation in self.process_simulations:
+        for process_simulation in self.compressor_simulations:
             references.append(process_simulation.name)
 
         for pump_process_simulation in self.pump_process_simulations:
@@ -538,7 +566,7 @@ class YamlAsset(YamlBase):
 
         references.extend(self.fluid_models.keys())
 
-        references.extend(self.inlet_streams.keys())
+        references.extend(inlet_stream.name for inlet_stream in self.inlet_streams)
 
         duplicated_references = get_duplicates(references)
 
@@ -552,16 +580,16 @@ class YamlAsset(YamlBase):
     @model_validator(mode="after")
     def validate_constraint_process_units(self):
         """A constraint splits its pipeline after a compressor, so PROCESS_UNIT names a compressor in that pipeline."""
-        compressors_by_pipeline = {pipeline.name: pipeline.compressors for pipeline in self.process_pipelines.values()}
+        compressors_by_pipeline = {pipeline.name: pipeline.compressors for pipeline in self.compressor_pipelines}
         violations: list[str] = []
-        for simulation in self.process_simulations:
+        for simulation in self.compressor_simulations:
             for pipeline_name, constraints in simulation.constraints.items():
                 compressors = compressors_by_pipeline.get(pipeline_name)
                 if compressors is None:
                     continue
                 violations.extend(
-                    f"CONSTRAINTS PROCESS_UNIT '{constraint.process_unit}' of process simulation '{simulation.name}' is "
-                    f"not a compressor in process pipeline '{pipeline_name}'. "
+                    f"CONSTRAINTS PROCESS_UNIT '{constraint.process_unit}' of compressor simulation '{simulation.name}' "
+                    f"is not a compressor in compressor pipeline '{pipeline_name}'. "
                     f"Compressors in this pipeline: {', '.join(compressors) or 'none'}."
                     for constraint in constraints
                     if constraint.process_unit is not None and constraint.process_unit not in compressors
@@ -572,7 +600,7 @@ class YamlAsset(YamlBase):
 
     @model_validator(mode="after")
     def validate_process_compressors_on_shaft(self):
-        """The process simulation finds a compressor's speed through its shaft."""
+        """The compressor simulation finds a compressor's speed through its shaft."""
         shaft_by_compressor = self._shaft_by_compressor()
         violations = [
             f"Compressor '{compressor_name}' in {location} is not on a shaft."
@@ -584,7 +612,7 @@ class YamlAsset(YamlBase):
                 "\n".join(
                     [
                         *violations,
-                        "Add each compressor placed in a process pipeline to COMPRESSORS of a shaft in SHAFTS.",
+                        "Add each compressor placed in a compressor pipeline to COMPRESSORS of a shaft in SHAFTS.",
                     ]
                 )
             )
@@ -593,12 +621,14 @@ class YamlAsset(YamlBase):
     @model_validator(mode="after")
     def validate_pipeline_on_single_shaft(self):
         violations = [
-            f"Process pipeline '{pipeline_name}' has compressors on multiple shafts: {', '.join(sorted(shaft_names))}."
+            f"Compressor pipeline '{pipeline_name}' has compressors on multiple shafts: {', '.join(sorted(shaft_names))}."
             for pipeline_name, shaft_names in self._shafts_by_pipeline().items()
             if len(shaft_names) > 1
         ]
         if violations:
-            raise ValueError("\n".join([*violations, "Multiple shafts in one process pipeline are not supported yet."]))
+            raise ValueError(
+                "\n".join([*violations, "Multiple shafts in one compressor pipeline are not supported yet."])
+            )
         return self
 
     @model_validator(mode="after")
@@ -609,12 +639,12 @@ class YamlAsset(YamlBase):
                 pipelines_by_shaft[shaft_name].add(pipeline_name)
 
         violations = [
-            f"Shaft '{shaft_name}' has compressors in multiple process pipelines: {', '.join(sorted(pipeline_names))}."
+            f"Shaft '{shaft_name}' has compressors in multiple compressor pipelines: {', '.join(sorted(pipeline_names))}."
             for shaft_name, pipeline_names in pipelines_by_shaft.items()
             if len(pipeline_names) > 1
         ]
         if violations:
-            raise ValueError("\n".join([*violations, "A shaft can only be used in one process pipeline."]))
+            raise ValueError("\n".join([*violations, "A shaft can only be used in one compressor pipeline."]))
         return self
 
     @model_validator(mode="after")
@@ -685,11 +715,9 @@ class YamlAsset(YamlBase):
             return self
 
         compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
-        targeted_pipelines = {target for simulation in self.process_simulations for target in simulation.targets}
+        targeted_pipelines = {target for simulation in self.compressor_simulations for target in simulation.targets}
         pipeline_by_compressor = {
-            compressor: pipeline_name
-            for pipeline_name, pipeline in self.process_pipelines.items()
-            for compressor in pipeline.compressors
+            compressor: pipeline.name for pipeline in self.compressor_pipelines for compressor in pipeline.compressors
         }
 
         violations: list[str] = []
@@ -707,9 +735,9 @@ class YamlAsset(YamlBase):
                 if pipeline_name in targeted_pipelines:
                     continue
                 placement = (
-                    "is not placed in any process pipeline"
+                    "is not placed in any compressor pipeline"
                     if pipeline_name is None
-                    else f"is placed in process pipeline '{pipeline_name}', which no process simulation targets"
+                    else f"is placed in compressor pipeline '{pipeline_name}', which no compressor simulation targets"
                 )
                 violations.append(
                     f"Compressor '{compressor_name}' on shaft '{unit.shaft}', driven by a drive train, {placement}."
@@ -719,7 +747,7 @@ class YamlAsset(YamlBase):
                 "\n".join(
                     [
                         *violations,
-                        "A drive train gets its demand from the process simulation of each compressor on its shaft.",
+                        "A drive train gets its demand from the compressor simulation of each compressor on its shaft.",
                     ]
                 )
             )

@@ -8,8 +8,13 @@ sidebar_position: 0
 
 # eCalc NextGen
 
-Changes to the NextGen YAML types: `FLUIDS`, `PROCESS_SIMULATIONS`, `PUMP_PROCESS_SIMULATIONS` and `ENERGY_NETWORK`.
+Changes to the NextGen YAML types: `FLUIDS`, `COMPRESSOR_SIMULATIONS`, `PUMP_PROCESS_SIMULATIONS` and `ENERGY_NETWORK`.
 These are not available in legacy models, so they are not part of the release changelogs.
+
+## v15.9 {/* #v15-9 */}
+
+- `COMPRESSOR_PIPELINES` and `COMPRESSOR_SIMULATIONS` replace `PROCESS_PIPELINES` and `PROCESS_SIMULATIONS`, since they hold compressors only. `PUMP_PROCESS_SIMULATIONS` is unchanged. Models using them need `YAML_VERSION: 6`.
+- `COMPRESSOR_PIPELINES` and `INLET_STREAMS` are lists in which each item is identified by its `NAME`, like `COMPRESSOR_SIMULATIONS`, instead of mappings keyed by name. Names must be unique within each list. To migrate, drop each key and keep its entry, with its `NAME`, as a list item.
 
 ## v15.8 {/* #v15-8 */}
 

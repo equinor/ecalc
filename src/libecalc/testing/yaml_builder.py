@@ -741,7 +741,7 @@ class YamlLegacyAssetBuilder(Builder[YamlAsset]):
 
     Only supports the root elements available in v1: FACILITY_INPUTS, MODELS, FUEL_TYPES and
     INSTALLATIONS, in addition to the elements common to every version. Root elements introduced
-    in later versions (e.g. SHAFTS, COMPRESSORS, DEFINITIONS, PROCESS_PIPELINES) are not available here;
+    in later versions (e.g. SHAFTS, COMPRESSORS, DEFINITIONS, COMPRESSOR_PIPELINES) are not available here;
     use YamlAssetBuilder for those.
     """
 
@@ -838,9 +838,9 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.shafts: list[YamlShaft] | None = None
         self.compressors: list[YamlCompressor] | None = None
         self.definitions: YamlDefinitions | None = None
-        self.inlet_streams: dict[str, YamlInletStream] | None = None
-        self.process_pipelines = None
-        self.process_simulations = None
+        self.inlet_streams: list[YamlInletStream] | None = None
+        self.compressor_pipelines: list[YamlProcessPipeline] | None = None
+        self.compressor_simulations: list[YamlProcessSimulation] | None = None
         self.energy_network: YamlEnergyNetwork | None = None
         self.timeline: YamlTimeline | None = None
         self.start = None
@@ -882,19 +882,16 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.definitions = definitions
         return self
 
-    def with_inlet_streams(
-        self,
-        inlet_streams: dict[str, YamlInletStream],
-    ) -> Self:
+    def with_inlet_streams(self, inlet_streams: list[YamlInletStream]) -> Self:
         self.inlet_streams = inlet_streams
         return self
 
-    def with_process_pipelines(self, process_pipelines: dict[str, YamlProcessPipeline]) -> Self:
-        self.process_pipelines = process_pipelines
+    def with_compressor_pipelines(self, compressor_pipelines: list[YamlProcessPipeline]) -> Self:
+        self.compressor_pipelines = compressor_pipelines
         return self
 
-    def with_process_simulations(self, process_simulations: list[YamlProcessSimulation]) -> Self:
-        self.process_simulations = process_simulations
+    def with_compressor_simulations(self, compressor_simulations: list[YamlProcessSimulation]) -> Self:
+        self.compressor_simulations = compressor_simulations
         return self
 
     def with_energy_network(self, energy_network: YamlEnergyNetwork) -> Self:

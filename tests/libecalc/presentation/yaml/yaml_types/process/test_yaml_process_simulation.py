@@ -35,7 +35,7 @@ def test_individual_streams_requires_one_inlet_stream_per_target():
 
     with pytest.raises(
         ValidationError,
-        match="Expected 2 INLET_STREAMS for the process simulation targets, got 1",
+        match="Expected 2 INLET_STREAMS for the compressor simulation targets, got 1",
     ):
         (
             YamlProcessSimulationBuilder()

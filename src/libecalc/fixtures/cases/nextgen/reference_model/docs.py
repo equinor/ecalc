@@ -45,7 +45,7 @@ description: A complete example of a NextGen eCalc model.
 {energy_network_to_mermaid(model)}
 ```
 
-The energy network is shown at the top, and the energy demand from the process model (compressors and process
+The energy network is shown at the top, and the energy demand from the process model (compressors and compressor
 pipelines) is shown in orange at the bottom.
 
 This is an example of a NextGen eCalc model using `YAML_VERSION: {LATEST_YAML_VERSION}`.
@@ -56,9 +56,9 @@ description of every element, and the [YAML Changelog](./yaml-changelog.md) for 
 The model contains:
 
 - Four export trains with two compressors each, defined in `COMPRESSORS`, placed on a `SHAFTS` entry per train, and run in
-  `PROCESS_PIPELINES` with a compressor model from `DEFINITIONS.COMPRESSOR_MODELS`.
+  `COMPRESSOR_PIPELINES` with a compressor model from `DEFINITIONS.COMPRESSOR_MODELS`.
 - A `TIMELINE` event that rebundles the compressors of the first export train.
-- One `PROCESS_SIMULATIONS` entry that distributes a common inlet stream between the export trains, with constraints for each
+- One `COMPRESSOR_SIMULATIONS` entry that distributes a common inlet stream between the export trains, with constraints for each
   train.
 - An `ENERGY_NETWORK` with fuel gas and electrical sources, generator, gas turbines, electrical cable and motors, drive
   trains for the export trains, an electrical consumer, and sampled compressors driven by an electrical motor and by

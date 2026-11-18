@@ -248,15 +248,14 @@ def _export_train(train_number: int, changes: list[YamlPipelineChange] | None = 
     return builder.validate()
 
 
-def _process_pipelines() -> dict[str, YamlProcessPipeline]:
-    pipelines = [
+def _compressor_pipelines() -> list[YamlProcessPipeline]:
+    return [
         _export_train(train_number, changes=_rebundle_changes(train_number) if train_number == 1 else None)
         for train_number in _train_numbers()
     ]
-    return {pipeline.name: pipeline for pipeline in pipelines}
 
 
-def _process_simulation():
+def _compressor_simulation():
     inlet_stream = (
         YamlInletStreamBuilder()
         .with_name("main_inlet")
@@ -430,8 +429,8 @@ def build_reference_model(yaml_version: int = LATEST_YAML_VERSION) -> YamlAsset:
         .with_shafts(_shafts())
         .with_compressors(_compressors())
         .with_definitions(_definitions())
-        .with_process_pipelines(_process_pipelines())
-        .with_process_simulations([_process_simulation()])
+        .with_compressor_pipelines(_compressor_pipelines())
+        .with_compressor_simulations([_compressor_simulation()])
         .with_energy_network(_energy_network())
         .validate()
     )

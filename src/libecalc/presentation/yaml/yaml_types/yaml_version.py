@@ -57,6 +57,7 @@ V2 = Version(2, 0, 0)
 V3 = Version(3, 0, 0)
 V4 = Version(4, 0, 0)
 V5 = Version(5, 0, 0)
+V6 = Version(6, 0, 0)
 
 DEFAULT_YAML_VERSION = V1.major
 LATEST_YAML_VERSION = current_yaml_version().major
@@ -312,7 +313,7 @@ def _iter_nested_models(value: object, path: Breadcrumb = ()) -> Iterable[tuple[
 
 
 def _format_breadcrumb(path: Breadcrumb) -> str:
-    """Render a path as e.g. "PROCESS_PIPELINES > export_pipeline > PROCESS_UNITS[0] > SHAFT"."""
+    """Render a path as e.g. "COMPRESSOR_PIPELINES[0] > PROCESS_UNITS[0] > SHAFT"."""
     parts: list[str] = []
     for segment in path:
         if isinstance(segment, int):
@@ -327,10 +328,10 @@ def get_unavailable_elements(root: object, version: int, path: Breadcrumb = ()) 
     Find the breadcrumb path of every element explicitly set in the yaml that isn't available for the
     given declared document version, anywhere within root — not just among root's own fields.
 
-    root can be a single model, or a container of models (e.g. a dict of PROCESS_PIPELINES), to scope
+    root can be a single model, or a container of models (e.g. a list of COMPRESSOR_PIPELINES), to scope
     the search to a subtree; path is prepended to every breadcrumb found, to describe where root itself
-    sits in the full document, e.g. path=("PROCESS_PIPELINES",). This catches elements nested arbitrarily
-    deep, e.g. SHAFT on a COMPRESSOR_PROCESS_UNIT inside PROCESS_PIPELINES, which get_unavailable_field_names
+    sits in the full document, e.g. path=("COMPRESSOR_PIPELINES",). This catches elements nested arbitrarily
+    deep, e.g. SHAFT on a COMPRESSOR_PROCESS_UNIT inside COMPRESSOR_PIPELINES, which get_unavailable_field_names
     alone can't see since it only inspects the fields of the single model it's given.
     """
     return {

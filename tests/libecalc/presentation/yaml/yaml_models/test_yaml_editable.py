@@ -19,9 +19,9 @@ def _datamodel() -> dict:
                 "generator": {"TYPE": "POWER_TO_FUEL", "CURVE": {"FILE": "generator.csv"}},
             },
         },
-        "PROCESS_PIPELINES": {
-            "pipeline": {"PROCESS_UNITS": [{"MODEL": {"CHART": {"CURVES": {"FILE": "pipeline_chart.csv"}}}}]}
-        },
+        "COMPRESSOR_PIPELINES": [
+            {"NAME": "pipeline", "PROCESS_UNITS": [{"MODEL": {"CHART": {"CURVES": {"FILE": "pipeline_chart.csv"}}}}]}
+        ],
         "ENERGY_NETWORK": {"UNITS": [{"NAME": "compressor", "TYPE": "COMPRESSOR_SAMPLED", "FILE": "sampled.csv"}]},
     }
 
@@ -60,7 +60,7 @@ class TestFindFileReferences:
                 path=("DEFINITIONS", "PERFORMANCE_CURVES", "generator", "CURVE", "FILE"), value="generator.csv"
             ),
             YamlReference(
-                path=("PROCESS_PIPELINES", "pipeline", "PROCESS_UNITS", 0, "MODEL", "CHART", "CURVES", "FILE"),
+                path=("COMPRESSOR_PIPELINES", 0, "PROCESS_UNITS", 0, "MODEL", "CHART", "CURVES", "FILE"),
                 value="pipeline_chart.csv",
             ),
             YamlReference(path=("ENERGY_NETWORK", "UNITS", 0, "FILE"), value="sampled.csv"),
