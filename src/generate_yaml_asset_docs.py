@@ -39,6 +39,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     get_yaml_element_lifecycle,
 )
 from libecalc.testing.energy_builders import (
+    YamlCombustionEngineModelEventBuilder,
     YamlCompressorSampledBuilder,
     YamlDieselConsumerBuilder,
     YamlDieselEngineBuilder,
@@ -359,8 +360,16 @@ ENERGY_EXAMPLES: list[Example] = [
         lambda: YamlGasTurbineBuilder().with_test_data().validate(),
     ),
     Example(
+        "ENERGY_NETWORK.UNITS.GAS_TURBINE.EVENTS",
+        lambda: YamlCombustionEngineModelEventBuilder().with_test_data().validate(),
+    ),
+    Example(
         "ENERGY_NETWORK.UNITS.DIESEL_ENGINE",
         lambda: YamlDieselEngineBuilder().with_test_data().validate(),
+    ),
+    Example(
+        "ENERGY_NETWORK.UNITS.DIESEL_ENGINE.EVENTS",
+        lambda: YamlCombustionEngineModelEventBuilder().with_test_data().validate(),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.ELECTRICAL_MOTOR",

@@ -1,4 +1,5 @@
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
+from functools import partial
 from typing import Any, overload
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
@@ -15,7 +16,11 @@ from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
-from libecalc.energy.models.combustion_engine_fuel_model import DieselEngineFuelModel, TurbineFuelModel
+from libecalc.energy.models.combustion_engine_fuel_model import (
+    CombustionEngineFuelModel,
+    DieselEngineFuelModel,
+    TurbineFuelModel,
+)
 from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
@@ -49,6 +54,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
     EnergyType,
+    YamlCombustionEngineModelEvent,
     YamlCompressorSampled,
     YamlDieselConsumer,
     YamlDieselEngine,
@@ -65,6 +71,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasConsumer,
     YamlGasTurbine,
     YamlGenerator,
+    YamlGeneratorModelEvent,
     YamlJunctionBase,
     YamlLoadCurve,
     YamlMechanicalConsumer,
@@ -76,6 +83,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 
@@ -339,23 +347,49 @@ class EnergyNetworkMapper:
         except DefinitionReferenceError as e:
             raise EcalcValidationException(str(e)) from e
 
-    def _map_generator_model_events(
-        self, unit: YamlGenerator, energy_unit_id: EnergyUnitId, resources: Mapping[str, Resource]
-    ) -> list[EnergyUnitModelEvent[GeneratorFuelModel]]:
-        """Resolve the generator's EVENTS into dated model events, taking each date from TIMELINE.EVENTS."""
-        model_events: list[EnergyUnitModelEvent[GeneratorFuelModel]] = []
-        for event in unit.events:
-            assert isinstance(event.change_to, YamlGeneratorDefinition)
-            timeline_event = self._timeline_event_service.get_event_by_reference(event.ref)
-            model_events.append(
-                EnergyUnitModelEvent(
-                    change_target=energy_unit_id,
-                    change_type=EnergyUnitEventChangeType(event.change_type.value),
-                    change_time=timeline_event.from_when,
-                    change_to=map_generator_fuel_model(unit.name, event.change_to, resources),
-                )
+    def _map_model_events[ModelT](
+        self,
+        events: Sequence[YamlGeneratorModelEvent | YamlCombustionEngineModelEvent],
+        energy_unit_id: EnergyUnitId,
+        map_model: Callable[[Any], ModelT],
+    ) -> list[EnergyUnitModelEvent[ModelT]]:
+        """Resolve a unit's EVENTS into dated model events, taking each date from TIMELINE.EVENTS."""
+        return [
+            EnergyUnitModelEvent(
+                change_target=energy_unit_id,
+                change_type=EnergyUnitEventChangeType(event.change_type.value),
+                change_time=self._timeline_event_service.get_event_by_reference(event.ref).from_when,
+                change_to=map_model(event.change_to),
             )
-        return model_events
+            for event in events
+        ]
+
+    @staticmethod
+    def _map_generator_model(
+        unit: YamlGenerator,
+        resources: Mapping[str, Resource],
+        definition: DefinitionReference | YamlGeneratorDefinition,
+    ) -> GeneratorFuelModel:
+        assert isinstance(definition, YamlGeneratorDefinition)
+        return map_generator_fuel_model(unit.name, definition, resources)
+
+    @staticmethod
+    def _map_combustion_engine_model[ModelT: CombustionEngineFuelModel](
+        unit: YamlGasTurbine | YamlDieselEngine,
+        resources: Mapping[str, Resource],
+        lhv_by_source_name: Mapping[str, float],
+        model_class: type[ModelT],
+        definition: DefinitionReference | YamlTurbineDefinition,
+    ) -> ModelT:
+        assert isinstance(definition, YamlTurbineDefinition)
+        return map_combustion_engine_fuel_model(
+            unit.name,
+            definition,
+            resources,
+            source_lower_heating_value=lhv_by_source_name.get(unit.input),
+            input_name=unit.input,
+            model_class=model_class,
+        )
 
     def _map_unit(
         self,
@@ -370,58 +404,45 @@ class EnergyNetworkMapper:
         match unit:
             case YamlGenerator():
                 unit = self._resolve_definitions(unit)
-                assert isinstance(unit.model, YamlGeneratorDefinition)
-                fuel_model = map_generator_fuel_model(unit.name, unit.model, resources)
+                map_model = partial(self._map_generator_model, unit, resources)
                 input_energy_type = output_types[unit.input]
                 return (
                     TimeSeriesGeneratorFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
-                        fuel_model=fuel_model,
+                        fuel_model=map_model(unit.model),
                         input_energy_type=input_energy_type,
-                        model_events=self._map_generator_model_events(unit, energy_unit_id, resources),
+                        model_events=self._map_model_events(unit.events, energy_unit_id, map_model),
                     ),
                     input_energy_type,
                     ElectricalPower,
                 )
             case YamlGasTurbine():
                 unit = self._resolve_definitions(unit)
-                assert isinstance(unit.model, YamlTurbineDefinition)
-                fuel_model = map_combustion_engine_fuel_model(
-                    unit.name,
-                    unit.model,
-                    resources,
-                    source_lower_heating_value=lhv_by_source_name.get(unit.input),
-                    input_name=unit.input,
-                    model_class=TurbineFuelModel,
+                map_model = partial(
+                    self._map_combustion_engine_model, unit, resources, lhv_by_source_name, TurbineFuelModel
                 )
                 return (
                     TimeSeriesGasTurbineFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
-                        capacity=self._time_series(fuel_model.max_power, expression_evaluator),
-                        fuel_model=fuel_model,
+                        fuel_model=map_model(unit.model),
+                        model_events=self._map_model_events(unit.events, energy_unit_id, map_model),
                     ),
                     FuelGasRate,
                     MechanicalPower,
                 )
             case YamlDieselEngine():
                 unit = self._resolve_definitions(unit)
-                assert isinstance(unit.model, YamlTurbineDefinition)
-                fuel_model = map_combustion_engine_fuel_model(
-                    unit.name,
-                    unit.model,
-                    resources,
-                    source_lower_heating_value=lhv_by_source_name.get(unit.input),
-                    input_name=unit.input,
-                    model_class=DieselEngineFuelModel,
+                map_model = partial(
+                    self._map_combustion_engine_model, unit, resources, lhv_by_source_name, DieselEngineFuelModel
                 )
                 return (
                     TimeSeriesDieselEngineFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
-                        capacity=self._time_series(fuel_model.max_power, expression_evaluator),
-                        fuel_model=fuel_model,
+                        fuel_model=map_model(unit.model),
+                        model_events=self._map_model_events(unit.events, energy_unit_id, map_model),
                     ),
                     DieselRate,
                     MechanicalPower,

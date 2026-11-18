@@ -122,10 +122,29 @@ class YamlConverterBase(YamlBase):
     ]
 
 
-class YamlGeneratorEventChangeType(StrEnum):
-    """How the generator's model changes at the event. REBUNDLE: same physical generator, new model."""
+class YamlEnergyUnitEventChangeType(StrEnum):
+    """How the energy unit's model changes at the event. REBUNDLE: same physical unit, new model."""
 
     REBUNDLE = "REBUNDLE"
+
+
+YamlModelEventChangeType = Annotated[
+    YamlEnergyUnitEventChangeType,
+    Field(
+        title="CHANGE_TYPE",
+        description="Nature of the change. REBUNDLE: the unit stays the same unit in the energy network, with a new "
+        "model.",
+    ),
+]
+
+YamlModelEventReference = Annotated[
+    TimelineEventReference,
+    Field(
+        title="REF",
+        description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date "
+        "(inclusive).",
+    ),
+]
 
 
 class YamlGeneratorModelEvent(YamlBase):
@@ -157,21 +176,41 @@ class YamlGeneratorModelEvent(YamlBase):
             description="The generator model to use from the event date on.",
         ),
     ]
-    change_type: Annotated[
-        YamlGeneratorEventChangeType,
+    change_type: YamlModelEventChangeType = YamlEnergyUnitEventChangeType.REBUNDLE
+    ref: YamlModelEventReference
+
+
+class YamlCombustionEngineModelEvent(YamlBase):
+    """A dated change of a gas turbine's or diesel engine's model. The unit stays the same unit in the energy network;
+    only the model used to convert power to fuel changes."""
+
+    model_config = ConfigDict(
+        title="CombustionEngineModelEvent",
+        json_schema_extra={
+            "examples": [
+                {
+                    "CHANGE_TO": {
+                        "TYPE": "LOAD_TO_EFFICIENCY",
+                        "CURVE": {"LOAD": [2.352, 4.589, 6.853], "EFFICIENCY": [0.142, 0.216, 0.263]},
+                    },
+                    "CHANGE_TYPE": "REBUNDLE",
+                    "REF": "turbine_upgrade",
+                },
+                {"CHANGE_TO": "upgraded_turbine", "CHANGE_TYPE": "REBUNDLE", "REF": "turbine_upgrade"},
+            ],
+        },
+    )
+
+    change_to: Annotated[
+        DefinitionReference | YamlTurbineDefinition,
+        validate_definition_reference_or_inline_model(YamlTurbineDefinition),
         Field(
-            title="CHANGE_TYPE",
-            description="Nature of the change. REBUNDLE: the generator stays the same unit in the energy network, with a new model.",
-        ),
-    ] = YamlGeneratorEventChangeType.REBUNDLE
-    ref: Annotated[
-        TimelineEventReference,
-        Field(
-            title="REF",
-            description="Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date "
-            "(inclusive).",
+            title="CHANGE_TO",
+            description="The model to use from the event date on.",
         ),
     ]
+    change_type: YamlModelEventChangeType = YamlEnergyUnitEventChangeType.REBUNDLE
+    ref: YamlModelEventReference
 
 
 class YamlGenerator(YamlConverterBase):
@@ -209,6 +248,15 @@ class YamlGasTurbine(YamlConverterBase):
             description="Turbine model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
         ),
     ]
+    events: Annotated[
+        list[YamlCombustionEngineModelEvent],
+        Field(
+            title="EVENTS",
+            description="Events that change the turbine model over time, such as a rebundle. Each event takes "
+            "effect from the date of its referenced TIMELINE.EVENTS entry.",
+            json_schema_extra=yaml_element_lifecycle(available_since=V5),
+        ),
+    ] = []
 
 
 class YamlDieselEngine(YamlConverterBase):
@@ -224,6 +272,14 @@ class YamlDieselEngine(YamlConverterBase):
             "DEFINITIONS.PERFORMANCE_CURVES.",
         ),
     ]
+    events: Annotated[
+        list[YamlCombustionEngineModelEvent],
+        Field(
+            title="EVENTS",
+            description="Events that change the diesel engine model over time, such as a rebundle. Each event takes "
+            "effect from the date of its referenced TIMELINE.EVENTS entry.",
+        ),
+    ] = []
 
 
 class YamlElectricalMotor(YamlConverterBase):

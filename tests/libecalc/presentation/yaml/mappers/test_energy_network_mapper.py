@@ -30,10 +30,13 @@ def test_gas_turbine_capacity_is_the_curve_maximum(energy_network_mapper_factory
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
 
     (turbine,) = (factory for factory in factories if factory.get_name() == "turbine")
-    assert turbine.capacity.get_evaluated_expression() == [20]
+    gas_turbine = turbine.create(
+        MechanicalPower(0), incoming_connections=topology.get_incoming_connections(turbine.get_id()), period=period
+    )
+    assert gas_turbine.get_capacity() == MechanicalPower(20)
 
 
 def test_gas_turbine_does_not_accept_capacity():
@@ -57,10 +60,13 @@ def test_diesel_engine_capacity_is_the_curve_maximum(
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    _, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
 
     (engine,) = (factory for factory in factories if factory.get_name() == "engine")
-    assert engine.capacity.get_evaluated_expression() == [20]
+    diesel_engine = engine.create(
+        MechanicalPower(0), incoming_connections=topology.get_incoming_connections(engine.get_id()), period=period
+    )
+    assert diesel_engine.get_capacity() == MechanicalPower(20)
 
 
 def test_generator_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
@@ -177,7 +183,6 @@ def test_maps_sources_units_connections_and_expressions(
 
     expected_capacities = {
         "grid": 20,
-        "turbine": 20,
         "motor": 5,
         "cable": 4,
     }
@@ -324,3 +329,69 @@ class TestGeneratorModelEvents:
             energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
                 self._network(), expression_evaluator
             )
+
+
+# Doubles every efficiency of TURBINE, so the same load burns half the fuel.
+TURBINE_AFTER_UPGRADE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [10, 20], "EFFICIENCY": [0.4, 0.6]}}
+
+COMBUSTION_ENGINES = [
+    pytest.param("GAS_TURBINE", "FUEL_GAS_SOURCE", FuelGasRate, id="gas turbine"),
+    pytest.param("DIESEL_ENGINE", "DIESEL_SOURCE", DieselRate, id="diesel engine"),
+]
+
+
+@pytest.mark.parametrize(("unit_type", "source_type", "input_energy_type"), COMBUSTION_ENGINES)
+class TestCombustionEngineModelEvents:
+    @staticmethod
+    def _upgrade_event() -> TimelineEvent:
+        return TimelineEvent(
+            reference="upgrade",
+            title="Engine upgrade",
+            type=TimelineEventType.ENERGY_EFFICIENCY_MEASURE,
+            from_when=SECOND_YEAR.start,
+            description=None,
+        )
+
+    @staticmethod
+    def _network(unit_type: str, source_type: str) -> YamlEnergyNetwork:
+        return YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [{"NAME": "fuel", "TYPE": source_type, "LOWER_HEATING_VALUE": 38}],
+                "UNITS": [
+                    {
+                        "NAME": "engine",
+                        "TYPE": unit_type,
+                        "INPUT": "fuel",
+                        "MODEL": TURBINE,
+                        "EVENTS": [{"CHANGE_TO": TURBINE_AFTER_UPGRADE, "REF": "upgrade"}],
+                    }
+                ],
+            }
+        )
+
+    def test_events_select_the_active_fuel_model_per_period(
+        self, energy_network_mapper_factory, expression_evaluator_factory, unit_type, source_type, input_energy_type
+    ):
+        service = TimelineEventService(timeline_events=[self._upgrade_event()])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        _, factories, _ = energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
+            self._network(unit_type, source_type), expression_evaluator
+        )
+
+        (engine_factory,) = (factory for factory in factories if factory.get_name() == "engine")
+        connection = EnergyConnection(
+            id=EnergyConnectionId(UUID(int=1)),
+            source_id=EnergyUnitId(UUID(int=2)),
+            target_id=engine_factory.get_id(),
+            energy_type=input_energy_type,
+        )
+
+        engine = engine_factory.create(MechanicalPower(20), incoming_connections=(connection,), period=FIRST_YEAR)
+        engine_upgraded = engine_factory.create(
+            MechanicalPower(20), incoming_connections=(connection,), period=SECOND_YEAR
+        )
+
+        fuel = engine.get_input_energies()[connection.id].value
+        fuel_upgraded = engine_upgraded.get_input_energies()[connection.id].value
+        assert fuel_upgraded == pytest.approx(fuel / 2)
