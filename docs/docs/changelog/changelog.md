@@ -1,5 +1,25 @@
 # Changelog
 
+## [15.8.0](https://github.com/equinor/ecalc/compare/v15.7.0...v15.8.0) (2026-11-19)
+
+
+### Features
+
+* support gas turbine and diesel engine model change at events ([#1953](https://github.com/equinor/ecalc/issues/1953)) ([e0cdce1](https://github.com/equinor/ecalc/commit/e0cdce16b48558a07f12e33fa9826f94f99859b0))
+
+
+### Bug Fixes
+
+* add unused source validation ([3973085](https://github.com/equinor/ecalc/commit/3973085ac9e52f838db2ecdda7364e49e2fe3a8d))
+* close file handle leak when unpacking zip uploads ([0a9bc08](https://github.com/equinor/ecalc/commit/0a9bc08fa3528ab7962515211f6700ede570d1d7))
+* resolve user-chosen keys in get_file_context case-sensitively ([#2470](https://github.com/equinor/ecalc/issues/2470)) ([#1960](https://github.com/equinor/ecalc/issues/1960)) ([45c9d3f](https://github.com/equinor/ecalc/commit/45c9d3f8a8f048bcc2457bcd9aaaec8868bcbcff))
+
+
+### Code Refactoring
+
+* remove unused file_io module ([dac1651](https://github.com/equinor/ecalc/commit/dac1651a6387bda81d61c42d3e163ae489318944))
+* rename EVENTS to CHANGES on units and pipelines ([#1959](https://github.com/equinor/ecalc/issues/1959)) ([a9fecc6](https://github.com/equinor/ecalc/commit/a9fecc6214312d86f97592997c778412e3751823))
+
 ## [15.7.0](https://github.com/equinor/ecalc/compare/v15.6.0...v15.7.0) (2026-11-17)
 
 
