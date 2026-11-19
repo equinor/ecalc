@@ -54,7 +54,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
     EnergyType,
-    YamlCombustionEngineModelEvent,
+    YamlCombustionEngineModelChange,
     YamlCompressorSampled,
     YamlDieselConsumer,
     YamlDieselEngine,
@@ -71,7 +71,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlFuelGasConsumer,
     YamlGasTurbine,
     YamlGenerator,
-    YamlGeneratorModelEvent,
+    YamlGeneratorModelChange,
     YamlJunctionBase,
     YamlLoadCurve,
     YamlMechanicalConsumer,
@@ -349,19 +349,19 @@ class EnergyNetworkMapper:
 
     def _map_model_events[ModelT](
         self,
-        events: Sequence[YamlGeneratorModelEvent | YamlCombustionEngineModelEvent],
+        changes: Sequence[YamlGeneratorModelChange | YamlCombustionEngineModelChange],
         energy_unit_id: EnergyUnitId,
         map_model: Callable[[Any], ModelT],
     ) -> list[EnergyUnitModelEvent[ModelT]]:
-        """Resolve a unit's EVENTS into dated model events, taking each date from TIMELINE.EVENTS."""
+        """Resolve a unit's CHANGES into dated model events, taking each date from TIMELINE.EVENTS."""
         return [
             EnergyUnitModelEvent(
                 change_target=energy_unit_id,
-                change_type=EnergyUnitEventChangeType(event.change_type.value),
-                change_time=self._timeline_event_service.get_event_by_reference(event.ref).from_when,
-                change_to=map_model(event.change_to),
+                change_type=EnergyUnitEventChangeType(change.change_type.value),
+                change_time=self._timeline_event_service.get_event_by_reference(change.ref).from_when,
+                change_to=map_model(change.change_to),
             )
-            for event in events
+            for change in changes
         ]
 
     @staticmethod
@@ -412,7 +412,7 @@ class EnergyNetworkMapper:
                         energy_unit_id=energy_unit_id,
                         fuel_model=map_model(unit.model),
                         input_energy_type=input_energy_type,
-                        model_events=self._map_model_events(unit.events, energy_unit_id, map_model),
+                        model_events=self._map_model_events(unit.changes, energy_unit_id, map_model),
                     ),
                     input_energy_type,
                     ElectricalPower,
@@ -427,7 +427,7 @@ class EnergyNetworkMapper:
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
                         fuel_model=map_model(unit.model),
-                        model_events=self._map_model_events(unit.events, energy_unit_id, map_model),
+                        model_events=self._map_model_events(unit.changes, energy_unit_id, map_model),
                     ),
                     FuelGasRate,
                     MechanicalPower,
@@ -442,7 +442,7 @@ class EnergyNetworkMapper:
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
                         fuel_model=map_model(unit.model),
-                        model_events=self._map_model_events(unit.events, energy_unit_id, map_model),
+                        model_events=self._map_model_events(unit.changes, energy_unit_id, map_model),
                     ),
                     DieselRate,
                     MechanicalPower,

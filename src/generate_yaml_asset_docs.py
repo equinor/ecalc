@@ -39,7 +39,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_version import (
     get_yaml_element_lifecycle,
 )
 from libecalc.testing.energy_builders import (
-    YamlCombustionEngineModelEventBuilder,
+    YamlCombustionEngineModelChangeBuilder,
     YamlCompressorSampledBuilder,
     YamlDieselConsumerBuilder,
     YamlDieselEngineBuilder,
@@ -57,7 +57,7 @@ from libecalc.testing.energy_builders import (
     YamlGasTurbineBuilder,
     YamlGeneratorCurveBuilder,
     YamlGeneratorDefinitionBuilder,
-    YamlGeneratorModelEventBuilder,
+    YamlGeneratorModelChangeBuilder,
     YamlMechanicalConsumerBuilder,
     YamlTurbineCurveBuilder,
     YamlTurbineDefinitionBuilder,
@@ -352,24 +352,24 @@ ENERGY_EXAMPLES: list[Example] = [
         lambda: YamlEnergyGeneratorBuilder().with_test_data().validate(),
     ),
     Example(
-        "ENERGY_NETWORK.UNITS.GENERATOR.EVENTS",
-        lambda: YamlGeneratorModelEventBuilder().with_test_data().validate(),
+        "ENERGY_NETWORK.UNITS.GENERATOR.CHANGES",
+        lambda: YamlGeneratorModelChangeBuilder().with_test_data().validate(),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.GAS_TURBINE",
         lambda: YamlGasTurbineBuilder().with_test_data().validate(),
     ),
     Example(
-        "ENERGY_NETWORK.UNITS.GAS_TURBINE.EVENTS",
-        lambda: YamlCombustionEngineModelEventBuilder().with_test_data().validate(),
+        "ENERGY_NETWORK.UNITS.GAS_TURBINE.CHANGES",
+        lambda: YamlCombustionEngineModelChangeBuilder().with_test_data().validate(),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.DIESEL_ENGINE",
         lambda: YamlDieselEngineBuilder().with_test_data().validate(),
     ),
     Example(
-        "ENERGY_NETWORK.UNITS.DIESEL_ENGINE.EVENTS",
-        lambda: YamlCombustionEngineModelEventBuilder().with_test_data().validate(),
+        "ENERGY_NETWORK.UNITS.DIESEL_ENGINE.CHANGES",
+        lambda: YamlCombustionEngineModelChangeBuilder().with_test_data().validate(),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.ELECTRICAL_MOTOR",

@@ -57,7 +57,7 @@ def _asset_data() -> dict:
 
 def _with_rebundle(change_target: str, change_to: str | dict) -> dict:
     data = _asset_data()
-    data["PROCESS_PIPELINES"]["train_a"]["EVENTS"] = [
+    data["PROCESS_PIPELINES"]["train_a"]["CHANGES"] = [
         {
             "TYPE": "CHANGE",
             "CHANGE_TARGET": change_target,
@@ -79,7 +79,7 @@ def _with_rebundle(change_target: str, change_to: str | dict) -> dict:
 def test_rejects_rebundle_not_targeting_a_compressor_in_the_pipeline(change_target):
     with pytest.raises(
         ValidationError,
-        match=f"REBUNDLE event targets '{change_target}', which is not a compressor in pipeline 'train_a'. "
+        match=f"REBUNDLE change targets '{change_target}', which is not a compressor in pipeline 'train_a'. "
         "Compressors in this pipeline: comp_a.",
     ):
         YamlAsset.model_validate(_with_rebundle(change_target=change_target, change_to="model_b"))
@@ -122,3 +122,11 @@ def test_invalid_process_unit_reports_only_its_own_errors(process_unit, location
     with pytest.raises(ValidationError) as exc_info:
         YamlProcessPipeline.model_validate({"NAME": "train_a", "PROCESS_UNITS": [process_unit]})
     assert [error["loc"] for error in exc_info.value.errors()] == [location]
+
+
+def test_events_on_pipeline_points_to_changes():
+    data = _asset_data()
+    data["PROCESS_PIPELINES"]["train_a"]["EVENTS"] = []
+
+    with pytest.raises(ValidationError, match="Use PROCESS_PIPELINES > CHANGES instead"):
+        YamlAsset.model_validate(data)

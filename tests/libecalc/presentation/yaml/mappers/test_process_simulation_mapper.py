@@ -21,7 +21,7 @@ from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventServ
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     PipelineEventAction,
     PipelineEventChangeType,
-    YamlPipelineEvent,
+    YamlPipelineChange,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
@@ -421,9 +421,9 @@ def test_rebundle_changes_the_model_and_keeps_the_compressor_process_unit_and_eq
         YamlProcessPipelineBuilder()
         .with_name("train_1")
         .with_compressor_item(compressor="comp")
-        .with_events(
+        .with_changes(
             [
-                YamlPipelineEvent(
+                YamlPipelineChange(
                     type=PipelineEventAction.CHANGE,
                     change_target="comp",
                     change_to=model_after,

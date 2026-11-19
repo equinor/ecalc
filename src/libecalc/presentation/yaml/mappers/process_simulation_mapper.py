@@ -272,36 +272,36 @@ class ProcessSimulationMapper:
         unit_name_to_id: dict[InstanceReference, ProcessUnitId],
         process_unit_map: dict[ProcessUnitId, TimeSeriesProcessUnit],
     ) -> list[PipelineEvent]:
-        """Validate pipeline event references and map to domain objects."""
+        """Validate the pipeline's CHANGES and map them to domain pipeline events."""
         events: list[PipelineEvent] = []
 
-        for yaml_event in yaml_pipeline.events:
-            timeline_event = self._timeline_event_service.get_event_by_reference(yaml_event.ref)
-            change_target = unit_name_to_id[yaml_event.change_target]
+        for yaml_change in yaml_pipeline.changes:
+            timeline_event = self._timeline_event_service.get_event_by_reference(yaml_change.ref)
+            change_target = unit_name_to_id[yaml_change.change_target]
             change_target_unit = process_unit_map[change_target]
             if not isinstance(change_target_unit, TimeSeriesCompressorProcessUnit):
                 raise EcalcValidationException(
-                    f"Pipeline event CHANGE_TARGET '{yaml_event.change_target}' is not a compressor."
+                    f"Pipeline change CHANGE_TARGET '{yaml_change.change_target}' is not a compressor."
                 )
-            match yaml_event.change_to:
+            match yaml_change.change_to:
                 case YamlCompressorModelChart():
                     # Same compressor after the rebundle, so the new model keeps its process unit id and equipment.
                     change_to_unit = TimeSeriesCompressorProcessUnit(
-                        compressor_chart=self._get_compressor_chart(yaml_compressor_model_chart=yaml_event.change_to),
+                        compressor_chart=self._get_compressor_chart(yaml_compressor_model_chart=yaml_change.change_to),
                         compressor_equipment_id=change_target_unit.compressor_equipment_id,
                         process_unit_id=change_target,
                     )
                 case _:
                     raise EcalcValidationException(
-                        f"Pipeline event CHANGE_TO '{yaml_event.change_to}' is not a compressor model."
+                        f"Pipeline change CHANGE_TO '{yaml_change.change_to}' is not a compressor model."
                     )
 
             events.append(
                 PipelineEvent(
-                    action=PipelineEventAction(yaml_event.type.value),
+                    action=PipelineEventAction(yaml_change.type.value),
                     change_target=change_target,
                     change_to=change_to_unit,
-                    change_type=PipelineEventChangeType(yaml_event.change_type.value),
+                    change_type=PipelineEventChangeType(yaml_change.change_type.value),
                     change_time=timeline_event.from_when,
                 )
             )

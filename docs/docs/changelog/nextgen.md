@@ -11,6 +11,10 @@ sidebar_position: 0
 Changes to the NextGen YAML types: `FLUIDS`, `PROCESS_SIMULATIONS`, `PUMP_PROCESS_SIMULATIONS` and `ENERGY_NETWORK`.
 These are not available in legacy models, so they are not part of the release changelogs.
 
+## v15.8 {/* #v15-8 */}
+
+- `ENERGY_NETWORK` and `PROCESS_PIPELINES`: `EVENTS` on `GENERATOR`, `GAS_TURBINE`, `DIESEL_ENGINE` and process pipelines is renamed to `CHANGES`, so that `EVENTS` only refers to `TIMELINE.EVENTS`. Each change keeps `REF`, `CHANGE_TYPE` and `CHANGE_TO`. Using `EVENTS` gives a validation error pointing to `CHANGES`.
+
 ## v15.7 {/* #v15-7 */}
 
 - `ENERGY_NETWORK`: a compressor's `EFFICIENCY` in a `DRIVE_TRAIN`'s `MECHANICAL_EFFICIENCIES` covers its share of the gearbox and couplings as well as its bearings and seals, not the driver's own losses. A compressor-only value, for example from a datasheet, should be multiplied by the gearbox efficiency.
