@@ -1,7 +1,6 @@
 import math
 from io import StringIO
 from pathlib import Path
-from typing import IO
 
 import pytest
 from inline_snapshot import snapshot
@@ -12,7 +11,6 @@ from libecalc.common.errors.exceptions import (
     InvalidHeaderException,
     InvalidResourceException,
 )
-from libecalc.infrastructure import file_io
 from libecalc.presentation.yaml import yaml_entities
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource
@@ -380,91 +378,3 @@ VARIABLE1,
             )
 
         assert str(e.value) == snapshot("Invalid header: One or more headers are missing in resource")
-
-
-def valid_ecalc_file(
-    path: Path = Path("example/path/test_file.csv"),
-    filename: str = "test_file",
-    file: IO = StringIO("Test file content"),
-    file_type: file_io.EcalcFileType = file_io.EcalcFileType.CSV,
-):
-    return file_io.ValidEcalcFile(original_filename=path, filename=filename, file=file, file_type=file_type)
-
-
-class TestZipUpload:
-    def test_find_longest_common_path(self):
-        assert (
-            file_io.find_longest_common_path(Path("common/unique_file"), Path("common/another_unique_file"))
-            == "common/"
-        )
-        assert (
-            file_io.find_longest_common_path(Path("unique_folder/common/file_1"), Path("unique_folder_2/common/file_2"))
-            == ""
-        )
-
-    def test_rename_duplicates(self):
-        duplicates = ["file_a"]
-        arbitrary_file_one = valid_ecalc_file(filename="file_a", path=Path("resources/file_a.csv"))
-        arbitrary_file_two = valid_ecalc_file(filename="file_a", path=Path("file_a.csv"))
-        valid_files = [
-            arbitrary_file_one,
-            arbitrary_file_two,
-        ]
-
-        renamed_files = file_io.rename_duplicates(valid_files=valid_files, duplicates=duplicates)
-
-        assert renamed_files[arbitrary_file_one.original_filename] == "resources_file_a.csv"
-        assert renamed_files[arbitrary_file_two.original_filename] == "file_a.csv"
-
-        really_long_path = "this/is/a/really/really/really/long/path/it/is/over/100/characters/long/and/will/get/a/unique/id/file_a.csv"
-
-        arbitrary_file_three = valid_ecalc_file(filename="file_a", path=Path(really_long_path))
-        arbitrary_file_four = valid_ecalc_file(filename="file_a", path=Path("file_a.csv"))
-        valid_files_long_path = [
-            arbitrary_file_three,
-            arbitrary_file_four,
-        ]
-
-        assert len(str(arbitrary_file_three.original_filename)) >= 100
-
-        renamed_files_two = file_io.rename_duplicates(valid_files=valid_files_long_path, duplicates=duplicates)
-
-        assert (
-            renamed_files_two[arbitrary_file_three.original_filename]
-            != renamed_files_two[arbitrary_file_four.original_filename]
-        )
-        assert len(renamed_files_two[arbitrary_file_three.original_filename]) == 100
-        assert renamed_files_two[arbitrary_file_three.original_filename][-16:-6] == "file_a.csv"
-        assert renamed_files_two[arbitrary_file_four.original_filename] == "file_a.csv"
-
-    def test_make_relative_paths(self):
-        main_yaml = valid_ecalc_file(path=Path("main/main.yaml"), filename="main.yaml")
-
-        arbitrary_include_file = valid_ecalc_file(path=Path("resources/file.yaml"), filename="file.yaml")
-
-        files = [main_yaml, arbitrary_include_file]
-
-        relative_paths = file_io.make_relative_paths(files=files, main_yaml=main_yaml)
-
-        assert relative_paths[arbitrary_include_file.original_filename] == "../resources/file.yaml"
-        assert relative_paths[main_yaml.original_filename] == "main.yaml"
-
-
-@pytest.mark.parametrize(
-    "content, expected",
-    [
-        ("INSTALLATIONS:\n  - NAME: a\n", True),
-        ("TIME_SERIES:\n  - NAME: a\n", True),
-        ("FACILITY_INPUTS: []\n", True),
-        ("FUEL_TYPES: []\n", True),
-        ("YAML_VERSION: 2\nDEFINITIONS:\n  TURBINES: {}\n", True),
-        ("ENERGY_NETWORK:\n  UNITS: []\n", True),
-        ("PROCESS_PIPELINES: {}\n", True),
-        ("PROCESS_SIMULATIONS: []\n", True),
-        ("- NAME: included_list\n", False),
-        ("NAME: genset\nTYPE: GENERATOR\n", False),
-        ("", False),
-    ],
-)
-def test_is_main_yaml_content(content: str, expected: bool):
-    assert file_io.is_main_yaml_content(content) is expected
