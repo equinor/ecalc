@@ -662,10 +662,14 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         for key in yaml_path:
             did_alter_data = False
             if isinstance(key, str) and isinstance(current_data, dict | YamlDict):
-                key = key.upper()
                 if key in current_data:
                     current_data = current_data[key]
                     did_alter_data = True
+                else:
+                    upper_key = key.upper()
+                    if upper_key in current_data:
+                        current_data = current_data[upper_key]
+                        did_alter_data = True
             elif isinstance(key, str) and isinstance(current_data, list | YamlList):
                 # str key in combination with a list means the key represents the name of the item
                 try:
