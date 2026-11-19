@@ -122,14 +122,14 @@ class YamlConverterBase(YamlBase):
     ]
 
 
-class YamlEnergyUnitEventChangeType(StrEnum):
+class YamlEnergyUnitChangeType(StrEnum):
     """How the energy unit's model changes at the event. REBUNDLE: same physical unit, new model."""
 
     REBUNDLE = "REBUNDLE"
 
 
-YamlModelEventChangeType = Annotated[
-    YamlEnergyUnitEventChangeType,
+YamlModelChangeType = Annotated[
+    YamlEnergyUnitChangeType,
     Field(
         title="CHANGE_TYPE",
         description="Nature of the change. REBUNDLE: the unit stays the same unit in the energy network, with a new "
@@ -137,7 +137,7 @@ YamlModelEventChangeType = Annotated[
     ),
 ]
 
-YamlModelEventReference = Annotated[
+YamlModelChangeReference = Annotated[
     TimelineEventReference,
     Field(
         title="REF",
@@ -147,12 +147,12 @@ YamlModelEventReference = Annotated[
 ]
 
 
-class YamlGeneratorModelEvent(YamlBase):
+class YamlGeneratorModelChange(YamlBase):
     """A dated change of the generator's model. The generator stays the same unit in the energy network; only the
     model used to convert power to fuel changes."""
 
     model_config = ConfigDict(
-        title="GeneratorModelEvent",
+        title="GeneratorModelChange",
         json_schema_extra={
             "examples": [
                 {
@@ -176,16 +176,16 @@ class YamlGeneratorModelEvent(YamlBase):
             description="The generator model to use from the event date on.",
         ),
     ]
-    change_type: YamlModelEventChangeType = YamlEnergyUnitEventChangeType.REBUNDLE
-    ref: YamlModelEventReference
+    change_type: YamlModelChangeType = YamlEnergyUnitChangeType.REBUNDLE
+    ref: YamlModelChangeReference
 
 
-class YamlCombustionEngineModelEvent(YamlBase):
+class YamlCombustionEngineModelChange(YamlBase):
     """A dated change of a gas turbine's or diesel engine's model. The unit stays the same unit in the energy network;
     only the model used to convert power to fuel changes."""
 
     model_config = ConfigDict(
-        title="CombustionEngineModelEvent",
+        title="CombustionEngineModelChange",
         json_schema_extra={
             "examples": [
                 {
@@ -209,8 +209,8 @@ class YamlCombustionEngineModelEvent(YamlBase):
             description="The model to use from the event date on.",
         ),
     ]
-    change_type: YamlModelEventChangeType = YamlEnergyUnitEventChangeType.REBUNDLE
-    ref: YamlModelEventReference
+    change_type: YamlModelChangeType = YamlEnergyUnitChangeType.REBUNDLE
+    ref: YamlModelChangeReference
 
 
 class YamlGenerator(YamlConverterBase):
@@ -225,15 +225,23 @@ class YamlGenerator(YamlConverterBase):
             description="Generator set model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
         ),
     ]
-    events: Annotated[
-        list[YamlGeneratorModelEvent],
+    changes: Annotated[
+        list[YamlGeneratorModelChange],
         Field(
-            title="EVENTS",
-            description="Events that change the generator model over time, such as a rebundle. Each event takes "
+            title="CHANGES",
+            description="Changes to the generator model over time, such as a rebundle. Each change takes "
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
             json_schema_extra=yaml_element_lifecycle(available_since=V5),
         ),
     ] = []
+
+    # REMOVED FIELDS
+    events: Any = removed_field(
+        title="EVENTS",
+        removed_in=V5,
+        replaced_by=("ENERGY_NETWORK", "UNITS", "GENERATOR", "CHANGES"),
+    )
+    # END REMOVED FIELDS
 
 
 class YamlGasTurbine(YamlConverterBase):
@@ -248,15 +256,23 @@ class YamlGasTurbine(YamlConverterBase):
             description="Turbine model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
         ),
     ]
-    events: Annotated[
-        list[YamlCombustionEngineModelEvent],
+    changes: Annotated[
+        list[YamlCombustionEngineModelChange],
         Field(
-            title="EVENTS",
-            description="Events that change the turbine model over time, such as a rebundle. Each event takes "
+            title="CHANGES",
+            description="Changes to the turbine model over time, such as a rebundle. Each change takes "
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
             json_schema_extra=yaml_element_lifecycle(available_since=V5),
         ),
     ] = []
+
+    # REMOVED FIELDS
+    events: Any = removed_field(
+        title="EVENTS",
+        removed_in=V5,
+        replaced_by=("ENERGY_NETWORK", "UNITS", "GAS_TURBINE", "CHANGES"),
+    )
+    # END REMOVED FIELDS
 
 
 class YamlDieselEngine(YamlConverterBase):
@@ -272,14 +288,22 @@ class YamlDieselEngine(YamlConverterBase):
             "DEFINITIONS.PERFORMANCE_CURVES.",
         ),
     ]
-    events: Annotated[
-        list[YamlCombustionEngineModelEvent],
+    changes: Annotated[
+        list[YamlCombustionEngineModelChange],
         Field(
-            title="EVENTS",
-            description="Events that change the diesel engine model over time, such as a rebundle. Each event takes "
+            title="CHANGES",
+            description="Changes to the diesel engine model over time, such as a rebundle. Each change takes "
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
         ),
     ] = []
+
+    # REMOVED FIELDS
+    events: Any = removed_field(
+        title="EVENTS",
+        removed_in=V5,
+        replaced_by=("ENERGY_NETWORK", "UNITS", "DIESEL_ENGINE", "CHANGES"),
+    )
+    # END REMOVED FIELDS
 
 
 class YamlElectricalMotor(YamlConverterBase):

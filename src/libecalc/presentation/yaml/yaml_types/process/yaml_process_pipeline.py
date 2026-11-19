@@ -19,7 +19,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, V4, removed_field, yaml_element_lifecycle
+from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, V4, V5, removed_field, yaml_element_lifecycle
 
 CompressorModelOrReference = Annotated[
     DefinitionReference | YamlCompressorModelChart,
@@ -75,7 +75,7 @@ class PipelineEventChangeType(StrEnum):
     REBUNDLE = "REBUNDLE"
 
 
-class YamlPipelineEvent(YamlBase):
+class YamlPipelineChange(YamlBase):
     type: Annotated[
         PipelineEventAction,
         Field(
@@ -146,13 +146,22 @@ class YamlProcessPipeline(YamlBase):
             "referred to by name, its COMPRESSOR.",
         ),
     ]
-    events: Annotated[
-        list[YamlPipelineEvent],
+    changes: Annotated[
+        list[YamlPipelineChange],
         Field(
-            title="EVENTS",
-            description="Events that modify the pipeline over time, such as rebundling a compressor.",
+            title="CHANGES",
+            description="Changes to the pipeline over time, such as rebundling a compressor. Each change takes "
+            "effect from the date of its referenced TIMELINE.EVENTS entry.",
         ),
     ] = []
+
+    # REMOVED FIELDS
+    events: Any = removed_field(
+        title="EVENTS",
+        removed_in=V5,
+        replaced_by=("PROCESS_PIPELINES", "CHANGES"),
+    )
+    # END REMOVED FIELDS
 
     @property
     def compressors(self) -> list[CompressorReference]:
@@ -160,17 +169,17 @@ class YamlProcessPipeline(YamlBase):
         return [unit.compressor for unit in self.process_units if isinstance(unit, YamlCompressorProcessUnitInstance)]
 
     @model_validator(mode="after")
-    def validate_events(self) -> Self:
-        """Rules for events that need only this pipeline. Each change type defines its own rule."""
+    def validate_changes(self) -> Self:
+        """Rules for changes that need only this pipeline. Each change type defines its own rule."""
         compressors = self.compressors
-        for event in self.events:
-            match event.change_type:
+        for change in self.changes:
+            match change.change_type:
                 case PipelineEventChangeType.REBUNDLE:
-                    if event.change_target not in compressors:
+                    if change.change_target not in compressors:
                         raise ValueError(
-                            f"REBUNDLE event targets '{event.change_target}', which is not a compressor in pipeline "
+                            f"REBUNDLE change targets '{change.change_target}', which is not a compressor in pipeline "
                             f"'{self.name}'. Compressors in this pipeline: {', '.join(compressors) or 'none'}."
                         )
                 case _:
-                    assert_never(event.change_type)
+                    assert_never(change.change_type)
         return self

@@ -86,12 +86,12 @@ TURBINE_LHV = 38
 EXPECTED_FUEL = 5 * 86400 / TURBINE_LHV / 0.225
 
 
-def _turbine_model_data(model, definitions, base_data_factory, load=5, events=None):
+def _turbine_model_data(model, definitions, base_data_factory, load=5, changes=None):
     data = base_data_factory()
     data["DEFINITIONS"] = definitions
     turbine = {"NAME": "turbine", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": model}
-    if events is not None:
-        turbine["EVENTS"] = events
+    if changes is not None:
+        turbine["CHANGES"] = changes
     data["ENERGY_NETWORK"] = {
         "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": TURBINE_LHV}],
         "UNITS": [
@@ -310,14 +310,14 @@ EXPECTED_FUEL_AFTER_UPGRADE = EXPECTED_FUEL / 2
         ),
     ],
 )
-def test_gas_turbine_event_switches_fuel_model_at_the_timeline_date(
+def test_gas_turbine_change_switches_fuel_model_at_the_timeline_date(
     change_to, definitions, latest_network_data_factory, yaml_model_factory
 ):
     data = _turbine_model_data(
         {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE},
         definitions,
         latest_network_data_factory,
-        events=[{"REF": "upgrade", "CHANGE_TO": change_to}],
+        changes=[{"REF": "upgrade", "CHANGE_TO": change_to}],
     )
     data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
     model = yaml_model_factory(
@@ -330,12 +330,12 @@ def test_gas_turbine_event_switches_fuel_model_at_the_timeline_date(
     assert results_by_period_start[datetime(2021, 1, 1)][0] == pytest.approx(EXPECTED_FUEL_AFTER_UPGRADE)
 
 
-def test_gas_turbine_event_rejects_a_generator_curve(latest_network_data_factory, yaml_model_factory):
+def test_gas_turbine_change_rejects_a_generator_curve(latest_network_data_factory, yaml_model_factory):
     data = _turbine_model_data(
         {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE},
         {"PERFORMANCE_CURVES": {"generator": {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [1, 2]}}}},
         latest_network_data_factory,
-        events=[{"REF": "upgrade", "CHANGE_TO": "generator"}],
+        changes=[{"REF": "upgrade", "CHANGE_TO": "generator"}],
     )
     data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
     model = yaml_model_factory(
@@ -354,12 +354,12 @@ GENERATOR_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": 
 EXPECTED_GENERATOR_FUEL = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
 
 
-def _generator_model_data(model, definitions, base_data_factory, load=7, events=None):
+def _generator_model_data(model, definitions, base_data_factory, load=7, changes=None):
     data = base_data_factory()
     data["DEFINITIONS"] = definitions
     generator = {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": model}
-    if events is not None:
-        generator["EVENTS"] = events
+    if changes is not None:
+        generator["CHANGES"] = changes
     data["ENERGY_NETWORK"] = {
         "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
         "UNITS": [
@@ -444,12 +444,12 @@ GENERATOR_MODEL_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5,
 EXPECTED_GENERATOR_FUEL_AFTER_UPGRADE = 10000 + (20000 - 10000) * (7 - 5) / (10 - 5)
 
 
-def test_generator_event_switches_fuel_model_at_the_timeline_date(latest_network_data_factory, yaml_model_factory):
+def test_generator_change_switches_fuel_model_at_the_timeline_date(latest_network_data_factory, yaml_model_factory):
     data = _generator_model_data(
         GENERATOR_MODEL,
         {},
         latest_network_data_factory,
-        events=[{"REF": "upgrade", "CHANGE_TO": GENERATOR_MODEL_AFTER_UPGRADE}],
+        changes=[{"REF": "upgrade", "CHANGE_TO": GENERATOR_MODEL_AFTER_UPGRADE}],
     )
     data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
     model = yaml_model_factory(
@@ -462,12 +462,12 @@ def test_generator_event_switches_fuel_model_at_the_timeline_date(latest_network
     assert results_by_period_start[datetime(2021, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_FUEL_AFTER_UPGRADE)
 
 
-def test_generator_events_on_the_same_date_are_reported(latest_network_data_factory, yaml_model_factory):
+def test_generator_changes_on_the_same_date_are_reported(latest_network_data_factory, yaml_model_factory):
     data = _generator_model_data(
         GENERATOR_MODEL,
         {},
         latest_network_data_factory,
-        events=[
+        changes=[
             {"REF": "upgrade", "CHANGE_TO": GENERATOR_MODEL_AFTER_UPGRADE},
             {"REF": "second_upgrade", "CHANGE_TO": GENERATOR_MODEL},
         ],

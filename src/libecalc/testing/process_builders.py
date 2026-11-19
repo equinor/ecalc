@@ -250,7 +250,7 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         self.type = "SERIAL"
         self.name = None
         self.process_units = []
-        self.events = []
+        self.changes = []
         self.anti_surge = "INDIVIDUAL_ASV"
 
     def with_name(self, name: str) -> Self:
@@ -278,8 +278,8 @@ class YamlProcessPipelineBuilder(Builder[YamlProcessPipeline]):
         )
         return self
 
-    def with_events(self, events: list) -> Self:
-        self.events = events
+    def with_changes(self, changes: list) -> Self:
+        self.changes = changes
         return self
 
     def with_anti_surge(self, anti_surge: str) -> Self:

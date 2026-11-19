@@ -291,7 +291,7 @@ class TestGeneratorModelEvents:
                         "TYPE": "GENERATOR",
                         "INPUT": "fuel",
                         "MODEL": GENERATOR,
-                        "EVENTS": [{"CHANGE_TO": GENERATOR_AFTER_UPGRADE, "REF": "upgrade"}],
+                        "CHANGES": [{"CHANGE_TO": GENERATOR_AFTER_UPGRADE, "REF": "upgrade"}],
                     }
                 ],
             }
@@ -363,7 +363,7 @@ class TestCombustionEngineModelEvents:
                         "TYPE": unit_type,
                         "INPUT": "fuel",
                         "MODEL": TURBINE,
-                        "EVENTS": [{"CHANGE_TO": TURBINE_AFTER_UPGRADE, "REF": "upgrade"}],
+                        "CHANGES": [{"CHANGE_TO": TURBINE_AFTER_UPGRADE, "REF": "upgrade"}],
                     }
                 ],
             }

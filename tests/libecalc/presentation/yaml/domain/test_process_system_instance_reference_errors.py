@@ -19,7 +19,7 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     PipelineEventAction,
     PipelineEventChangeType,
-    YamlPipelineEvent,
+    YamlPipelineChange,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
@@ -247,7 +247,7 @@ class TestPipelineEventRefNotFound:
     def test_pipeline_event_ref_not_found(self, yaml_model_factory):
         """A pipeline event with a ref that doesn't match any timeline event
         should produce a clear error."""
-        event = YamlPipelineEvent(
+        event = YamlPipelineChange(
             type=PipelineEventAction.CHANGE,
             change_target="stage_1",
             change_to=YamlCompressorModelChartBuilder().with_test_data().validate(),
@@ -260,7 +260,7 @@ class TestPipelineEventRefNotFound:
             .with_name("train_1")
             .with_item(YamlPressureDropperBuilder().with_test_data().validate())
             .with_compressor_item(compressor="stage_1")
-            .with_events([event])
+            .with_changes([event])
             .validate()
         )
 

@@ -70,7 +70,7 @@ class YamlDefinitions(YamlBase):
         default_factory=dict,
         title="COMPRESSOR_MODELS",
         description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
-        "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE event.",
+        "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE change.",
         json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
 

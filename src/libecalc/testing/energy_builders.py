@@ -2,7 +2,7 @@ from typing import Self
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
-    YamlCombustionEngineModelEvent,
+    YamlCombustionEngineModelChange,
     YamlComponent,
     YamlCompressorSampled,
     YamlDieselConsumer,
@@ -18,12 +18,12 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergyNetwork,
     YamlEnergySource,
     YamlEnergySourceType,
-    YamlEnergyUnitEventChangeType,
+    YamlEnergyUnitChangeType,
     YamlFuelGasConsumer,
     YamlFuelGasSource,
     YamlGasTurbine,
     YamlGenerator,
-    YamlGeneratorModelEvent,
+    YamlGeneratorModelChange,
     YamlJunctionInput,
     YamlMechanicalConsumer,
 )
@@ -198,7 +198,7 @@ class YamlElectricalSourceBuilder(Builder[YamlElectricalSource]):
 # ---------------------------------------------------------------------------
 
 
-class YamlGeneratorModelEventBuilder(Builder[YamlGeneratorModelEvent]):
+class YamlGeneratorModelChangeBuilder(Builder[YamlGeneratorModelChange]):
     def __init__(self):
         self.change_to = None
         self.change_type = None
@@ -208,7 +208,7 @@ class YamlGeneratorModelEventBuilder(Builder[YamlGeneratorModelEvent]):
         self.change_to = change_to
         return self
 
-    def with_change_type(self, change_type: YamlEnergyUnitEventChangeType) -> Self:
+    def with_change_type(self, change_type: YamlEnergyUnitChangeType) -> Self:
         self.change_type = change_type
         return self
 
@@ -219,7 +219,7 @@ class YamlGeneratorModelEventBuilder(Builder[YamlGeneratorModelEvent]):
     def with_test_data(self) -> Self:
         upgraded_curve = YamlGeneratorCurveBuilder().with_test_data().with_fuel([0.0, 23000.0, 44000.0, 64000.0])
         self.change_to = YamlGeneratorDefinitionBuilder().with_curve(upgraded_curve.validate()).validate()
-        self.change_type = YamlEnergyUnitEventChangeType.REBUNDLE
+        self.change_type = YamlEnergyUnitChangeType.REBUNDLE
         self.ref = "generator_upgrade"
         return self
 
@@ -230,7 +230,7 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
         self.name = None
         self.input = None
         self.model = None
-        self.events = None
+        self.changes = None
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -244,8 +244,8 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
         self.model = model
         return self
 
-    def with_events(self, events: list[YamlGeneratorModelEvent]) -> Self:
-        self.events = events
+    def with_changes(self, changes: list[YamlGeneratorModelChange]) -> Self:
+        self.changes = changes
         return self
 
     def with_test_data(self) -> Self:
@@ -255,7 +255,7 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGenerator]):
         return self
 
 
-class YamlCombustionEngineModelEventBuilder(Builder[YamlCombustionEngineModelEvent]):
+class YamlCombustionEngineModelChangeBuilder(Builder[YamlCombustionEngineModelChange]):
     def __init__(self):
         self.change_to = None
         self.change_type = None
@@ -265,7 +265,7 @@ class YamlCombustionEngineModelEventBuilder(Builder[YamlCombustionEngineModelEve
         self.change_to = change_to
         return self
 
-    def with_change_type(self, change_type: YamlEnergyUnitEventChangeType) -> Self:
+    def with_change_type(self, change_type: YamlEnergyUnitChangeType) -> Self:
         self.change_type = change_type
         return self
 
@@ -276,7 +276,7 @@ class YamlCombustionEngineModelEventBuilder(Builder[YamlCombustionEngineModelEve
     def with_test_data(self) -> Self:
         upgraded_curve = YamlTurbineCurveBuilder().with_test_data().with_efficiency([0.142, 0.216, 0.263])
         self.change_to = YamlTurbineDefinitionBuilder().with_curve(upgraded_curve.validate()).validate()
-        self.change_type = YamlEnergyUnitEventChangeType.REBUNDLE
+        self.change_type = YamlEnergyUnitChangeType.REBUNDLE
         self.ref = "turbine_upgrade"
         return self
 
@@ -287,7 +287,7 @@ class YamlGasTurbineBuilder(Builder[YamlGasTurbine]):
         self.name = None
         self.input = None
         self.model = None
-        self.events = None
+        self.changes = None
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -301,8 +301,8 @@ class YamlGasTurbineBuilder(Builder[YamlGasTurbine]):
         self.model = model
         return self
 
-    def with_events(self, events: list[YamlCombustionEngineModelEvent]) -> Self:
-        self.events = events
+    def with_changes(self, changes: list[YamlCombustionEngineModelChange]) -> Self:
+        self.changes = changes
         return self
 
     def with_test_data(self) -> Self:
@@ -318,7 +318,7 @@ class YamlDieselEngineBuilder(Builder[YamlDieselEngine]):
         self.name = None
         self.input = None
         self.model = None
-        self.events = None
+        self.changes = None
 
     def with_name(self, name: str) -> Self:
         self.name = name
@@ -332,8 +332,8 @@ class YamlDieselEngineBuilder(Builder[YamlDieselEngine]):
         self.model = model
         return self
 
-    def with_events(self, events: list[YamlCombustionEngineModelEvent]) -> Self:
-        self.events = events
+    def with_changes(self, changes: list[YamlCombustionEngineModelChange]) -> Self:
+        self.changes = changes
         return self
 
     def with_test_data(self) -> Self:

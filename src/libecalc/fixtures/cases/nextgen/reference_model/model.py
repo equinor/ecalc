@@ -6,9 +6,9 @@ from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
-    YamlCombustionEngineModelEvent,
+    YamlCombustionEngineModelChange,
     YamlEnergySource,
-    YamlGeneratorModelEvent,
+    YamlGeneratorModelChange,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlEfficiencyUnits,
@@ -19,7 +19,7 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     PipelineEventAction,
     PipelineEventChangeType,
-    YamlPipelineEvent,
+    YamlPipelineChange,
     YamlProcessPipeline,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
@@ -32,7 +32,7 @@ from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariab
 from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.testing.energy_builders import (
-    YamlCombustionEngineModelEventBuilder,
+    YamlCombustionEngineModelChangeBuilder,
     YamlCompressorSampledBuilder,
     YamlDieselEngineBuilder,
     YamlDieselSourceBuilder,
@@ -47,7 +47,7 @@ from libecalc.testing.energy_builders import (
     YamlFuelGasSourceBuilder,
     YamlGasTurbineBuilder,
     YamlGeneratorDefinitionBuilder,
-    YamlGeneratorModelEventBuilder,
+    YamlGeneratorModelChangeBuilder,
     YamlTurbineDefinitionBuilder,
 )
 from libecalc.testing.process_builders import (
@@ -221,9 +221,9 @@ def _definitions():
     )
 
 
-def _rebundle_events(train_number: int) -> list[YamlPipelineEvent]:
+def _rebundle_changes(train_number: int) -> list[YamlPipelineChange]:
     return [
-        YamlPipelineEvent(
+        YamlPipelineChange(
             type=PipelineEventAction.CHANGE,
             change_type=PipelineEventChangeType.REBUNDLE,
             change_target=_compressor_name(train_number, number),
@@ -234,7 +234,7 @@ def _rebundle_events(train_number: int) -> list[YamlPipelineEvent]:
     ]
 
 
-def _export_train(train_number: int, events: list[YamlPipelineEvent] | None = None) -> YamlProcessPipeline:
+def _export_train(train_number: int, changes: list[YamlPipelineChange] | None = None) -> YamlProcessPipeline:
     builder = YamlProcessPipelineBuilder().with_name(_train_name(train_number))
     for number in _compressor_numbers():
         builder = (
@@ -243,14 +243,14 @@ def _export_train(train_number: int, events: list[YamlPipelineEvent] | None = No
             .with_item(YamlLiquidRemoverBuilder().validate())
             .with_compressor_item(compressor=_compressor_name(train_number, number), model=COMPRESSOR_MODEL_A)
         )
-    if events:
-        builder = builder.with_events(events)
+    if changes:
+        builder = builder.with_changes(changes)
     return builder.validate()
 
 
 def _process_pipelines() -> dict[str, YamlProcessPipeline]:
     pipelines = [
-        _export_train(train_number, events=_rebundle_events(train_number) if train_number == 1 else None)
+        _export_train(train_number, changes=_rebundle_changes(train_number) if train_number == 1 else None)
         for train_number in _train_numbers()
     ]
     return {pipeline.name: pipeline for pipeline in pipelines}
@@ -336,13 +336,13 @@ def _sampled_compressor(input: str, compressor: str, file: str):
     )
 
 
-def _gas_turbine(name: str, input: str, events: list[YamlCombustionEngineModelEvent] | None = None):
+def _gas_turbine(name: str, input: str, changes: list[YamlCombustionEngineModelChange] | None = None):
     return (
         YamlGasTurbineBuilder()
         .with_name(name)
         .with_input(input)
         .with_model(TURBINE_PERFORMANCE_CURVE)
-        .with_events(events or [])
+        .with_changes(changes or [])
         .validate()
     )
 
@@ -364,22 +364,22 @@ def _drive_train(input: str, shaft: str, mechanical_efficiencies: dict[str, floa
     return builder.validate()
 
 
-def _generator_upgrade_events() -> list[YamlGeneratorModelEvent]:
-    return [YamlGeneratorModelEventBuilder().with_test_data().with_ref(GENERATOR_UPGRADE_EVENT).validate()]
+def _generator_upgrade_changes() -> list[YamlGeneratorModelChange]:
+    return [YamlGeneratorModelChangeBuilder().with_test_data().with_ref(GENERATOR_UPGRADE_EVENT).validate()]
 
 
-def _turbine_upgrade_events() -> list[YamlCombustionEngineModelEvent]:
-    return [YamlCombustionEngineModelEventBuilder().with_test_data().with_ref(TURBINE_UPGRADE_EVENT).validate()]
+def _turbine_upgrade_changes() -> list[YamlCombustionEngineModelChange]:
+    return [YamlCombustionEngineModelChangeBuilder().with_test_data().with_ref(TURBINE_UPGRADE_EVENT).validate()]
 
 
 def _energy_units():
     return [
-        _gas_turbine("export_turbine", "fuel_gas", events=_turbine_upgrade_events()),
+        _gas_turbine("export_turbine", "fuel_gas", changes=_turbine_upgrade_changes()),
         YamlEnergyGeneratorBuilder()
         .with_name("genset_a")
         .with_input("fuel_gas2")
         .with_model(YamlGeneratorDefinitionBuilder().with_test_data().validate())
-        .with_events(_generator_upgrade_events())
+        .with_changes(_generator_upgrade_changes())
         .validate(),
         YamlElectricalCableBuilder()
         .with_name("long_cable")

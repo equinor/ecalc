@@ -7,7 +7,7 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     PipelineEventAction,
     PipelineEventChangeType,
-    YamlPipelineEvent,
+    YamlPipelineChange,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 from libecalc.testing.process_builders import (
@@ -23,7 +23,7 @@ from libecalc.testing.yaml_builder import YamlAssetBuilder
 
 
 def _model_stream(timeline_events: dict[str, dict]) -> ResourceStream:
-    rebundle = YamlPipelineEvent(
+    rebundle = YamlPipelineChange(
         type=PipelineEventAction.CHANGE,
         change_target="stage_1",
         change_to=YamlCompressorModelChartBuilder().with_test_data().validate(),
@@ -34,7 +34,7 @@ def _model_stream(timeline_events: dict[str, dict]) -> ResourceStream:
         YamlProcessPipelineBuilder()
         .with_name("train_1")
         .with_compressor_item(compressor="stage_1")
-        .with_events([rebundle])
+        .with_changes([rebundle])
         .validate()
     )
     simulation = (

@@ -8,7 +8,7 @@ from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlM
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     PipelineEventAction,
     PipelineEventChangeType,
-    YamlPipelineEvent,
+    YamlPipelineChange,
     YamlProcessPipeline,
 )
 from libecalc.testing.process_builders import (
@@ -72,9 +72,9 @@ def test_compressor_model_reference_not_found_is_reported(yaml_model_factory, mo
         YamlProcessPipelineBuilder()
         .with_name("train_1")
         .with_compressor_item(compressor="compressor_1", model=model)
-        .with_events(
+        .with_changes(
             [
-                YamlPipelineEvent(
+                YamlPipelineChange(
                     type=PipelineEventAction.CHANGE,
                     change_target="compressor_1",
                     change_to=change_to,
