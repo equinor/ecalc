@@ -6,7 +6,6 @@ from collections import Counter
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path
-from tempfile import TemporaryFile
 from typing import IO, Protocol
 
 from libecalc.common.errors.exceptions import EcalcError, EcalcErrorType
@@ -356,9 +355,7 @@ def unpack_zip(file: IO) -> tuple[list[ValidEcalcFile], list[InvalidEcalcFile]]:
                         continue
                     elif EcalcFile.is_csv(file_path) or EcalcFile.is_yaml(file_path):
                         with archive.open(zip_info) as file:
-                            file_like = TemporaryFile()
-                            file_like.write(file.read())
-                            file_like.seek(0)
+                            file_like = BytesIO(file.read())
                             valid_files.append(
                                 ValidEcalcFile(
                                     original_filename=file_path,
