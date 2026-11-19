@@ -1,13 +1,15 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Annotated
+from typing import Annotated, Self
 
 from pydantic import (
     ConfigDict,
     Field,
+    ValidationError,
     field_validator,
     model_validator,
 )
+from pydantic_core import InitErrorDetails, PydanticCustomError
 from pydantic_core.core_schema import ValidationInfo
 
 from libecalc.common.string.string_utils import get_duplicates
@@ -78,6 +80,13 @@ class YamlDefinitions(YamlBase):
         "is used, and above the last POWER the highest FUEL is used. In both cases the last point is the maximum "
         "power, which is the unit's capacity.",
     )
+
+
+def _describe_duplicate(name: str, sections: list[str]) -> str:
+    unique_sections = sorted(set(sections))
+    if len(unique_sections) == 1:
+        return f"'{name}' is defined {len(sections)} times in {unique_sections[0]}."
+    return f"'{name}' is used in more than one place: {', '.join(unique_sections)}."
 
 
 class YamlAsset(YamlBase):
@@ -426,43 +435,45 @@ class YamlAsset(YamlBase):
         return self
 
     @model_validator(mode="after")
-    def validate_unique_references(self):
-        references = []
+    def validate_unique_references(self) -> Self:
+        # Each entry is (dotted yaml path, names), so a duplicate can be reported with a precise location.
+        sections: tuple[tuple[str, Iterable[str]], ...] = (
+            ("FACILITY_INPUTS", (facility_input.name for facility_input in self.facility_inputs)),
+            ("MODELS", (model.name for model in self.models)),
+            ("FUEL_TYPES", (fuel_type.name for fuel_type in self.fuel_types)),
+            ("PROCESS_PIPELINES", self.process_pipelines.keys()),
+            ("DEFINITIONS.COMPRESSOR_MODELS", self.definitions.compressor_models.keys()),
+            ("DEFINITIONS.FLUIDS", self.definitions.fluids.keys()),
+            ("DEFINITIONS.PERFORMANCE_CURVES", self.definitions.performance_curves.keys()),
+            ("PROCESS_SIMULATIONS", (process_simulation.name for process_simulation in self.process_simulations)),
+            (
+                "PUMP_PROCESS_SIMULATIONS",
+                (pump_process_simulation.name for pump_process_simulation in self.pump_process_simulations),
+            ),
+            ("FLUID_MODELS", self.fluid_models.keys()),
+            ("INLET_STREAMS", self.inlet_streams.keys()),
+            ("TIMELINE.EVENTS", self.timeline.events.keys() if self.timeline is not None else ()),
+        )
 
-        for facility_input in self.facility_inputs:
-            references.append(facility_input.name)
+        sections_by_name: dict[str, list[str]] = defaultdict(list)
+        for section, names in sections:
+            for name in names:
+                sections_by_name[name].append(section)
 
-        for model in self.models:
-            references.append(model.name)
-
-        for fuel_type in self.fuel_types:
-            references.append(fuel_type.name)
-
-        references.extend(self.process_pipelines.keys())
-
-        references.extend(self.definitions.compressor_models.keys())
-        references.extend(self.definitions.fluids.keys())
-        references.extend(self.definitions.performance_curves.keys())
-
-        for process_simulation in self.process_simulations:
-            references.append(process_simulation.name)
-
-        for pump_process_simulation in self.pump_process_simulations:
-            references.append(pump_process_simulation.name)
-
-        # TODO: Add ecalc events references?
-
-        references.extend(self.fluid_models.keys())
-
-        references.extend(self.inlet_streams.keys())
-
-        duplicated_references = get_duplicates(references)
-
-        if len(duplicated_references) > 0:
-            raise ValueError(
-                f"References/names must be unique across {YamlAsset.model_fields['facility_inputs'].alias}, {YamlAsset.model_fields['models'].alias} and {YamlAsset.model_fields['fuel_types'].alias}."
-                f" Duplicated references are: {', '.join(duplicated_references)}"
+        line_errors = [
+            InitErrorDetails(
+                type=PydanticCustomError("duplicate_reference", "{message}", {"message": message}),
+                loc=(*section.split("."), name),
+                input=name,
             )
+            for name, found_sections in sections_by_name.items()
+            if len(found_sections) > 1
+            for message in (_describe_duplicate(name, found_sections),)
+            # Same-section repeats share an identical yaml path (the path is the name itself); keep one.
+            for section in dict.fromkeys(found_sections)
+        ]
+        if line_errors:
+            raise ValidationError.from_exception_data(self.__class__.__name__, line_errors)
         return self
 
     @model_validator(mode="after")
