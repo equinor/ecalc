@@ -166,11 +166,13 @@ def _render_path(path: tuple[str, ...], anchor_registry: dict[str, str]) -> str:
 
 def _render_yaml_change(entry: YamlChange, anchor_registry: dict[str, str]) -> str:
     line = _render_path(entry.path, anchor_registry)
-    if entry.description:
-        line = f"{line}: {entry.description}"
     if entry.replaced_by:
         replacements = " and ".join(_render_path(path, anchor_registry) for path in entry.replaced_by)
         line = f"{line}: replaced by {replacements}"
+        if entry.description:
+            line = f"{line}. {entry.description}"
+    elif entry.description:
+        line = f"{line}: {entry.description}"
     return f"- {line}"
 
 
@@ -304,7 +306,7 @@ def main():
     add_parser = subcommands.add_parser("add", help=f"Add a YAML change to changelog/{UNRELEASED_FOLDER}.")
     add_parser.add_argument("kind", choices=KINDS)
     add_parser.add_argument("path", help="YAML keywords to the element, e.g. PROCESS_PIPELINES.CHANGES.")
-    add_parser.add_argument("--description", help="What changed, mainly for 'changed'.")
+    add_parser.add_argument("--description", help="What changed and what users must do, e.g. behaviour or migration.")
     add_parser.add_argument(
         "--replaced-by", action="append", default=[], help="For 'removed': the path replacing it. Can be repeated."
     )

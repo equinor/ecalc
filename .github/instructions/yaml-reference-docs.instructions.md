@@ -4,8 +4,8 @@ applyTo: "src/libecalc/presentation/yaml/yaml_types/**,src/generate_yaml_asset_d
 
 # NextGen YAML changes and generated docs
 
-- A change that adds, changes, deprecates or removes a NextGen YAML element needs a changelog entry. To create one,
-  follow `changelog/README.md`.
+- A change that adds, changes, deprecates or removes a NextGen YAML element needs exactly one changelog entry, in
+  `yaml-changes.json`, with `--description` for details. To create one, follow `changelog/README.md`.
 - A removed element is no longer a field, so loading YAML that still uses it fails with Pydantic's unknown-field error.
 - `YamlAsset` separates legacy and NextGen root elements (`LEGACY_ROOT_FIELDS`, `NEXTGEN_ROOT_FIELDS`,
   `COMMON_ROOT_FIELDS`). A new root element must be added to one of these sets.

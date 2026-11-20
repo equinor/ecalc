@@ -14,7 +14,8 @@ Rules: `.github/instructions/yaml-reference-docs.instructions.md`. How to create
    ```
    List each NextGen element that was added, changed, deprecated or removed and has no entry yet. If only
    descriptions changed, go to step 3.
-2. Create the entries and notes as described in `changelog/README.md`.
+2. Create one entry per change as described in `changelog/README.md`: in `yaml-changes.json` (with `--description`
+   for anything the path cannot express) if it affects the schema, otherwise in `notes.md`. Never both.
 3. Generate and build the docs, then check that every entry appears under Unreleased and that its links resolve.
 4. Verify:
    ```bash
