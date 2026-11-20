@@ -17,7 +17,12 @@ from libecalc.testing.process_builders import (
     YamlTimelineBuilder,
     shaft_for,
 )
-from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlLegacyAssetBuilder
+from libecalc.testing.yaml_builder import (
+    YamlAssetBuilder,
+    YamlElectricity2fuelBuilder,
+    YamlLegacyAssetBuilder,
+    YamlTurbineBuilder,
+)
 
 DUMP_KWARGS = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
 
@@ -174,3 +179,19 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
     )
 
     assert [simulation.name for simulation in asset.process_simulations] == ["simulation_1", "simulation_2"]
+
+
+def test_unique_references_names_colliding_sections(yaml_legacy_asset_builder_factory):
+    with pytest.raises(
+        ValidationError,
+        match=r"'duplicated_name' is used in more than one place: FACILITY_INPUTS, MODELS\.",
+    ):
+        (
+            yaml_legacy_asset_builder_factory()
+            .with_test_data()
+            .with_facility_inputs(
+                [YamlElectricity2fuelBuilder().with_test_data().with_name("duplicated_name").validate()]
+            )
+            .with_models([YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate()])
+            .validate()
+        )

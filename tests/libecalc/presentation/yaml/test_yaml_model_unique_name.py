@@ -255,9 +255,8 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
 
     errors = exc_info.value.errors()
     assert len(errors) == 1
-    assert errors[0].message == snapshot(
-        "References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: same"
-    )
+    assert errors[0].message == snapshot("'same' is defined 2 times in FUEL_TYPES.")
+    assert errors[0].location.keys == snapshot(["FUEL_TYPES", "same"])
 
 
 @pytest.mark.inlinesnapshot
@@ -296,7 +295,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
 @pytest.mark.inlinesnapshot
 @pytest.mark.snapshot
 @pytest.mark.parametrize(
-    "facility_inputs, models, expected_error_message",
+    "facility_inputs, models, expected_error_messages, expected_locations",
     [
         (
             [
@@ -312,9 +311,8 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
                 .validate(),
             ],
             [],
-            snapshot(
-                "References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
-            ),
+            snapshot(["'duplicated_name' is defined 2 times in FACILITY_INPUTS."]),
+            snapshot([["FACILITY_INPUTS", "duplicated_name"]]),
         ),
         (
             [
@@ -328,8 +326,12 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
                 YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
             ],
             snapshot(
-                "References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
+                [
+                    "'duplicated_name' is used in more than one place: FACILITY_INPUTS, MODELS.",
+                    "'duplicated_name' is used in more than one place: FACILITY_INPUTS, MODELS.",
+                ]
             ),
+            snapshot([["FACILITY_INPUTS", "duplicated_name"], ["MODELS", "duplicated_name"]]),
         ),
         (
             [],
@@ -337,14 +339,18 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
                 YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
                 YamlTurbineBuilder().with_test_data().with_name("duplicated_name").validate(),
             ],
-            snapshot(
-                "References/names must be unique across FACILITY_INPUTS, MODELS and FUEL_TYPES. Duplicated references are: duplicated_name"
-            ),
+            snapshot(["'duplicated_name' is defined 2 times in MODELS."]),
+            snapshot([["MODELS", "duplicated_name"]]),
         ),
     ],
 )
 def test_models_unique_name(
-    facility_inputs, models, expected_error_message, yaml_asset_configuration_service_factory, resource_service_factory
+    facility_inputs,
+    models,
+    expected_error_messages,
+    expected_locations,
+    yaml_asset_configuration_service_factory,
+    resource_service_factory,
 ):
     """
     TEST SCOPE: Check that duplicate timeseries names are not allowed.
@@ -362,5 +368,5 @@ def test_models_unique_name(
         yaml_model.validate_for_run()
 
     errors = exc_info.value.errors()
-    assert len(errors) == 1
-    assert errors[0].message == expected_error_message
+    assert [error.message for error in errors] == expected_error_messages
+    assert [error.location.keys for error in errors] == expected_locations
