@@ -1,5 +1,30 @@
 # Changelog
 
+## [15.9.0](https://github.com/equinor/ecalc/compare/v15.8.0...v15.9.0) (2026-11-20)
+
+
+### Features
+
+* make process pipelines and inlet streams lists identified by name ([#1962](https://github.com/equinor/ecalc/issues/1962)) ([d4bbe9d](https://github.com/equinor/ecalc/commit/d4bbe9d73ee32d00645925621a9b8eec47b75925))
+* remove yaml version ([afd3dd7](https://github.com/equinor/ecalc/commit/afd3dd7cd0da75238297324331e7d878f77bdf8b))
+
+
+### Bug Fixes
+
+* **libecalc:** report each duplicate reference with its own location and message ([#1961](https://github.com/equinor/ecalc/issues/1961)) ([b016ca5](https://github.com/equinor/ecalc/commit/b016ca59cd57b75ec6edeccb9a7e10db5ef15172)), closes [#2471](https://github.com/equinor/ecalc/issues/2471)
+* validate energy connections ([1f1ad7e](https://github.com/equinor/ecalc/commit/1f1ad7e7f4e77963576634852093cf7f0be16d0c))
+
+
+### Documentation
+
+* yaml version was removed ([d9e1826](https://github.com/equinor/ecalc/commit/d9e1826c917abe10cb66420a75002fbc26df65c3))
+
+
+### Continuous Integration
+
+* changelog freeze race condition ([f8aac0f](https://github.com/equinor/ecalc/commit/f8aac0fe5b2450b6b1598268d07d995580c1b39c))
+* skip freeze for patch release ([1d6d57b](https://github.com/equinor/ecalc/commit/1d6d57bb93cfb3529e7016698085e488ffc69afc))
+
 ## [15.8.0](https://github.com/equinor/ecalc/compare/v15.7.0...v15.8.0) (2026-11-19)
 
 
