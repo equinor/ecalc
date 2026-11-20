@@ -214,8 +214,18 @@ def test_freeze_without_entries_creates_no_release_folder(tmp_path: Path):
     (tmp_path / "unreleased").mkdir()
     (tmp_path / "unreleased" / ".gitkeep").touch()
 
-    assert not freeze_release(tmp_path, "15.9.0").exists()
+    release_dir = freeze_release(tmp_path, "15.9.0")
+
+    assert release_dir is not None and not release_dir.exists()
     assert (tmp_path / "unreleased" / ".gitkeep").exists()
+
+
+def test_freeze_skips_patch_release(tmp_path: Path):
+    add_yaml_change(tmp_path, ADDED_CHANGES, KNOWN_PATHS)
+    before = _files(tmp_path)
+
+    assert freeze_release(tmp_path, "15.9.1") is None
+    assert _files(tmp_path) == before
 
 
 def test_freeze_rejects_entries_in_both_release_and_unreleased(tmp_path: Path):
@@ -226,7 +236,7 @@ def test_freeze_rejects_entries_in_both_release_and_unreleased(tmp_path: Path):
         freeze_release(tmp_path, "15.9.0")
 
 
-@pytest.mark.parametrize("version", ["15.9.1", "15.9"])
+@pytest.mark.parametrize("version", ["15.9", "v15.9.0", "15.9.x"])
 def test_freeze_rejects_invalid_versions(tmp_path: Path, version: str):
     with pytest.raises(ValueError):
         freeze_release(tmp_path, version)
