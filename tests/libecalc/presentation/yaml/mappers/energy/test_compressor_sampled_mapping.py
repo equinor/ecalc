@@ -239,7 +239,7 @@ def _asset(file: str) -> YamlAsset:
 def _yaml_model(yaml_model_factory, resources: dict[str, MemoryResource], file: str = "compressor.csv"):
     asset_dict = _asset(file).model_dump(serialize_as_any=True, mode="json", exclude_unset=True, by_alias=True)
     stream = ResourceStream(name="model.yaml", stream=StringIO(PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)))
-    return yaml_model_factory(configuration=stream, resources=resources)
+    return yaml_model_factory(configuration=stream, resources=resources, nextgen=True)
 
 
 class TestEndToEnd:

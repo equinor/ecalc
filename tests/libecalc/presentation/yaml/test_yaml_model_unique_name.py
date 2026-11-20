@@ -73,6 +73,7 @@ def duplicate_genset_name_model(
         resource_service=resource_service_factory(
             {el2fuel_resource_reference: el2fuel_factory()}, configuration=configuration
         ),
+        nextgen=False,
     )
 
 
@@ -168,6 +169,7 @@ def generate_model(
         resource_service=resource_service_factory(
             {el2fuel_resource_reference: el2fuel_factory()}, configuration=configuration
         ),
+        nextgen=False,
     )
 
 
@@ -246,6 +248,7 @@ def test_fuel_types_unique_name(yaml_asset_configuration_service_factory, resour
     yaml_model = YamlModel(
         configuration=configuration,
         resource_service=resource_service_factory({}, configuration=configuration),
+        nextgen=False,
     )
     with pytest.raises(ModelValidationException) as exc_info:
         yaml_model.validate_for_run()
@@ -280,6 +283,7 @@ def test_timeseries_unique_name(yaml_asset_configuration_service_factory, resour
         resource_service=resource_service_factory(
             {"DefaultTimeSeries.csv": production_profile_factory()}, configuration=configuration
         ),
+        nextgen=False,
     )
     with pytest.raises(ModelValidationException) as exc_info:
         yaml_model.validate_for_run()
@@ -352,6 +356,7 @@ def test_models_unique_name(
     yaml_model = YamlModel(
         configuration=configuration,
         resource_service=resource_service_factory({"el2fuelresource": el2fuel_factory()}, configuration=configuration),
+        nextgen=False,
     )
     with pytest.raises(ModelValidationException) as exc_info:
         yaml_model.validate_for_run()

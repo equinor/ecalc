@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal
 
 from pydantic import Field, model_validator
 
@@ -13,7 +13,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution impo
     YamlIndividualStreamDistribution,
     YamlStreamDistribution,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V5, removed_field
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
 
@@ -142,12 +141,3 @@ class YamlPumpProcessSimulation(YamlBase):
             "head low enough for this pressure, its discharge pressure is higher and the choke drops the difference.",
         ),
     ]
-
-    # REMOVED FIELDS
-    required_discharge_pressure: Any = removed_field(
-        title="REQUIRED_DISCHARGE_PRESSURE",
-        available_since=V2,
-        removed_in=V5,
-        replaced_by=("PUMP_PROCESS_SIMULATIONS", "OUTLET_PRESSURE"),
-    )
-    # END REMOVED FIELDS

@@ -148,11 +148,11 @@ docs/docs/about/getting_started/cli/cli_reference.md
 docs/docs/about/nextgen/process-reference.mdx
 docs/docs/about/nextgen/energy-reference.mdx
 docs/docs/about/nextgen/yaml-reference.mdx
-docs/docs/about/nextgen/yaml-changelog.md
 docs/docs/about/nextgen/examples.mdx
 docs/docs/about/nextgen/energy-units/*
 !docs/docs/about/nextgen/energy-units/_category_.json
 docs/static/examples/nextgen/
+docs/docs/changelog/nextgen.md
 
 .DS_store
 

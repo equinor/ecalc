@@ -2,7 +2,6 @@ from pydantic import ConfigDict, Field
 
 from libecalc.dto.utils.validators import ComponentNameStr
 from libecalc.presentation.yaml.yaml_types import YamlBase
-from libecalc.presentation.yaml.yaml_types.yaml_version import V3, yaml_element_lifecycle
 
 type CompressorReference = str
 
@@ -10,7 +9,7 @@ type CompressorReference = str
 class YamlCompressor(YamlBase):
     """A physical compressor. Pipeline compressor slots and COMPRESSOR_SAMPLED units reference it by name."""
 
-    model_config = ConfigDict(title="Compressor", json_schema_extra=yaml_element_lifecycle(available_since=V3))
+    model_config = ConfigDict(title="Compressor")
 
     name: ComponentNameStr = Field(
         ...,

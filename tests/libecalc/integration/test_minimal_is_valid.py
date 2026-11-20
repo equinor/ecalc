@@ -12,6 +12,7 @@ def minimal_asset_result(minimal_model_yaml_factory, resource_service_factory):
     model = YamlModel(
         configuration=configuration,
         resource_service=resource_service_factory({}, configuration=configuration),
+        nextgen=False,
     )
     model.evaluate_energy_usage()
     return get_asset_result(model)

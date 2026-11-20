@@ -7,7 +7,6 @@ from libecalc.fixtures.cases.nextgen.reference_model import (
     export_example_archive,
     export_example_page,
 )
-from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 
 DEFAULT_DOCS_DIRECTORY = Path(__file__).parent.parent / "docs" / "docs" / "about" / "nextgen"
 DEFAULT_ARCHIVE_DIRECTORY = Path(__file__).parent.parent / "docs" / "static" / "examples" / "nextgen"
@@ -17,7 +16,7 @@ def main(
     docs_directory: Path = DEFAULT_DOCS_DIRECTORY,
     archive_directory: Path = DEFAULT_ARCHIVE_DIRECTORY,
 ) -> None:
-    model = build_reference_model(LATEST_YAML_VERSION)
+    model = build_reference_model()
     files = example_files(model)
     generated_paths = [
         export_example_archive(archive_directory, files),

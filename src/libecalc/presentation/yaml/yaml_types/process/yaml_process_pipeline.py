@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Annotated, Any, Literal, Self, assert_never
+from typing import Annotated, Literal, Self, assert_never
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -19,7 +19,6 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V2, V3, V4, V5, removed_field, yaml_element_lifecycle
 
 CompressorModelOrReference = Annotated[
     DefinitionReference | YamlCompressorModelChart,
@@ -30,35 +29,20 @@ CompressorModelOrReference = Annotated[
 class YamlCompressorProcessUnitInstance(YamlBase):
     """A compressor from COMPRESSORS, run with a compressor model."""
 
-    model_config = ConfigDict(
-        title="COMPRESSOR_PROCESS_UNIT", json_schema_extra=yaml_element_lifecycle(available_since=V2)
-    )
+    model_config = ConfigDict(title="COMPRESSOR_PROCESS_UNIT")
     type: Literal["COMPRESSOR"]
 
     model: CompressorModelOrReference = Field(
         ...,
         title="MODEL",
         description="The compressor model. Replaces TARGET. Other PROCESS_UNITs no longer supported. They must be defined inline without a reference.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
     compressor: CompressorReference = Field(
         ...,
         title="COMPRESSOR",
         description="Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT "
         "refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
-
-    # REMOVED FIELDS
-    target: Any = removed_field(
-        title="TARGET",
-        available_since=V2,
-        removed_in=V4,
-        message="Other PROCESS_UNITS can no longer be defined with TARGET.",
-        replaced_by=("PROCESS_PIPELINES", "PROCESS_UNITS", "MODEL"),
-    )
-    shaft: Any = removed_field(title="SHAFT", available_since=V2, removed_in=V3, replaced_by=("SHAFTS", "COMPRESSORS"))
-    # END REMOVED FIELDS
 
     def get_instance_reference(self) -> InstanceReference:
         """The name CHANGE_TARGET and CONSTRAINTS use to refer to this process unit: the compressor's name."""
@@ -114,15 +98,6 @@ class YamlPipelineChange(YamlBase):
         ),
     ]
 
-    # REMOVED FIELDS
-    change_from: Any = removed_field(
-        title="CHANGE_FROM",
-        available_since=V2,
-        removed_in=V4,
-        message="No longer in use. Remove. This is detected automatically.",
-    )
-    # END REMOVED FIELDS
-
 
 # Every process unit is chosen by its TYPE, so an invalid unit reports the errors of its own type only.
 YamlProcessUnit = Annotated[
@@ -154,14 +129,6 @@ class YamlProcessPipeline(YamlBase):
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
         ),
     ] = []
-
-    # REMOVED FIELDS
-    events: Any = removed_field(
-        title="EVENTS",
-        removed_in=V5,
-        replaced_by=("PROCESS_PIPELINES", "CHANGES"),
-    )
-    # END REMOVED FIELDS
 
     @property
     def compressors(self) -> list[CompressorReference]:

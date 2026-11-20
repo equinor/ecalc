@@ -82,7 +82,9 @@ def _create_model(
         )
     )
     return yaml_model_factory(
-        configuration=ResourceStream(name="nextgen_model", stream=StringIO(yaml_string)), resources={}
+        configuration=ResourceStream(name="nextgen_model", stream=StringIO(yaml_string)),
+        resources={},
+        nextgen=True,
     )
 
 

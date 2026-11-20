@@ -20,13 +20,13 @@ def nextgen_yaml(tmp_path: Path) -> YamlCase:
 
 @pytest.fixture
 def nextgen_model(nextgen_yaml: YamlCase):
-    model = nextgen_yaml.get_yaml_model()
+    model = nextgen_yaml.get_yaml_model(nextgen=True)
     model.validate_for_run()
     return model
 
 
 def test_nextgen_example_is_valid(nextgen_yaml: YamlCase):
-    model = nextgen_yaml.get_yaml_model()
+    model = nextgen_yaml.get_yaml_model(nextgen=True)
 
     assert model.validate_nextgen() is model
 

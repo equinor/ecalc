@@ -73,7 +73,7 @@ def _model(yaml_model_factory, asset: YamlAsset, variables: dict) -> YamlModel:
     asset_dict = asset.model_dump(serialize_as_any=True, mode="json", exclude_unset=True, by_alias=True)
     asset_dict["VARIABLES"] = variables
     stream = ResourceStream(name="test_model", stream=StringIO(PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)))
-    return yaml_model_factory(configuration=stream, resources={})
+    return yaml_model_factory(configuration=stream, resources={}, nextgen=True)
 
 
 @pytest.fixture

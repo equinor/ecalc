@@ -20,6 +20,7 @@ def test_control_margin_required(configuration_service_factory, yaml_variable_sp
     model = YamlModel(
         configuration=configuration,
         resource_service=resource_service,
+        nextgen=False,
     )
 
     with pytest.raises(ModelValidationException) as exc_info:

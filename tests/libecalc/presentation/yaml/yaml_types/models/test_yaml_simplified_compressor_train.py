@@ -22,6 +22,7 @@ def test_control_margin_and_pressure_drop_not_allowed(
     model = YamlModel(
         configuration=configuration,
         resource_service=resource_service,
+        nextgen=False,
     )
 
     with pytest.raises(ModelValidationException) as exc_info:
@@ -62,6 +63,7 @@ def test_single_speed_chart_not_allowed(configuration_service_factory, yaml_simp
     model = YamlModel(
         configuration=configuration,
         resource_service=resource_service,
+        nextgen=False,
     )
 
     with pytest.raises(ModelValidationException) as exc_info:
