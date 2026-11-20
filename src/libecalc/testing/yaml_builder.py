@@ -51,12 +51,15 @@ from libecalc.presentation.yaml.yaml_types.models.model_reference_validation imp
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_pipeline import YamlPumpPipeline
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import YamlPumpSimulation
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlDefaultTimeSeriesCollection,
     YamlTimeSeriesCollection,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
+from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
     YamlEmissionRate,
@@ -833,6 +836,9 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.process_pipelines: list[YamlProcessPipeline] | None = None
         self.process_simulations: list[YamlProcessSimulation] | None = None
         self.energy_network: YamlEnergyNetwork | None = None
+        self.pumps: list[YamlPump] | None = None
+        self.pump_pipelines: list[YamlPumpPipeline] | None = None
+        self.pump_simulations: list[YamlPumpSimulation] | None = None
         self.timeline: YamlTimeline | None = None
         self.start = None
         self.end = None
@@ -883,6 +889,18 @@ class YamlAssetBuilder(Builder[YamlAsset]):
 
     def with_energy_network(self, energy_network: YamlEnergyNetwork) -> Self:
         self.energy_network = energy_network
+        return self
+
+    def with_pumps(self, pumps: list[YamlPump]) -> Self:
+        self.pumps = pumps
+        return self
+
+    def with_pump_pipelines(self, pump_pipelines: list[YamlPumpPipeline]) -> Self:
+        self.pump_pipelines = pump_pipelines
+        return self
+
+    def with_pump_simulations(self, pump_simulations: list[YamlPumpSimulation]) -> Self:
+        self.pump_simulations = pump_simulations
         return self
 
     def with_timeline(self, timeline: YamlTimeline) -> Self:

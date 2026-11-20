@@ -29,15 +29,16 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlProcessPipeline,
 )
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlProcessSimulation,
-    YamlPumpProcessSimulation,
-)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressorModelChart
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_model import YamlPumpModel
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_pipeline import YamlPumpPipeline
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import YamlPumpSimulation
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference, YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
+from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
@@ -79,6 +80,13 @@ class YamlDefinitions(YamlBase):
         "by GENERATOR) interpolates fuel directly from a power/fuel curve: below the first POWER the lowest FUEL "
         "is used, and above the last POWER the highest FUEL is used. In both cases the last point is the maximum "
         "power, which is the unit's capacity.",
+    )
+
+    pump_models: dict[str, YamlPumpModel] = Field(
+        default_factory=dict,
+        title="PUMP_MODELS",
+        description="Defines pump models that can be referenced by name from MODEL of a pump process unit in "
+        "PUMP_PIPELINES.",
     )
 
 
@@ -175,10 +183,22 @@ class YamlAsset(YamlBase):
         description="Defines dated events in the model. Event dates are added to the time steps of process "
         "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
     )
-    pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
+    pumps: list[YamlPump] = Field(
         default_factory=list,
-        title="PUMP_PROCESS_SIMULATIONS",
-        description="Defines one or more liquid pump process simulations to be run.",
+        title="PUMPS",
+        description="Defines the physical pumps in the model. Pump process units in PUMP_PIPELINES refer to a pump "
+        "by name with PUMP.",
+    )
+    pump_pipelines: list[YamlPumpPipeline] = Field(
+        default_factory=list,
+        title="PUMP_PIPELINES",
+        description="Defines pump pipelines to use in pump simulations.",
+    )
+    pump_simulations: list[YamlPumpSimulation] = Field(
+        default_factory=list,
+        title="PUMP_SIMULATIONS",
+        description="Defines one or more pump simulations to be run. A pump simulation distributes a liquid inlet "
+        "rate over its target pump pipelines.",
     )
     installations: list[YamlInstallation] = Field(
         default_factory=list,
@@ -458,10 +478,6 @@ class YamlAsset(YamlBase):
             ("DEFINITIONS.FLUIDS", self.definitions.fluids.keys()),
             ("DEFINITIONS.PERFORMANCE_CURVES", self.definitions.performance_curves.keys()),
             ("PROCESS_SIMULATIONS", (process_simulation.name for process_simulation in self.process_simulations)),
-            (
-                "PUMP_PROCESS_SIMULATIONS",
-                (pump_process_simulation.name for pump_process_simulation in self.pump_process_simulations),
-            ),
             ("FLUID_MODELS", self.fluid_models.keys()),
             ("INLET_STREAMS", (inlet_stream.name for inlet_stream in self.inlet_streams)),
             ("TIMELINE.EVENTS", self.timeline.events.keys() if self.timeline is not None else ()),
@@ -673,7 +689,9 @@ NEXTGEN_ROOT_FIELDS = frozenset(
         "compressors",
         "process_pipelines",
         "process_simulations",
-        "pump_process_simulations",
+        "pumps",
+        "pump_pipelines",
+        "pump_simulations",
         "energy_network",
         "timeline",
     }

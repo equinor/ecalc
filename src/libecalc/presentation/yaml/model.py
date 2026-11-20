@@ -1,6 +1,8 @@
 import operator
 import uuid
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Iterator, Sequence
+from contextlib import contextmanager
+from dataclasses import dataclass
 from datetime import datetime
 from functools import cached_property, reduce
 from typing import Any, Self
@@ -36,8 +38,11 @@ from libecalc.domain.regularity import Regularity
 from libecalc.domain.resource import Resource
 from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
+from libecalc.ecalc_model.equipment.pump_equipment import PumpEquipment
 from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
 from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline
+from libecalc.ecalc_model.process.pump.pump_pipeline import PumpPipeline
+from libecalc.ecalc_model.process.pump.pump_simulation import PumpSimulation
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
@@ -62,7 +67,7 @@ from libecalc.presentation.yaml.mappers.component_mapper import EcalcModelMapper
 from libecalc.presentation.yaml.mappers.energy_network_mapper import EnergyNetworkMapper
 from libecalc.presentation.yaml.mappers.model import ResourceValidationException
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
-from libecalc.presentation.yaml.mappers.pump_process_simulation_mapper import PumpProcessSimulationMapper
+from libecalc.presentation.yaml.mappers.pump_simulation_mapper import PumpSimulationMapper
 from libecalc.presentation.yaml.mappers.timeline_event_mapper import TimelineEventMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
@@ -80,6 +85,7 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_reference_service import YamlReferenceService
+from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     YamlEnergyNetwork,
@@ -88,6 +94,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     get_unit_label,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import YamlPumpSimulation
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_validation_context import (
     ModelContext,
@@ -95,12 +102,16 @@ from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
     YamlModelValidationContextNames,
 )
-from libecalc.process.pump.pump_process_simulation import (
-    PumpOperatingInput,
-    PumpProcessSimulation,
-)
 
 DEFAULT_START_TIME = datetime(1900, 1, 1)
+
+
+@dataclass(frozen=True)
+class _SimulationContext:
+    reference_service: ReferenceService
+    timeline_event_service: TimelineEventService
+    facility_resources: dict[str, Resource]
+    time_series_resources: dict[str, TimeSeriesResource]
 
 
 class Context(ComponentEnergyContext):
@@ -166,6 +177,7 @@ class YamlModel:
             compressor.name: CompressorEquipment(name=compressor.name, alias=compressor.alias)
             for compressor in self._configuration.compressors
         }
+        self._pumps = {pump.name: PumpEquipment(name=pump.name, alias=pump.alias) for pump in self._configuration.pumps}
         # Unknown compressor names are skipped here and reported by validation (YamlAsset).
         self._shafts = {
             shaft.name: ShaftEquipment(
@@ -209,128 +221,97 @@ class YamlModel:
         return def_dict
 
     def get_process_simulations(self) -> tuple[list[ProcessPipeline], list[ProcessSimulation]]:
+        return self._map_simulations(self._configuration.process_simulations, self._map_process_simulation)
+
+    def get_pumps(self) -> list[PumpEquipment]:
+        return list(self._pumps.values())
+
+    def get_pump_simulations(self) -> tuple[list[PumpPipeline], list[PumpSimulation]]:
+        return self._map_simulations(self._configuration.pump_simulations, self._map_pump_simulation)
+
+    def _map_simulations[TYamlSimulation, TPipeline, TSimulation](
+        self,
+        yaml_simulations: Iterable[TYamlSimulation],
+        map_simulation: Callable[[TYamlSimulation, _SimulationContext], tuple[list[TPipeline], TSimulation]],
+    ) -> tuple[list[TPipeline], list[TSimulation]]:
         self.validate_for_run()
-        timeline_event_service = self._get_timeline_event_service()
         facility_resources, _ = self._resource_service.get_facility_resources()
         time_series_resources, _ = self._resource_service.get_time_series_resources()
+        context = _SimulationContext(
+            reference_service=self._get_reference_service(),
+            timeline_event_service=self._get_timeline_event_service(),
+            facility_resources=facility_resources,
+            time_series_resources=time_series_resources,
+        )
 
-        reference_service = self._get_reference_service()
-
-        mapped_process_simulations = []
-        mapped_process_pipelines = []
+        mapped_pipelines: list[TPipeline] = []
+        mapped_simulations: list[TSimulation] = []
         errors: list[ModelValidationError] = []
-        for yaml_process_simulation in self._configuration.process_simulations:
+        for yaml_simulation in yaml_simulations:
             try:
-                process_pipelines, process_simulation = self._map_process_simulation(
-                    yaml_process_simulation=yaml_process_simulation,
-                    reference_service=reference_service,
-                    timeline_event_service=timeline_event_service,
-                    facility_resources=facility_resources,
-                    time_series_resources=time_series_resources,
-                )
+                pipelines, simulation = map_simulation(yaml_simulation, context)
             except ModelValidationException as e:
                 errors.extend(e.errors())
                 continue
-            mapped_process_pipelines.extend(process_pipelines)
-            mapped_process_simulations.append(process_simulation)
+            mapped_pipelines.extend(pipelines)
+            mapped_simulations.append(simulation)
 
         if errors:
             raise ModelValidationException(errors=errors)
 
-        return mapped_process_pipelines, mapped_process_simulations
+        return mapped_pipelines, mapped_simulations
 
     def _map_process_simulation(
-        self,
-        yaml_process_simulation: YamlProcessSimulation,
-        reference_service: ReferenceService,
-        timeline_event_service: TimelineEventService,
-        facility_resources: dict[str, Resource],
-        time_series_resources: dict[str, TimeSeriesResource],
+        self, yaml_process_simulation: YamlProcessSimulation, context: _SimulationContext
     ) -> tuple[list[ProcessPipeline], ProcessSimulation]:
         yaml_keys = ("PROCESS_SIMULATIONS", yaml_process_simulation.name)
-
-        def _simulation_error(e: Exception) -> ModelValidationException:
-            return ModelValidationException(
-                errors=[
-                    ModelValidationError(
-                        location=Location(keys=yaml_keys),
-                        message=str(e),
-                        file_context=self._configuration.get_file_context(yaml_keys),
-                    )
-                ]
-            )
-
-        try:
-            yaml_process_simulation = expand_definitions(
-                yaml_process_simulation,
-                definitions=self._get_definitions(),
-            )
-        except DefinitionReferenceError as e:
-            raise _simulation_error(e) from e
-        process_simulation_references = reference_service.get_references(yaml_process_simulation)
-
-        reference_objects = {}
-        expression_references = extract_expression_references(yaml_process_simulation)
-        for process_simulation_reference in process_simulation_references:
-            try:
-                reference_object = reference_service.get_reference(process_simulation_reference)
-            except InvalidReferenceException as e:
-                raise _simulation_error(e) from e
-            try:
-                reference_object = expand_definitions(
-                    reference_object,
-                    definitions=self._get_definitions(),
-                )
-            except DefinitionReferenceError as e:
-                reference_yaml_path = reference_service.get_yaml_path(process_simulation_reference)
-                reference_keys = reference_yaml_path.keys
-                raise ModelValidationException(
-                    errors=[
-                        ModelValidationError(
-                            location=Location(
-                                keys=reference_keys,
-                            ),
-                            message=str(e),
-                            file_context=self._configuration.get_file_context(reference_keys),
-                        )
-                    ]
-                ) from e
-            reference_object_expression_references = extract_expression_references(reference_object)
-
-            reference_objects[process_simulation_reference] = reference_object
-            expression_references.update(reference_object_expression_references)
-
-        time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}
-        time_series_name_map = {
-            time_series_file_name_map[ts.file]: time_series_resources[ts.file] for ts in self._configuration.time_series
-        }
-
-        end = self._configuration.end
-        assert end is not None
-        expression_evaluator = StrictExpressionEvaluator.from_expression_references(
-            expression_references=expression_references,
-            variables=self._configuration.variables,
-            time_series_resources=time_series_name_map,
-            start=self._configuration.start,
-            end=end,
-            additional_dates=timeline_event_service.get_event_dates(),
+        yaml_process_simulation, reference_objects, expression_evaluator = self._resolve_simulation(
+            yaml_process_simulation, yaml_keys, context
         )
-
         mapper = ProcessSimulationMapper(
             expression_evaluator=expression_evaluator,
-            resources=facility_resources,
+            resources=context.facility_resources,
             references=reference_objects,
-            timeline_event_service=timeline_event_service,
+            timeline_event_service=context.timeline_event_service,
             shafts=self._shafts,
             compressor_equipment_ids=self._get_compressor_equipment_ids(),
         )
+        with self._simulation_errors(yaml_keys):
+            return mapper.map_process_simulation(yaml_process_simulation=yaml_process_simulation)
 
+    def _map_pump_simulation(
+        self, yaml_pump_simulation: YamlPumpSimulation, context: _SimulationContext
+    ) -> tuple[list[PumpPipeline], PumpSimulation]:
+        yaml_keys = ("PUMP_SIMULATIONS", yaml_pump_simulation.name)
+        yaml_pump_simulation, reference_objects, expression_evaluator = self._resolve_simulation(
+            yaml_pump_simulation, yaml_keys, context
+        )
+        mapper = PumpSimulationMapper(
+            expression_evaluator=expression_evaluator,
+            references=reference_objects,
+            resources=context.facility_resources,
+            pump_equipment_ids={name: pump.get_id() for name, pump in self._pumps.items()},
+        )
+        with self._simulation_errors(yaml_keys):
+            return mapper.map_pump_simulation(yaml_pump_simulation)
+
+    def _simulation_error(self, yaml_keys: tuple[str, ...], e: Exception) -> ModelValidationException:
+        return ModelValidationException(
+            errors=[
+                ModelValidationError(
+                    location=Location(keys=yaml_keys),
+                    message=str(e),
+                    file_context=self._configuration.get_file_context(yaml_keys),
+                )
+            ]
+        )
+
+    @contextmanager
+    def _simulation_errors(self, yaml_keys: tuple[str, ...]) -> Iterator[None]:
         try:
-            return mapper.map_process_simulation(
-                yaml_process_simulation=yaml_process_simulation,
-            )
+            yield
         except EcalcValidationException as e:
-            raise _simulation_error(e) from e
+            raise self._simulation_error(yaml_keys, e) from e
         except ResourceValidationException as e:
             raise ModelValidationException(
                 errors=[
@@ -342,6 +323,59 @@ class YamlModel:
                     )
                 ]
             ) from e
+
+    def _resolve_simulation[TYamlSimulation: YamlBase](
+        self,
+        yaml_simulation: TYamlSimulation,
+        yaml_keys: tuple[str, ...],
+        context: _SimulationContext,
+    ) -> tuple[TYamlSimulation, dict[str, Any], ExpressionEvaluator]:
+        reference_service = context.reference_service
+        try:
+            yaml_simulation = expand_definitions(yaml_simulation, definitions=self._get_definitions())
+        except DefinitionReferenceError as e:
+            raise self._simulation_error(yaml_keys, e) from e
+
+        reference_objects = {}
+        expression_references = extract_expression_references(yaml_simulation)
+        for simulation_reference in reference_service.get_references(yaml_simulation):
+            try:
+                reference_object = reference_service.get_reference(simulation_reference)
+            except InvalidReferenceException as e:
+                raise self._simulation_error(yaml_keys, e) from e
+            try:
+                reference_object = expand_definitions(reference_object, definitions=self._get_definitions())
+            except DefinitionReferenceError as e:
+                reference_keys = reference_service.get_yaml_path(simulation_reference).keys
+                raise ModelValidationException(
+                    errors=[
+                        ModelValidationError(
+                            location=Location(keys=reference_keys),
+                            message=str(e),
+                            file_context=self._configuration.get_file_context(reference_keys),
+                        )
+                    ]
+                ) from e
+            reference_objects[simulation_reference] = reference_object
+            expression_references.update(extract_expression_references(reference_object))
+
+        time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}
+        time_series_name_map = {
+            time_series_file_name_map[ts.file]: context.time_series_resources[ts.file]
+            for ts in self._configuration.time_series
+        }
+
+        end = self._configuration.end
+        assert end is not None
+        expression_evaluator = StrictExpressionEvaluator.from_expression_references(
+            expression_references=expression_references,
+            variables=self._configuration.variables,
+            time_series_resources=time_series_name_map,
+            start=self._configuration.start,
+            end=end,
+            additional_dates=context.timeline_event_service.get_event_dates(),
+        )
+        return yaml_simulation, reference_objects, expression_evaluator
 
     def get_energy_network(
         self,
@@ -440,7 +474,7 @@ class YamlModel:
 
     def validate_nextgen(self) -> Self:
         errors: list[ModelValidationError] = []
-        for map_nextgen in (self.get_process_simulations, self.get_energy_network):
+        for map_nextgen in (self.get_process_simulations, self.get_pump_simulations, self.get_energy_network):
             try:
                 map_nextgen()
             except ModelValidationException as e:
@@ -456,22 +490,6 @@ class YamlModel:
 
     def _get_timeline_event_service(self) -> TimelineEventService:
         return TimelineEventService(timeline_events=self.get_timeline_events())
-
-    def get_pump_process_simulations(
-        self,
-    ) -> list[tuple[PumpProcessSimulation, list[PumpOperatingInput], list[Period]]]:
-        self.validate_for_run()
-        facility_resources, _ = self._resource_service.get_facility_resources()
-        mapper = PumpProcessSimulationMapper(
-            expression_evaluator=self.get_expression_evaluator(),
-            process_simulation_period=self.period,
-            resources=facility_resources,
-            reference_service=self._get_reference_service(),
-        )
-        return [
-            mapper.map(yaml_pump_process_simulation)
-            for yaml_pump_process_simulation in self._configuration.pump_process_simulations
-        ]
 
     def get_periods(self) -> list[Period]:
         """

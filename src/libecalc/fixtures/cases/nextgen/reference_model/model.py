@@ -24,9 +24,13 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import 
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessConstraint
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlCommonStreamSetting
+from libecalc.presentation.yaml.yaml_types.pump.yaml_liquid_stream import YamlLiquidStreamRateUnit
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_pipeline import YamlPumpPipeline
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import YamlPumpPressureControl
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlStreamRateUnit
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
+from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlSingleVariable, YamlVariables
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
@@ -65,6 +69,17 @@ from libecalc.testing.process_builders import (
     YamlTimelineBuilder,
     YamlTimelineEventBuilder,
 )
+from libecalc.testing.pump_builders import (
+    YamlLiquidInletStreamBuilder,
+    YamlLiquidStreamRateBuilder,
+    YamlPumpBuilder,
+    YamlPumpChartBuilder,
+    YamlPumpCommonStreamDistributionBuilder,
+    YamlPumpConstraintBuilder,
+    YamlPumpModelBuilder,
+    YamlPumpPipelineBuilder,
+    YamlPumpSimulationBuilder,
+)
 from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlTimeSeriesBuilder
 
 RESOURCE_DIRECTORY = Path(__file__).parent / "data"
@@ -84,6 +99,11 @@ GENERATOR_UPGRADE_EVENT = "generator_upgrade_2030"
 TURBINE_UPGRADE_EVENT = "turbine_upgrade_2028"
 
 TURBINE_PERFORMANCE_CURVE = "turbine_performance_curve"
+
+PUMP_MODEL = "injection_pump_model"
+PUMP_NAMES = ["injection_pump_1", "injection_pump_2"]
+PUMP_ALIASES = ["Injection pump 1", None]
+PUMP_PIPELINE_NAMES = ["injection_line_1", "injection_line_2"]
 
 EXPORT_TRAIN_ALIASES = [
     ["aliasA", "aliasB"],
@@ -209,12 +229,79 @@ def _compressor_model():
     return YamlCompressorModelChartBuilder().with_chart(chart).with_control_margin(0.0).validate()
 
 
+def _pump_model():
+    chart = YamlPumpChartBuilder().with_test_data().validate()
+    return YamlPumpModelBuilder().with_chart(chart).with_minimum_flow_rate(300).validate()
+
+
+def _pumps() -> list[YamlPump]:
+    return [
+        YamlPumpBuilder().with_name(name).with_alias(alias).validate() for name, alias in zip(PUMP_NAMES, PUMP_ALIASES)
+    ]
+
+
+def _pump_pipelines() -> list[YamlPumpPipeline]:
+    first_line = YamlPumpPipelineBuilder().with_name(PUMP_PIPELINE_NAMES[0]).with_pump_item(PUMP_NAMES[0], PUMP_MODEL)
+    second_line = (
+        YamlPumpPipelineBuilder()
+        .with_name(PUMP_PIPELINE_NAMES[1])
+        .with_pressure_dropper_item(4)
+        .with_pump_item(PUMP_NAMES[1], PUMP_MODEL)
+    )
+    return [first_line.validate(), second_line.validate()]
+
+
+def _pump_simulation():
+    inlet_stream = (
+        YamlLiquidInletStreamBuilder()
+        .with_name("injection_header")
+        .with_pressure(10.0)
+        .with_density(1022.0)
+        .with_rate(
+            YamlLiquidStreamRateBuilder()
+            .with_value("$var.water_injection_rate")
+            .with_unit(YamlLiquidStreamRateUnit.M3_PER_DAY)
+            .with_type(RateType.STREAM_DAY)
+            .validate()
+        )
+        .validate()
+    )
+    stream_distribution = (
+        YamlPumpCommonStreamDistributionBuilder()
+        .with_inlet_stream(inlet_stream)
+        .with_rate_fractions([[1.0, 0.0], [0.5, 0.5]])
+        .validate()
+    )
+    return (
+        YamlPumpSimulationBuilder()
+        .with_name("water_injection_simulation")
+        .with_target(PUMP_PIPELINE_NAMES[0])
+        .with_target(PUMP_PIPELINE_NAMES[1])
+        .with_stream_distribution(stream_distribution)
+        .with_constraint(
+            PUMP_PIPELINE_NAMES[0],
+            [YamlPumpConstraintBuilder().with_outlet_pressure(240).validate()],
+        )
+        .with_constraint(
+            PUMP_PIPELINE_NAMES[1],
+            [
+                YamlPumpConstraintBuilder()
+                .with_outlet_pressure(190)
+                .with_pressure_control(YamlPumpPressureControl.DOWNSTREAM_CHOKE)
+                .validate()
+            ],
+        )
+        .validate()
+    )
+
+
 def _definitions():
     return (
         YamlDefinitionsBuilder()
         .with_fluid(FLUID_NAME, YamlPredefinedFluidDefinitionBuilder().with_test_data().validate())
         .with_compressor_model(COMPRESSOR_MODEL_A, _compressor_model())
         .with_compressor_model(COMPRESSOR_MODEL_B, _compressor_model())
+        .with_pump_model(PUMP_MODEL, _pump_model())
         .with_performance_curve(TURBINE_PERFORMANCE_CURVE, YamlTurbineDefinitionBuilder().with_test_data().validate())
         .validate()
     )
@@ -429,6 +516,9 @@ def build_reference_model() -> YamlAsset:
         .with_definitions(_definitions())
         .with_process_pipelines(_process_pipelines())
         .with_process_simulations([_process_simulation()])
+        .with_pumps(_pumps())
+        .with_pump_pipelines(_pump_pipelines())
+        .with_pump_simulations([_pump_simulation()])
         .with_energy_network(_energy_network())
         .validate()
     )

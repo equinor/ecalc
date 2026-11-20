@@ -4,12 +4,12 @@ from libecalc.expression.extract_expressions import extract_expression_reference
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidComposition
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlPumpProcessInlet
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import (
     YamlPressureDropperDefinition,
     YamlTemperatureSetterDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import YamlCommonStreamSetting
+from libecalc.presentation.yaml.yaml_types.pump.yaml_liquid_stream import YamlLiquidInletStream
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
     YamlInletStream,
     YamlInletStreamRate,
@@ -85,7 +85,12 @@ class TestExtractExpressionReferences:
         assert refs == {"SIM1;RATE", "SIM1;COND_A", "SIM1;COND_B"}
 
     def test_multiple_expression_fields(self):
-        inlet = YamlPumpProcessInlet(rate="SIM1;RATE", pressure="SIM1;P_IN", density="SIM1;RHO")
+        inlet = YamlLiquidInletStream(
+            name="inlet",
+            pressure="SIM1;P_IN",
+            density="SIM1;RHO",
+            rate={"VALUE": "SIM1;RATE", "UNIT": "M3_PER_DAY"},
+        )
         refs = extract_expression_references(inlet)
         assert refs == {"SIM1;RATE", "SIM1;P_IN", "SIM1;RHO"}
 

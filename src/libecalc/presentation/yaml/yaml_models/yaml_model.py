@@ -17,15 +17,15 @@ from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model im
 from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlFuelType
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlProcessSimulation,
-    YamlPumpProcessSimulation,
-)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_pipeline import YamlPumpPipeline
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import YamlPumpSimulation
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
     YamlTimeSeriesCollection,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
+from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable
@@ -125,7 +125,17 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def pump_process_simulations(self) -> Iterable[YamlPumpProcessSimulation]:
+    def pumps(self) -> list[YamlPump]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def pump_pipelines(self) -> list[YamlPumpPipeline]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def pump_simulations(self) -> list[YamlPumpSimulation]:
         pass
 
     @property
