@@ -60,6 +60,8 @@ The model contains:
 - A `TIMELINE` event that rebundles the compressors of the first export train.
 - One `PROCESS_SIMULATIONS` entry that distributes a common inlet stream between the export trains, with constraints for each
   train.
+- Two pumps defined in `PUMPS`, run in `PUMP_PIPELINES` with a pump model from `DEFINITIONS.PUMP_MODELS`, and one
+  `PUMP_SIMULATIONS` entry that distributes a common liquid inlet stream between the pump pipelines.
 - An `ENERGY_NETWORK` with fuel gas and electrical sources, generator, gas turbines, electrical cable and motors, drive
   trains for the export trains, an electrical consumer, and sampled compressors driven by an electrical motor and by
   a gas turbine.

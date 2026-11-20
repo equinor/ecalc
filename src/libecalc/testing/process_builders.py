@@ -49,6 +49,7 @@ from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution impo
     YamlIndividualStreamDistribution,
     YamlOverflow,
 )
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_model import YamlPumpModel
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import (
     YamlInletStream,
     YamlInletStreamRate,
@@ -599,6 +600,7 @@ class YamlDefinitionsBuilder(Builder[YamlDefinitions]):
         self.compressor_models: dict[str, YamlCompressorModelChart] = {}
         self.fluids: dict[str, YamlFluidDefinition] = {}
         self.performance_curves: dict[str, YamlPerformanceCurveDefinition] = {}
+        self.pump_models: dict[str, YamlPumpModel] | None = None
 
     def with_compressor_model(self, name: str, model: YamlCompressorModelChart) -> Self:
         self.compressor_models[name] = model
@@ -606,6 +608,10 @@ class YamlDefinitionsBuilder(Builder[YamlDefinitions]):
 
     def with_fluid(self, name: str, definition: YamlFluidDefinition) -> Self:
         self.fluids[name] = definition
+        return self
+
+    def with_pump_model(self, name: str, model: YamlPumpModel) -> Self:
+        self.pump_models = {**(self.pump_models or {}), name: model}
         return self
 
     def with_performance_curve(self, name: str, definition: YamlPerformanceCurveDefinition) -> Self:

@@ -35,7 +35,7 @@ sidebar_position: 0
 INTRO = """\
 # eCalc NextGen
 
-Changes to the NextGen YAML types: `FLUIDS`, `PROCESS_SIMULATIONS`, `PUMP_PROCESS_SIMULATIONS` and `ENERGY_NETWORK`.
+Changes to the NextGen YAML types: `FLUIDS`, `PROCESS_SIMULATIONS`, `PUMP_SIMULATIONS` and `ENERGY_NETWORK`.
 These are not available in legacy models, so they are not part of the release changelogs.
 """
 

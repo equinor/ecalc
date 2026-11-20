@@ -32,10 +32,9 @@ from libecalc.presentation.yaml.yaml_types.models import (
 from libecalc.presentation.yaml.yaml_types.models.yaml_enums import YamlModelType
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlProcessSimulation,
-    YamlPumpProcessSimulation,
-)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_pipeline import YamlPumpPipeline
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import YamlPumpSimulation
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 
 logger = logging.getLogger(__name__)
@@ -48,7 +47,8 @@ type ReferenceType = (
     | YamlInletStream
     | YamlProcessPipeline
     | YamlProcessSimulation
-    | YamlPumpProcessSimulation
+    | YamlPumpPipeline
+    | YamlPumpSimulation
     | YamlFluidDefinition
 )
 
@@ -128,11 +128,15 @@ class YamlReferenceService(ReferenceService):
             references[process_simulation.name] = process_simulation
             reference_yaml_context[process_simulation.name] = process_simulation_path
 
-        pump_process_simulations_path = YamlPath(keys=("PUMP_PROCESS_SIMULATIONS",))
-        for pump_process_simulation_index, pump_process_simulation in enumerate(configuration.pump_process_simulations):
-            pump_process_simulation_path = pump_process_simulations_path.append(pump_process_simulation_index)
-            references[pump_process_simulation.name] = pump_process_simulation
-            reference_yaml_context[pump_process_simulation.name] = pump_process_simulation_path
+        pump_pipelines_path = YamlPath(keys=("PUMP_PIPELINES",))
+        for pump_pipeline_index, pump_pipeline in enumerate(configuration.pump_pipelines):
+            references[pump_pipeline.name] = pump_pipeline
+            reference_yaml_context[pump_pipeline.name] = pump_pipelines_path.append(pump_pipeline_index)
+
+        pump_simulations_path = YamlPath(keys=("PUMP_SIMULATIONS",))
+        for pump_simulation_index, pump_simulation in enumerate(configuration.pump_simulations):
+            references[pump_simulation.name] = pump_simulation
+            reference_yaml_context[pump_simulation.name] = pump_simulations_path.append(pump_simulation_index)
 
         fluid_models_path = YamlPath(keys=("FLUID_MODELS",))
 

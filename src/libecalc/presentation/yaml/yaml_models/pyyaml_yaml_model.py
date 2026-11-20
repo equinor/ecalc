@@ -40,15 +40,16 @@ from libecalc.presentation.yaml.yaml_types.fuel_type.yaml_fuel_type import YamlF
 from libecalc.presentation.yaml.yaml_types.models import YamlConsumerModel, YamlFluidModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_fluid_definitions import YamlFluidDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import YamlProcessPipeline
-from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import (
-    YamlProcessSimulation,
-    YamlPumpProcessSimulation,
-)
+from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlCompressorModelChart
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_model import YamlPumpModel
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_pipeline import YamlPumpPipeline
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import YamlPumpSimulation
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream
 from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import YamlTimeSeriesCollection
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
+from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
@@ -65,7 +66,10 @@ _PERFORMANCE_CURVES_KEY = "PERFORMANCE_CURVES"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _TIMELINE_KEY = "TIMELINE"
 _EVENTS_KEY = "EVENTS"
-_PUMP_PROCESS_SIMULATIONS_KEY = "PUMP_PROCESS_SIMULATIONS"
+_PUMP_MODELS_KEY = "PUMP_MODELS"
+_PUMPS_KEY = "PUMPS"
+_PUMP_PIPELINES_KEY = "PUMP_PIPELINES"
+_PUMP_SIMULATIONS_KEY = "PUMP_SIMULATIONS"
 _SHAFTS_KEY = "SHAFTS"
 _COMPRESSORS_KEY = "COMPRESSORS"
 dt_adapter = TypeAdapter(datetime.datetime)
@@ -470,12 +474,14 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         compressor_models: dict[str, YamlCompressorModelChart] = {}
         fluids: dict[str, YamlFluidDefinition] = {}
         performance_curves: dict[str, YamlTurbineDefinition | YamlGeneratorDefinition] = {}
+        pump_models: dict[str, YamlPumpModel] = {}
         definitions = (
             self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
         )
         raw_compressor_models = definitions.get(_COMPRESSOR_MODELS_KEY, {}) if isinstance(definitions, dict) else {}
         raw_fluids = definitions.get(_FLUIDS_KEY, {}) if isinstance(definitions, dict) else {}
         raw_performance_curves = definitions.get(_PERFORMANCE_CURVES_KEY, {}) if isinstance(definitions, dict) else {}
+        raw_pump_models = definitions.get(_PUMP_MODELS_KEY, {}) if isinstance(definitions, dict) else {}
 
         for name, compressor_model_data in raw_compressor_models.items():
             try:
@@ -492,11 +498,18 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
                 performance_curves[name] = _performance_curve_adapter.validate_python(performance_curve_data)
             except PydanticValidationError:
                 pass
+        if isinstance(raw_pump_models, dict):
+            for name, pump_model_data in raw_pump_models.items():
+                try:
+                    pump_models[name] = YamlPumpModel.model_validate(pump_model_data)
+                except PydanticValidationError:
+                    pass
 
         return YamlDefinitions(
             compressor_models=compressor_models,
             fluids=fluids,
             performance_curves=performance_curves,
+            pump_models=pump_models,
         )
 
     @property
@@ -567,15 +580,26 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return timeline_events
 
     @property
-    def pump_process_simulations(self) -> list[YamlPumpProcessSimulation]:
-        pump_process_simulations: list[YamlPumpProcessSimulation] = []
-        adapter = TypeAdapter(YamlPumpProcessSimulation)
-        for pump_process_simulation in self._get_yaml_list_or_empty(_PUMP_PROCESS_SIMULATIONS_KEY):
+    def pumps(self) -> list[YamlPump]:
+        return self._validate_list_items(_PUMPS_KEY, YamlPump)
+
+    @property
+    def pump_pipelines(self) -> list[YamlPumpPipeline]:
+        return self._validate_list_items(_PUMP_PIPELINES_KEY, YamlPumpPipeline)
+
+    @property
+    def pump_simulations(self) -> list[YamlPumpSimulation]:
+        return self._validate_list_items(_PUMP_SIMULATIONS_KEY, YamlPumpSimulation)
+
+    def _validate_list_items[T](self, key: str, item_type: type[T]) -> list[T]:
+        items: list[T] = []
+        adapter = TypeAdapter(item_type)
+        for item in self._get_yaml_list_or_empty(key):
             try:
-                pump_process_simulations.append(adapter.validate_python(pump_process_simulation))
+                items.append(adapter.validate_python(item))
             except PydanticValidationError:
                 pass
-        return pump_process_simulations
+        return items
 
     @property
     def start(self) -> datetime.datetime | None:

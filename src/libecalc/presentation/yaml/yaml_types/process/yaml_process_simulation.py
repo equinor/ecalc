@@ -1,11 +1,10 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from pydantic import Field, model_validator
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
-    DefinitionReference,
     InstanceReference,
 )
 from libecalc.presentation.yaml.yaml_types.process.yaml_stream_distribution import (
@@ -88,56 +87,3 @@ class YamlProcessSimulation(YamlBase):
                     )
 
         return self
-
-
-class YamlPumpProcessModel(YamlBase):
-    chart: Annotated[
-        DefinitionReference,
-        Field(
-            title="CHART",
-            description="Reference to a pump chart defined in FACILITY_INPUTS.",
-        ),
-    ]
-    minimum_flow_rate: Annotated[
-        float | None,
-        Field(
-            title="MINIMUM_FLOW_RATE",
-            description="Minimum pump flow in m3/h. Defaults to the chart minimum.",
-        ),
-    ] = None
-
-
-class YamlPumpProcessInlet(YamlBase):
-    rate: Annotated[
-        YamlExpressionType,
-        Field(title="RATE", description="Requested liquid rate in m3/day."),
-    ]
-    pressure: Annotated[
-        YamlExpressionType,
-        Field(title="PRESSURE", description="Pump suction pressure in bara."),
-    ]
-    density: Annotated[
-        YamlExpressionType,
-        Field(title="DENSITY", description="Liquid density in kg/m3."),
-    ]
-
-
-class YamlPumpProcessSimulation(YamlBase):
-    type: Literal["PUMP"]
-    name: str
-    pump_model: Annotated[
-        YamlPumpProcessModel,
-        Field(title="PUMP_MODEL"),
-    ]
-    inlet: Annotated[
-        YamlPumpProcessInlet,
-        Field(title="INLET"),
-    ]
-    outlet_pressure: Annotated[
-        YamlExpressionType,
-        Field(
-            title="OUTLET_PRESSURE",
-            description="Requested outlet pressure in bara, downstream of the choke. When the pump cannot run at a "
-            "head low enough for this pressure, its discharge pressure is higher and the choke drops the difference.",
-        ),
-    ]
