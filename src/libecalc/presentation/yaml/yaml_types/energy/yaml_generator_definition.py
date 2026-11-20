@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 from pydantic import ConfigDict, Field, model_validator
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.energy.models.generator_fuel_model import validate_generator_curve
+from libecalc.energy.models.generator_set_fuel_model import validate_generator_curve
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 

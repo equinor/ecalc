@@ -60,8 +60,8 @@ The model contains:
 - A `TIMELINE` event that rebundles the compressors of the first export train.
 - One `PROCESS_SIMULATIONS` entry that distributes a common inlet stream between the export trains, with constraints for each
   train.
-- An `ENERGY_NETWORK` with fuel gas and electrical sources, generator, gas turbines, electrical cable and motors, drive
-  trains for the export trains, an electrical consumer, and sampled compressors driven by an electrical motor and by
+- An `ENERGY_NETWORK` with fuel gas and electrical sources, generator set, gas turbines, electrical cable and motors, drive
+  trains for the export trains, an electrical consumer, and sampled compressors driven by an electrical motor or by
   a gas turbine.
 - `MECHANICAL_EFFICIENCIES` on `export_train_1_drive`, for both compressors on its shaft, and on `export_train_2_el`,
   for one compressor. The other compressor has efficiency 1.0.
