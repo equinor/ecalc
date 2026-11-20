@@ -1,6 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
-from typing import Annotated, Self
+from typing import Annotated, Any, Self
 
 from pydantic import (
     ConfigDict,
@@ -118,10 +118,10 @@ class YamlAsset(YamlBase):
         title="FLUID_MODELS",
         description="Defines fluid models that can be referenced by inlet streams.",
     )
-    inlet_streams: dict[str, YamlInletStream] = Field(
-        default_factory=dict,
+    inlet_streams: list[YamlInletStream] = Field(
+        default_factory=list,
         title="INLET_STREAMS",
-        description="Defines inlet streams that can be referenced by process system and stream distribution.",
+        description="Defines inlet streams, each identified by NAME, that a STREAM_DISTRIBUTION can refer to by name.",
     )
     models: list[YamlConsumerModel] = Field(
         default_factory=list,
@@ -152,10 +152,10 @@ class YamlAsset(YamlBase):
         description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
         "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
     )
-    process_pipelines: dict[str, YamlProcessPipeline] = Field(
-        default_factory=dict,
+    process_pipelines: list[YamlProcessPipeline] = Field(
+        default_factory=list,
         title="PROCESS_PIPELINES",
-        description="Defines process pipelines to use in process simulations.",
+        description="Defines process pipelines, each identified by NAME, to use in process simulations.",
     )
     process_simulations: list[YamlProcessSimulation] = Field(
         default_factory=list,
@@ -322,11 +322,23 @@ class YamlAsset(YamlBase):
             )
         return compressors
 
+    @field_validator("inlet_streams", "process_pipelines", mode="before")
+    @classmethod
+    def validate_named_list_is_not_mapping(cls, value: Any, info: ValidationInfo) -> Any:
+        if isinstance(value, dict):
+            field_name = info.field_name
+            alias = cls.model_fields[field_name].alias if field_name is not None else "This section"
+            raise ValueError(
+                f"{alias} is a list of items identified by NAME. "
+                "Give each item as a list item with NAME, not as a key in a mapping."
+            )
+        return value
+
     def _process_compressor_models(self) -> list[tuple[CompressorReference, str]]:
         """Every model of a compressor in the process domain, as (compressor, human-readable location)."""
         return [
-            (compressor, f"process pipeline '{pipeline_name}'")
-            for pipeline_name, pipeline in self.process_pipelines.items()
+            (compressor, f"process pipeline '{pipeline.name}'")
+            for pipeline in self.process_pipelines
             for compressor in pipeline.compressors
         ]
 
@@ -368,12 +380,12 @@ class YamlAsset(YamlBase):
         """The shafts of the compressors in each process pipeline. A compressor on no shaft is reported elsewhere."""
         shaft_by_compressor = self._shaft_by_compressor()
         return {
-            pipeline_name: {
+            pipeline.name: {
                 shaft_by_compressor[compressor]
                 for compressor in pipeline.compressors
                 if compressor in shaft_by_compressor
             }
-            for pipeline_name, pipeline in self.process_pipelines.items()
+            for pipeline in self.process_pipelines
         }
 
     @model_validator(mode="after")
@@ -441,7 +453,7 @@ class YamlAsset(YamlBase):
             ("FACILITY_INPUTS", (facility_input.name for facility_input in self.facility_inputs)),
             ("MODELS", (model.name for model in self.models)),
             ("FUEL_TYPES", (fuel_type.name for fuel_type in self.fuel_types)),
-            ("PROCESS_PIPELINES", self.process_pipelines.keys()),
+            ("PROCESS_PIPELINES", (pipeline.name for pipeline in self.process_pipelines)),
             ("DEFINITIONS.COMPRESSOR_MODELS", self.definitions.compressor_models.keys()),
             ("DEFINITIONS.FLUIDS", self.definitions.fluids.keys()),
             ("DEFINITIONS.PERFORMANCE_CURVES", self.definitions.performance_curves.keys()),
@@ -451,7 +463,7 @@ class YamlAsset(YamlBase):
                 (pump_process_simulation.name for pump_process_simulation in self.pump_process_simulations),
             ),
             ("FLUID_MODELS", self.fluid_models.keys()),
-            ("INLET_STREAMS", self.inlet_streams.keys()),
+            ("INLET_STREAMS", (inlet_stream.name for inlet_stream in self.inlet_streams)),
             ("TIMELINE.EVENTS", self.timeline.events.keys() if self.timeline is not None else ()),
         )
 
@@ -479,7 +491,7 @@ class YamlAsset(YamlBase):
     @model_validator(mode="after")
     def validate_constraint_process_units(self):
         """A constraint splits its pipeline after a compressor, so PROCESS_UNIT names a compressor in that pipeline."""
-        compressors_by_pipeline = {pipeline.name: pipeline.compressors for pipeline in self.process_pipelines.values()}
+        compressors_by_pipeline = {pipeline.name: pipeline.compressors for pipeline in self.process_pipelines}
         violations: list[str] = []
         for simulation in self.process_simulations:
             for pipeline_name, constraints in simulation.constraints.items():
@@ -614,9 +626,7 @@ class YamlAsset(YamlBase):
         compressors_by_shaft = {shaft.name: shaft.compressors for shaft in self.shafts}
         targeted_pipelines = {target for simulation in self.process_simulations for target in simulation.targets}
         pipeline_by_compressor = {
-            compressor: pipeline_name
-            for pipeline_name, pipeline in self.process_pipelines.items()
-            for compressor in pipeline.compressors
+            compressor: pipeline.name for pipeline in self.process_pipelines for compressor in pipeline.compressors
         }
 
         violations: list[str] = []

@@ -341,7 +341,7 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         if isinstance(definitions, dict):
             for section in (_COMPRESSOR_MODELS_KEY, _PERFORMANCE_CURVES_KEY):
                 resource_names.extend(_find_file_references(definitions.get(section)))
-        for section in ("PROCESS_PIPELINES", "ENERGY_NETWORK"):
+        for section in (_PROCESS_PIPELINES_KEY, "ENERGY_NETWORK"):
             resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
 
         # Dedup while preserving order — the same CSV may be referenced by multiple charts.
@@ -443,14 +443,12 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return installations
 
     @property
-    def inlet_streams(self) -> dict[str, YamlInletStream]:
-        inlet_streams: dict[str, YamlInletStream] = {}
-        raw = self._get_yaml_dict_or_empty(_INLET_STREAMS_KEY)
+    def inlet_streams(self) -> list[YamlInletStream]:
+        inlet_streams: list[YamlInletStream] = []
         adapter = TypeAdapter(YamlInletStream)
-
-        for name, stream in raw.items():
+        for stream in self._get_yaml_list_or_empty(_INLET_STREAMS_KEY):
             try:
-                inlet_streams[name] = adapter.validate_python(stream)
+                inlet_streams.append(adapter.validate_python(stream))
             except PydanticValidationError:
                 pass
         return inlet_streams
@@ -524,16 +522,14 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         return compressors
 
     @property
-    def process_pipelines(self) -> dict[str, YamlProcessPipeline]:
-        process_pipelines: dict[str, YamlProcessPipeline] = {}
-        raw = self._get_yaml_dict_or_empty(_PROCESS_PIPELINES_KEY)
-
-        for name, process_pipeline in raw.items():
+    def process_pipelines(self) -> list[YamlProcessPipeline]:
+        process_pipelines: list[YamlProcessPipeline] = []
+        adapter = TypeAdapter(YamlProcessPipeline)
+        for process_pipeline in self._get_yaml_list_or_empty(_PROCESS_PIPELINES_KEY):
             try:
-                process_pipelines[name] = TypeAdapter(YamlProcessPipeline).validate_python(process_pipeline)
+                process_pipelines.append(adapter.validate_python(process_pipeline))
             except PydanticValidationError:
                 pass
-
         return process_pipelines
 
     @property

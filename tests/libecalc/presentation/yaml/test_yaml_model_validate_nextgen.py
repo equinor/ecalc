@@ -63,7 +63,7 @@ def _create_model(
         .with_test_data()
         .with_shafts([shaft_for(pipeline, name=f"shaft_{pipeline.name}") for pipeline in pipelines])
         .with_compressors([compressor for pipeline in pipelines for compressor in compressors_in(pipeline)])
-        .with_process_pipelines({pipeline.name: pipeline for pipeline in pipelines})
+        .with_process_pipelines(pipelines)
         .with_process_simulations(simulations)
         .with_definitions(
             YamlDefinitionsBuilder()

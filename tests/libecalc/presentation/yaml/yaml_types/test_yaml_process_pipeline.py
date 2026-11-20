@@ -40,7 +40,7 @@ def _asset_data() -> dict:
         )
         .with_shafts([shaft_for(train_a, name="shaft_a"), shaft_for(train_b, name="shaft_b")])
         .with_compressors(compressors_in(train_a, train_b))
-        .with_process_pipelines({"train_a": train_a, "train_b": train_b})
+        .with_process_pipelines([train_a, train_b])
         .with_process_simulations(
             [
                 YamlProcessSimulationBuilder()
@@ -57,7 +57,7 @@ def _asset_data() -> dict:
 
 def _with_rebundle(change_target: str, change_to: str | dict) -> dict:
     data = _asset_data()
-    data["PROCESS_PIPELINES"]["train_a"]["CHANGES"] = [
+    data["PROCESS_PIPELINES"][0]["CHANGES"] = [
         {
             "TYPE": "CHANGE",
             "CHANGE_TARGET": change_target,

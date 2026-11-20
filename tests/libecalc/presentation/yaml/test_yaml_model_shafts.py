@@ -62,7 +62,7 @@ def _asset(mechanical_efficiencies: dict[str, YamlExpressionType]) -> YamlAsset:
         .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         .with_shafts([shaft_for(pipeline, name=SHAFT)])
         .with_compressors(compressors_in(pipeline))
-        .with_process_pipelines({pipeline.name: pipeline})
+        .with_process_pipelines([pipeline])
         .with_process_simulations([simulation])
         .with_energy_network(energy_network)
         .validate()

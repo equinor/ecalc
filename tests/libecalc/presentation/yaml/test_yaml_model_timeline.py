@@ -48,7 +48,7 @@ def _model_stream(timeline_events: dict[str, dict]) -> ResourceStream:
         .with_end("2024-01-01")
         .with_shafts([shaft_for(pipeline, name="shaft")])
         .with_compressors(compressors_in(pipeline))
-        .with_process_pipelines({"train_1": pipeline})
+        .with_process_pipelines([pipeline])
         .with_process_simulations([simulation])
         .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
     ).validate()

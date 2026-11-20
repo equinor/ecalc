@@ -85,7 +85,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def inlet_streams(self) -> dict[str, YamlInletStream]:
+    def inlet_streams(self) -> list[YamlInletStream]:
         pass
 
     @property
@@ -105,7 +105,7 @@ class YamlValidator(abc.ABC):
 
     @property
     @abc.abstractmethod
-    def process_pipelines(self) -> dict[str, YamlProcessPipeline]:
+    def process_pipelines(self) -> list[YamlProcessPipeline]:
         pass
 
     @property

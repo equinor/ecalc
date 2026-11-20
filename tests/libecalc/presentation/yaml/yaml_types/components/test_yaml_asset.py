@@ -125,7 +125,7 @@ def test_pipeline_can_only_be_targeted_by_one_simulation():
         (
             YamlAssetBuilder()
             .with_test_data()
-            .with_process_pipelines({pipeline.name: pipeline})
+            .with_process_pipelines([pipeline])
             .with_process_simulations([simulation_1, simulation_2])
             .validate()
         )
@@ -173,7 +173,7 @@ def test_distinct_pipelines_can_each_be_targeted_by_their_own_simulation(
         .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         .with_shafts([shaft_for(pipeline_1, name="shaft_1"), shaft_for(pipeline_2, name="shaft_2")])
         .with_compressors([YamlCompressor(name="compressor_1"), YamlCompressor(name="compressor_2")])
-        .with_process_pipelines({pipeline_1.name: pipeline_1, pipeline_2.name: pipeline_2})
+        .with_process_pipelines([pipeline_1, pipeline_2])
         .with_process_simulations([simulation_1, simulation_2])
         .validate()
     )
