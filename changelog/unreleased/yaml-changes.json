@@ -1,0 +1,11 @@
+{
+  "entries": [
+    {
+      "kind": "removed",
+      "path": [
+        "YAML_VERSION"
+      ],
+      "description": "Whether a model is NextGen or legacy is decided by how it is run, not by the YAML file. Remove YAML_VERSION from existing files."
+    }
+  ]
+}

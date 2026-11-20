@@ -89,6 +89,25 @@ def test_changed_entry_shows_description_and_unresolved_path_is_not_linked(tmp_p
     assert "- `DEFINITIONS` › `TURBINES`: Moved.\n" in _render(tmp_path)
 
 
+def test_removed_entry_shows_replacement_and_description(tmp_path: Path):
+    _write_release(
+        tmp_path,
+        "v15.7",
+        yaml_changes={
+            "entries": [
+                {
+                    "kind": "removed",
+                    "path": ["A", "OLD"],
+                    "replaced_by": [["A", "NEW"]],
+                    "description": "Rename it.",
+                }
+            ],
+        },
+    )
+
+    assert "- `A` › `OLD`: replaced by `A` › `NEW`. Rename it.\n" in _render(tmp_path)
+
+
 def test_empty_unreleased_folder_is_skipped(tmp_path: Path):
     (tmp_path / "unreleased").mkdir()
     (tmp_path / "unreleased" / ".gitkeep").touch()
