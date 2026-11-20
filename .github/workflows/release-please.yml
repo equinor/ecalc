@@ -65,11 +65,14 @@ jobs:
 
   # Freezes the NextGen changelog in the release PR: changelog/unreleased becomes changelog/vX.Y, and a new empty
   # changelog/unreleased is created. release-please rebuilds the PR branch on every push to main, so this runs again
-  # each time; the freeze is idempotent.
-  # NOTE: Commits pushed with GITHUB_TOKEN do not trigger the PR checks, so the docs are built here before pushing.
+  # each time; the freeze is idempotent. The docs are built and tested by test-docs, not here.
+  # A newer push to main rebuilds the PR branch and starts a newer run, which supersedes this one.
   freeze-nextgen-changelog:
     needs: release-please
     if: ${{ github.ref_name == 'main' && needs.release-please.outputs.pr }}
+    concurrency:
+      group: freeze-nextgen-changelog-${{ github.ref_name }}
+      cancel-in-progress: true
     permissions:
       contents: write
     runs-on: ubuntu-24.04
@@ -89,17 +92,6 @@ jobs:
         run: uv sync --locked --all-extras --dev
       - name: Freeze NextGen changelog
         run: uv run python src/generate_nextgen_changelog.py freeze
-      - name: Generate docs
-        run: docs/scripts/generate-docs.sh
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: 24
-          package-manager-cache: 'false'
-      - name: Build docs
-        working-directory: docs
-        run: |
-          npm ci --ignore-scripts
-          npm run build
       - name: Commit and push
         env:
           BRANCH: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
@@ -112,7 +104,14 @@ jobs:
           git config user.name "eCalc GitHub Actions Bot"
           git config user.email "<>"
           git commit -m "chore: freeze NextGen changelog"
-          git push origin "HEAD:${BRANCH}"
+          if ! git push origin "HEAD:${BRANCH}"; then
+            git fetch origin "${BRANCH}"
+            if [[ "$(git rev-parse FETCH_HEAD)" != "$(git rev-parse HEAD~1)" ]]; then
+              echo "${BRANCH} was updated by a newer run, which freezes the changelog. Skipping."
+              exit 0
+            fi
+            exit 1
+          fi
 
   # Called directly, since tags created with GITHUB_TOKEN do not trigger other workflows.
   publish-docs:

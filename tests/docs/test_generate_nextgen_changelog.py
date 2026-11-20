@@ -195,7 +195,7 @@ def test_freeze_moves_unreleased_to_release_and_starts_a_new_one(tmp_path: Path)
 
     release_dir = freeze_release(tmp_path, "15.9.0")
 
-    assert release_dir == tmp_path / "v15.9"
+    assert release_dir is not None and release_dir == tmp_path / "v15.9"
     assert _files(release_dir) == unreleased
     assert _files(tmp_path / "unreleased") == {Path(".gitkeep"): b""}
 
