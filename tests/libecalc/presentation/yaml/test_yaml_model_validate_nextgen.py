@@ -136,6 +136,34 @@ def test_unconnected_source_is_reported(yaml_model_factory):
     assert error.file_context is not None
 
 
+def test_unit_without_downstream_units_is_reported(yaml_model_factory):
+    connected_network = _energy_network(YamlGeneratorDefinitionBuilder().with_test_data().validate())
+    (source,) = connected_network.sources
+    dangling_generator = (
+        YamlEnergyGeneratorBuilder()
+        .with_test_data()
+        .with_name("dangling_generator")
+        .with_input(source.name)
+        .with_model(YamlGeneratorDefinitionBuilder().with_test_data().validate())
+        .validate()
+    )
+    energy_network = (
+        YamlEnergyNetworkBuilder()
+        .with_sources(connected_network.sources)
+        .with_units([*connected_network.units, dangling_generator])
+        .validate()
+    )
+    model = _create_model(yaml_model_factory, compressor_models=[COMPRESSOR_MODEL], energy_network=energy_network)
+
+    with pytest.raises(ModelValidationException) as exc_info:
+        model.validate_nextgen()
+
+    (error,) = exc_info.value.errors()
+    assert "dangling_generator" in error.message
+    assert error.location.as_dot_separated() == "ENERGY_NETWORK.UNITS[2]"
+    assert error.file_context is not None
+
+
 def test_validate_for_run_errors_are_reported_once(yaml_model_factory):
     model = _create_model(
         yaml_model_factory,

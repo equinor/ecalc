@@ -80,7 +80,13 @@ from libecalc.presentation.yaml.validation_errors import (
 )
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlValidator
 from libecalc.presentation.yaml.yaml_reference_service import YamlReferenceService
-from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork, get_input_names
+from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
+    OUTPUT_ENERGY,
+    YamlEnergyNetwork,
+    YamlNamedComponent,
+    get_input_names,
+    get_unit_label,
+)
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_simulation import YamlProcessSimulation
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
 from libecalc.presentation.yaml.yaml_validation_context import (
@@ -350,7 +356,7 @@ class YamlModel:
         if yaml_energy_network is None:
             return None, (), (), []
 
-        self._check_sources_connected(yaml_energy_network)
+        self._check_connected(yaml_energy_network)
 
         time_series_resources, _ = self._resource_service.get_time_series_resources()
         time_series_file_name_map = {ts.file: ts.name for ts in self._configuration.time_series}
@@ -399,7 +405,7 @@ class YamlModel:
                 ]
             ) from e
 
-    def _check_sources_connected(self, yaml_energy_network: YamlEnergyNetwork) -> None:
+    def _check_connected(self, yaml_energy_network: YamlEnergyNetwork) -> None:
         used_input_names = {name for unit in yaml_energy_network.units for name in get_input_names(unit)}
         errors = []
         for index, source in enumerate(yaml_energy_network.sources):
@@ -410,6 +416,22 @@ class YamlModel:
                 ModelValidationError(
                     location=Location(keys=yaml_keys),
                     message=f"Source '{source.name}' is not connected to any unit. Use it as INPUT or remove it.",
+                    file_context=self._configuration.get_file_context(yaml_keys),
+                )
+            )
+        for index, unit in enumerate(yaml_energy_network.units):
+            if (
+                not isinstance(unit, YamlNamedComponent)
+                or unit.type not in OUTPUT_ENERGY
+                or unit.name in used_input_names
+            ):
+                continue
+            yaml_keys = ("ENERGY_NETWORK", "UNITS", index)
+            errors.append(
+                ModelValidationError(
+                    location=Location(keys=yaml_keys),
+                    message=f"Unit {get_unit_label(unit)} ({unit.type}) is not used as INPUT by any unit. "
+                    "Connect it or remove it.",
                     file_context=self._configuration.get_file_context(yaml_keys),
                 )
             )
