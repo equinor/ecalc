@@ -1,5 +1,6 @@
 from collections import defaultdict
-from typing import Annotated, Any
+from collections.abc import Iterable
+from typing import Annotated
 
 from pydantic import (
     ConfigDict,
@@ -38,19 +39,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefa
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference, YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
-from libecalc.presentation.yaml.yaml_types.yaml_version import (
-    DEFAULT_YAML_VERSION,
-    V1,
-    V2,
-    V3,
-    V4,
-    V5,
-    YamlMajorVersion,
-    get_required_field_names,
-    get_unavailable_elements,
-    removed_field,
-    yaml_element_lifecycle,
-)
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 YamlPerformanceCurveDefinition = Annotated[
@@ -71,7 +59,6 @@ class YamlDefinitions(YamlBase):
         title="COMPRESSOR_MODELS",
         description="Defines compressor models that can be referenced by name from MODEL of a compressor process unit "
         "in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE change.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
 
     fluids: dict[str, YamlFluidDefinition] = Field(
@@ -90,30 +77,7 @@ class YamlDefinitions(YamlBase):
         "by GENERATOR) interpolates fuel directly from a power/fuel curve: below the first POWER the lowest FUEL "
         "is used, and above the last POWER the highest FUEL is used. In both cases the last point is the maximum "
         "power, which is the unit's capacity.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V5),
     )
-
-    # REMOVED FIELDS
-    process_units: Any = removed_field(
-        title="PROCESS_UNITS",
-        available_since=V2,
-        removed_in=V4,
-        message="Compressors can no longer be defined here. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS.",
-        replaced_by=("DEFINITIONS", "COMPRESSOR_MODELS"),
-    )
-    turbines: Any = removed_field(
-        title="TURBINES",
-        removed_in=V5,
-        message="Gas turbines are now defined in DEFINITIONS > PERFORMANCE_CURVES.",
-        replaced_by=("DEFINITIONS", "PERFORMANCE_CURVES"),
-    )
-    generators: Any = removed_field(
-        title="GENERATORS",
-        removed_in=V5,
-        message="Generators are now defined in DEFINITIONS > PERFORMANCE_CURVES.",
-        replaced_by=("DEFINITIONS", "PERFORMANCE_CURVES"),
-    )
-    # END REMOVED FIELDS
 
 
 class YamlAsset(YamlBase):
@@ -123,102 +87,77 @@ class YamlAsset(YamlBase):
         title="Asset",
     )
 
-    yaml_version: YamlMajorVersion = Field(
-        DEFAULT_YAML_VERSION,
-        title="YAML_VERSION",
-        description="The eCalc YAML schema major version. Determines which root elements are available. "
-        "Only the major version is tracked, e.g. YAML_VERSION: 2 allows any 2.x.y root elements. "
-        f"Defaults to {DEFAULT_YAML_VERSION} if not specified.",
-        json_schema_extra={
-            "default": DEFAULT_YAML_VERSION
-        },  # No lifecycle metadata (yet). Pretend it has been implicitly available since v1
-    )
     definitions: YamlDefinitions = Field(
         default_factory=YamlDefinitions,
         title="DEFINITIONS",
         description="Contains reusable definitions.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     time_series: list[YamlTimeSeriesCollection] = Field(
         default_factory=list,
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
     facility_inputs: list[YamlFacilityModel] = Field(
         default_factory=list,
         title="FACILITY_INPUTS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     fluid_models: dict[str, YamlFluidModel] = Field(
         default_factory=dict,
         title="FLUID_MODELS",
         description="Defines fluid models that can be referenced by inlet streams.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     inlet_streams: dict[str, YamlInletStream] = Field(
         default_factory=dict,
         title="INLET_STREAMS",
         description="Defines inlet streams that can be referenced by process system and stream distribution.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     models: list[YamlConsumerModel] = Field(
         default_factory=list,
         title="MODELS",
         description="Defines input files which characterize various facility elements."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1, deprecated_since=V2, removed_since=V3),
     )
     fuel_types: list[YamlFuelType] = Field(
         default_factory=list,
         title="FUEL_TYPES",
         description="Specifies the various fuel types and associated emissions used in the model."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
-        json_schema_extra=yaml_element_lifecycle(
-            available_since=V1, deprecated_since=V2, removed_since=V3, required=True
-        ),
     )
     variables: YamlVariables = Field(
         default_factory=dict,
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
     shafts: list[YamlShaft] = Field(
         default_factory=list,
         title="SHAFTS",
         description="Defines named shafts representing mechanical connections between drivers and driven equipment.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     compressors: list[YamlCompressor] = Field(
         default_factory=list,
         title="COMPRESSORS",
         description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
         "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V3),
     )
     process_pipelines: dict[str, YamlProcessPipeline] = Field(
         default_factory=dict,
         title="PROCESS_PIPELINES",
         description="Defines process pipelines to use in process simulations.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     process_simulations: list[YamlProcessSimulation] = Field(
         default_factory=list,
         title="PROCESS_SIMULATIONS",
         description="Defines one or more process simulations to be run.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
 
     energy_network: YamlEnergyNetwork | None = Field(
         None,
         title="ENERGY_NETWORK",
         description="Defines the energy network configuration.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
 
     timeline: YamlTimeline | None = Field(
@@ -226,72 +165,49 @@ class YamlAsset(YamlBase):
         title="TIMELINE",
         description="Defines dated events in the model. Event dates are added to the time steps of process "
         "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
-        json_schema_extra=yaml_element_lifecycle(available_since=V4),
     )
     pump_process_simulations: list[YamlPumpProcessSimulation] = Field(
         default_factory=list,
         title="PUMP_PROCESS_SIMULATIONS",
         description="Defines one or more liquid pump process simulations to be run.",
-        json_schema_extra=yaml_element_lifecycle(available_since=V2),
     )
     installations: list[YamlInstallation] = Field(
         default_factory=list,
         title="INSTALLATIONS",
         description="Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
-        json_schema_extra=yaml_element_lifecycle(
-            available_since=V1, deprecated_since=V2, removed_since=V3, required=True
-        ),
     )
     start: YamlDefaultDatetime | None = Field(
         None,
         title="START",
         description="Global start date for eCalc calculations in <YYYY-MM-DD> format."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/START",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
     end: YamlDefaultDatetime = Field(
         ...,
         title="END",
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
-        json_schema_extra=yaml_element_lifecycle(available_since=V1),
     )
-
-    # REMOVED FIELDS
-    ecalc_events: Any = removed_field(
-        title="ECALC_EVENTS",
-        available_since=V2,
-        removed_in=V4,
-        replaced_by=("TIMELINE", "EVENTS"),
-    )
-    process_events: Any = removed_field(
-        title="PROCESS_EVENTS",
-        available_since=V2,
-        removed_in=V4,
-        replaced_by=("TIMELINE", "EVENTS"),
-    )
-    # END REMOVED FIELDS
 
     @model_validator(mode="after")
-    def validate_elements_available_for_version(self):
-        aliases = get_unavailable_elements(self, self.yaml_version)
-        if not aliases:
+    def validate_legacy_or_nextgen(self, info: ValidationInfo):
+        nextgen = (info.context or {}).get(YamlModelValidationContextNames.nextgen)
+        if nextgen is None:
             return self
 
-        raise ValueError(
-            f"The following elements are not available for yaml version {self.yaml_version}: {', '.join(sorted(aliases))}."
-        )
+        unavailable = _aliases((LEGACY_ROOT_FIELDS if nextgen else NEXTGEN_ROOT_FIELDS) & self.model_fields_set)
+        if unavailable:
+            raise ValueError(
+                f"The following elements are not available in a {'NextGen' if nextgen else 'legacy'} model: "
+                f"{', '.join(unavailable)}."
+            )
 
-    @model_validator(mode="after")
-    def validate_required_root_elements_present(self):
-        """Ensure root elements required for the declared YAML_VERSION are explicitly present in the yaml."""
-        missing = get_required_field_names(type(self), self.yaml_version) - self.model_fields_set
-        if not missing:
-            return self
-
-        aliases = sorted(YamlAsset.model_fields[field_name].alias or field_name.upper() for field_name in missing)
-        raise ValueError(
-            f"The following root elements are required for yaml version {self.yaml_version}: {', '.join(aliases)}."
-        )
+        missing = _aliases(get_required_root_field_names(nextgen) - self.model_fields_set)
+        if missing:
+            raise ValueError(
+                f"The following elements are required in a {'NextGen' if nextgen else 'legacy'} model: "
+                f"{', '.join(missing)}."
+            )
+        return self
 
     @model_validator(mode="after")
     def validate_unique_component_names(self, info: ValidationInfo):
@@ -724,3 +640,33 @@ class YamlAsset(YamlBase):
                 )
             )
         return self
+
+
+COMMON_ROOT_FIELDS = frozenset({"time_series", "variables", "facility_inputs", "start", "end"})
+LEGACY_ROOT_FIELDS = frozenset({"fluid_models", "models", "fuel_types", "installations"})
+NEXTGEN_ROOT_FIELDS = frozenset(
+    {
+        "definitions",
+        "inlet_streams",
+        "shafts",
+        "compressors",
+        "process_pipelines",
+        "process_simulations",
+        "pump_process_simulations",
+        "energy_network",
+        "timeline",
+    }
+)
+LEGACY_REQUIRED_ROOT_FIELDS = frozenset({"fuel_types", "installations"})
+
+
+def _aliases(field_names: Iterable[str]) -> list[str]:
+    return sorted(YamlAsset.model_fields[field_name].alias or field_name.upper() for field_name in field_names)
+
+
+def get_root_field_names(nextgen: bool) -> set[str]:
+    return set(COMMON_ROOT_FIELDS | (NEXTGEN_ROOT_FIELDS if nextgen else LEGACY_ROOT_FIELDS))
+
+
+def get_required_root_field_names(nextgen: bool) -> set[str]:
+    return set() if nextgen else set(LEGACY_REQUIRED_ROOT_FIELDS)

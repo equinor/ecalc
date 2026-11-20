@@ -1,0 +1,175 @@
+{
+  "entries": [
+    {
+      "kind": "added",
+      "path": [
+        "DEFINITIONS",
+        "PERFORMANCE_CURVES"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "SOURCES",
+        "DIESEL_SOURCE",
+        "LOWER_HEATING_VALUE"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "SOURCES",
+        "FUEL_GAS_SOURCE",
+        "LOWER_HEATING_VALUE"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "DIESEL_ENGINE"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "GENERATOR",
+        "EVENTS"
+      ]
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "DEFINITIONS",
+        "GENERATORS"
+      ],
+      "description": "Generators are now defined in DEFINITIONS > PERFORMANCE_CURVES."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "DEFINITIONS",
+        "PERFORMANCE_CURVES",
+        "LOAD_TO_EFFICIENCY",
+        "LOWER_HEATING_VALUE"
+      ],
+      "description": "Set it on the fuel/diesel source this unit draws from instead."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "DEFINITIONS",
+        "TURBINES"
+      ],
+      "description": "Gas turbines are now defined in DEFINITIONS > PERFORMANCE_CURVES."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "COMPRESSOR_SAMPLED"
+      ],
+      "description": "Removed NAME, the unit is named by COMPRESSOR. FILE must have a MECHANICAL_POWER column instead of FUEL and/or POWER, and INPUT must provide mechanical power."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "DRIVE_TRAIN"
+      ],
+      "description": "Removed NAME. A drive train is identified by SHAFT."
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "DEFINITIONS",
+        "GENERATORS"
+      ],
+      "replaced_by": [
+        [
+          "DEFINITIONS",
+          "PERFORMANCE_CURVES"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "DEFINITIONS",
+        "PERFORMANCE_CURVES",
+        "LOAD_TO_EFFICIENCY",
+        "LOWER_HEATING_VALUE"
+      ],
+      "replaced_by": [
+        [
+          "ENERGY_NETWORK",
+          "SOURCES",
+          "LOWER_HEATING_VALUE"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "DEFINITIONS",
+        "TURBINES"
+      ],
+      "replaced_by": [
+        [
+          "DEFINITIONS",
+          "PERFORMANCE_CURVES"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "COMPRESSOR_SAMPLED",
+        "NAME"
+      ],
+      "replaced_by": [
+        [
+          "COMPRESSORS",
+          "NAME"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "DRIVE_TRAIN",
+        "NAME"
+      ],
+      "replaced_by": [
+        [
+          "COMPRESSORS",
+          "NAME"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "PUMP_PROCESS_SIMULATIONS",
+        "REQUIRED_DISCHARGE_PRESSURE"
+      ],
+      "replaced_by": [
+        [
+          "PUMP_PROCESS_SIMULATIONS",
+          "OUTLET_PRESSURE"
+        ]
+      ]
+    }
+  ]
+}

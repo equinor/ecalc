@@ -52,12 +52,11 @@ class YamlUnits(YamlBase):
     )
 
 
-def UnitsField(lifecycle: dict | None = None):
+def UnitsField():
     return Field(
         default_factory=lambda: YamlUnits(),  # pyright: ignore
         title="UNITS",
         description="Defines the units",
-        json_schema_extra=lifecycle,
     )
 
 

@@ -456,6 +456,7 @@ def yaml_model_factory(configuration_service_factory, resource_service_factory):
     def create_yaml_model(
         configuration: ResourceStream | YamlValidator,
         resources: dict[str, MemoryResource],
+        nextgen: bool = False,
     ) -> YamlModel:
         if isinstance(configuration, ResourceStream):
             configuration = configuration_service_factory(configuration).get_configuration()
@@ -463,6 +464,7 @@ def yaml_model_factory(configuration_service_factory, resource_service_factory):
         return YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory(resources, configuration),
+            nextgen=nextgen,
         )
 
     return create_yaml_model

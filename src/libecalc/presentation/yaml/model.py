@@ -152,8 +152,10 @@ class YamlModel:
         self,
         configuration: YamlValidator,
         resource_service: ResourceService,
+        nextgen: bool,
     ) -> None:
         self._configuration = configuration
+        self._nextgen = nextgen
         self._compressors = {
             compressor.name: CompressorEquipment(name=compressor.name, alias=compressor.alias)
             for compressor in self._configuration.compressors
@@ -196,9 +198,7 @@ class YamlModel:
         definitions = self._configuration.definitions
         def_dict = {}
         for field_name in type(definitions).model_fields:
-            def_dict.update(
-                getattr(definitions, field_name) or {}
-            )  # Handle removed_fields that returns None instead of {}
+            def_dict.update(getattr(definitions, field_name))
 
         return def_dict
 
@@ -613,6 +613,7 @@ class YamlModel:
             YamlModelValidationContextNames.resource_file_names: resource_names,
             YamlModelValidationContextNames.expression_tokens: token_references,
             YamlModelValidationContextNames.model_types: self._get_model_types(),
+            YamlModelValidationContextNames.nextgen: self._nextgen,
         }
 
     def validate_for_run(self) -> Self:

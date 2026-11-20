@@ -19,6 +19,7 @@ class YamlModelValidationContextNames:
     expression_tokens = "expression_tokens"
     model_types = "model_types"
     model_name = "model_name"
+    nextgen = "nextgen"
 
 
 YamlModelValidationContext = TypedDict(
@@ -28,6 +29,7 @@ YamlModelValidationContext = TypedDict(
         YamlModelValidationContextNames.expression_tokens: list[str],
         YamlModelValidationContextNames.model_types: dict[ModelName, ModelContext],
         YamlModelValidationContextNames.model_name: str,
+        "nextgen": bool,
     },
     total=True,
 )

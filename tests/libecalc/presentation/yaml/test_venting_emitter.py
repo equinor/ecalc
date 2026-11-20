@@ -372,6 +372,7 @@ class TestVentingEmitter:
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory(resources=resources, configuration=configuration),
+            nextgen=False,
         )
         model.validate_for_run()
 

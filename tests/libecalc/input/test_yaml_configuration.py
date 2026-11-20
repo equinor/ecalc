@@ -28,6 +28,7 @@ class TestYamlConfiguration:
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory({}, configuration=configuration),
+            nextgen=False,
         )
 
         with pytest.raises(ModelValidationException) as exc_info:

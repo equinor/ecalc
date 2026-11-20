@@ -37,6 +37,7 @@ def model_with_two_installations(
     return YamlModel(
         configuration=configuration,
         resource_service=resource_service_factory({}, configuration=configuration),
+        nextgen=False,
     )
 
 

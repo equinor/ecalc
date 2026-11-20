@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Annotated, Any, Literal, Union
+from typing import Annotated, Literal, Union
 
 from pydantic import (
     AfterValidator,
@@ -24,7 +24,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorRefe
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference
-from libecalc.presentation.yaml.yaml_types.yaml_version import V3, V4, V5, removed_field, yaml_element_lifecycle
 from libecalc.presentation.yaml.yaml_validators.file_validators import file_exists_validator
 
 
@@ -61,7 +60,6 @@ YamlLowerHeatingValue = Annotated[
         "required for any GAS_TURBINE or DIESEL_ENGINE drawing from this source.",
         gt=0,
         lt=100,
-        json_schema_extra=yaml_element_lifecycle(available_since=V5),
     ),
 ]
 
@@ -231,17 +229,8 @@ class YamlGenerator(YamlConverterBase):
             title="CHANGES",
             description="Changes to the generator model over time, such as a rebundle. Each change takes "
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
-            json_schema_extra=yaml_element_lifecycle(available_since=V5),
         ),
     ] = []
-
-    # REMOVED FIELDS
-    events: Any = removed_field(
-        title="EVENTS",
-        removed_in=V5,
-        replaced_by=("ENERGY_NETWORK", "UNITS", "GENERATOR", "CHANGES"),
-    )
-    # END REMOVED FIELDS
 
 
 class YamlGasTurbine(YamlConverterBase):
@@ -262,21 +251,12 @@ class YamlGasTurbine(YamlConverterBase):
             title="CHANGES",
             description="Changes to the turbine model over time, such as a rebundle. Each change takes "
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
-            json_schema_extra=yaml_element_lifecycle(available_since=V5),
         ),
     ] = []
 
-    # REMOVED FIELDS
-    events: Any = removed_field(
-        title="EVENTS",
-        removed_in=V5,
-        replaced_by=("ENERGY_NETWORK", "UNITS", "GAS_TURBINE", "CHANGES"),
-    )
-    # END REMOVED FIELDS
-
 
 class YamlDieselEngine(YamlConverterBase):
-    model_config = ConfigDict(title="DieselEngine", json_schema_extra=yaml_element_lifecycle(available_since=V5))
+    model_config = ConfigDict(title="DieselEngine")
 
     type: Literal["DIESEL_ENGINE"]
     model: Annotated[
@@ -296,14 +276,6 @@ class YamlDieselEngine(YamlConverterBase):
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
         ),
     ] = []
-
-    # REMOVED FIELDS
-    events: Any = removed_field(
-        title="EVENTS",
-        removed_in=V5,
-        replaced_by=("ENERGY_NETWORK", "UNITS", "DIESEL_ENGINE", "CHANGES"),
-    )
-    # END REMOVED FIELDS
 
 
 class YamlElectricalMotor(YamlConverterBase):
@@ -450,7 +422,7 @@ class YamlConsumerBase(YamlBase):
 
 
 class YamlPowerCurve(YamlBase):
-    model_config = ConfigDict(title="PowerCurve", json_schema_extra=yaml_element_lifecycle(available_since=V3))
+    model_config = ConfigDict(title="PowerCurve")
 
     variable: Annotated[
         list[float],
@@ -475,7 +447,6 @@ class YamlLoadCurve(YamlBase):
     model_config = ConfigDict(
         title="LoadCurve",
         json_schema_extra={
-            **yaml_element_lifecycle(available_since=V3),
             "examples": [
                 {"CURVE": {"VARIABLE": [0, 1000, 5000], "POWER": [0, 0.8, 3.4]}, "VARIABLE": "SIM;RATE"},
                 {"CURVE": {"FILE": "pump_sampled.csv"}, "VARIABLE": "SIM;RATE"},
@@ -510,7 +481,7 @@ class YamlLoadCurve(YamlBase):
 
 
 class YamlFuelTable(YamlBase):
-    model_config = ConfigDict(title="FuelTable", json_schema_extra=yaml_element_lifecycle(available_since=V3))
+    model_config = ConfigDict(title="FuelTable")
 
     variable: Annotated[
         list[float],
@@ -536,7 +507,6 @@ class YamlRateCurve(YamlBase):
     model_config = ConfigDict(
         title="RateCurve",
         json_schema_extra={
-            **yaml_element_lifecycle(available_since=V3),
             "examples": [
                 {"CURVE": {"VARIABLE": [0, 1000, 5000], "FUEL": [0, 8000, 35000]}, "VARIABLE": "SIM;RATE"},
                 {"CURVE": {"FILE": "flare_sampled.csv"}, "VARIABLE": "SIM;RATE"},
@@ -579,7 +549,6 @@ class YamlElectricalConsumer(YamlConsumerBase):
         Field(
             title="LOAD",
             description="Electrical power demand (MW), as an expression or a curve lookup.",
-            json_schema_extra=yaml_element_lifecycle(changed_in=[(V3, "Added support to also load from curve.")]),
         ),
     ]
 
@@ -600,7 +569,6 @@ class YamlMechanicalConsumer(YamlConsumerBase):
         Field(
             title="LOAD",
             description="Shaft power demand (MW), as an expression or a curve lookup.",
-            json_schema_extra=yaml_element_lifecycle(changed_in=[(V3, "Added support to also load from curve.")]),
         ),
     ]
 
@@ -613,9 +581,7 @@ class YamlMechanicalConsumer(YamlConsumerBase):
 
 
 class YamlCompressorMechanicalEfficiency(YamlBase):
-    model_config = ConfigDict(
-        title="CompressorMechanicalEfficiency", json_schema_extra=yaml_element_lifecycle(available_since=V4)
-    )
+    model_config = ConfigDict(title="CompressorMechanicalEfficiency")
 
     compressor: Annotated[
         CompressorReference,
@@ -643,12 +609,6 @@ class YamlCompressorMechanicalEfficiency(YamlBase):
 
 
 class YamlDriveTrain(YamlBase):
-    model_config = ConfigDict(
-        json_schema_extra=yaml_element_lifecycle(
-            changed_in=[(V5, "Removed NAME. A drive train is identified by SHAFT.")]
-        )
-    )
-
     type: Literal["DRIVE_TRAIN"]
     input: Annotated[
         str,
@@ -657,12 +617,6 @@ class YamlDriveTrain(YamlBase):
             description="Source or component this receives energy from.",
         ),
     ]
-    name: Any = removed_field(
-        title="NAME",
-        removed_in=V5,
-        message="The drive train is represented in the network as the compressors on the shaft, the drive train itself is not a separate energy unit.",
-        replaced_by=("COMPRESSORS", "NAME"),
-    )
     shaft: Annotated[
         ShaftReference,
         Field(
@@ -679,7 +633,6 @@ class YamlDriveTrain(YamlBase):
                 "Mechanical efficiency per compressor on the shaft. Each compressor demands its gas power "
                 "divided by its efficiency as shaft power. A compressor not listed has efficiency 1.0."
             ),
-            json_schema_extra=yaml_element_lifecycle(available_since=V4),
         ),
     ]
 
@@ -706,7 +659,6 @@ class YamlFuelGasConsumer(YamlConsumerBase):
         Field(
             title="RATE",
             description="Fuel gas consumption rate (Sm³/d), as an expression or a curve lookup.",
-            json_schema_extra=yaml_element_lifecycle(changed_in=[(V3, "Added support to also load from curve.")]),
         ),
     ]
 
@@ -727,7 +679,6 @@ class YamlDieselConsumer(YamlConsumerBase):
         Field(
             title="RATE",
             description="Diesel consumption rate (l/d), as an expression or a curve lookup.",
-            json_schema_extra=yaml_element_lifecycle(changed_in=[(V3, "Added support to also load from curve.")]),
         ),
     ]
 
@@ -751,15 +702,6 @@ class YamlCompressorSampled(YamlBase):
 
     model_config = ConfigDict(
         title="CompressorSampled",
-        json_schema_extra=yaml_element_lifecycle(
-            changed_in=[
-                (
-                    V5,
-                    "Removed NAME, the unit is named by COMPRESSOR. FILE must have a MECHANICAL_POWER column instead of "
-                    "FUEL and/or POWER, and INPUT must provide mechanical power.",
-                )
-            ]
-        ),
     )
 
     type: Literal["COMPRESSOR_SAMPLED"]
@@ -775,7 +717,6 @@ class YamlCompressorSampled(YamlBase):
         Field(
             title="COMPRESSOR",
             description="Reference to a compressor defined in COMPRESSORS.",
-            json_schema_extra=yaml_element_lifecycle(available_since=V3),
         ),
     ]
     file: Annotated[
@@ -786,12 +727,6 @@ class YamlCompressorSampled(YamlBase):
             "and DISCHARGE_PRESSURE that is given.",
         ),
     ]
-    name: Any = removed_field(
-        title="NAME",
-        removed_in=V5,
-        message="Name is defined by the compressor",
-        replaced_by=("COMPRESSORS", "NAME"),
-    )
     rate: Annotated[
         YamlExpressionType | None,
         Field(

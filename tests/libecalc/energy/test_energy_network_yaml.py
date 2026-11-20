@@ -496,19 +496,3 @@ class TestSampledCompressor:
                     ],
                 }
             )
-
-
-class TestEventsRenamedToChanges:
-    @pytest.mark.parametrize(
-        "unit_type, model",
-        [
-            pytest.param("GENERATOR", GENERATOR, id="generator"),
-            pytest.param("GAS_TURBINE", TURBINE, id="gas turbine"),
-            pytest.param("DIESEL_ENGINE", TURBINE, id="diesel engine"),
-        ],
-    )
-    def test_events_on_unit_points_to_changes(self, unit_type, model):
-        with pytest.raises(ValidationError, match=f"Use ENERGY_NETWORK > UNITS > {unit_type} > CHANGES instead"):
-            _component_adapter.validate_python(
-                {"NAME": "unit", "TYPE": unit_type, "INPUT": "fuel", "MODEL": model, "EVENTS": []}
-            )

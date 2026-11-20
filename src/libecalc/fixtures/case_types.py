@@ -20,11 +20,12 @@ class YamlCase:
             lines = f.read()
             return io.StringIO(lines)
 
-    def get_yaml_model(self) -> YamlModel:
+    def get_yaml_model(self, nextgen: bool = False) -> YamlModel:
         configuration_service = FileConfigurationService(self.main_file_path)
         configuration = configuration_service.get_configuration()
         resource_service = FileResourceService(self.main_file_path.parent, configuration=configuration)
         return YamlModel(
             configuration=configuration,
             resource_service=resource_service,
+            nextgen=nextgen,
         )

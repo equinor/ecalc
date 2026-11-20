@@ -9,7 +9,7 @@ from typing import Any
 import yaml
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
-from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
+from libecalc.version import __version__
 
 from .model import RESOURCE_DIRECTORY, build_reference_model
 
@@ -70,7 +70,7 @@ def resource_paths() -> list[Path]:
 
 
 def example_files(model: YamlAsset | None = None) -> dict[str, str]:
-    model = model if model is not None else build_reference_model(LATEST_YAML_VERSION)
+    model = model if model is not None else build_reference_model()
     return {
         MODEL_FILE_NAME: render_model_yaml(model),
         **{path.name: path.read_text() for path in resource_paths()},
@@ -90,7 +90,7 @@ def export_reference_model(output_directory: Path) -> list[Path]:
 def _render_export_info(export_date: str) -> bytes:
     info = {
         "author": EXPORT_INFO_AUTHOR,
-        "model_name": f"Example model - eCalc NextGen - {export_date} - v{LATEST_YAML_VERSION}",
+        "model_name": f"Example model - eCalc NextGen - {export_date} - v{__version__}",
         "is_next_gen": True,
     }
     return json.dumps(info, separators=(",", ":")).encode()

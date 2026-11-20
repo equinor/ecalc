@@ -67,7 +67,6 @@ from libecalc.presentation.yaml.yaml_types.yaml_stream_conditions import (
 from libecalc.presentation.yaml.yaml_types.yaml_temporal_model import YamlTemporalModel
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import YamlTimeline
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariables
-from libecalc.presentation.yaml.yaml_types.yaml_version import DEFAULT_YAML_VERSION, LATEST_YAML_VERSION
 
 T = TypeVar("T")
 
@@ -737,16 +736,13 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
 
 class YamlLegacyAssetBuilder(Builder[YamlAsset]):
     """
-    Builder for a legacy (yaml version 1) YamlAsset.
+    Builder for a legacy YamlAsset.
 
-    Only supports the root elements available in v1: FACILITY_INPUTS, MODELS, FUEL_TYPES and
-    INSTALLATIONS, in addition to the elements common to every version. Root elements introduced
-    in later versions (e.g. SHAFTS, COMPRESSORS, DEFINITIONS, PROCESS_PIPELINES) are not available here;
-    use YamlAssetBuilder for those.
+    Only supports the legacy root elements FACILITY_INPUTS, MODELS, FUEL_TYPES and INSTALLATIONS, in addition to the
+    elements common to legacy and NextGen models. Use YamlAssetBuilder for a NextGen model.
     """
 
     def __init__(self):
-        self.yaml_version = DEFAULT_YAML_VERSION
         self.time_series = []
         self.facility_inputs = []
         self.models = []
@@ -776,10 +772,6 @@ class YamlLegacyAssetBuilder(Builder[YamlAsset]):
         self.start = "2019-01-01"
         self.end = "2024-01-01"
 
-        return self
-
-    def with_yaml_version(self, version: int) -> Self:
-        self.yaml_version = version
         return self
 
     def with_time_series(self, time_series: list[YamlTimeSeriesCollection]):
@@ -825,14 +817,13 @@ class YamlLegacyAssetBuilder(Builder[YamlAsset]):
 
 class YamlAssetBuilder(Builder[YamlAsset]):
     """
-    Builder for the latest yaml version YamlAsset.
+    Builder for a NextGen YamlAsset.
 
-    Legacy root elements removed since v3 (FACILITY_INPUTS, MODELS, FUEL_TYPES, INSTALLATIONS) are not
-    available here; use YamlLegacyAssetBuilder for a v1 document.
+    Legacy root elements (FACILITY_INPUTS, MODELS, FUEL_TYPES, INSTALLATIONS) are not available here; use
+    YamlLegacyAssetBuilder for a legacy model.
     """
 
     def __init__(self):
-        self.yaml_version = LATEST_YAML_VERSION
         self.time_series = []
         self.variables = None
         self.shafts: list[YamlShaft] | None = None
@@ -856,10 +847,6 @@ class YamlAssetBuilder(Builder[YamlAsset]):
         self.start = "2019-01-01"
         self.end = "2024-01-01"
 
-        return self
-
-    def with_yaml_version(self, version: int) -> Self:
-        self.yaml_version = version
         return self
 
     def with_time_series(self, time_series: list[YamlTimeSeriesCollection]):

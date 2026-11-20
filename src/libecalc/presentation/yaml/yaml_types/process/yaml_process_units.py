@@ -1,6 +1,6 @@
 from typing import Annotated, Literal
 
-from pydantic import ConfigDict, Field
+from pydantic import Field
 
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
@@ -9,7 +9,6 @@ from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_stages import 
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import InstanceReference
 from libecalc.presentation.yaml.yaml_types.streams.yaml_inlet_stream import YamlInletStream, YamlInletStreamRate
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
-from libecalc.presentation.yaml.yaml_types.yaml_version import V2, yaml_element_lifecycle
 
 
 class YamlControlMargin(YamlBase):
@@ -22,9 +21,7 @@ class YamlCompressorChart(YamlBase):
         DataOrFile[list[YamlCurve]],
         Field(description="Compressor chart curves, one per speed.", title="CURVES"),
     ]
-    # Not using the plain UnitsField() default here: UNITS has only been available
-    # since V2 for this process unit's compressor chart.
-    units: YamlUnits = UnitsField(lifecycle=yaml_element_lifecycle(available_since=V2))
+    units: YamlUnits = UnitsField()
 
 
 class YamlCompressorModelChart(YamlBase):
@@ -37,15 +34,12 @@ class YamlCompressorModelChart(YamlBase):
         Field(
             description="Margin added to the compressor's surge control line.",
             title="CONTROL_MARGIN",
-            json_schema_extra=yaml_element_lifecycle(available_since=V2),
         ),
     ]
 
 
 class YamlPressureDropperDefinition(YamlBase):
     """A pressure dropper unit — reduces stream pressure by a fixed amount."""
-
-    model_config = ConfigDict(json_schema_extra=yaml_element_lifecycle(available_since=V2))
 
     type: Literal["PRESSURE_DROPPER"]
     pressure_drop: Annotated[
@@ -59,8 +53,6 @@ class YamlPressureDropperDefinition(YamlBase):
 
 class YamlTemperatureSetterDefinition(YamlBase):
     """A temperature setter unit — forces the stream to a specified temperature."""
-
-    model_config = ConfigDict(json_schema_extra=yaml_element_lifecycle(available_since=V2))
 
     type: Literal["TEMPERATURE_SETTER"]
     temperature: Annotated[
@@ -79,16 +71,12 @@ class YamlLiquidRemoverDefinition(YamlBase):
     No-op if the stream is already pure vapor.
     """
 
-    model_config = ConfigDict(json_schema_extra=yaml_element_lifecycle(available_since=V2))
-
     type: Literal["LIQUID_REMOVER"]
 
 
 class YamlMixerDefinition(YamlBase):
     """Mixes an external sidestream into the through-stream at an
     intermediate point in the pipeline."""
-
-    model_config = ConfigDict(json_schema_extra=yaml_element_lifecycle(available_since=V2))
 
     type: Literal["MIXER"]
     sidestream: Annotated[
@@ -103,8 +91,6 @@ class YamlMixerDefinition(YamlBase):
 class YamlSplitterDefinition(YamlBase):
     """Removes a fixed rate from the through-stream at an
     intermediate point in the pipeline (e.g. fuel gas offtake)."""
-
-    model_config = ConfigDict(json_schema_extra=yaml_element_lifecycle(available_since=V2))
 
     type: Literal["SPLITTER"]
     offtake_rate: Annotated[

@@ -122,11 +122,3 @@ def test_invalid_process_unit_reports_only_its_own_errors(process_unit, location
     with pytest.raises(ValidationError) as exc_info:
         YamlProcessPipeline.model_validate({"NAME": "train_a", "PROCESS_UNITS": [process_unit]})
     assert [error["loc"] for error in exc_info.value.errors()] == [location]
-
-
-def test_events_on_pipeline_points_to_changes():
-    data = _asset_data()
-    data["PROCESS_PIPELINES"]["train_a"]["EVENTS"] = []
-
-    with pytest.raises(ValidationError, match="Use PROCESS_PIPELINES > CHANGES instead"):
-        YamlAsset.model_validate(data)

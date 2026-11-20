@@ -463,6 +463,17 @@ class TestYamlFile:
             f"Allowed characters are {COMPONENT_NAME_ALLOWED_CHARS}" in str(ee.value)
         )
 
+    def test_nextgen_model_is_rejected(self, tmp_path):
+        model_file = tmp_path / "nextgen.yaml"
+        model_file.write_text("END: 2025-01-01\nTIMELINE:\n  EVENTS: {}\n")
+
+        with pytest.raises(ModelValidationException, match="not available in a legacy model: TIMELINE"):
+            runner.invoke(
+                main.app,
+                _get_args(model_file=model_file, output_folder=tmp_path / "output"),
+                catch_exceptions=False,
+            )
+
     def test_yaml_multiple_energy_models_one_consumer(self, simple_multiple_energy_models_yaml_path, tmp_path):
         """
         TEST SCOPE: Check that multiple energy models for one consumer are not allowed in Yaml file.

@@ -61,6 +61,58 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       tag_name: ${{ steps.release.outputs.tag_name }}
+      pr: ${{ steps.release.outputs.pr }}
+
+  # Freezes the NextGen changelog in the release PR: changelog/unreleased becomes changelog/vX.Y, and a new empty
+  # changelog/unreleased is created. release-please rebuilds the PR branch on every push to main, so this runs again
+  # each time; the freeze is idempotent.
+  # NOTE: Commits pushed with GITHUB_TOKEN do not trigger the PR checks, so the docs are built here before pushing.
+  freeze-nextgen-changelog:
+    needs: release-please
+    if: ${{ github.ref_name == 'main' && needs.release-please.outputs.pr }}
+    permissions:
+      contents: write
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+          persist-credentials: true  # due to the push below
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          # NOTE: Caching is disabled since this job pushes to the release PR, to avoid a cache-poisoning risk.
+          enable-cache: false
+      - name: Set up Python
+        run: uv python install
+      - name: Install dependencies
+        run: uv sync --locked --all-extras --dev
+      - name: Freeze NextGen changelog
+        run: uv run python src/generate_nextgen_changelog.py freeze
+      - name: Generate docs
+        run: docs/scripts/generate-docs.sh
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          package-manager-cache: 'false'
+      - name: Build docs
+        working-directory: docs
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+      - name: Commit and push
+        env:
+          BRANCH: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+        run: |
+          git add changelog
+          if git diff --cached --quiet; then
+            echo "NextGen changelog already frozen."
+            exit 0
+          fi
+          git config user.name "eCalc GitHub Actions Bot"
+          git config user.email "<>"
+          git commit -m "chore: freeze NextGen changelog"
+          git push origin "HEAD:${BRANCH}"
 
   # Called directly, since tags created with GITHUB_TOKEN do not trigger other workflows.
   publish-docs:

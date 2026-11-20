@@ -55,7 +55,9 @@ def _get_process_simulations(yaml_model_factory, pipeline: YamlProcessPipeline):
         yaml_dict=asset.model_dump(serialize_as_any=True, mode="json", exclude_unset=True, by_alias=True)
     )
     model = yaml_model_factory(
-        configuration=ResourceStream(name="test_model", stream=StringIO(yaml_string)), resources={}
+        configuration=ResourceStream(name="test_model", stream=StringIO(yaml_string)),
+        resources={},
+        nextgen=True,
     )
     return model.get_process_simulations()
 

@@ -1,11 +1,11 @@
 from io import StringIO
 
 import pytest
+import yaml
 
 from ecalc_cli.infrastructure.file_resource_service import FileResourceService
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.presentation.yaml.model import YamlModel
-from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 
 
@@ -20,11 +20,14 @@ def _pump_yaml_model(
     outlet_pressure_keyword="OUTLET_PRESSURE",
 ):
     rate_expression = rate if rate is not None else "$var.produced_water_reinjection_total_system_rate_m3_per_day"
+    nextgen_data = {
+        key: value
+        for key, value in yaml.safe_load(simple_yaml.main_file.read()).items()
+        if key in ("START", "END", "TIME_SERIES", "FACILITY_INPUTS", "VARIABLES")
+    }
     yaml_text = (
-        simple_yaml.main_file.read()
+        yaml.safe_dump(nextgen_data)
         + f"""
-
-YAML_VERSION: 2
 PUMP_PROCESS_SIMULATIONS:
   - TYPE: PUMP
     NAME: produced_water_reinjection
@@ -46,6 +49,7 @@ PUMP_PROCESS_SIMULATIONS:
             working_directory=simple_yaml.main_file_path.parent,
             configuration=configuration,
         ),
+        nextgen=True,
     )
 
 
@@ -106,12 +110,3 @@ def test_pump_off_periods_allow_non_positive_outlet_pressure(simple_yaml, config
     for result in results:
         assert result.pump_result.shaft_power_mw == 0.0
         assert result.pump_result.operational_discharge_pressure_bara == pytest.approx(3.0)
-
-
-def test_pump_rejects_removed_required_discharge_pressure(simple_yaml, configuration_service_factory):
-    yaml_model = _pump_yaml_model(
-        simple_yaml, configuration_service_factory, outlet_pressure_keyword="REQUIRED_DISCHARGE_PRESSURE"
-    )
-
-    with pytest.raises(ModelValidationException, match="PUMP_PROCESS_SIMULATIONS > OUTLET_PRESSURE"):
-        yaml_model.get_pump_process_simulations()

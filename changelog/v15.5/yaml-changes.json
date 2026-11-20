@@ -1,0 +1,157 @@
+{
+  "entries": [
+    {
+      "kind": "added",
+      "path": [
+        "COMPRESSORS"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "COMPRESSOR_SAMPLED",
+        "COMPRESSOR"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "DIESEL_CONSUMER",
+        "RATE",
+        "CURVE",
+        "FUELTABLE"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "ELECTRICAL_CONSUMER",
+        "LOAD",
+        "CURVE",
+        "POWERCURVE"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "FUEL_GAS_CONSUMER",
+        "RATE",
+        "CURVE",
+        "FUELTABLE"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "MECHANICAL_CONSUMER",
+        "LOAD",
+        "CURVE",
+        "POWERCURVE"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "PROCESS_PIPELINES",
+        "PROCESS_UNITS",
+        "COMPRESSOR",
+        "COMPRESSOR"
+      ]
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "DIESEL_CONSUMER",
+        "RATE"
+      ],
+      "description": "Added support to also load from curve."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "ELECTRICAL_CONSUMER",
+        "LOAD"
+      ],
+      "description": "Added support to also load from curve."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "FUEL_GAS_CONSUMER",
+        "RATE"
+      ],
+      "description": "Added support to also load from curve."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "MECHANICAL_CONSUMER",
+        "LOAD"
+      ],
+      "description": "Added support to also load from curve."
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "FACILITY_INPUTS"
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "FLUID_MODELS"
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "FUEL_TYPES"
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "INSTALLATIONS"
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "MODELS"
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "PROCESS_PIPELINES",
+        "PROCESS_UNITS",
+        "COMPRESSOR",
+        "SHAFT"
+      ],
+      "replaced_by": [
+        [
+          "SHAFTS",
+          "COMPRESSORS"
+        ]
+      ]
+    }
+  ]
+}

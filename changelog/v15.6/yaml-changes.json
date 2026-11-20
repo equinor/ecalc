@@ -1,0 +1,123 @@
+{
+  "entries": [
+    {
+      "kind": "added",
+      "path": [
+        "DEFINITIONS",
+        "COMPRESSOR_MODELS"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "DRIVE_TRAIN",
+        "MECHANICAL_EFFICIENCIES"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "PROCESS_PIPELINES",
+        "PROCESS_UNITS",
+        "COMPRESSOR",
+        "MODEL"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "TIMELINE"
+      ]
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "DEFINITIONS",
+        "PROCESS_UNITS"
+      ],
+      "description": "Compressors can no longer be defined here. Other process units are defined inline in PROCESS_PIPELINES > PROCESS_UNITS."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "PROCESS_PIPELINES",
+        "EVENTS",
+        "CHANGE_FROM"
+      ],
+      "description": "No longer in use. Remove. This is detected automatically."
+    },
+    {
+      "kind": "changed",
+      "path": [
+        "PROCESS_PIPELINES",
+        "PROCESS_UNITS",
+        "COMPRESSOR",
+        "TARGET"
+      ],
+      "description": "Other PROCESS_UNITS can no longer be defined with TARGET."
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "DEFINITIONS",
+        "PROCESS_UNITS"
+      ],
+      "replaced_by": [
+        [
+          "DEFINITIONS",
+          "COMPRESSOR_MODELS"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "ECALC_EVENTS"
+      ],
+      "replaced_by": [
+        [
+          "TIMELINE",
+          "EVENTS"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "PROCESS_EVENTS"
+      ],
+      "replaced_by": [
+        [
+          "TIMELINE",
+          "EVENTS"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "PROCESS_PIPELINES",
+        "EVENTS",
+        "CHANGE_FROM"
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "PROCESS_PIPELINES",
+        "PROCESS_UNITS",
+        "COMPRESSOR",
+        "TARGET"
+      ],
+      "replaced_by": [
+        [
+          "PROCESS_PIPELINES",
+          "PROCESS_UNITS",
+          "MODEL"
+        ]
+      ]
+    }
+  ]
+}

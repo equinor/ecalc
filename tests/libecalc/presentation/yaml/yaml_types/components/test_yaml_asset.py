@@ -1,8 +1,14 @@
 import pytest
 from pydantic import ValidationError
 
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import (
+    COMMON_ROOT_FIELDS,
+    LEGACY_ROOT_FIELDS,
+    NEXTGEN_ROOT_FIELDS,
+    YamlAsset,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
+from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlDefinitionsBuilder,
@@ -13,27 +19,80 @@ from libecalc.testing.process_builders import (
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlLegacyAssetBuilder
 
+DUMP_KWARGS = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
 
-def test_timeline_requires_yaml_version_v4_or_later():
-    dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
-    asset_data = {"END": "2025-01-01"}
-    timeline_data = YamlTimelineBuilder().with_test_data().validate().model_dump(**dump_kwargs)
 
-    with pytest.raises(ValidationError, match="TIMELINE"):
-        YamlAsset.model_validate({**asset_data, "YAML_VERSION": 3, "TIMELINE": timeline_data})
+def _legacy_data() -> dict:
+    return YamlLegacyAssetBuilder().with_test_data().validate().model_dump(**DUMP_KWARGS)
 
-    asset = YamlAsset.model_validate({**asset_data, "YAML_VERSION": 4, "TIMELINE": timeline_data})
-    assert asset.yaml_version == 4
+
+def _nextgen_data() -> dict:
+    timeline = YamlTimelineBuilder().with_test_data().validate().model_dump(**DUMP_KWARGS)
+    return {"END": "2025-01-01", "TIMELINE": timeline}
+
+
+def _validate(data: dict, nextgen: bool | None = None) -> YamlAsset:
+    context = {} if nextgen is None else {YamlModelValidationContextNames.nextgen: nextgen}
+    return YamlAsset.model_validate(data, context=context)
+
+
+def test_every_root_element_is_common_legacy_or_nextgen():
+    classified = [*COMMON_ROOT_FIELDS, *LEGACY_ROOT_FIELDS, *NEXTGEN_ROOT_FIELDS]
+
+    assert sorted(classified) == sorted(YamlAsset.model_fields)
+
+
+@pytest.mark.parametrize(
+    "nextgen, message",
+    [
+        (True, "not available in a NextGen model: FUEL_TYPES, INSTALLATIONS, MODELS"),
+        (False, "not available in a legacy model: TIMELINE"),
+    ],
+)
+def test_legacy_and_nextgen_elements_cannot_be_combined(nextgen: bool, message: str):
+    with pytest.raises(ValidationError, match=message):
+        _validate({**_legacy_data(), "TIMELINE": _nextgen_data()["TIMELINE"]}, nextgen=nextgen)
+
+
+def test_nextgen_model():
+    asset = _validate(_nextgen_data(), nextgen=True)
+
+    assert asset.timeline is not None
     assert len(asset.timeline.events) == 1
 
 
-def test_default_yaml_version_is_v1():
-    dump_kwargs = {"serialize_as_any": True, "mode": "json", "exclude_unset": True, "by_alias": True}
-    asset_data = YamlLegacyAssetBuilder().with_test_data().validate().model_dump(**dump_kwargs)
-    del asset_data["YAML_VERSION"]
+def test_legacy_model():
+    asset = _validate(_legacy_data(), nextgen=False)
 
-    asset = YamlAsset.model_validate(asset_data)
-    assert asset.yaml_version == 1
+    assert len(asset.installations) == 1
+
+
+def test_root_elements_are_not_checked_without_the_flag():
+    asset = _validate({**_legacy_data(), "TIMELINE": _nextgen_data()["TIMELINE"]})
+
+    assert asset.timeline is not None
+    assert len(asset.installations) == 1
+
+
+def test_nextgen_flag_rejects_legacy_elements():
+    with pytest.raises(ValidationError, match="not available in a NextGen model: FUEL_TYPES, INSTALLATIONS, MODELS"):
+        _validate(_legacy_data(), nextgen=True)
+
+
+def test_legacy_flag_rejects_nextgen_elements():
+    with pytest.raises(ValidationError, match="not available in a legacy model: TIMELINE"):
+        _validate(_nextgen_data(), nextgen=False)
+
+
+def test_legacy_model_requires_fuel_types_and_installations():
+    with pytest.raises(ValidationError, match="required in a legacy model: FUEL_TYPES, INSTALLATIONS"):
+        _validate({"END": "2025-01-01"}, nextgen=False)
+
+
+def test_facility_inputs_are_available_in_nextgen_models():
+    asset = _validate({**_nextgen_data(), "FACILITY_INPUTS": []}, nextgen=True)
+
+    assert asset.facility_inputs == []
 
 
 def test_pipeline_can_only_be_targeted_by_one_simulation():

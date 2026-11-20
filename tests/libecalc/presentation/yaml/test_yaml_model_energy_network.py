@@ -7,7 +7,7 @@ import yaml
 from libecalc.energy.energy_network_simulation import EnergyNetworkSimulation
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
-from libecalc.testing.yaml_builder import YamlTimeSeriesBuilder
+from libecalc.testing.yaml_builder import YamlAssetBuilder, YamlTimeSeriesBuilder
 
 
 def test_returns_nothing_without_an_energy_network(minimal_model_yaml_factory, yaml_model_factory):
@@ -16,19 +16,10 @@ def test_returns_nothing_without_an_energy_network(minimal_model_yaml_factory, y
     assert model.get_energy_network() == (None, (), (), [])
 
 
-def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
-    yaml_legacy_asset_builder_factory,
-    minimal_installation_yaml_factory,
-    yaml_fuel_type_builder_factory,
-    yaml_model_factory,
-):
+def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(yaml_model_factory):
     """The evaluator only loads referenced time series, so a reference nested in INPUT must be found and used."""
     asset = (
-        yaml_legacy_asset_builder_factory()
-        .with_test_data()
-        .with_yaml_version(2)
-        .with_fuel_types([yaml_fuel_type_builder_factory().with_test_data().with_name("fuel").validate()])
-        .with_installations([minimal_installation_yaml_factory(fuel_name="fuel")])
+        YamlAssetBuilder()
         .with_time_series([YamlTimeSeriesBuilder().with_name("SIM1").with_type("DEFAULT").with_file("SIM1").validate()])
         .with_start("2020-01-01")
         .with_end("2022-01-01")
@@ -55,6 +46,7 @@ def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(
                 headers=["DATE", "GRID_LIMIT"],
             )
         },
+        nextgen=True,
     )
 
     topology, energy_unit_factories, consumers, _periods = model.get_energy_network()
@@ -153,7 +145,9 @@ def test_gas_turbine_fuel_follows_its_model(source, turbine_network_data_factory
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
 
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources=resources
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources=resources,
+        nextgen=True,
     )
 
     fuel, _ = _run_turbine(model)
@@ -167,7 +161,9 @@ def test_gas_turbine_curve_limit_reaches_the_simulation(
     turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory, load=load)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources={},
+        nextgen=True,
     )
 
     fuel, capacity_failures = _run_turbine(model)
@@ -210,7 +206,9 @@ def test_gas_turbine_file_errors_are_reported(resources, message, turbine_networ
     turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"FILE": "curve.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources=resources
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources=resources,
+        nextgen=True,
     )
 
     with pytest.raises(ModelValidationException, match=message):
@@ -221,7 +219,9 @@ def test_invalid_inline_turbine_model_is_reported_at_the_model(turbine_network_d
     turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [2, 4, 8], "EFFICIENCY": [0.1, 0.2, 1.5]}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources={},
+        nextgen=True,
     )
 
     with pytest.raises(ModelValidationException) as exc_info:
@@ -238,7 +238,9 @@ def test_turbine_file_headers_are_case_insensitive(headers, turbine_network_data
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     resources = {"curve.csv": MemoryResource(data=[[2, 4, 8], [0.1, 0.2, 0.3]], headers=headers)}
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources=resources
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources=resources,
+        nextgen=True,
     )
 
     fuel, _ = _run_turbine(model)
@@ -254,7 +256,9 @@ def test_turbine_model_resolved_from_definitions_still_validates_file_existence(
         "my_turbine", {"PERFORMANCE_CURVES": {"my_turbine": turbine}}, turbine_network_data_factory
     )
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources={},
+        nextgen=True,
     )
 
     with pytest.raises(ModelValidationException, match="resource not found"):
@@ -265,7 +269,9 @@ def test_invalid_inline_turbine_file_is_still_validated_for_existence(turbine_ne
     turbine = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"FILE": "missing.csv"}}
     data = _turbine_model_data(turbine, {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources={},
+        nextgen=True,
     )
 
     with pytest.raises(ModelValidationException, match="resource not found"):
@@ -278,7 +284,9 @@ def test_gas_turbine_model_is_resolved_from_definitions(turbine_network_data_fac
         "my_turbine", {"PERFORMANCE_CURVES": {"my_turbine": turbine}}, turbine_network_data_factory
     )
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources={},
+        nextgen=True,
     )
 
     fuel, _ = _run_turbine(model)
@@ -289,7 +297,9 @@ def test_gas_turbine_model_is_resolved_from_definitions(turbine_network_data_fac
 def test_turbine_definition_reference_not_found_is_reported(turbine_network_data_factory, yaml_model_factory):
     data = _turbine_model_data("missing_turbine", {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources={},
+        nextgen=True,
     )
 
     with pytest.raises(ModelValidationException, match="missing_turbine.*not found. Available definitions"):
@@ -321,7 +331,9 @@ def test_gas_turbine_change_switches_fuel_model_at_the_timeline_date(
     )
     data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources={},
+        nextgen=True,
     )
 
     results_by_period_start = _run_turbine_per_period(model)
@@ -339,7 +351,9 @@ def test_gas_turbine_change_rejects_a_generator_curve(latest_network_data_factor
     )
     data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="turbine_model"),
+        resources={},
+        nextgen=True,
     )
 
     with pytest.raises(
@@ -395,7 +409,9 @@ def _run_generator(model):
 def test_generator_fuel_follows_its_model(turbine_network_data_factory, yaml_model_factory):
     data = _generator_model_data(GENERATOR_MODEL, {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        resources={},
+        nextgen=True,
     )
 
     fuel, _ = _run_generator(model)
@@ -408,7 +424,9 @@ def test_generator_model_is_resolved_from_definitions(turbine_network_data_facto
         "my_generator", {"PERFORMANCE_CURVES": {"my_generator": generator_model}}, turbine_network_data_factory
     )
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        resources={},
+        nextgen=True,
     )
 
     fuel, _ = _run_generator(model)
@@ -418,7 +436,9 @@ def test_generator_model_is_resolved_from_definitions(turbine_network_data_facto
 def test_generator_definition_reference_not_found_is_reported(turbine_network_data_factory, yaml_model_factory):
     data = _generator_model_data("missing_generator", {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        resources={},
+        nextgen=True,
     )
 
     with pytest.raises(ModelValidationException, match="missing_generator.*not found. Available definitions"):
@@ -429,7 +449,9 @@ def test_invalid_inline_generator_model_is_reported_at_the_model(turbine_network
     bad_model = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, -5]}}  # fuel must not be negative
     data = _generator_model_data(bad_model, {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        resources={},
+        nextgen=True,
     )
 
     with pytest.raises(ModelValidationException) as exc_info:
@@ -453,7 +475,9 @@ def test_generator_change_switches_fuel_model_at_the_timeline_date(latest_networ
     )
     data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        resources={},
+        nextgen=True,
     )
 
     results_by_period_start = _run_generator_per_period(model)
@@ -479,7 +503,9 @@ def test_generator_changes_on_the_same_date_are_reported(latest_network_data_fac
         }
     }
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"), resources={}
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        resources={},
+        nextgen=True,
     )
 
     with pytest.raises(ModelValidationException, match="Only one model event is allowed per date.*2021-01-01"):

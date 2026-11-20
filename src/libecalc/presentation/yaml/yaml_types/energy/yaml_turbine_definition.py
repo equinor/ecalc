@@ -1,4 +1,4 @@
-from typing import Annotated, Any, Literal
+from typing import Annotated, Literal
 
 from pydantic import ConfigDict, Field, model_validator
 
@@ -6,7 +6,6 @@ from libecalc.common.errors.ecalc_validation_error import EcalcValidationExcepti
 from libecalc.energy.models.combustion_engine_fuel_model import validate_combustion_engine_curve
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import DataOrFile
-from libecalc.presentation.yaml.yaml_types.yaml_version import V5, removed_field
 
 
 class YamlTurbineCurve(YamlBase):
@@ -48,15 +47,6 @@ class YamlTurbineDefinition(YamlBase):
             ],
         },
     )
-
-    # REMOVED FIELDS
-    lower_heating_value: Any = removed_field(
-        title="LOWER_HEATING_VALUE",
-        removed_in=V5,
-        message="Set it on the fuel/diesel source this unit draws from instead.",
-        replaced_by=("ENERGY_NETWORK", "SOURCES", "LOWER_HEATING_VALUE"),
-    )
-    # END REMOVED FIELDS
 
     type: Literal["LOAD_TO_EFFICIENCY"]
 

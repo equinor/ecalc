@@ -92,7 +92,7 @@ class TestTargetReferencesNonexistentPipeline:
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
 
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
+        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={}, nextgen=True)
 
         with pytest.raises(ModelValidationException) as exc_info:
             model.get_process_simulations()
@@ -100,7 +100,7 @@ class TestTargetReferencesNonexistentPipeline:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 50
+	Object starting on line 49
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: train_1, my_sim
 """)
@@ -140,7 +140,7 @@ class TestConstraintReferencesInvalid:
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
 
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
+        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={}, nextgen=True)
 
         with pytest.raises(ModelValidationException) as exc_info:
             model.get_process_simulations()
@@ -148,7 +148,7 @@ class TestConstraintReferencesInvalid:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 50
+	Object starting on line 49
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: train_1, my_sim
 """)
@@ -180,7 +180,7 @@ Validation error
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
 
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
+        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={}, nextgen=True)
 
         with pytest.raises(ModelValidationException) as exc_info:
             model.get_process_simulations()
@@ -188,7 +188,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 89
+	Object starting on line 88
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Missing constraint for process system 'train_2'
 """)
@@ -225,7 +225,7 @@ class TestInletStreamReferenceNotFound:
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
 
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
+        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={}, nextgen=True)
 
         with pytest.raises(ModelValidationException) as exc_info:
             model.get_process_simulations()
@@ -233,7 +233,7 @@ class TestInletStreamReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 50
+	Object starting on line 49
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_stream'. Available references: train_1, my_sim
 """)
@@ -281,7 +281,7 @@ class TestPipelineEventRefNotFound:
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
 
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
+        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={}, nextgen=True)
 
         with pytest.raises(ModelValidationException) as exc_info:
             model.get_process_simulations()
@@ -289,7 +289,7 @@ class TestPipelineEventRefNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 81
+	Object starting on line 80
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Event reference 'nonexistent_event' does not match any event in TIMELINE.EVENTS.
 """)
@@ -327,7 +327,7 @@ class TestOverflowReferenceNotFound:
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
 
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
+        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={}, nextgen=True)
 
         with pytest.raises(ModelValidationException) as exc_info:
             model.get_process_simulations()
@@ -335,7 +335,7 @@ class TestOverflowReferenceNotFound:
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 50
+	Object starting on line 49
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: train_1, my_sim
 """)
@@ -369,7 +369,7 @@ Validation error
             .with_definitions(YamlDefinitionsBuilder().with_test_data().validate())
         ).validate()
 
-        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={})
+        model = yaml_model_factory(configuration=_asset_to_stream(asset), resources={}, nextgen=True)
 
         with pytest.raises(ModelValidationException) as exc_info:
             model.get_process_simulations()
@@ -377,7 +377,7 @@ Validation error
         assert str(exc_info.value) == snapshot("""\
 Validation error
 
-	Object starting on line 50
+	Object starting on line 49
 	Location: PROCESS_SIMULATIONS.my_sim
 	Message: Invalid process reference 'nonexistent_pipeline'. Available references: train_1, my_sim
 """)

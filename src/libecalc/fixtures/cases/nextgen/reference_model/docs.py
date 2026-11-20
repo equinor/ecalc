@@ -2,7 +2,6 @@ import re
 from pathlib import Path
 
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
-from libecalc.presentation.yaml.yaml_types.yaml_version import LATEST_YAML_VERSION
 
 from .export import ARCHIVE_FILE_NAME, MODEL_FILE_NAME, example_files
 from .mermaid import energy_network_to_mermaid
@@ -20,7 +19,7 @@ def _code_block(title: str, content: str, language: str = "text") -> str:
 
 
 def render_example_page(model: YamlAsset | None = None, files: dict[str, str] | None = None) -> str:
-    model = model if model is not None else build_reference_model(LATEST_YAML_VERSION)
+    model = model if model is not None else build_reference_model()
     files = files if files is not None else example_files(model)
     model_block = _code_block(MODEL_FILE_NAME, files[MODEL_FILE_NAME], "yaml")
     resource_blocks = "\n\n".join(
@@ -48,10 +47,11 @@ description: A complete example of a NextGen eCalc model.
 The energy network is shown at the top, and the energy demand from the process model (compressors and process
 pipelines) is shown in orange at the bottom.
 
-This is an example of a NextGen eCalc model using `YAML_VERSION: {LATEST_YAML_VERSION}`.
+This is an example of a NextGen eCalc model.
 It is generated from the model builders in the eCalc library, and verified by the library tests.
 See the [Process Reference](./process-reference.mdx) and the [Energy Reference](./energy-reference.mdx) for a
-description of every element, and the [YAML Changelog](./yaml-changelog.md) for what changed between versions.
+description of every element, and the [NextGen changelog](../../changelog/nextgen.md) for what changed between
+releases.
 
 The model contains:
 

@@ -14,6 +14,9 @@ uv run python src/generate_fixture.py
 echo "Generating process, energy and YAML reference, energy units and YAML changelog"
 uv run python src/generate_yaml_asset_docs.py
 
+echo "Generating NextGen changelog"
+uv run python src/generate_nextgen_changelog.py
+
 echo "Generating CLI reference"
 uv run typer src/ecalc_cli/main.py utils docs > docs/docs/about/getting_started/cli/cli_reference.md
 
