@@ -205,11 +205,20 @@ def build_anchor_registry() -> dict[str, str]:
     return anchor_registry
 
 
-def release_folder_name(version: str) -> str:
+def _parse_release_version(version: str) -> tuple[str, str, str]:
     match = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)", version)
     if match is None:
         raise ValueError(f"Invalid release version '{version}'. Expected X.Y.Z.")
     major, minor, patch = match.groups()
+    return major, minor, patch
+
+
+def is_patch_release(version: str) -> bool:
+    return _parse_release_version(version)[2] != "0"
+
+
+def release_folder_name(version: str) -> str:
+    major, minor, patch = _parse_release_version(version)
     if patch != "0":
         raise ValueError(f"Release version '{version}' is a patch release. Only X.Y.0 releases are frozen.")
     return f"v{major}.{minor}"
@@ -231,7 +240,9 @@ def _has_content(folder: Path) -> bool:
     return any(path.name != ".gitkeep" for path in folder.iterdir())
 
 
-def freeze_release(changelog_dir: Path, version: str) -> Path:
+def freeze_release(changelog_dir: Path, version: str) -> Path | None:
+    if is_patch_release(version):
+        return None
     release_dir = changelog_dir / release_folder_name(version)
     unreleased_dir = changelog_dir / UNRELEASED_FOLDER
 
@@ -330,6 +341,9 @@ def main():
     if args.command == "freeze":
         version = args.version or _release_please_version()
         release_dir = freeze_release(CHANGELOG_DIR, version)
+        if release_dir is None:
+            print(f"v{version} is a patch release. The NextGen changelog is not frozen.")
+            return
         print(f"Froze v{version}: {release_dir if release_dir.exists() else 'no NextGen changes'}")
         return
 
