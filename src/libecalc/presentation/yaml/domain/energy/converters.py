@@ -37,7 +37,7 @@ def _required_period(unit_description: str, extra: Mapping[str, Any]) -> Period:
     return period
 
 
-class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
+class TimeSeriesGeneratorSetFactory(TimeSeriesEnergyUnitFactory):
     def __init__(
         self,
         *,

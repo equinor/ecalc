@@ -177,6 +177,128 @@ class TestLowerHeatingValueResolution:
                 }
             )
 
+    def test_generator_set_with_gas_turbine_model_without_lower_heating_value_rejected(self):
+        with pytest.raises(ValueError, match="could not resolve a LOWER_HEATING_VALUE"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "fuel",
+                            "MODEL": {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": TURBINE, "GENERATOR_EFFICIENCY": 0.97},
+                        }
+                    ],
+                }
+            )
+
+    def test_generator_set_requires_lower_heating_value_when_events_change_to_an_engine_model(self):
+        """MODEL starts as a plain curve (no LHV needed), but CHANGES.CHANGE_TO switches to a GAS_TURBINE model
+        partway through — the source must still have a LOWER_HEATING_VALUE, since the check must not only look
+        at the initial MODEL.
+        """
+        with pytest.raises(ValueError, match="could not resolve a LOWER_HEATING_VALUE"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "fuel",
+                            "MODEL": GENERATOR_SET_MODEL,
+                            "CHANGES": [
+                                {
+                                    "REF": "upgrade",
+                                    "CHANGE_TO": {
+                                        "TYPE": "GAS_TURBINE_DRIVEN",
+                                        "ENGINE": TURBINE,
+                                        "GENERATOR_EFFICIENCY": 0.97,
+                                    },
+                                }
+                            ],
+                        }
+                    ],
+                }
+            )
+
+
+class TestGeneratorSetEnergyTypeCompatibility:
+    def test_gas_turbine_generator_set_rejects_diesel_source(self):
+        with pytest.raises(ValueError, match="expects FUEL_GAS input.*provides DIESEL"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE", "LOWER_HEATING_VALUE": 38.0}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "diesel",
+                            "MODEL": {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": TURBINE, "GENERATOR_EFFICIENCY": 0.97},
+                        }
+                    ],
+                }
+            )
+
+    def test_diesel_engine_generator_set_rejects_fuel_gas_source(self):
+        with pytest.raises(ValueError, match="expects DIESEL input.*provides FUEL_GAS"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38.0}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "fuel",
+                            "MODEL": {"TYPE": "DIESEL_ENGINE_DRIVEN", "ENGINE": TURBINE, "GENERATOR_EFFICIENCY": 0.97},
+                        }
+                    ],
+                }
+            )
+
+    def test_curve_based_generator_set_accepts_either_fuel_or_diesel_source(self):
+        for source_type, input_name in (("FUEL_GAS_SOURCE", "fuel"), ("DIESEL_SOURCE", "diesel")):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": input_name, "TYPE": source_type}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": input_name,
+                            "MODEL": GENERATOR_SET_MODEL,
+                        }
+                    ],
+                }
+            )
+
+    def test_generator_set_rejects_switching_between_incompatible_engine_types(self):
+        with pytest.raises(ValueError, match="incompatible engine fuel types.*DIESEL.*FUEL_GAS"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38.0}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "fuel",
+                            "MODEL": {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": TURBINE, "GENERATOR_EFFICIENCY": 0.97},
+                            "CHANGES": [
+                                {
+                                    "REF": "rebundle",
+                                    "CHANGE_TO": {
+                                        "TYPE": "DIESEL_ENGINE_DRIVEN",
+                                        "ENGINE": TURBINE,
+                                        "GENERATOR_EFFICIENCY": 0.97,
+                                    },
+                                }
+                            ],
+                        }
+                    ],
+                }
+            )
+
 
 class TestJunctionValidation:
     def test_dispatch_strategy_required(self):

@@ -43,7 +43,7 @@ from libecalc.testing.energy_builders import (
     YamlElectricalConsumerBuilder,
     YamlElectricalMotorBuilder,
     YamlElectricalSourceBuilder,
-    YamlEnergyGeneratorBuilder,
+    YamlEnergyGeneratorSetBuilder,
     YamlEnergyNetworkBuilder,
     YamlFileBuilder,
     YamlFuelGasConsumerBuilder,
@@ -323,7 +323,7 @@ ENERGY_EXAMPLES: list[Example] = [
             )
             .with_units(
                 [
-                    YamlEnergyGeneratorBuilder().with_test_data().validate(),
+                    YamlEnergyGeneratorSetBuilder().with_test_data().validate(),
                     YamlElectricalCableBuilder().with_test_data().validate(),
                     YamlElectricalBusBuilder().with_test_data().validate(),
                     YamlElectricalConsumerBuilder().with_test_data().validate(),
@@ -342,7 +342,7 @@ ENERGY_EXAMPLES: list[Example] = [
     # --- ENERGY_NETWORK.UNITS variants ---
     Example(
         "ENERGY_NETWORK.UNITS.GENERATOR_SET",
-        lambda: YamlEnergyGeneratorBuilder().with_test_data().validate(),
+        lambda: YamlEnergyGeneratorSetBuilder().with_test_data().validate(),
     ),
     Example(
         "ENERGY_NETWORK.UNITS.GENERATOR_SET.CHANGES",

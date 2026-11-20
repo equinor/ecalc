@@ -1,5 +1,5 @@
 from enum import StrEnum
-from typing import Annotated, Literal, Union
+from typing import Annotated, Literal, TypeGuard, Union
 
 from pydantic import (
     AfterValidator,
@@ -14,7 +14,10 @@ from libecalc.common.string.string_utils import get_duplicates
 from libecalc.energy.models.curve_interpolator import validate_curve_interpolator
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
-from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
+from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_set_definition import (
+    YamlGeneratorSetEngineDefinition,
+    YamlGeneratorSetModel,
+)
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import (
     DefinitionReference,
@@ -146,8 +149,8 @@ YamlModelChangeReference = Annotated[
 
 
 class YamlGeneratorModelChange(YamlBase):
-    """A dated change of the generator's model. The generator stays the same unit in the energy network; only the
-    model used to convert power to fuel changes."""
+    """A dated change of the generator set's model. The generator set stays the same unit in the energy network;
+    only the model used to convert power to fuel changes."""
 
     model_config = ConfigDict(
         title="GeneratorModelChange",
@@ -167,11 +170,10 @@ class YamlGeneratorModelChange(YamlBase):
     )
 
     change_to: Annotated[
-        DefinitionReference | YamlGeneratorDefinition,
-        validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
+        YamlGeneratorSetModel,
         Field(
             title="CHANGE_TO",
-            description="The generator model to use from the event date on.",
+            description="The generator set model to use from the event date on.",
         ),
     ]
     change_type: YamlModelChangeType = YamlEnergyUnitChangeType.REBUNDLE
@@ -216,18 +218,18 @@ class YamlGeneratorSet(YamlConverterBase):
 
     type: Literal["GENERATOR_SET"]
     model: Annotated[
-        DefinitionReference | YamlGeneratorDefinition,
-        validate_definition_reference_or_inline_model(YamlGeneratorDefinition),
+        YamlGeneratorSetModel,
         Field(
             title="MODEL",
-            description="Generator set model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
+            description="Generator set model, given directly as a power-to-fuel curve or a gas turbine/diesel "
+            "engine driven model.",
         ),
     ]
     changes: Annotated[
         list[YamlGeneratorModelChange],
         Field(
             title="CHANGES",
-            description="Changes to the generator model over time, such as a rebundle. Each change takes "
+            description="Changes to the generator set model over time, such as a rebundle. Each change takes "
             "effect from the date of its referenced TIMELINE.EVENTS entry.",
         ),
     ] = []
@@ -834,8 +836,39 @@ INPUT_ENERGY: dict[str, EnergyType] = {
     "DIESEL_CONSUMER": EnergyType.DIESEL,
 }
 
-# Allowed input types for GENERATOR_SET; the actual type is inferred from its connected source.
+# Allowed input types for a curve-based GENERATOR_SET; the actual type is inferred from its connected source.
 GENERATOR_SET_INPUT_ENERGY = {EnergyType.FUEL_GAS, EnergyType.DIESEL}
+
+
+def _generator_set_model_energy_type(model: YamlGeneratorSetModel) -> EnergyType | None:
+    """The fuel energy type required by a generator set's engine model, or None for a curve/reference model that
+    is not tied to a specific engine and instead follows its connected source."""
+    if isinstance(model, YamlGeneratorSetEngineDefinition):
+        return EnergyType.FUEL_GAS if model.type == "GAS_TURBINE_DRIVEN" else EnergyType.DIESEL
+    return None
+
+
+def _generator_set_allowed_inputs(unit: YamlGeneratorSet) -> set[EnergyType]:
+    """The energy types a GENERATOR(_SET) may draw from, constrained by its MODEL and any CHANGES.CHANGE_TO engine
+    model: a GAS_TURBINE_DRIVEN model requires FUEL_GAS, a DIESEL_ENGINE_DRIVEN model requires DIESEL, and a
+    curve-based model is unconstrained (inferred from the connected source). The legacy GENERATOR has no CHANGES
+    and is always curve-based."""
+    changes = unit.changes if isinstance(unit, YamlGeneratorSet) else []
+    required_types = {
+        energy_type
+        for energy_type in (
+            _generator_set_model_energy_type(model) for model in (unit.model, *(c.change_to for c in changes))
+        )
+        if energy_type is not None
+    }
+    if len(required_types) > 1:
+        raise ValueError(
+            f"{get_unit_label(unit)}: its MODEL and CHANGES require incompatible engine fuel types "
+            f"{sorted(t.value for t in required_types)}. A GENERATOR_SET's INPUT must match the fuel type of "
+            "every GAS_TURBINE_DRIVEN/DIESEL_ENGINE_DRIVEN model used over its lifetime."
+        )
+    return required_types or GENERATOR_SET_INPUT_ENERGY
+
 
 OUTPUT_ENERGY: dict[str, EnergyType] = {
     "GENERATOR_SET": EnergyType.ELECTRICAL,
@@ -880,6 +913,21 @@ def resolve_lhv_by_source_name(sources: list[YamlEnergySource]) -> dict[str, flo
         for source in sources
         if isinstance(source, YamlFuelSourceBase) and source.lower_heating_value is not None
     }
+
+
+def _requires_lower_heating_value(
+    unit: YamlComponent,
+) -> TypeGuard[YamlGasTurbine | YamlDieselEngine | YamlGeneratorSet]:
+    """A GAS_TURBINE/DIESEL_ENGINE always needs a LOWER_HEATING_VALUE; a GENERATOR_SET only when its MODEL or
+    CHANGES.CHANGE_TO is an engine-driven model, since a curve-based model is not tied to a specific fuel."""
+    if isinstance(unit, (YamlGasTurbine, YamlDieselEngine)):
+        return True
+    if isinstance(unit, YamlGeneratorSet):
+        return any(
+            _generator_set_model_energy_type(model) is not None
+            for model in (unit.model, *(ch.change_to for ch in unit.changes))
+        )
+    return False
 
 
 class YamlEnergyNetwork(YamlBase):
@@ -950,7 +998,7 @@ class YamlEnergyNetwork(YamlBase):
     def check_combustion_engine_lower_heating_value(self):
         lhv_by_source_name = resolve_lhv_by_source_name(self.sources)
         for c in self.units:
-            if not isinstance(c, (YamlGasTurbine, YamlDieselEngine)):
+            if not _requires_lower_heating_value(c):
                 continue
             if lhv_by_source_name.get(c.input) is None:
                 raise ValueError(
@@ -969,8 +1017,8 @@ class YamlEnergyNetwork(YamlBase):
                 output_types[c.name] = OUTPUT_ENERGY[c.type]
 
         for c in self.units:
-            if c.type == "GENERATOR_SET":
-                allowed_inputs = GENERATOR_SET_INPUT_ENERGY
+            if isinstance(c, YamlGeneratorSet):
+                allowed_inputs = _generator_set_allowed_inputs(c)
             else:
                 if c.type not in INPUT_ENERGY:
                     raise ValueError(

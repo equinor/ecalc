@@ -31,6 +31,11 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition impo
     YamlGeneratorCurve,
     YamlGeneratorDefinition,
 )
+from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_set_definition import (
+    YamlGeneratorSetEngineDefinition,
+    YamlGeneratorSetEngineType,
+    YamlGeneratorSetModel,
+)
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import (
     YamlTurbineCurve,
     YamlTurbineDefinition,
@@ -129,6 +134,30 @@ class YamlGeneratorDefinitionBuilder(Builder[YamlGeneratorDefinition]):
         return self
 
 
+class YamlGeneratorSetEngineDefinitionBuilder(Builder[YamlGeneratorSetEngineDefinition]):
+    def __init__(self):
+        self.type: YamlGeneratorSetEngineType = "GAS_TURBINE_DRIVEN"
+        self.engine = None
+        self.generator_efficiency = None
+
+    def with_type(self, type: YamlGeneratorSetEngineType) -> Self:
+        self.type = type
+        return self
+
+    def with_engine(self, engine: str | YamlTurbineDefinition) -> Self:
+        self.engine = engine
+        return self
+
+    def with_generator_efficiency(self, generator_efficiency: float) -> Self:
+        self.generator_efficiency = generator_efficiency
+        return self
+
+    def with_test_data(self) -> Self:
+        self.engine = YamlTurbineDefinitionBuilder().with_test_data().validate()
+        self.generator_efficiency = 0.97
+        return self
+
+
 # ---------------------------------------------------------------------------
 # Source builders
 # ---------------------------------------------------------------------------
@@ -224,7 +253,7 @@ class YamlGeneratorModelChangeBuilder(Builder[YamlGeneratorModelChange]):
         return self
 
 
-class YamlEnergyGeneratorBuilder(Builder[YamlGeneratorSet]):
+class YamlEnergyGeneratorSetBuilder(Builder[YamlGeneratorSet]):
     def __init__(self):
         self.type = "GENERATOR_SET"
         self.name = None
@@ -240,7 +269,7 @@ class YamlEnergyGeneratorBuilder(Builder[YamlGeneratorSet]):
         self.input = input
         return self
 
-    def with_model(self, model: str | YamlGeneratorDefinition) -> Self:
+    def with_model(self, model: YamlGeneratorSetModel) -> Self:
         self.model = model
         return self
 

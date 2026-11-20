@@ -118,6 +118,70 @@ def test_generator_set_does_not_accept_capacity():
         )
 
 
+def test_generator_set_with_gas_turbine_composes_capacity_from_engine_and_efficiency(
+    energy_network_mapper_factory, expression_evaluator_factory, period
+):
+    generator_efficiency = 0.9
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38}],
+            "UNITS": [
+                {
+                    "NAME": "genset",
+                    "TYPE": "GENERATOR_SET",
+                    "INPUT": "fuel",
+                    "MODEL": {
+                        "TYPE": "GAS_TURBINE_DRIVEN",
+                        "ENGINE": TURBINE,
+                        "GENERATOR_EFFICIENCY": generator_efficiency,
+                    },
+                }
+            ],
+        }
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+
+    (genset,) = (factory for factory in factories if factory.get_name() == "genset")
+    generator_set = genset.create(
+        ElectricalPower(0), incoming_connections=topology.get_incoming_connections(genset.get_id()), period=period
+    )
+    assert generator_set.get_capacity() == ElectricalPower(20 * generator_efficiency)
+
+
+def test_generator_set_with_diesel_engine_composes_capacity_from_engine_and_efficiency(
+    energy_network_mapper_factory, expression_evaluator_factory, period
+):
+    generator_efficiency = 0.85
+    yaml_network = YamlEnergyNetwork.model_validate(
+        {
+            "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE", "LOWER_HEATING_VALUE": 35.8}],
+            "UNITS": [
+                {
+                    "NAME": "genset",
+                    "TYPE": "GENERATOR_SET",
+                    "INPUT": "diesel",
+                    "MODEL": {
+                        "TYPE": "DIESEL_ENGINE_DRIVEN",
+                        "ENGINE": TURBINE,
+                        "GENERATOR_EFFICIENCY": generator_efficiency,
+                    },
+                }
+            ],
+        }
+    )
+    expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
+
+    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+
+    (genset,) = (factory for factory in factories if factory.get_name() == "genset")
+    generator_set = genset.create(
+        ElectricalPower(0), incoming_connections=topology.get_incoming_connections(genset.get_id()), period=period
+    )
+    assert generator_set.get_capacity() == ElectricalPower(20 * generator_efficiency)
+
+
 def test_maps_sources_units_connections_and_expressions(
     energy_network_mapper_factory, expression_evaluator_factory, period
 ):

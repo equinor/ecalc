@@ -9,7 +9,7 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import Yam
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
 from libecalc.testing.energy_builders import (
     YamlElectricalConsumerBuilder,
-    YamlEnergyGeneratorBuilder,
+    YamlEnergyGeneratorSetBuilder,
     YamlEnergyNetworkBuilder,
     YamlFuelGasSourceBuilder,
     YamlGeneratorDefinitionBuilder,
@@ -31,7 +31,7 @@ COMPRESSOR_MODEL = "compressor_model"
 def _energy_network(generator_model: str | YamlGeneratorDefinition) -> YamlEnergyNetwork:
     source = YamlFuelGasSourceBuilder().with_test_data().validate()
     generator = (
-        YamlEnergyGeneratorBuilder().with_test_data().with_input(source.name).with_model(generator_model).validate()
+        YamlEnergyGeneratorSetBuilder().with_test_data().with_input(source.name).with_model(generator_model).validate()
     )
     load = YamlElectricalConsumerBuilder().with_test_data().with_input(generator.name).validate()
     return YamlEnergyNetworkBuilder().with_sources([source]).with_units([generator, load]).validate()
@@ -140,7 +140,7 @@ def test_unit_without_downstream_units_is_reported(yaml_model_factory):
     connected_network = _energy_network(YamlGeneratorDefinitionBuilder().with_test_data().validate())
     (source,) = connected_network.sources
     dangling_generator = (
-        YamlEnergyGeneratorBuilder()
+        YamlEnergyGeneratorSetBuilder()
         .with_test_data()
         .with_name("dangling_generator")
         .with_input(source.name)

@@ -368,7 +368,7 @@ GENERATOR_SET_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUE
 EXPECTED_GENERATOR_SET_FUEL = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
 
 
-def _generator_set_model_data(model, definitions, base_data_factory, load=7, changes=None):
+def _generator_set_model_data(model, definitions, base_data_factory, load=7.0, changes=None):
     data = base_data_factory()
     data["DEFINITIONS"] = definitions
     generator_set = {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": model}
@@ -460,6 +460,54 @@ def test_invalid_inline_generator_set_model_is_reported_at_the_model(turbine_net
     (error,) = exc_info.value.errors()
     assert error.location.keys[:5] == ["ENERGY_NETWORK", "UNITS", 0, "GENERATOR_SET", "MODEL"]
     assert "must not be negative" in error.message
+
+
+def test_generator_set_engine_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
+    """ENGINE on an engine-driven GENERATOR_SET.MODEL follows the same DEFINITIONS.PERFORMANCE_CURVES
+    reference resolution as GAS_TURBINE/DIESEL_ENGINE's MODEL."""
+    generator_efficiency = 0.9
+    # power demand (4.5 MW) / generator_efficiency (0.9) = engine load 5, matching EXPECTED_FUEL's setup.
+    engine_model = {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": "my_turbine", "GENERATOR_EFFICIENCY": generator_efficiency}
+    data = _generator_set_model_data(
+        engine_model,
+        {"PERFORMANCE_CURVES": {"my_turbine": {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE}}},
+        turbine_network_data_factory,
+        load=4.5,
+    )
+    data["ENERGY_NETWORK"]["SOURCES"][0]["LOWER_HEATING_VALUE"] = TURBINE_LHV
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_engine_model"),
+        resources={},
+        nextgen=True,
+    )
+
+    fuel, _ = _run_generator_set(model)
+    assert fuel == pytest.approx(EXPECTED_FUEL)
+
+
+def test_generator_set_engine_rejects_a_generator_curve(turbine_network_data_factory, yaml_model_factory):
+    engine_model = {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": "my_generator", "GENERATOR_EFFICIENCY": 0.9}
+    data = _generator_set_model_data(
+        engine_model,
+        {
+            "PERFORMANCE_CURVES": {
+                "my_generator": {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [1, 2]}}
+            }
+        },
+        turbine_network_data_factory,
+    )
+    data["ENERGY_NETWORK"]["SOURCES"][0]["LOWER_HEATING_VALUE"] = TURBINE_LHV
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_engine_model"),
+        resources={},
+        nextgen=True,
+    )
+
+    with pytest.raises(
+        ModelValidationException,
+        match="resolved to type .YamlGeneratorDefinition., but expected one of: YamlTurbineDefinition",
+    ):
+        model.get_energy_network()
 
 
 GENERATOR_SET_MODEL_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}

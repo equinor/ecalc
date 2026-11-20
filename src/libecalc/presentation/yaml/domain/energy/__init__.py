@@ -10,7 +10,7 @@ from libecalc.presentation.yaml.domain.energy.converters import (
     TimeSeriesDieselEngineFactory,
     TimeSeriesElectricalMotorFactory,
     TimeSeriesGasTurbineFactory,
-    TimeSeriesGeneratorFactory,
+    TimeSeriesGeneratorSetFactory,
 )
 from libecalc.presentation.yaml.domain.energy.curve_consumer import CurveConsumerDemand
 from libecalc.presentation.yaml.domain.energy.demand import (
@@ -37,7 +37,7 @@ __all__ = [
     "TimeSeriesEnergyUnit",
     "TimeSeriesEnergyUnitFactory",
     "TimeSeriesGasTurbineFactory",
-    "TimeSeriesGeneratorFactory",
+    "TimeSeriesGeneratorSetFactory",
     "TimeSeriesJunctionFactory",
     "TimeSeriesSourceFactory",
 ]
