@@ -1,7 +1,10 @@
+from collections.abc import Sequence
+
+from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
+from libecalc.process.process_solver.pipeline_solver import PipelineSolver
 from libecalc.process.process_solver.search_strategies import (
     Bisect,
     BisectResult,
@@ -14,18 +17,24 @@ _RATE_SEARCH_MAX_ITERATIONS = 40
 
 class FeasibilitySolver:
     """Calculates how much of a given inlet rate exceeds what a compressor train
-    can handle for a target pressure.
+    can handle for its pressure targets.
 
-    Orchestrates PipelineSectionSolver and queries compressor charts to find
-    the feasible rate — the excess is redirected via stream distribution.
+    Orchestrates a PipelineSolver (single or multiple sections) and searches for
+    the largest feasible inlet rate — the excess is redirected via stream distribution.
     """
 
     def __init__(
         self,
-        pipeline_section_solver: PipelineSectionSolver,
+        pipeline_solver: PipelineSolver | None = None,
         search_strategy: Bisect | None = None,
+        *,
+        pipeline_section_solver: PipelineSolver | None = None,
     ):
-        self._solver = pipeline_section_solver
+        # pipeline_section_solver is kept for backwards compatibility, use pipeline_solver
+        solver = pipeline_solver if pipeline_solver is not None else pipeline_section_solver
+        if solver is None or (pipeline_solver is not None and pipeline_section_solver is not None):
+            raise ProgrammingError("Exactly one of 'pipeline_solver' and 'pipeline_section_solver' must be given.")
+        self._solver: PipelineSolver = solver
         self._search_strategy = search_strategy or Bisect(
             tolerance=_RATE_SEARCH_TOLERANCE,
             max_iterations=_RATE_SEARCH_MAX_ITERATIONS,
@@ -34,7 +43,7 @@ class FeasibilitySolver:
     def get_excess_rate(
         self,
         inlet_stream: FluidStream,
-        target_pressure: FloatConstraint,
+        pressure_targets: Sequence[FloatConstraint],
     ) -> float:
         """Rate [sm³/day] that exceeds what this train can handle.
 
@@ -45,22 +54,22 @@ class FeasibilitySolver:
         if full_rate <= 0.0:
             return 0.0
 
-        if self._is_feasible(inlet_stream, target_pressure):
+        if self._is_feasible(inlet_stream, pressure_targets):
             return 0.0
 
-        capacity = self._largest_feasible_rate(inlet_stream, target_pressure, full_rate)
+        capacity = self._largest_feasible_rate(inlet_stream, pressure_targets, full_rate)
         return max(0.0, full_rate - capacity)
 
     def _largest_feasible_rate(
         self,
         inlet_stream: FluidStream,
-        target_pressure: FloatConstraint,
+        pressure_targets: Sequence[FloatConstraint],
         upper_bound_sm3_per_day: float,
     ) -> float:
         boundary = Boundary(min=0.0, max=upper_bound_sm3_per_day)
 
         def probe(rate: float) -> BisectResult:
-            feasible = self._is_feasible(inlet_stream.with_standard_rate(rate), target_pressure)
+            feasible = self._is_feasible(inlet_stream.with_standard_rate(rate), pressure_targets)
             return BisectResult(higher=feasible, accepted=feasible)
 
         try:
@@ -68,5 +77,5 @@ class FeasibilitySolver:
         except DidNotConvergeError:
             return 0.0
 
-    def _is_feasible(self, inlet_stream: FluidStream, target_pressure: FloatConstraint) -> bool:
-        return self._solver.find_solution([target_pressure], inlet_stream).success
+    def _is_feasible(self, inlet_stream: FluidStream, pressure_targets: Sequence[FloatConstraint]) -> bool:
+        return self._solver.find_solution(pressure_targets, inlet_stream).success

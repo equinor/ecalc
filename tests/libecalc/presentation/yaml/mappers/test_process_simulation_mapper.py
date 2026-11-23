@@ -369,7 +369,7 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
     )
     yaml_simulation.constraints[yaml_pipeline.name].insert(0, constraint)
 
-    _, simulation = process_simulation_mapper_factory(refs).map_process_simulation(
+    pipelines, simulation = process_simulation_mapper_factory(refs).map_process_simulation(
         yaml_process_simulation=yaml_simulation,
     )
 
@@ -390,9 +390,19 @@ def test_mapper_builds_multiple_process_problem_sections(process_simulation_mapp
     #    isinstance(h, ChokeConfigurationHandler) for h in problem.get_process_problem_sections()[1].configuration_handlers
     # )
 
+    # Intermediate sections are constrained at their last unit, the last section at the unit before the outlet.
+    first_section_units, last_section_units = (
+        section.get_process_units() for section in pipelines[0].get_process_pipeline_sections()
+    )
+    assert isinstance(first_section_units[-1], TimeSeriesDirectSplitterProcessUnit)
+    assert isinstance(last_section_units[-1], TimeSeriesOutletProcessUnit)
     assert (
         problem.get_process_problem_sections()[0].get_constraint().target_process_unit_id
-        != problem.get_process_problem_sections()[1].get_constraint().target_process_unit_id
+        == first_section_units[-1].get_id()
+    )
+    assert (
+        problem.get_process_problem_sections()[1].get_constraint().target_process_unit_id
+        == last_section_units[-2].get_id()
     )
 
 
