@@ -180,8 +180,8 @@ class YamlAsset(YamlBase):
     timeline: YamlTimeline | None = Field(
         None,
         title="TIMELINE",
-        description="Defines dated events in the model. Event dates are added to the time steps of process "
-        "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
+        description="Defines dated events and operating phases in the model. Event dates are added to the time "
+        "steps of process simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
     )
     pumps: list[YamlPump] = Field(
         default_factory=list,
@@ -481,6 +481,7 @@ class YamlAsset(YamlBase):
             ("FLUID_MODELS", self.fluid_models.keys()),
             ("INLET_STREAMS", (inlet_stream.name for inlet_stream in self.inlet_streams)),
             ("TIMELINE.EVENTS", self.timeline.events.keys() if self.timeline is not None else ()),
+            ("TIMELINE.PHASES", self.timeline.phases.keys() if self.timeline is not None else ()),
         )
 
         sections_by_name: dict[str, list[str]] = defaultdict(list)

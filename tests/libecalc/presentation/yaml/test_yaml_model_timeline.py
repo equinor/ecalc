@@ -1,7 +1,11 @@
 from datetime import datetime
 from io import StringIO
 
+import pytest
+
 from libecalc.ecalc_model.timeline_event import TimelineEventType
+from libecalc.ecalc_model.timeline_phase import TimelinePhaseType
+from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
@@ -20,8 +24,12 @@ from libecalc.testing.process_builders import (
 )
 from libecalc.testing.yaml_builder import YamlAssetBuilder
 
+REBUNDLE_EVENT = {"rebundle": {"TYPE": "OPERATIONAL_MEASURE", "FROM": "2021-06-01"}}
 
-def _model_stream(timeline_events: dict[str, dict]) -> ResourceStream:
+
+def _model_stream(
+    timeline_events: dict[str, dict] = REBUNDLE_EVENT, timeline_phases: dict[str, dict] | None = None
+) -> ResourceStream:
     rebundle = YamlPipelineChange(
         type=PipelineEventAction.CHANGE,
         change_target="stage_1",
@@ -56,6 +64,8 @@ def _model_stream(timeline_events: dict[str, dict]) -> ResourceStream:
     for legacy_key in ("FACILITY_INPUTS", "MODELS", "FUEL_TYPES", "INSTALLATIONS"):
         asset_dict.pop(legacy_key, None)
     asset_dict["TIMELINE"] = {"EVENTS": timeline_events}
+    if timeline_phases is not None:
+        asset_dict["TIMELINE"]["PHASES"] = timeline_phases
     return ResourceStream(name="test_model", stream=StringIO(PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)))
 
 
@@ -73,3 +83,26 @@ def test_pipeline_event_takes_effect_from_timeline_event(yaml_model_factory):
     [pipeline], _ = model.get_process_simulations()
     [pipeline_event] = pipeline.get_events()
     assert pipeline_event.change_time == datetime(2021, 6, 1)
+
+
+def test_timeline_phases_are_mapped(yaml_model_factory):
+    model = yaml_model_factory(
+        configuration=_model_stream(timeline_phases={"production": {"TYPE": "PRODUCTION", "WHEN": "1"}}),
+        resources={},
+        nextgen=True,
+    ).validate_for_run()
+
+    [phase] = model.get_timeline_phases()
+    assert phase.reference == "production"
+    assert phase.type == TimelinePhaseType.PRODUCTION
+
+
+def test_timeline_phase_with_unknown_time_series_fails(yaml_model_factory):
+    model = yaml_model_factory(
+        configuration=_model_stream(timeline_phases={"production": {"TYPE": "PRODUCTION", "WHEN": "SIM;GAS_PROD > 0"}}),
+        resources={},
+        nextgen=True,
+    )
+
+    with pytest.raises(ModelValidationException, match="SIM;GAS_PROD"):
+        model.validate_for_run()

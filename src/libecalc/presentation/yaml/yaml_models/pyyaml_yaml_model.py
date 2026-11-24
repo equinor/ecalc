@@ -51,7 +51,12 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
-from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import (
+    TimelineEventReference,
+    TimelinePhaseReference,
+    YamlTimelineEvent,
+    YamlTimelinePhase,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
 
@@ -66,6 +71,7 @@ _PERFORMANCE_CURVES_KEY = "PERFORMANCE_CURVES"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _TIMELINE_KEY = "TIMELINE"
 _EVENTS_KEY = "EVENTS"
+_PHASES_KEY = "PHASES"
 _PUMP_MODELS_KEY = "PUMP_MODELS"
 _PUMPS_KEY = "PUMPS"
 _PUMP_PIPELINES_KEY = "PUMP_PIPELINES"
@@ -565,19 +571,26 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def timeline_events(self) -> dict[TimelineEventReference, YamlTimelineEvent]:
+        return self._get_timeline_entries(_EVENTS_KEY, YamlTimelineEvent)
+
+    @property
+    def timeline_phases(self) -> dict[TimelinePhaseReference, YamlTimelinePhase]:
+        return self._get_timeline_entries(_PHASES_KEY, YamlTimelinePhase)
+
+    def _get_timeline_entries[T](self, key: str, entry_type: type[T]) -> dict[str, T]:
         timeline = self._get_yaml_dict_or_empty(_TIMELINE_KEY)
-        raw_events = timeline.get(_EVENTS_KEY)
-        if not isinstance(raw_events, dict):
+        raw_entries = timeline.get(key)
+        if not isinstance(raw_entries, dict):
             return {}
 
-        timeline_events: dict[TimelineEventReference, YamlTimelineEvent] = {}
-        adapter = TypeAdapter(YamlTimelineEvent)
-        for reference, timeline_event in raw_events.items():
+        entries: dict[str, T] = {}
+        adapter = TypeAdapter(entry_type)
+        for reference, entry in raw_entries.items():
             try:
-                timeline_events[reference] = adapter.validate_python(timeline_event)
+                entries[reference] = adapter.validate_python(entry)
             except PydanticValidationError:
                 pass
-        return timeline_events
+        return entries
 
     @property
     def pumps(self) -> list[YamlPump]:

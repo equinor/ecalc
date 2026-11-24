@@ -66,6 +66,17 @@ def test_nextgen_model():
     assert len(asset.timeline.events) == 1
 
 
+def test_event_and_phase_references_must_be_unique():
+    timeline = _nextgen_data()["TIMELINE"]
+    timeline["PHASES"] = {"new_wells_tie_in": timeline["PHASES"]["production"]}
+
+    with pytest.raises(
+        ValidationError,
+        match=r"'new_wells_tie_in' is used in more than one place: TIMELINE\.EVENTS, TIMELINE\.PHASES\.",
+    ):
+        _validate({**_nextgen_data(), "TIMELINE": timeline}, nextgen=True)
+
+
 def test_legacy_model():
     asset = _validate(_legacy_data(), nextgen=False)
 

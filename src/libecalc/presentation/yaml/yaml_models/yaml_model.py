@@ -27,7 +27,12 @@ from libecalc.presentation.yaml.yaml_types.time_series.yaml_time_series import (
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
-from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import (
+    TimelineEventReference,
+    TimelinePhaseReference,
+    YamlTimelineEvent,
+    YamlTimelinePhase,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable
 from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
@@ -121,6 +126,11 @@ class YamlValidator(abc.ABC):
     @property
     @abc.abstractmethod
     def timeline_events(self) -> dict[TimelineEventReference, YamlTimelineEvent]:
+        pass
+
+    @property
+    @abc.abstractmethod
+    def timeline_phases(self) -> dict[TimelinePhaseReference, YamlTimelinePhase]:
         pass
 
     @property

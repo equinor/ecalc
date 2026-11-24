@@ -45,6 +45,7 @@ from libecalc.ecalc_model.process.pump.pump_pipeline import PumpPipeline
 from libecalc.ecalc_model.process.pump.pump_simulation import PumpSimulation
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
+from libecalc.ecalc_model.timeline_phase import TimelinePhase
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.errors import EnergyDomainError
 from libecalc.expression.extract_expressions import extract_expression_references
@@ -69,6 +70,7 @@ from libecalc.presentation.yaml.mappers.model import ResourceValidationException
 from libecalc.presentation.yaml.mappers.process_simulation_mapper import ProcessSimulationMapper
 from libecalc.presentation.yaml.mappers.pump_simulation_mapper import PumpSimulationMapper
 from libecalc.presentation.yaml.mappers.timeline_event_mapper import TimelineEventMapper
+from libecalc.presentation.yaml.mappers.timeline_phase_mapper import TimelinePhaseMapper
 from libecalc.presentation.yaml.mappers.variables_mapper import map_yaml_to_variables
 from libecalc.presentation.yaml.mappers.variables_mapper.get_global_time_vector import (
     InvalidEndDate,
@@ -490,6 +492,9 @@ class YamlModel:
 
     def _get_timeline_event_service(self) -> TimelineEventService:
         return TimelineEventService(timeline_events=self.get_timeline_events())
+
+    def get_timeline_phases(self) -> list[TimelinePhase]:
+        return TimelinePhaseMapper().map_phases(self._configuration.timeline_phases)
 
     def get_periods(self) -> list[Period]:
         """
