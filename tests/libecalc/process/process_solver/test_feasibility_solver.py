@@ -514,13 +514,22 @@ class TestTwoSectionTrain:
 
     @pytest.mark.parametrize("interstage_pressure", [60.0, 120.0])
     def test_unreachable_interstage_target(self, two_section_feasibility_solver, stream_factory, interstage_pressure):
-        """The discharge target alone is feasible, so full excess shows that the interstage target is honored."""
+        """Same rate and discharge target as test_inside, only the interstage target differs.
+
+        120 bara is above what stage 1 can reach from 30 bara, and 60 bara leaves too much
+        pressure ratio for stage 2 to reach 250 bara. No rate is feasible, so the full inlet rate is excess.
+        This shows that the solver checks the interstage target and not only the discharge target.
+        """
         inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
         excess = two_section_feasibility_solver.get_excess_rate(inlet, _two_section_targets(interstage_pressure, 250.0))
         assert excess == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
 
-    def test_stream_distribution_item(self, two_section_feasibility_solver, stream_factory):
-        """StreamDistributionItem passes both targets through FeasibilitySolver to MultiPressureSolver."""
+    def test_stream_distribution_item_uses_all_pressure_targets(self, two_section_feasibility_solver, stream_factory):
+        """Stream distribution evaluates each train through StreamDistributionItem.
+
+        Both targets must reach the solver: the unreachable interstage target (120 bara) gives
+        full excess, while 80 bara gives none.
+        """
         inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
         reachable = StreamDistributionItem(two_section_feasibility_solver, _two_section_targets(80.0, 250.0))
         unreachable = StreamDistributionItem(two_section_feasibility_solver, _two_section_targets(120.0, 250.0))
