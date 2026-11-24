@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 
-from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.boundary import Boundary
 from libecalc.process.process_solver.float_constraint import FloatConstraint
@@ -25,16 +24,10 @@ class FeasibilitySolver:
 
     def __init__(
         self,
-        pipeline_solver: PipelineSolver | None = None,
+        pipeline_solver: PipelineSolver,
         search_strategy: Bisect | None = None,
-        *,
-        pipeline_section_solver: PipelineSolver | None = None,
     ):
-        # pipeline_section_solver is kept for backwards compatibility, use pipeline_solver
-        solver = pipeline_solver if pipeline_solver is not None else pipeline_section_solver
-        if solver is None or (pipeline_solver is not None and pipeline_section_solver is not None):
-            raise ProgrammingError("Exactly one of 'pipeline_solver' and 'pipeline_section_solver' must be given.")
-        self._solver: PipelineSolver = solver
+        self._solver = pipeline_solver
         self._search_strategy = search_strategy or Bisect(
             tolerance=_RATE_SEARCH_TOLERANCE,
             max_iterations=_RATE_SEARCH_MAX_ITERATIONS,

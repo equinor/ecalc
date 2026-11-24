@@ -5,10 +5,6 @@ import pytest
 from inline_snapshot import snapshot
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.common.errors.exceptions import ProgrammingError
-from libecalc.presentation.yaml.mappers.process_simulation_mapper import (
-    StreamDistributionItem as MapperStreamDistributionItem,
-)
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
@@ -147,22 +143,3 @@ class TestStreamDistributionItem:
 
         assert item.is_valid(stream_factory(standard_rate_m3_per_day=100))
         assert tuple(feasibility_solver.received_pressure_targets[0]) == tuple(targets)
-
-    def test_target_pressure_is_kept_for_backwards_compatibility(self, stream_factory):
-        feasibility_solver = RecordingFeasibilitySolver(excess_rate=10.0)
-        target = FloatConstraint(80.0)
-        item = StreamDistributionItem(feasibility_solver, target_pressure=target)
-
-        assert item.get_excess_rate(stream_factory(standard_rate_m3_per_day=100)) == 10.0
-        assert tuple(feasibility_solver.received_pressure_targets[0]) == (target,)
-
-    @pytest.mark.parametrize(
-        "kwargs",
-        [{}, {"pressure_targets": [FloatConstraint(80.0)], "target_pressure": FloatConstraint(80.0)}],
-    )
-    def test_requires_exactly_one_target_argument(self, kwargs):
-        with pytest.raises(ProgrammingError):
-            StreamDistributionItem(RecordingFeasibilitySolver(excess_rate=0.0), **kwargs)
-
-    def test_importable_from_process_simulation_mapper(self):
-        assert MapperStreamDistributionItem is StreamDistributionItem

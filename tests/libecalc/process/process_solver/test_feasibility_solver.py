@@ -1,7 +1,6 @@
 import pytest
 
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.units import Unit
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.chart import ChartCurve
@@ -561,16 +560,3 @@ class TestTwoSectionTrain:
         assert streams[0].standard_rate_sm3_per_day == pytest.approx(_TWO_STAGE_HIGH_RATE - excess)
         assert streams[1].standard_rate_sm3_per_day == pytest.approx(_TWO_STAGE_HIGH_RATE + excess)
         assert items["train_a"].is_valid(streams[0])
-
-
-class TestFeasibilitySolverArguments:
-    def test_pipeline_section_solver_is_kept_for_backwards_compatibility(self, two_stage_feasibility_solver):
-        pipeline_solver = two_stage_feasibility_solver._solver
-        assert FeasibilitySolver(pipeline_section_solver=pipeline_solver)._solver is pipeline_solver
-
-    def test_requires_exactly_one_solver(self, two_stage_feasibility_solver):
-        pipeline_solver = two_stage_feasibility_solver._solver
-        with pytest.raises(ProgrammingError):
-            FeasibilitySolver()
-        with pytest.raises(ProgrammingError):
-            FeasibilitySolver(pipeline_solver=pipeline_solver, pipeline_section_solver=pipeline_solver)

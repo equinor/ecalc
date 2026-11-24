@@ -99,9 +99,6 @@ from libecalc.process.chart.chart import ChartData
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
-from libecalc.process.stream_distribution.stream_distribution_item import (
-    StreamDistributionItem as StreamDistributionItem,
-)
 
 
 class ProcessSimulationMapper:

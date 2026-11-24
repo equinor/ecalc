@@ -1,6 +1,5 @@
 from collections.abc import Sequence
 
-from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
@@ -14,19 +13,10 @@ class StreamDistributionItem(HasExcessRate, HasValidity):
     def __init__(
         self,
         feasibility_solver: FeasibilitySolver,
-        pressure_targets: Sequence[FloatConstraint] | None = None,
-        *,
-        target_pressure: FloatConstraint | None = None,
+        pressure_targets: Sequence[FloatConstraint],
     ):
-        # target_pressure is kept for backwards compatibility, use pressure_targets
-        if pressure_targets is not None and target_pressure is None:
-            targets = tuple(pressure_targets)
-        elif pressure_targets is None and target_pressure is not None:
-            targets = (target_pressure,)
-        else:
-            raise ProgrammingError("Exactly one of 'pressure_targets' and 'target_pressure' must be given.")
         self._feasibility_solver = feasibility_solver
-        self._pressure_targets: tuple[FloatConstraint, ...] = targets
+        self._pressure_targets = tuple(pressure_targets)
 
     def is_valid(self, inlet_stream: FluidStream) -> bool:
         """Can the train operate at these inlet conditions?"""
