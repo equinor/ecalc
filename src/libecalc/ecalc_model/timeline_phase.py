@@ -3,7 +3,7 @@ from enum import StrEnum
 
 from libecalc.common.ddd import value_object
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
-from libecalc.common.variables import ExpressionEvaluator
+from libecalc.common.variables import ExpressionCannotEvaluateToBooleanValueException, ExpressionEvaluator
 
 
 class TimelinePhaseType(StrEnum):
@@ -15,8 +15,8 @@ class TimelinePhaseType(StrEnum):
 
 class TimelinePhaseCondition(ABC):
     @abstractmethod
-    def get_values(self, expression_evaluator: ExpressionEvaluator) -> list[float]:
-        """Condition value in each period of the expression evaluator. 1 means active, 0 means inactive."""
+    def get_values(self, expression_evaluator: ExpressionEvaluator) -> list[bool]:
+        """Whether the condition is true in each period of the expression evaluator."""
 
 
 @value_object
@@ -33,10 +33,12 @@ class TimelinePhaseNotFoundException(EcalcValidationException):
         super().__init__(f"Phase reference '{reference}' does not match any phase in TIMELINE.PHASES.")
 
 
-class TimelinePhaseNotBinaryException(EcalcValidationException):
+class TimelinePhaseCannotEvaluateToBooleanValueException(EcalcValidationException):
     def __init__(self, reference: str, invalid_values: list[float]):
         values = ", ".join(f"{value:g}" for value in invalid_values)
-        super().__init__(f"WHEN of phase '{reference}' must evaluate to 0 or 1 in every period, got {values}.")
+        super().__init__(
+            f"WHEN of phase '{reference}' must evaluate to true or false (1 or 0) in every period, got {values}."
+        )
 
 
 class TimelinePhaseService:
@@ -51,8 +53,7 @@ class TimelinePhaseService:
     def is_active(self, reference: str, expression_evaluator: ExpressionEvaluator) -> list[bool]:
         """Whether the phase is active in each period of the expression evaluator."""
         phase = self.get_phase_by_reference(reference)
-        values = phase.when.get_values(expression_evaluator)
-        invalid_values = sorted({value for value in values if value not in (0, 1)})
-        if invalid_values:
-            raise TimelinePhaseNotBinaryException(reference, invalid_values)
-        return [value == 1 for value in values]
+        try:
+            return phase.when.get_values(expression_evaluator)
+        except ExpressionCannotEvaluateToBooleanValueException as e:
+            raise TimelinePhaseCannotEvaluateToBooleanValueException(reference, e.invalid_values) from e

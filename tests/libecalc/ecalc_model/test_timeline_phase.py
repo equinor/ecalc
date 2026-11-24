@@ -6,7 +6,7 @@ from libecalc.common.time_utils import Periods
 from libecalc.common.variables import VariablesMap
 from libecalc.ecalc_model.timeline_phase import (
     TimelinePhase,
-    TimelinePhaseNotBinaryException,
+    TimelinePhaseCannotEvaluateToBooleanValueException,
     TimelinePhaseNotFoundException,
     TimelinePhaseService,
     TimelinePhaseType,
@@ -49,8 +49,8 @@ def test_is_active_from_flag(expression_evaluator):
     assert service.is_active("drilling", expression_evaluator) == [True, True, False]
 
 
-def test_is_active_raises_when_not_0_or_1(expression_evaluator):
+def test_is_active_raises_when_not_boolean(expression_evaluator):
     service = TimelinePhaseService(timeline_phases=[_phase("production", "SIM;GAS_PROD")])
 
-    with pytest.raises(TimelinePhaseNotBinaryException, match="got 5, 10"):
+    with pytest.raises(TimelinePhaseCannotEvaluateToBooleanValueException, match="got 5, 10"):
         service.is_active("production", expression_evaluator)

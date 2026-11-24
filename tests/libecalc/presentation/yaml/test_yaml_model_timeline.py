@@ -28,7 +28,9 @@ REBUNDLE_EVENT = {"rebundle": {"TYPE": "OPERATIONAL_MEASURE", "FROM": "2021-06-0
 
 
 def _model_stream(
-    timeline_events: dict[str, dict] = REBUNDLE_EVENT, timeline_phases: dict[str, dict] | None = None
+    timeline_events: dict[str, dict] = REBUNDLE_EVENT,
+    timeline_phases: dict[str, dict] | None = None,
+    variables: dict[str, dict] | None = None,
 ) -> ResourceStream:
     rebundle = YamlPipelineChange(
         type=PipelineEventAction.CHANGE,
@@ -66,6 +68,8 @@ def _model_stream(
     asset_dict["TIMELINE"] = {"EVENTS": timeline_events}
     if timeline_phases is not None:
         asset_dict["TIMELINE"]["PHASES"] = timeline_phases
+    if variables is not None:
+        asset_dict["VARIABLES"] = variables
     return ResourceStream(name="test_model", stream=StringIO(PyYamlYamlModel.dump_yaml(yaml_dict=asset_dict)))
 
 
@@ -87,7 +91,10 @@ def test_pipeline_event_takes_effect_from_timeline_event(yaml_model_factory):
 
 def test_timeline_phases_are_mapped(yaml_model_factory):
     model = yaml_model_factory(
-        configuration=_model_stream(timeline_phases={"production": {"TYPE": "PRODUCTION", "WHEN": "1"}}),
+        configuration=_model_stream(
+            timeline_phases={"production": {"TYPE": "PRODUCTION", "WHEN": "$var.PRODUCING"}},
+            variables={"PRODUCING": {"VALUE": 1}},
+        ),
         resources={},
         nextgen=True,
     ).validate_for_run()
@@ -105,4 +112,16 @@ def test_timeline_phase_with_unknown_time_series_fails(yaml_model_factory):
     )
 
     with pytest.raises(ModelValidationException, match="SIM;GAS_PROD"):
+        model.validate_for_run()
+
+
+@pytest.mark.parametrize("when", ["1", 0, True])
+def test_timeline_phase_without_reference_fails(yaml_model_factory, when):
+    model = yaml_model_factory(
+        configuration=_model_stream(timeline_phases={"production": {"TYPE": "PRODUCTION", "WHEN": when}}),
+        resources={},
+        nextgen=True,
+    )
+
+    with pytest.raises(ModelValidationException, match="WHEN must reference a time series or variable"):
         model.validate_for_run()

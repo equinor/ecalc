@@ -571,26 +571,35 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
 
     @property
     def timeline_events(self) -> dict[TimelineEventReference, YamlTimelineEvent]:
-        return self._get_timeline_entries(_EVENTS_KEY, YamlTimelineEvent)
+        timeline = self._get_yaml_dict_or_empty(_TIMELINE_KEY)
+        raw_events = timeline.get(_EVENTS_KEY)
+        if not isinstance(raw_events, dict):
+            return {}
+
+        timeline_events: dict[TimelineEventReference, YamlTimelineEvent] = {}
+        adapter = TypeAdapter(YamlTimelineEvent)
+        for reference, timeline_event in raw_events.items():
+            try:
+                timeline_events[reference] = adapter.validate_python(timeline_event)
+            except PydanticValidationError:
+                pass
+        return timeline_events
 
     @property
     def timeline_phases(self) -> dict[TimelinePhaseReference, YamlTimelinePhase]:
-        return self._get_timeline_entries(_PHASES_KEY, YamlTimelinePhase)
-
-    def _get_timeline_entries[T](self, key: str, entry_type: type[T]) -> dict[str, T]:
         timeline = self._get_yaml_dict_or_empty(_TIMELINE_KEY)
-        raw_entries = timeline.get(key)
-        if not isinstance(raw_entries, dict):
+        raw_phases = timeline.get(_PHASES_KEY)
+        if not isinstance(raw_phases, dict):
             return {}
 
-        entries: dict[str, T] = {}
-        adapter = TypeAdapter(entry_type)
-        for reference, entry in raw_entries.items():
+        timeline_phases: dict[TimelinePhaseReference, YamlTimelinePhase] = {}
+        adapter = TypeAdapter(YamlTimelinePhase)
+        for reference, timeline_phase in raw_phases.items():
             try:
-                entries[reference] = adapter.validate_python(entry)
+                timeline_phases[reference] = adapter.validate_python(timeline_phase)
             except PydanticValidationError:
                 pass
-        return entries
+        return timeline_phases
 
     @property
     def pumps(self) -> list[YamlPump]:

@@ -42,7 +42,7 @@
         "TIMELINE",
         "PHASES"
       ],
-      "description": "Named operating phases with a WHEN expression that evaluates to 0 or 1 in every period. Phases are not used by other parts of the model yet."
+      "description": "Named operating phases with a WHEN expression that references a time series or variable and evaluates to true or false in every period. Phases are not used by other parts of the model yet."
     },
     {
       "kind": "changed",

@@ -1,15 +1,29 @@
 from typing import Annotated
 
-from pydantic import ConfigDict, Field
+from pydantic import AfterValidator, ConfigDict, Field
 
 from libecalc.ecalc_model.timeline_event import TimelineEventType
 from libecalc.ecalc_model.timeline_phase import TimelinePhaseType
+from libecalc.expression.expression import Expression, ExpressionType, InvalidExpressionError
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 
 type TimelineEventReference = str
 type TimelinePhaseReference = str
+
+
+def validate_references_time_series_or_variable(value: ExpressionType) -> ExpressionType:
+    try:
+        expression = Expression.setup_from_expression(value)
+    except InvalidExpressionError as e:
+        raise ValueError(str(e)) from e
+    if not expression.variables:
+        raise ValueError(
+            f"WHEN must reference a time series or variable, e.g. `SIM;DRILLING_FLAG` or `SIM;GAS_PROD > 0`, "
+            f"got '{value}'."
+        )
+    return value
 
 
 class YamlTimelineEvent(YamlBase):
@@ -61,10 +75,11 @@ class YamlTimelinePhase(YamlBase):
     ]
     when: Annotated[
         YamlExpressionType,
+        AfterValidator(validate_references_time_series_or_variable),
         Field(
             title="WHEN",
             description="Expression telling when the phase is active, e.g. `SIM;DRILLING_FLAG` or `SIM;GAS_PROD > 0`. "
-            "It must evaluate to 0 (inactive) or 1 (active) in every period.",
+            "It must reference a time series or variable and evaluate to true (1) or false (0) in every period.",
         ),
     ]
     description: Annotated[

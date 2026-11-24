@@ -26,7 +26,9 @@ def test_maps_timeline_phase():
 
 
 def test_title_defaults_to_reference():
-    yaml_phase = YamlTimelinePhaseBuilder().with_type(TimelinePhaseType.PRODUCTION).with_when("1").validate()
+    yaml_phase = (
+        YamlTimelinePhaseBuilder().with_type(TimelinePhaseType.PRODUCTION).with_when("SIM;GAS_PROD > 0").validate()
+    )
 
     [phase] = TimelinePhaseMapper().map_phases({"production": yaml_phase})
 

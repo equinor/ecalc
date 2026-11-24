@@ -7,6 +7,7 @@ from typing import assert_never
 import numpy as np
 from numpy.typing import NDArray
 
+from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.common.temporal_model import TemporalModel
 from libecalc.common.time_utils import Period, Periods
@@ -31,6 +32,23 @@ class ExpressionEvaluator(abc.ABC):
 
     @abc.abstractmethod
     def evaluate(self, expression: Expression | TemporalModel | dict[Period, Expression]) -> NDArray[np.float64]: ...
+
+
+class ExpressionCannotEvaluateToBooleanValueException(EcalcValidationException):
+    def __init__(self, expression: Expression, invalid_values: list[float]):
+        self.invalid_values = invalid_values
+        values = ", ".join(f"{value:g}" for value in invalid_values)
+        super().__init__(
+            f"Expression '{expression}' must evaluate to true or false (1 or 0) in every period, got {values}."
+        )
+
+
+def evaluate_boolean(expression_evaluator: ExpressionEvaluator, expression: Expression) -> NDArray[np.bool_]:
+    values = expression_evaluator.evaluate(expression)
+    invalid_values = sorted({float(value) for value in values if value not in (0, 1)})
+    if invalid_values:
+        raise ExpressionCannotEvaluateToBooleanValueException(expression, invalid_values)
+    return values == 1
 
 
 class VariablesMap(ExpressionEvaluator):
