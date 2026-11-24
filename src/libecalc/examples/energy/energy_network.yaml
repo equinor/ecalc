@@ -49,7 +49,7 @@ ENERGY_NETWORK:
   UNITS:
     # --- Converters ---
     - NAME: genset_a
-      TYPE: GENERATOR
+      TYPE: GENERATOR_SET
       INPUT: fuel_gas
       MODEL:
         TYPE: POWER_TO_FUEL

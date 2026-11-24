@@ -5,7 +5,7 @@ from libecalc.energy.energy_types import DieselRate, ElectricalPower, FuelGasRat
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 
-GENERATOR = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+GENERATOR_SET_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 
 def _network(consumer_type: str, consumer_input: str, curve: dict) -> YamlEnergyNetwork:
@@ -15,7 +15,7 @@ def _network(consumer_type: str, consumer_input: str, curve: dict) -> YamlEnergy
                 {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"},
             ],
             "UNITS": [
-                {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
+                {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL},
                 {
                     "NAME": "pump",
                     "TYPE": consumer_type,
@@ -140,7 +140,7 @@ class TestMapperInline:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
+                        {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL},
                         {
                             "NAME": "motor",
                             "TYPE": "ELECTRICAL_MOTOR",
@@ -248,7 +248,7 @@ class TestOutsideRange:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
+                        {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL},
                         {
                             "NAME": "pump",
                             "TYPE": "ELECTRICAL_CONSUMER",
@@ -278,7 +278,7 @@ class TestOutsideRange:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
+                        {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL},
                         {
                             "NAME": "pump",
                             "TYPE": "ELECTRICAL_CONSUMER",
@@ -307,7 +307,7 @@ class TestYamlValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
+                        {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL},
                         {
                             "NAME": "pump",
                             "TYPE": "ELECTRICAL_CONSUMER",

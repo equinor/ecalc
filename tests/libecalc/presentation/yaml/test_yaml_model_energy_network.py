@@ -363,28 +363,28 @@ def test_gas_turbine_change_rejects_a_generator_curve(latest_network_data_factor
         model.get_energy_network()
 
 
-GENERATOR_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+GENERATOR_SET_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 # 7 MW sits between the points: fuel is interpolated linearly, so fuel = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
-EXPECTED_GENERATOR_FUEL = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
+EXPECTED_GENERATOR_SET_FUEL = 20000 + (35000 - 20000) * (7 - 5) / (10 - 5)
 
 
-def _generator_model_data(model, definitions, base_data_factory, load=7, changes=None):
+def _generator_set_model_data(model, definitions, base_data_factory, load=7.0, changes=None):
     data = base_data_factory()
     data["DEFINITIONS"] = definitions
-    generator = {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": model}
+    generator_set = {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": model}
     if changes is not None:
-        generator["CHANGES"] = changes
+        generator_set["CHANGES"] = changes
     data["ENERGY_NETWORK"] = {
         "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
         "UNITS": [
-            generator,
+            generator_set,
             {"NAME": "load", "TYPE": "ELECTRICAL_CONSUMER", "INPUT": "genset", "LOAD": load},
         ],
     }
     return data
 
 
-def _run_generator_per_period(model):
+def _run_generator_set_per_period(model):
     topology, factories, consumers, _ = model.get_energy_network()
     simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=factories)
     (load,) = consumers
@@ -401,42 +401,42 @@ def _run_generator_per_period(model):
     return results_by_period_start
 
 
-def _run_generator(model):
-    (fuel_and_capacity_failures,) = _run_generator_per_period(model).values()
+def _run_generator_set(model):
+    (fuel_and_capacity_failures,) = _run_generator_set_per_period(model).values()
     return fuel_and_capacity_failures
 
 
-def test_generator_fuel_follows_its_model(turbine_network_data_factory, yaml_model_factory):
-    data = _generator_model_data(GENERATOR_MODEL, {}, turbine_network_data_factory)
+def test_generator_set_fuel_follows_its_model(turbine_network_data_factory, yaml_model_factory):
+    data = _generator_set_model_data(GENERATOR_SET_MODEL, {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_model"),
         resources={},
         nextgen=True,
     )
 
-    fuel, _ = _run_generator(model)
-    assert fuel == pytest.approx(EXPECTED_GENERATOR_FUEL)
+    fuel, _ = _run_generator_set(model)
+    assert fuel == pytest.approx(EXPECTED_GENERATOR_SET_FUEL)
 
 
-def test_generator_model_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
-    generator_model = GENERATOR_MODEL
-    data = _generator_model_data(
-        "my_generator", {"PERFORMANCE_CURVES": {"my_generator": generator_model}}, turbine_network_data_factory
+def test_generator_set_model_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
+    generator_set_model = GENERATOR_SET_MODEL
+    data = _generator_set_model_data(
+        "my_generator", {"PERFORMANCE_CURVES": {"my_generator": generator_set_model}}, turbine_network_data_factory
     )
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_model"),
         resources={},
         nextgen=True,
     )
 
-    fuel, _ = _run_generator(model)
-    assert fuel == pytest.approx(EXPECTED_GENERATOR_FUEL)
+    fuel, _ = _run_generator_set(model)
+    assert fuel == pytest.approx(EXPECTED_GENERATOR_SET_FUEL)
 
 
-def test_generator_definition_reference_not_found_is_reported(turbine_network_data_factory, yaml_model_factory):
-    data = _generator_model_data("missing_generator", {}, turbine_network_data_factory)
+def test_generator_set_definition_reference_not_found_is_reported(turbine_network_data_factory, yaml_model_factory):
+    data = _generator_set_model_data("missing_generator", {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_model"),
         resources={},
         nextgen=True,
     )
@@ -445,11 +445,11 @@ def test_generator_definition_reference_not_found_is_reported(turbine_network_da
         model.get_energy_network()
 
 
-def test_invalid_inline_generator_model_is_reported_at_the_model(turbine_network_data_factory, yaml_model_factory):
+def test_invalid_inline_generator_set_model_is_reported_at_the_model(turbine_network_data_factory, yaml_model_factory):
     bad_model = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, -5]}}  # fuel must not be negative
-    data = _generator_model_data(bad_model, {}, turbine_network_data_factory)
+    data = _generator_set_model_data(bad_model, {}, turbine_network_data_factory)
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_model"),
         resources={},
         nextgen=True,
     )
@@ -458,42 +458,90 @@ def test_invalid_inline_generator_model_is_reported_at_the_model(turbine_network
         model.get_energy_network()
 
     (error,) = exc_info.value.errors()
-    assert error.location.keys[:5] == ["ENERGY_NETWORK", "UNITS", 0, "GENERATOR", "MODEL"]
+    assert error.location.keys[:5] == ["ENERGY_NETWORK", "UNITS", 0, "GENERATOR_SET", "MODEL"]
     assert "must not be negative" in error.message
 
 
-GENERATOR_MODEL_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
-EXPECTED_GENERATOR_FUEL_AFTER_UPGRADE = 10000 + (20000 - 10000) * (7 - 5) / (10 - 5)
-
-
-def test_generator_change_switches_fuel_model_at_the_timeline_date(latest_network_data_factory, yaml_model_factory):
-    data = _generator_model_data(
-        GENERATOR_MODEL,
-        {},
-        latest_network_data_factory,
-        changes=[{"REF": "upgrade", "CHANGE_TO": GENERATOR_MODEL_AFTER_UPGRADE}],
+def test_generator_set_engine_is_resolved_from_definitions(turbine_network_data_factory, yaml_model_factory):
+    """ENGINE on an engine-driven GENERATOR_SET.MODEL follows the same DEFINITIONS.PERFORMANCE_CURVES
+    reference resolution as GAS_TURBINE/DIESEL_ENGINE's MODEL."""
+    generator_efficiency = 0.9
+    # power demand (4.5 MW) / generator_efficiency (0.9) = engine load 5, matching EXPECTED_FUEL's setup.
+    engine_model = {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": "my_turbine", "GENERATOR_EFFICIENCY": generator_efficiency}
+    data = _generator_set_model_data(
+        engine_model,
+        {"PERFORMANCE_CURVES": {"my_turbine": {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": CURVE}}},
+        turbine_network_data_factory,
+        load=4.5,
     )
-    data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
+    data["ENERGY_NETWORK"]["SOURCES"][0]["LOWER_HEATING_VALUE"] = TURBINE_LHV
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_engine_model"),
         resources={},
         nextgen=True,
     )
 
-    results_by_period_start = _run_generator_per_period(model)
-
-    assert results_by_period_start[datetime(2020, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_FUEL)
-    assert results_by_period_start[datetime(2021, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_FUEL_AFTER_UPGRADE)
+    fuel, _ = _run_generator_set(model)
+    assert fuel == pytest.approx(EXPECTED_FUEL)
 
 
-def test_generator_changes_on_the_same_date_are_reported(latest_network_data_factory, yaml_model_factory):
-    data = _generator_model_data(
-        GENERATOR_MODEL,
+def test_generator_set_engine_rejects_a_generator_curve(turbine_network_data_factory, yaml_model_factory):
+    engine_model = {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": "my_generator", "GENERATOR_EFFICIENCY": 0.9}
+    data = _generator_set_model_data(
+        engine_model,
+        {
+            "PERFORMANCE_CURVES": {
+                "my_generator": {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [1, 2]}}
+            }
+        },
+        turbine_network_data_factory,
+    )
+    data["ENERGY_NETWORK"]["SOURCES"][0]["LOWER_HEATING_VALUE"] = TURBINE_LHV
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_engine_model"),
+        resources={},
+        nextgen=True,
+    )
+
+    with pytest.raises(
+        ModelValidationException,
+        match="resolved to type .YamlGeneratorDefinition., but expected one of: YamlTurbineDefinition",
+    ):
+        model.get_energy_network()
+
+
+GENERATOR_SET_MODEL_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [10000, 20000]}}
+EXPECTED_GENERATOR_SET_FUEL_AFTER_UPGRADE = 10000 + (20000 - 10000) * (7 - 5) / (10 - 5)
+
+
+def test_generator_set_change_switches_fuel_model_at_the_timeline_date(latest_network_data_factory, yaml_model_factory):
+    data = _generator_set_model_data(
+        GENERATOR_SET_MODEL,
+        {},
+        latest_network_data_factory,
+        changes=[{"REF": "upgrade", "CHANGE_TO": GENERATOR_SET_MODEL_AFTER_UPGRADE}],
+    )
+    data["TIMELINE"] = {"EVENTS": {"upgrade": {"TYPE": "ENERGY_EFFICIENCY_MEASURE", "FROM": "2021-01-01"}}}
+    model = yaml_model_factory(
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_model"),
+        resources={},
+        nextgen=True,
+    )
+
+    results_by_period_start = _run_generator_set_per_period(model)
+
+    assert results_by_period_start[datetime(2020, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_SET_FUEL)
+    assert results_by_period_start[datetime(2021, 1, 1)][0] == pytest.approx(EXPECTED_GENERATOR_SET_FUEL_AFTER_UPGRADE)
+
+
+def test_generator_set_changes_on_the_same_date_are_reported(latest_network_data_factory, yaml_model_factory):
+    data = _generator_set_model_data(
+        GENERATOR_SET_MODEL,
         {},
         latest_network_data_factory,
         changes=[
-            {"REF": "upgrade", "CHANGE_TO": GENERATOR_MODEL_AFTER_UPGRADE},
-            {"REF": "second_upgrade", "CHANGE_TO": GENERATOR_MODEL},
+            {"REF": "upgrade", "CHANGE_TO": GENERATOR_SET_MODEL_AFTER_UPGRADE},
+            {"REF": "second_upgrade", "CHANGE_TO": GENERATOR_SET_MODEL},
         ],
     )
     data["TIMELINE"] = {
@@ -503,7 +551,7 @@ def test_generator_changes_on_the_same_date_are_reported(latest_network_data_fac
         }
     }
     model = yaml_model_factory(
-        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_model"),
+        configuration=ResourceStream(stream=StringIO(yaml.dump(data)), name="generator_set_model"),
         resources={},
         nextgen=True,
     )

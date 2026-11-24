@@ -19,7 +19,7 @@ ENERGY_UNIT_CATEGORY_DETAILS: dict[str, tuple[str, str, list[str]]] = {
     CATEGORY_CONVERTERS: (
         "converters",
         "Convert one energy type into another. Each converter has one input.",
-        ["`GENERATOR` accepts fuel gas or diesel and provides electrical power."],
+        ["`GENERATOR_SET` accepts fuel gas or diesel and provides electrical power."],
     ),
     CATEGORY_TRANSPORTERS: (
         "transporters",

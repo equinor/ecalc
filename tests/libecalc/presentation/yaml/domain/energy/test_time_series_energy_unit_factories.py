@@ -15,13 +15,13 @@ from libecalc.energy.models.combustion_engine_fuel_model import (
     DieselEngineFuelModel,
     TurbineFuelModel,
 )
-from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
+from libecalc.energy.models.generator_set_fuel_model import SampledGeneratorSetFuelModel
 from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesDieselEngineFactory,
     TimeSeriesElectricalCableFactory,
     TimeSeriesElectricalMotorFactory,
     TimeSeriesGasTurbineFactory,
-    TimeSeriesGeneratorFactory,
+    TimeSeriesGeneratorSetFactory,
     TimeSeriesJunctionFactory,
     TimeSeriesSourceFactory,
 )
@@ -39,8 +39,8 @@ GENERATOR_ID = EnergyUnitId(UUID(int=10))
 COMBUSTION_ENGINE_ID = EnergyUnitId(UUID(int=20))
 
 
-def linear_fuel_model(*, fuel_per_power: float, max_power: float = 100) -> GeneratorFuelModel:
-    return GeneratorFuelModel(powers=[0, max_power], fuels=[0, fuel_per_power * max_power])
+def linear_fuel_model(*, fuel_per_power: float, max_power: float = 100) -> SampledGeneratorSetFuelModel:
+    return SampledGeneratorSetFuelModel(powers=[0, max_power], fuels=[0, fuel_per_power * max_power])
 
 
 @pytest.fixture
@@ -235,7 +235,7 @@ class TestCombustionEngineModelEvents:
 
 class TestGeneratorModelEvents:
     def _generator_factory(self, *, model_events, max_power: float = 100):
-        return TimeSeriesGeneratorFactory(
+        return TimeSeriesGeneratorSetFactory(
             name="generator",
             energy_unit_id=GENERATOR_ID,
             fuel_model=linear_fuel_model(fuel_per_power=1.0, max_power=max_power),
@@ -250,7 +250,7 @@ class TestGeneratorModelEvents:
         fuel_per_power: float = 1.0,
         max_power: float = 100,
         change_target: EnergyUnitId = GENERATOR_ID,
-    ) -> EnergyUnitModelEvent[GeneratorFuelModel]:
+    ) -> EnergyUnitModelEvent[SampledGeneratorSetFuelModel]:
         return EnergyUnitModelEvent(
             change_target=change_target,
             change_type=EnergyUnitEventChangeType.REBUNDLE,

@@ -66,6 +66,11 @@ class Gamma:
             [int],
             id="builtin_type_in_union",
         ),
+        pytest.param(
+            Annotated[Alpha | DefinitionReference, Field(discriminator="type")] | Annotated[Beta, Field()],
+            [Alpha, Beta],
+            id="annotated_single_type_union_member",
+        ),
     ],
 )
 def test_get_expected_types(annotation, expected):

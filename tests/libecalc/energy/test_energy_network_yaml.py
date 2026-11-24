@@ -15,14 +15,14 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergySource,
     YamlFuelGasConsumer,
     YamlGasTurbine,
-    YamlGenerator,
+    YamlGeneratorSet,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 
 EXAMPLE_YAML = Path(__file__).parents[3] / "src" / "libecalc" / "examples" / "energy" / "energy_network.yaml"
 
 TURBINE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [5, 10], "EFFICIENCY": [0.2, 0.3]}}
-GENERATOR = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
+GENERATOR_SET_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 _component_adapter = TypeAdapter(YamlComponent)
 _energy_source_adapter = TypeAdapter(YamlEnergySource)
@@ -56,7 +56,7 @@ class TestExampleYamlParsing:
         network = _load_network(EXAMPLE_YAML)
         by_name = _units_by_name(network)
 
-        assert isinstance(by_name["genset_a"], YamlGenerator)
+        assert isinstance(by_name["genset_a"], YamlGeneratorSet)
         assert isinstance(by_name["electrical_bus"], YamlElectricalBus)
         assert isinstance(by_name["subsea_cable"], YamlElectricalCable)
         assert isinstance(by_name["base_load"], YamlElectricalConsumer)
@@ -174,6 +174,128 @@ class TestLowerHeatingValueResolution:
                 {
                     "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
                     "UNITS": [{"NAME": "engine", "TYPE": "DIESEL_ENGINE", "INPUT": "diesel", "MODEL": TURBINE}],
+                }
+            )
+
+    def test_generator_set_with_gas_turbine_model_without_lower_heating_value_rejected(self):
+        with pytest.raises(ValueError, match="could not resolve a LOWER_HEATING_VALUE"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "fuel",
+                            "MODEL": {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": TURBINE, "GENERATOR_EFFICIENCY": 0.97},
+                        }
+                    ],
+                }
+            )
+
+    def test_generator_set_requires_lower_heating_value_when_events_change_to_an_engine_model(self):
+        """MODEL starts as a plain curve (no LHV needed), but CHANGES.CHANGE_TO switches to a GAS_TURBINE model
+        partway through — the source must still have a LOWER_HEATING_VALUE, since the check must not only look
+        at the initial MODEL.
+        """
+        with pytest.raises(ValueError, match="could not resolve a LOWER_HEATING_VALUE"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "fuel",
+                            "MODEL": GENERATOR_SET_MODEL,
+                            "CHANGES": [
+                                {
+                                    "REF": "upgrade",
+                                    "CHANGE_TO": {
+                                        "TYPE": "GAS_TURBINE_DRIVEN",
+                                        "ENGINE": TURBINE,
+                                        "GENERATOR_EFFICIENCY": 0.97,
+                                    },
+                                }
+                            ],
+                        }
+                    ],
+                }
+            )
+
+
+class TestGeneratorSetEnergyTypeCompatibility:
+    def test_gas_turbine_generator_set_rejects_diesel_source(self):
+        with pytest.raises(ValueError, match="expects FUEL_GAS input.*provides DIESEL"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE", "LOWER_HEATING_VALUE": 38.0}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "diesel",
+                            "MODEL": {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": TURBINE, "GENERATOR_EFFICIENCY": 0.97},
+                        }
+                    ],
+                }
+            )
+
+    def test_diesel_engine_generator_set_rejects_fuel_gas_source(self):
+        with pytest.raises(ValueError, match="expects DIESEL input.*provides FUEL_GAS"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38.0}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "fuel",
+                            "MODEL": {"TYPE": "DIESEL_ENGINE_DRIVEN", "ENGINE": TURBINE, "GENERATOR_EFFICIENCY": 0.97},
+                        }
+                    ],
+                }
+            )
+
+    def test_curve_based_generator_set_accepts_either_fuel_or_diesel_source(self):
+        for source_type, input_name in (("FUEL_GAS_SOURCE", "fuel"), ("DIESEL_SOURCE", "diesel")):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": input_name, "TYPE": source_type}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": input_name,
+                            "MODEL": GENERATOR_SET_MODEL,
+                        }
+                    ],
+                }
+            )
+
+    def test_generator_set_rejects_switching_between_incompatible_engine_types(self):
+        with pytest.raises(ValueError, match="incompatible engine fuel types.*DIESEL.*FUEL_GAS"):
+            YamlEnergyNetwork.model_validate(
+                {
+                    "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38.0}],
+                    "UNITS": [
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "fuel",
+                            "MODEL": {"TYPE": "GAS_TURBINE_DRIVEN", "ENGINE": TURBINE, "GENERATOR_EFFICIENCY": 0.97},
+                            "CHANGES": [
+                                {
+                                    "REF": "rebundle",
+                                    "CHANGE_TO": {
+                                        "TYPE": "DIESEL_ENGINE_DRIVEN",
+                                        "ENGINE": TURBINE,
+                                        "GENERATOR_EFFICIENCY": 0.97,
+                                    },
+                                }
+                            ],
+                        }
+                    ],
                 }
             )
 
@@ -332,7 +454,7 @@ class TestNetworkValidation:
             YamlEnergyNetwork.model_validate(
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
-                    "UNITS": [{"NAME": "fuel", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR}],
+                    "UNITS": [{"NAME": "fuel", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL}],
                 }
             )
 
@@ -342,7 +464,12 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "nonexistent", "MODEL": GENERATOR},
+                        {
+                            "NAME": "genset",
+                            "TYPE": "GENERATOR_SET",
+                            "INPUT": "nonexistent",
+                            "MODEL": GENERATOR_SET_MODEL,
+                        },
                     ],
                 }
             )
@@ -365,7 +492,7 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "a", "TYPE": "GENERATOR", "INPUT": "b", "MODEL": GENERATOR},
+                        {"NAME": "a", "TYPE": "GENERATOR_SET", "INPUT": "b", "MODEL": GENERATOR_SET_MODEL},
                         {"NAME": "b", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "a"},
                     ],
                 }
@@ -377,7 +504,7 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                     "UNITS": [
-                        {"NAME": "a", "TYPE": "GENERATOR", "INPUT": "a", "MODEL": GENERATOR},
+                        {"NAME": "a", "TYPE": "GENERATOR_SET", "INPUT": "a", "MODEL": GENERATOR_SET_MODEL},
                     ],
                 }
             )
@@ -388,7 +515,7 @@ class TestNetworkValidation:
                 {
                     "SOURCES": [{"NAME": "grid", "TYPE": "ELECTRICAL_SOURCE", "CAPACITY": 10}],
                     "UNITS": [
-                        {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "grid", "MODEL": GENERATOR},
+                        {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "grid", "MODEL": GENERATOR_SET_MODEL},
                     ],
                 }
             )
@@ -410,7 +537,7 @@ class TestNetworkValidation:
             {
                 "SOURCES": [{"NAME": "diesel", "TYPE": "DIESEL_SOURCE"}],
                 "UNITS": [
-                    {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "diesel", "MODEL": GENERATOR},
+                    {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "diesel", "MODEL": GENERATOR_SET_MODEL},
                 ],
             }
         )
@@ -432,7 +559,7 @@ class TestNetworkValidation:
             {
                 "SOURCES": [{"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE"}],
                 "UNITS": [
-                    {"NAME": "genset", "TYPE": "GENERATOR", "INPUT": "fuel", "MODEL": GENERATOR},
+                    {"NAME": "genset", "TYPE": "GENERATOR_SET", "INPUT": "fuel", "MODEL": GENERATOR_SET_MODEL},
                     {"NAME": "motor", "TYPE": "ELECTRICAL_MOTOR", "INPUT": "genset"},
                     {
                         "TYPE": "DRIVE_TRAIN",
