@@ -20,7 +20,6 @@ from libecalc.ecalc_model.validation import (
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessUnitConnectionId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
-from libecalc.process.pump.pump_process_simulation import PumpProcessSimulationId
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
 
 _RATE_FRACTION_TOLERANCE = 1e-9
@@ -147,15 +146,17 @@ class PumpProblem(Entity[PumpProblemId]):
 
 type PumpProblems = Mapping[ProcessPipelineId, Sequence[PumpProblem]]
 
+PumpSimulationId = NewType("PumpSimulationId", UUID)
 
-class PumpSimulation(Entity[PumpProcessSimulationId]):
+
+class PumpSimulation(Entity[PumpSimulationId]):
     def __init__(
         self,
         name: str,
         stream_distribution: PumpStreamDistributionConfig,
         pump_problems: PumpProblems,
         process_periods: Sequence[Period],
-        pump_simulation_id: PumpProcessSimulationId | None = None,
+        pump_simulation_id: PumpSimulationId | None = None,
         process_configurations: Mapping[
             ProcessPipelineId, Mapping[ProcessUnitId, TimeSeriesPressureDropperConfiguration]
         ]
@@ -171,7 +172,7 @@ class PumpSimulation(Entity[PumpProcessSimulationId]):
         self._stream_distribution = stream_distribution
         self._pump_problems = {pipeline_id: list(problems) for pipeline_id, problems in pump_problems.items()}
         self._process_periods = list(process_periods)
-        self._id: Final[PumpProcessSimulationId] = pump_simulation_id or PumpSimulation._create_id()
+        self._id: Final[PumpSimulationId] = pump_simulation_id or PumpSimulation._create_id()
 
     @staticmethod
     def _validate(
@@ -290,12 +291,12 @@ class PumpSimulation(Entity[PumpProcessSimulationId]):
             case _:
                 assert_never(stream_distribution)
 
-    def get_id(self) -> PumpProcessSimulationId:
+    def get_id(self) -> PumpSimulationId:
         return self._id
 
     @classmethod
-    def _create_id(cls: type[Self]) -> PumpProcessSimulationId:
-        return PumpProcessSimulationId(ecalc_id_generator())
+    def _create_id(cls: type[Self]) -> PumpSimulationId:
+        return PumpSimulationId(ecalc_id_generator())
 
     def get_name(self) -> str:
         return self._name

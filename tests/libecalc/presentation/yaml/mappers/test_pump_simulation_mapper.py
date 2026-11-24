@@ -22,6 +22,12 @@ from libecalc.presentation.yaml.model_validation_exception import ModelValidatio
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_types import YamlBase
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
+from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
+    YamlEfficiencyUnits,
+    YamlHeadUnits,
+    YamlRateUnits,
+    YamlUnits,
+)
 from libecalc.presentation.yaml.yaml_types.pump.yaml_liquid_stream import YamlLiquidInletStream
 from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_model import YamlPumpModel
 from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import YamlPumpPressureControl
@@ -73,7 +79,18 @@ def _stream(rate: YamlExpressionType = "$var.rate") -> YamlLiquidInletStream:
 
 
 def _model_data() -> dict:
-    file_chart = YamlPumpChartBuilder().with_curves(YamlFileBuilder().with_file(CHART_FILE_NAME).validate()).validate()
+    file_chart = (
+        YamlPumpChartBuilder()
+        .with_curves(YamlFileBuilder().with_file(CHART_FILE_NAME).validate())
+        .with_units(
+            YamlUnits(
+                rate=YamlRateUnits.AM3_PER_HOUR,
+                head=YamlHeadUnits.JOULE_PER_KG,
+                efficiency=YamlEfficiencyUnits.FRACTION,
+            )
+        )
+        .validate()
+    )
     line_a = YamlPumpPipelineBuilder().with_name(LINE_A).with_pump_item(PUMP_A, PUMP_MODEL_A).validate()
     line_b = (
         YamlPumpPipelineBuilder()

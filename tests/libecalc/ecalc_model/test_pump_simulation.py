@@ -9,13 +9,13 @@ from libecalc.ecalc_model.process.pump.pump_simulation import (
     PumpProblem,
     PumpProblemId,
     PumpSimulation,
+    PumpSimulationId,
 )
 from libecalc.ecalc_model.time_series_configuration import TimeSeriesPressureDropperConfiguration
 from libecalc.ecalc_model.validation import InvalidEcalcModelException
 from libecalc.presentation.yaml.domain.expression_time_series_flow_rate import InvalidFlowRateException
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
-from libecalc.process.pump.pump_process_simulation import PumpProcessSimulationId
 from libecalc.process.stream_distribution.common_stream_distribution import Overflow
 
 
@@ -149,7 +149,7 @@ def test_pump_simulation_common_stream_distribution(
 
 
 def test_pump_simulation_ids(liquid_stream_factory, pump_problem, periods):
-    pump_simulation_id = PumpProcessSimulationId(uuid.uuid4())
+    pump_simulation_id = PumpSimulationId(uuid.uuid4())
 
     given = PumpSimulation(
         name="a",

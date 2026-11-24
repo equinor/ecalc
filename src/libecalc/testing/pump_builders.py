@@ -32,7 +32,9 @@ from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import (
 )
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.presentation.yaml.yaml_types.yaml_pump import PumpReference, YamlPump
+from libecalc.process.chart import ChartCurve
 from libecalc.testing.process_builders import YamlPressureDropperBuilder
+from libecalc.testing.pump_test_data import DENSITY_KG_PER_M3, MAXIMUM_SPEED_CURVE, MINIMUM_SPEED_CURVE
 from libecalc.testing.yaml_builder import Builder
 
 DEFAULT_PUMP_NAME = "default_pump"
@@ -80,10 +82,14 @@ class YamlPumpCurveBuilder(Builder[YamlCurve]):
         return self
 
     def with_test_data(self) -> Self:
-        self.speed = 1.0
-        self.rate = [277.0, 524.0, 666.0, 832.0, 927.0]
-        self.head = [1062.0, 1004.0, 944.0, 847.0, 776.0]
-        self.efficiency = [47.6, 64.3, 68.7, 70.5, 69.1]
+        return self.with_chart_curve(MINIMUM_SPEED_CURVE)
+
+    def with_chart_curve(self, curve: ChartCurve) -> Self:
+        """The rate in Am3/h, the head in J/kg and the efficiency as a fraction."""
+        self.speed = curve.speed
+        self.rate = curve.rate
+        self.head = curve.head
+        self.efficiency = curve.efficiency
         return self
 
 
@@ -101,11 +107,19 @@ class YamlPumpChartBuilder(Builder[YamlPumpChart]):
         return self
 
     def with_test_data(self) -> Self:
-        self.curves = [YamlPumpCurveBuilder().with_test_data().validate()]
+        """A single-speed chart."""
+        return self.with_chart_curves([MINIMUM_SPEED_CURVE])
+
+    def with_variable_speed_test_data(self) -> Self:
+        return self.with_chart_curves([MINIMUM_SPEED_CURVE, MAXIMUM_SPEED_CURVE])
+
+    def with_chart_curves(self, curves: list[ChartCurve]) -> Self:
+        """The curves, with the units a chart curve has."""
+        self.curves = [YamlPumpCurveBuilder().with_chart_curve(curve).validate() for curve in curves]
         self.units = YamlUnits(
             rate=YamlRateUnits.AM3_PER_HOUR,
-            head=YamlHeadUnits.M,
-            efficiency=YamlEfficiencyUnits.PERCENTAGE,
+            head=YamlHeadUnits.JOULE_PER_KG,
+            efficiency=YamlEfficiencyUnits.FRACTION,
         )
         return self
 
@@ -230,7 +244,7 @@ class YamlLiquidInletStreamBuilder(Builder[YamlLiquidInletStream]):
     def with_test_data(self) -> Self:
         self.name = "DefaultLiquidInletStream"
         self.pressure = 10.0
-        self.density = 1022.0
+        self.density = DENSITY_KG_PER_M3
         self.rate = YamlLiquidStreamRateBuilder().with_test_data().validate()
         return self
 

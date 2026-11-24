@@ -87,6 +87,7 @@ from libecalc.testing.pump_builders import (
     YamlPumpChartBuilder,
     YamlPumpCommonStreamDistributionBuilder,
     YamlPumpConstraintBuilder,
+    YamlPumpCurveBuilder,
     YamlPumpModelBuilder,
     YamlPumpPipelineBuilder,
     YamlPumpSimulationBuilder,
@@ -244,7 +245,25 @@ def _compressor_model():
 
 
 def _pump_model():
-    chart = YamlPumpChartBuilder().with_test_data().validate()
+    curve = (
+        YamlPumpCurveBuilder()
+        .with_rate([250.0, 500.0, 700.0, 850.0, 980.0])
+        .with_head([2370.0, 2300.0, 2200.0, 2080.0, 1950.0])
+        .with_efficiency([50.0, 68.0, 76.0, 78.0, 75.0])
+        .validate()
+    )
+    chart = (
+        YamlPumpChartBuilder()
+        .with_curves([curve])
+        .with_units(
+            YamlUnits(
+                rate=YamlRateUnits.AM3_PER_HOUR,
+                head=YamlHeadUnits.M,
+                efficiency=YamlEfficiencyUnits.PERCENTAGE,
+            )
+        )
+        .validate()
+    )
     return YamlPumpModelBuilder().with_chart(chart).with_minimum_flow_rate(300).validate()
 
 
@@ -294,7 +313,12 @@ def _pump_simulation():
         .with_stream_distribution(stream_distribution)
         .with_constraint(
             PUMP_PIPELINE_NAMES[0],
-            [YamlPumpConstraintBuilder().with_outlet_pressure(240).validate()],
+            [
+                YamlPumpConstraintBuilder()
+                .with_outlet_pressure(200)
+                .with_pressure_control(YamlPumpPressureControl.DOWNSTREAM_CHOKE)
+                .validate()
+            ],
         )
         .with_constraint(
             PUMP_PIPELINE_NAMES[1],

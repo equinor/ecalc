@@ -34,15 +34,14 @@ from typing import Final
 import numpy as np
 
 from libecalc.common.ddd import value_object
-from libecalc.common.ddd.entity import Entity
 from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.units import Unit, UnitConstants
-from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.chart import Chart
 from libecalc.process.chart.chart import ChartData
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.pump.exceptions import NonPositivePressureException
 from libecalc.process.pump.liquid_stream import LiquidStream
+from libecalc.process.pump.process_units.liquid_process_unit import LiquidProcessUnit
 
 
 class PumpFailureStatus(StrEnum):
@@ -106,19 +105,21 @@ class PumpEvaluationResult:
 
     @property
     def operational_outlet_pressure_bara(self) -> float:
-        """Pressure downstream of the choke [bara].
+        """Pressure downstream of a choke that drops the whole ``choke_pressure_drop_bara`` [bara].
 
-        The requested outlet pressure, or the operational discharge pressure when that is lower.
+        The requested outlet pressure, or the operational discharge pressure when that is lower. In a
+        pump problem without a choke, the pressure downstream of the pump is the operational discharge
+        pressure.
         """
         return min(self.operational_discharge_pressure_bara, self.requested_outlet_pressure_bara)
 
     @property
     def choke_pressure_drop_bara(self) -> float:
-        """Pressure drop across the downstream choke [bara].
+        """Pressure drop across a downstream choke that drops the whole difference [bara].
 
         Operational discharge pressure minus requested outlet pressure (>= 0). A running pump has a
         choke pressure drop when the required head is below the chart's minimum head at the
-        operating rate.
+        operating rate. In a pump problem without a choke, nothing drops it.
         """
         return max(0.0, self.operational_discharge_pressure_bara - self.requested_outlet_pressure_bara)
 
@@ -134,7 +135,7 @@ class PumpEvaluationResult:
         return max(0.0, self.requested_outlet_pressure_bara - self.operational_discharge_pressure_bara)
 
 
-class Pump(Entity[ProcessUnitId]):
+class Pump(LiquidProcessUnit):
     """A single-speed / variable-speed pump.
 
     Args:
@@ -165,13 +166,10 @@ class Pump(Entity[ProcessUnitId]):
                 f"point would fall outside the pump chart."
             )
         self._minimum_flow_rate_m3_per_hour = minimum_flow_rate_m3_per_hour
+        self._speed_rpm: float | None = None
 
     def get_id(self) -> ProcessUnitId:
         return self._id
-
-    @classmethod
-    def _create_id(cls) -> ProcessUnitId:
-        return ProcessUnitId(ecalc_id_generator())
 
     @property
     def pump_chart(self) -> Chart:
@@ -182,6 +180,21 @@ class Pump(Entity[ProcessUnitId]):
         """The pump's minimum flow [m3/h] - the fixed vertical line in the
         rate-head plane, for plotting the min-flow line on the chart."""
         return self._minimum_flow_rate_m3_per_hour
+
+    def set_speed(self, speed_rpm: float | None) -> None:
+        self._speed_rpm = speed_rpm
+
+    def propagate_stream(self, inlet_stream: LiquidStream) -> LiquidStream:
+        """The stream at the pump discharge, for the set speed and the rate of the inlet stream."""
+        rate_m3_per_hour = inlet_stream.volumetric_rate_m3_per_hour
+        if rate_m3_per_hour <= 0:
+            return inlet_stream
+        if self._speed_rpm is None:
+            raise ValueError("Speed not set. A running pump needs a speed.")
+        head_joule_per_kg = self._head_at_rate_and_speed(rate_m3_per_hour=rate_m3_per_hour, speed_rpm=self._speed_rpm)
+        return inlet_stream.with_pressure(
+            inlet_stream.pressure_bara + Unit.PASCAL.to(Unit.BARA)(head_joule_per_kg * inlet_stream.density_kg_per_m3)
+        )
 
     def evaluate(self, inlet_stream: LiquidStream, requested_outlet_pressure_bara: float) -> PumpEvaluationResult:
         """Evaluate the pump for an inlet liquid stream and a requested outlet pressure.
@@ -303,22 +316,24 @@ class Pump(Entity[ProcessUnitId]):
         )
 
     def _speed_at_operating_point(self, rate_m3_per_hour: float, head_joule_per_kg: float) -> float:
-        curves = sorted(self._pump_chart.curves, key=lambda curve: curve.speed_rpm)
-        if len(curves) == 1:
-            return float(curves[0].speed_rpm)
+        """Speed [rpm] at a rate and a head: linear in head between the two curves that bracket the head at
+        that rate. The inverse of ``_head_at_rate_and_speed``."""
+        speeds, heads = self._speeds_and_heads_at_rate(rate_m3_per_hour)
+        return float(np.interp(head_joule_per_kg, heads, speeds))
 
-        speeds = [float(curve.speed_rpm) for curve in curves]
-        heads = [float(curve.head_as_function_of_rate(rate_m3_per_hour)) for curve in curves]
-        if head_joule_per_kg <= heads[0]:
-            return speeds[0]
-        if head_joule_per_kg >= heads[-1]:
-            return speeds[-1]
-        for index in range(len(curves) - 1):
-            head_low, head_high = heads[index], heads[index + 1]
-            if head_low <= head_joule_per_kg <= head_high:
-                fraction = (head_joule_per_kg - head_low) / (head_high - head_low) if head_high != head_low else 0.0
-                return speeds[index] + fraction * (speeds[index + 1] - speeds[index])
-        return speeds[-1]
+    def _head_at_rate_and_speed(self, rate_m3_per_hour: float, speed_rpm: float) -> float:
+        """Head [J/kg] at a rate and a speed: linear in speed between the two curves that bracket the speed,
+        each read at that rate. The inverse of ``_speed_at_operating_point``."""
+        speeds, heads = self._speeds_and_heads_at_rate(rate_m3_per_hour)
+        return float(np.interp(speed_rpm, speeds, heads))
+
+    def _speeds_and_heads_at_rate(self, rate_m3_per_hour: float) -> tuple[list[float], list[float]]:
+        """The speed [rpm] of each curve and its head [J/kg] at the rate, by increasing speed."""
+        curves = sorted(self._pump_chart.curves, key=lambda curve: curve.speed_rpm)
+        return (
+            [float(curve.speed_rpm) for curve in curves],
+            [float(curve.head_as_function_of_rate(rate_m3_per_hour)) for curve in curves],
+        )
 
     def _determine_failure_status(
         self,
