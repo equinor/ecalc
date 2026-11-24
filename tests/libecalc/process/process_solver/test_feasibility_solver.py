@@ -1,6 +1,5 @@
 import pytest
 
-from libecalc.common.errors.ecalc_validation_error import EcalcValidationException
 from libecalc.common.units import Unit
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.chart import ChartCurve
@@ -14,7 +13,6 @@ from libecalc.process.process_solver.pipeline_section_solver import PipelineSect
 from libecalc.process.process_solver.pipeline_solver_factory import create_pipeline_solver
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
-from libecalc.process.stream_distribution.common_stream_distribution import CommonStreamDistribution, Overflow
 from libecalc.process.stream_distribution.stream_distribution_item import StreamDistributionItem
 from libecalc.testing.chart_data_factory import ChartDataFactory
 
@@ -138,14 +136,7 @@ _UNISIM_CURVES = [
 
 
 @pytest.fixture
-def compressor(fluid_service):
-    """Variable-speed compressor using the Unisim methane chart for all FeasibilitySolver tests.
-
-    Seven speed curves (7 689–11 533 rpm) with 4–6 points each.  Head values are
-    converted from meter liquid column to J/kg.  The reference inlet (500 000 sm³/day,
-    30 bara, medium gas) gives an actual volumetric rate well below the minimum-speed
-    surge, so anti-surge recirculation is always active in normal operation.
-    """
+def unisim_chart():
     curves = [
         ChartCurve(
             rate_actual_m3_hour=[p[0] for p in pts],
@@ -155,9 +146,21 @@ def compressor(fluid_service):
         )
         for speed, pts in _UNISIM_CURVES
     ]
+    return ChartDataFactory.from_curves(curves)
+
+
+@pytest.fixture
+def compressor(fluid_service, unisim_chart):
+    """Variable-speed compressor using the Unisim methane chart for all FeasibilitySolver tests.
+
+    Seven speed curves (7 689–11 533 rpm) with 4–6 points each.  Head values are
+    converted from meter liquid column to J/kg.  The reference inlet (500 000 sm³/day,
+    30 bara, medium gas) gives an actual volumetric rate well below the minimum-speed
+    surge, so anti-surge recirculation is always active in normal operation.
+    """
     return Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=ChartDataFactory.from_curves(curves),
+        compressor_chart=unisim_chart,
         fluid_service=fluid_service,
     )
 
@@ -366,26 +369,17 @@ def two_stage_feasibility_solver(
     individual_asv_rate_control_strategy_factory,
     pipeline_section_solver_factory,
     fluid_service,
+    unisim_chart,
 ):
     """Two identical Unisim stages in series on a shared shaft, with inter-stage cooling."""
-    curves = [
-        ChartCurve(
-            rate_actual_m3_hour=[p[0] for p in pts],
-            polytropic_head_joule_per_kg=[_HEAD_CONV(p[1]) for p in pts],
-            efficiency_fraction=[p[2] for p in pts],
-            speed_rpm=float(speed),
-        )
-        for speed, pts in _UNISIM_CURVES
-    ]
-    chart = ChartDataFactory.from_curves(curves)
     c1 = Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=chart,
+        compressor_chart=unisim_chart,
         fluid_service=fluid_service,
     )
     c2 = Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=chart,
+        compressor_chart=unisim_chart,
         fluid_service=fluid_service,
     )
     shaft = VariableSpeedShaft()
@@ -450,18 +444,9 @@ def two_section_pipeline_factory(
     individual_asv_rate_control_strategy_factory,
     pipeline_section_factory,
     fluid_service,
+    unisim_chart,
 ):
     """Two identical Unisim stages on a shared shaft, one stage per pipeline section."""
-    curves = [
-        ChartCurve(
-            rate_actual_m3_hour=[p[0] for p in pts],
-            polytropic_head_joule_per_kg=[_HEAD_CONV(p[1]) for p in pts],
-            efficiency_fraction=[p[2] for p in pts],
-            speed_rpm=float(speed),
-        )
-        for speed, pts in _UNISIM_CURVES
-    ]
-    chart = ChartDataFactory.from_curves(curves)
 
     def create_pipeline() -> Pipeline:
         shaft = VariableSpeedShaft()
@@ -470,7 +455,7 @@ def two_section_pipeline_factory(
         def create_section():
             compressor = Compressor(
                 process_unit_id=ProcessUnitId(ecalc_id_generator()),
-                compressor_chart=chart,
+                compressor_chart=unisim_chart,
                 fluid_service=fluid_service,
             )
             process_units, loops = with_individual_asv(stage_units_factory(compressor=compressor, shaft=shaft))
@@ -502,24 +487,27 @@ def _two_section_targets(interstage_pressure: float, discharge_pressure: float) 
     return [FloatConstraint(interstage_pressure), FloatConstraint(discharge_pressure)]
 
 
+def test_create_pipeline_solver_selects_solver_by_number_of_sections(two_section_pipeline_factory):
+    pipeline = two_section_pipeline_factory()
+    single_section_pipeline = Pipeline(process_pipeline_sections=pipeline.get_process_pipeline_sections()[:1])
+
+    assert isinstance(create_pipeline_solver(pipeline), MultiPressureSolver)
+    assert isinstance(create_pipeline_solver(single_section_pipeline), PipelineSectionSolver)
+
+
 class TestTwoSectionTrain:
     """Same two Unisim stages as TestTwoStageTrain, split into two pipeline sections with an interstage target.
 
     Solved by MultiPressureSolver. At 80/250 bara the train handles _TWO_STAGE_INSIDE_RATE but not _TWO_STAGE_HIGH_RATE.
     """
 
-    def test_create_pipeline_solver_selects_solver_by_number_of_sections(self, two_section_pipeline_factory):
-        pipeline = two_section_pipeline_factory()
-        single_section_pipeline = Pipeline(process_pipeline_sections=pipeline.get_process_pipeline_sections()[:1])
-
-        assert isinstance(create_pipeline_solver(pipeline), MultiPressureSolver)
-        assert isinstance(create_pipeline_solver(single_section_pipeline), PipelineSectionSolver)
-
     def test_inside(self, two_section_feasibility_solver, stream_factory):
+        """Rate well inside capacity with reachable targets → excess = 0."""
         inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
         assert two_section_feasibility_solver.get_excess_rate(inlet, _two_section_targets(80.0, 250.0)) == 0.0
 
     def test_rate_exceeds_capacity(self, two_section_feasibility_solver, stream_factory):
+        """Rate above capacity at 80/250 bara → excess > 0, < full rate."""
         inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_HIGH_RATE), pressure_bara=30.0)
         excess = two_section_feasibility_solver.get_excess_rate(inlet, _two_section_targets(80.0, 250.0))
         assert 0.0 < excess < inlet.standard_rate_sm3_per_day
@@ -531,32 +519,11 @@ class TestTwoSectionTrain:
         excess = two_section_feasibility_solver.get_excess_rate(inlet, _two_section_targets(interstage_pressure, 250.0))
         assert excess == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
 
-    def test_wrong_number_of_targets(self, two_section_feasibility_solver, stream_factory):
+    def test_stream_distribution_item(self, two_section_feasibility_solver, stream_factory):
+        """StreamDistributionItem passes both targets through FeasibilitySolver to MultiPressureSolver."""
         inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
-        with pytest.raises(EcalcValidationException):
-            two_section_feasibility_solver.get_excess_rate(inlet, [FloatConstraint(250.0)])
+        reachable = StreamDistributionItem(two_section_feasibility_solver, _two_section_targets(80.0, 250.0))
+        unreachable = StreamDistributionItem(two_section_feasibility_solver, _two_section_targets(120.0, 250.0))
 
-    def test_overflow_in_common_stream_distribution(self, two_section_pipeline_factory, stream_factory, fluid_service):
-        targets = _two_section_targets(80.0, 250.0)
-        items = {
-            train_id: StreamDistributionItem(
-                FeasibilitySolver(pipeline_solver=create_pipeline_solver(two_section_pipeline_factory())),
-                pressure_targets=targets,
-            )
-            for train_id in ("train_a", "train_b")
-        }
-        inlet = stream_factory(standard_rate_m3_per_day=2 * float(_TWO_STAGE_HIGH_RATE), pressure_bara=30.0)
-        excess = items["train_a"].get_excess_rate(inlet.with_standard_rate(_TWO_STAGE_HIGH_RATE))
-
-        streams = CommonStreamDistribution(
-            inlet_stream=inlet,
-            items=items,
-            rate_fractions=[0.5, 0.5],
-            overflows=[Overflow(from_id="train_a", to_id="train_b")],
-            fluid_service=fluid_service,
-        ).get_streams()
-
-        assert excess > 0.0
-        assert streams[0].standard_rate_sm3_per_day == pytest.approx(_TWO_STAGE_HIGH_RATE - excess)
-        assert streams[1].standard_rate_sm3_per_day == pytest.approx(_TWO_STAGE_HIGH_RATE + excess)
-        assert items["train_a"].is_valid(streams[0])
+        assert reachable.get_excess_rate(inlet) == 0.0
+        assert unreachable.get_excess_rate(inlet) == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)

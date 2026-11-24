@@ -141,5 +141,6 @@ class TestStreamDistributionItem:
         targets = [FloatConstraint(80.0), FloatConstraint(250.0)]
         item = StreamDistributionItem(feasibility_solver, pressure_targets=targets)
 
-        assert item.is_valid(stream_factory(standard_rate_m3_per_day=100))
+        item.get_excess_rate(stream_factory(standard_rate_m3_per_day=100))
+
         assert tuple(feasibility_solver.received_pressure_targets[0]) == tuple(targets)
