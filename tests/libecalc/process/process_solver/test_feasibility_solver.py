@@ -136,7 +136,7 @@ _UNISIM_CURVES = [
 
 
 @pytest.fixture
-def unisim_chart():
+def compressor_chart():
     curves = [
         ChartCurve(
             rate_actual_m3_hour=[p[0] for p in pts],
@@ -150,7 +150,7 @@ def unisim_chart():
 
 
 @pytest.fixture
-def compressor(fluid_service, unisim_chart):
+def compressor(fluid_service, compressor_chart):
     """Variable-speed compressor using the Unisim methane chart for all FeasibilitySolver tests.
 
     Seven speed curves (7 689–11 533 rpm) with 4–6 points each.  Head values are
@@ -160,7 +160,7 @@ def compressor(fluid_service, unisim_chart):
     """
     return Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=unisim_chart,
+        compressor_chart=compressor_chart,
         fluid_service=fluid_service,
     )
 
@@ -369,17 +369,17 @@ def two_stage_feasibility_solver(
     individual_asv_rate_control_strategy_factory,
     pipeline_section_solver_factory,
     fluid_service,
-    unisim_chart,
+    compressor_chart,
 ):
     """Two identical Unisim stages in series on a shared shaft, with inter-stage cooling."""
     c1 = Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=unisim_chart,
+        compressor_chart=compressor_chart,
         fluid_service=fluid_service,
     )
     c2 = Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=unisim_chart,
+        compressor_chart=compressor_chart,
         fluid_service=fluid_service,
     )
     shaft = VariableSpeedShaft()
@@ -444,7 +444,7 @@ def two_section_pipeline_factory(
     individual_asv_rate_control_strategy_factory,
     pipeline_section_factory,
     fluid_service,
-    unisim_chart,
+    compressor_chart,
 ):
     """Two identical Unisim stages on a shared shaft, one stage per pipeline section."""
 
@@ -455,7 +455,7 @@ def two_section_pipeline_factory(
         def create_section():
             compressor = Compressor(
                 process_unit_id=ProcessUnitId(ecalc_id_generator()),
-                compressor_chart=unisim_chart,
+                compressor_chart=compressor_chart,
                 fluid_service=fluid_service,
             )
             process_units, loops = with_individual_asv(stage_units_factory(compressor=compressor, shaft=shaft))
