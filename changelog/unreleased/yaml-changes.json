@@ -77,6 +77,13 @@
     {
       "kind": "removed",
       "path": [
+        "FACILITY_INPUTS"
+      ],
+      "description": "FACILITY_INPUTS is only available in legacy models. Define compressor charts in DEFINITIONS.COMPRESSOR_MODELS, performance curves in DEFINITIONS.PERFORMANCE_CURVES and pump charts in DEFINITIONS.PUMP_MODELS, using FILE for data in a file."
+    },
+    {
+      "kind": "removed",
+      "path": [
         "PUMP_PROCESS_SIMULATIONS"
       ],
       "description": "To migrate, define the pump in PUMPS and its chart as a pump model in DEFINITIONS.PUMP_MODELS (or inline as MODEL), instead of referencing a chart in FACILITY_INPUTS. Place the pump in a pump pipeline in PUMP_PIPELINES. Move INLET to a liquid inlet stream in STREAM_DISTRIBUTION of a pump simulation in PUMP_SIMULATIONS, with RATE given as VALUE and UNIT, and OUTLET_PRESSURE to CONSTRAINTS of that pipeline. A choke is no longer implied: set PRESSURE_CONTROL to DOWNSTREAM_CHOKE to keep the previous results.",

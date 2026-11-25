@@ -3,14 +3,14 @@ import datetime
 import enum
 from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, TextIO
+from typing import Any, Self, TextIO
 
 from libecalc.presentation.yaml.file_context import FileContext
 from libecalc.presentation.yaml.yaml_entities import (
     ResourceStream,
 )
 from libecalc.presentation.yaml.yaml_models.yaml_editable import DataModelYamlEditor, YamlEditable
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.facility_model.yaml_facility_model import YamlFacilityModel
@@ -169,7 +169,7 @@ class YamlValidator(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def validate(self, context: YamlModelValidationContext) -> YamlAsset: ...
+    def validate(self, context: YamlModelValidationContext) -> Self: ...
 
     @abc.abstractmethod
     def get_file_context(self, yaml_path: tuple[str | int | datetime.datetime, ...]) -> FileContext | None: ...

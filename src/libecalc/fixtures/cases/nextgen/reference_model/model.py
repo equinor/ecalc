@@ -3,7 +3,7 @@ from pathlib import Path
 from libecalc.common.utils.rates import RateType
 from libecalc.ecalc_model.timeline_event import TimelineEventType
 from libecalc.expression import Expression
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlNextgenAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlCombustionEngineModelChange,
@@ -614,7 +614,7 @@ def _energy_network():
     return YamlEnergyNetworkBuilder().with_sources(_energy_sources()).with_units(_energy_units()).validate()
 
 
-def build_reference_model() -> YamlAsset:
+def build_reference_model() -> YamlNextgenAsset:
     return (
         YamlAssetBuilder()
         .with_start(START)

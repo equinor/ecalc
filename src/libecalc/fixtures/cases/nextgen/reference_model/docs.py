@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlNextgenAsset
 
 from .export import ARCHIVE_FILE_NAME, MODEL_FILE_NAME, example_files
 from .mermaid import energy_network_to_mermaid
@@ -18,7 +18,7 @@ def _code_block(title: str, content: str, language: str = "text") -> str:
     return f'{fence}{language} title="{title}"\n{content.rstrip()}\n{fence}'
 
 
-def render_example_page(model: YamlAsset | None = None, files: dict[str, str] | None = None) -> str:
+def render_example_page(model: YamlNextgenAsset | None = None, files: dict[str, str] | None = None) -> str:
     model = model if model is not None else build_reference_model()
     files = files if files is not None else example_files(model)
     model_block = _code_block(MODEL_FILE_NAME, files[MODEL_FILE_NAME], "yaml")
@@ -93,7 +93,7 @@ model, the input files and `export_info.json`.
 
 
 def export_example_page(
-    docs_directory: Path, model: YamlAsset | None = None, files: dict[str, str] | None = None
+    docs_directory: Path, model: YamlNextgenAsset | None = None, files: dict[str, str] | None = None
 ) -> Path:
     docs_directory.mkdir(parents=True, exist_ok=True)
     page_path = docs_directory / PAGE_FILE_NAME

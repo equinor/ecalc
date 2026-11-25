@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlNextgenAsset
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import YamlEnergyNetwork
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineCurve, YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
@@ -43,7 +43,7 @@ def _asset(
     pipelines: list[YamlProcessPipeline],
     targeted: list[YamlProcessPipeline] | None = None,
     energy_network: YamlEnergyNetwork | None = None,
-) -> YamlAsset:
+) -> YamlNextgenAsset:
     simulations = [
         YamlProcessSimulationBuilder()
         .with_name(f"{pipeline.name} simulation")

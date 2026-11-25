@@ -6,7 +6,7 @@ from pydantic import ValidationError
 
 from libecalc.presentation.yaml.yaml_entities import ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlLegacyAsset, YamlNextgenAsset
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_units import YamlPressureDropperDefinition
 from libecalc.presentation.yaml.yaml_types.pump.yaml_liquid_stream import YamlLiquidInletStream
 from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_model import YamlPumpModel
@@ -18,7 +18,6 @@ from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_simulation import (
     YamlPumpPressureControl,
     YamlPumpSimulation,
 )
-from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 
 PUMP_MODEL = """
 TYPE: PUMP_CHART
@@ -104,7 +103,7 @@ def model_data() -> dict:
 
 
 def test_nextgen_asset_with_pump_sections(model_data):
-    asset = YamlAsset.model_validate(model_data, context={YamlModelValidationContextNames.nextgen: True})
+    asset = YamlNextgenAsset.model_validate(model_data)
 
     assert set(asset.definitions.pump_models) == {"pump_model_a", "pump_model_b"}
     assert asset.definitions.pump_models["pump_model_a"].minimum_flow_rate == 300
@@ -134,8 +133,11 @@ def test_nextgen_asset_with_pump_sections(model_data):
 
 
 def test_pump_sections_are_not_available_in_legacy_model(model_data):
-    with pytest.raises(ValidationError, match="not available in a legacy model: .*PUMPS"):
-        YamlAsset.model_validate(model_data, context={YamlModelValidationContextNames.nextgen: False})
+    with pytest.raises(ValidationError) as exc_info:
+        YamlLegacyAsset.model_validate(model_data)
+
+    forbidden_keys = {error["loc"][0] for error in exc_info.value.errors() if error["type"] == "extra_forbidden"}
+    assert {"PUMPS", "PUMP_PIPELINES", "PUMP_SIMULATIONS"} <= forbidden_keys
 
 
 def test_pyyaml_model_reads_pump_sections(model_data):

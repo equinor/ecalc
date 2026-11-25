@@ -6,6 +6,16 @@ from inline_snapshot import snapshot
 from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
+from libecalc.presentation.yaml.yaml_types.pump.yaml_pump_model import YamlPumpModel
+from libecalc.testing.energy_builders import YamlFileBuilder
+from libecalc.testing.process_builders import YamlDefinitionsBuilder
+from libecalc.testing.pump_builders import (
+    YamlPumpBuilder,
+    YamlPumpChartBuilder,
+    YamlPumpModelBuilder,
+    YamlPumpPipelineBuilder,
+)
+from libecalc.testing.yaml_builder import YamlAssetBuilder
 
 
 class TestYamlConfiguration:
@@ -28,7 +38,7 @@ class TestYamlConfiguration:
         model = YamlModel(
             configuration=configuration,
             resource_service=resource_service_factory({}, configuration=configuration),
-            nextgen=False,
+            nextgen=True,
         )
 
         with pytest.raises(ModelValidationException) as exc_info:
@@ -90,3 +100,32 @@ Validation error
         configuration = PyYamlYamlModel(internal_datamodel=yaml_dict, name="test_case", instantiated_through_read=True)
 
         assert configuration.facility_resource_names == ["chart.csv"]
+
+    def test_read_pump_chart_files_without_facility_inputs(self, yaml_asset_configuration_service_factory):
+        def pump_model_from_file(file: str) -> YamlPumpModel:
+            chart = YamlPumpChartBuilder().with_curves(YamlFileBuilder().with_file(file).validate()).validate()
+            return YamlPumpModelBuilder().with_chart(chart).validate()
+
+        asset = (
+            YamlAssetBuilder()
+            .with_test_data()
+            .with_definitions(
+                YamlDefinitionsBuilder()
+                .with_pump_model("pump_model", pump_model_from_file("pump_chart.csv"))
+                .validate()
+            )
+            .with_pumps([YamlPumpBuilder().with_name("pump").validate()])
+            .with_pump_pipelines(
+                [
+                    YamlPumpPipelineBuilder()
+                    .with_name("pipeline")
+                    .with_pump_item("pump", pump_model_from_file("inline_pump_chart.csv"))
+                    .validate()
+                ]
+            )
+            .validate()
+        )
+
+        configuration = yaml_asset_configuration_service_factory(asset, name="test_case").get_configuration()
+
+        assert configuration.facility_resource_names == ["pump_chart.csv", "inline_pump_chart.csv"]
