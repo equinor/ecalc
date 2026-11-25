@@ -3,6 +3,13 @@
     {
       "kind": "added",
       "path": [
+        "DEFINITIONS",
+        "PUMP_MODELS"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
         "ENERGY_NETWORK",
         "UNITS",
         "GENERATOR_SET",
@@ -10,6 +17,24 @@
         "GENERATORSETENGINEDEFINITION"
       ],
       "description": "A GENERATOR_SET can now be driven by a gas turbine or diesel engine (TYPE GAS_TURBINE_DRIVEN/DIESEL_ENGINE_DRIVEN) combined with a GENERATOR_EFFICIENCY, instead of only a direct power-to-fuel curve."
+    },
+    {
+      "kind": "added",
+      "path": [
+        "PUMPS"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "PUMP_PIPELINES"
+      ]
+    },
+    {
+      "kind": "added",
+      "path": [
+        "PUMP_SIMULATIONS"
+      ]
     },
     {
       "kind": "changed",
@@ -38,6 +63,24 @@
           "ENERGY_NETWORK",
           "UNITS",
           "GENERATOR_SET"
+        ]
+      ]
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "PUMP_PROCESS_SIMULATIONS"
+      ],
+      "description": "To migrate, define the pump in PUMPS and its chart as a pump model in DEFINITIONS.PUMP_MODELS (or inline as MODEL), instead of referencing a chart in FACILITY_INPUTS. Place the pump in a pump pipeline in PUMP_PIPELINES. Move INLET to a liquid inlet stream in STREAM_DISTRIBUTION of a pump simulation in PUMP_SIMULATIONS, with RATE given as VALUE and UNIT, and OUTLET_PRESSURE to CONSTRAINTS of that pipeline. A choke is no longer implied: set PRESSURE_CONTROL to DOWNSTREAM_CHOKE to keep the previous results.",
+      "replaced_by": [
+        [
+          "PUMPS"
+        ],
+        [
+          "PUMP_PIPELINES"
+        ],
+        [
+          "PUMP_SIMULATIONS"
         ]
       ]
     },
