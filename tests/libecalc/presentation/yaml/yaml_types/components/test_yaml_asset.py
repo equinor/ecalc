@@ -7,6 +7,7 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_asset import (
     YamlNextgenAsset,
 )
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
+from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContextNames
 from libecalc.testing.process_builders import (
     YamlCommonStreamDistributionBuilder,
     YamlDefinitionsBuilder,
@@ -36,6 +37,11 @@ def _nextgen_data() -> dict:
 
 def _forbidden_keys(error: ValidationError) -> set[str]:
     return {error["loc"][0] for error in error.errors() if error["type"] == "extra_forbidden"}
+
+
+def _validate(data: dict, nextgen: bool | None = None) -> YamlNextgenAsset:
+    context = {} if nextgen is None else {YamlModelValidationContextNames.nextgen: nextgen}
+    return YamlNextgenAsset.model_validate(data, context=context)
 
 
 @pytest.mark.parametrize(

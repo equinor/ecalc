@@ -57,6 +57,19 @@
             "title": "TimelineEventType",
             "type": "string"
         },
+        "TimelinePhaseReference": {
+            "type": "string"
+        },
+        "TimelinePhaseType": {
+            "enum": [
+                "DRILLING",
+                "PRODUCTION",
+                "OFFLOADING",
+                "TURNOVER"
+            ],
+            "title": "TimelinePhaseType",
+            "type": "string"
+        },
         "YamlCombustionEngineModelChange": {
             "additionalProperties": false,
             "description": "A dated change of a gas turbine's or diesel engine's model. The unit stays the same unit in the energy network;\nonly the model used to convert power to fuel changes.",
@@ -3219,6 +3232,18 @@
                     },
                     "title": "EVENTS",
                     "type": "object"
+                },
+                "PHASES": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/YamlTimelinePhase"
+                    },
+                    "default": {},
+                    "description": "Named operating phases, e.g. drilling or production, that are active in some periods and inactive in others. The key is the phase reference, used by other parts of the model to refer to the phase.",
+                    "propertyNames": {
+                        "$ref": "#/$defs/TimelinePhaseReference"
+                    },
+                    "title": "PHASES",
+                    "type": "object"
                 }
             },
             "title": "Timeline",
@@ -3270,6 +3295,63 @@
                 "FROM"
             ],
             "title": "YamlTimelineEvent",
+            "type": "object"
+        },
+        "YamlTimelinePhase": {
+            "additionalProperties": false,
+            "properties": {
+                "DESCRIPTION": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Human-readable description of the phase and its purpose.",
+                    "title": "DESCRIPTION"
+                },
+                "TITLE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Human-friendly label for the phase. Defaults to the phase reference.",
+                    "title": "TITLE"
+                },
+                "TYPE": {
+                    "$ref": "#/$defs/TimelinePhaseType",
+                    "description": "Category of the phase: DRILLING, PRODUCTION, OFFLOADING, TURNOVER. Used as metadata only.",
+                    "title": "TYPE"
+                },
+                "WHEN": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Expression telling when the phase is active, e.g. `SIM;DRILLING_FLAG` or `SIM;GAS_PROD > 0`. It must reference a time series or variable and evaluate to true (1) or false (0) in every period.",
+                    "title": "WHEN"
+                }
+            },
+            "required": [
+                "TYPE",
+                "WHEN"
+            ],
+            "title": "YamlTimelinePhase",
             "type": "object"
         },
         "YamlTurbineCurve": {
@@ -3491,7 +3573,7 @@
                 }
             ],
             "default": null,
-            "description": "Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
+            "description": "Defines dated events and operating phases in the model. Event dates are added to the time steps of process simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
             "title": "TIMELINE"
         },
         "TIME_SERIES": {
