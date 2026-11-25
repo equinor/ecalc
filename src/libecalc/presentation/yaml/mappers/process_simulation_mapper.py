@@ -96,40 +96,9 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorRefe
 from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import ShaftReference
 from libecalc.process.chart.chart import ChartData
-from libecalc.process.fluid_stream.fluid_stream import FluidStream
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
-from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
-from libecalc.process.process_solver.float_constraint import FloatConstraint
-from libecalc.process.stream_distribution.common_stream_distribution import (
-    HasExcessRate,
-    Overflow,
-)
-from libecalc.process.stream_distribution.priorities_stream_distribution import (
-    HasValidity,
-)
-
-
-class StreamDistributionItem(HasExcessRate, HasValidity):
-    """Connects a compressor train's solver to the stream distribution system."""
-
-    def __init__(
-        self,
-        feasibility_solver: FeasibilitySolver,
-        target_pressure: FloatConstraint,
-    ):
-        self._feasibility_solver = feasibility_solver
-        self._target_pressure = target_pressure
-
-    def is_valid(self, inlet_stream: FluidStream) -> bool:
-        """Can the train operate at these inlet conditions?"""
-        return self.get_excess_rate(inlet_stream) == 0.0
-
-    def get_excess_rate(self, inlet_stream: FluidStream) -> float:
-        """How much rate (sm³/day) exceeds this train's capacity?"""
-        return self._feasibility_solver.get_excess_rate(
-            inlet_stream=inlet_stream, target_pressure=self._target_pressure
-        )
+from libecalc.process.stream_distribution.common_stream_distribution import Overflow
 
 
 class ProcessSimulationMapper:
@@ -449,12 +418,8 @@ class ProcessSimulationMapper:
                 zip(process_pipeline_sections, mapped_sections, assembled_sections, strict=True)
             ):
                 # For the first n-1 sections, we put it at the last unit, for the nth section we put it before the outlet unit
-                constraint_position = -2
-                if nr == len(process_pipeline_sections):
-                    constraint_position = -1
-                target_process_unit_id = pipeline_section.get_process_units()[
-                    constraint_position
-                ].get_id()  # The last unit is the outlet, so we take the one before that
+                constraint_position = -2 if nr == len(process_pipeline_sections) - 1 else -1
+                target_process_unit_id = pipeline_section.get_process_units()[constraint_position].get_id()
                 # TODO: The mapped_section.target_process_unit_id is incorrect, as that is before we apply ASV and Pressure Control ...
                 try:
                     constraint = Constraint(

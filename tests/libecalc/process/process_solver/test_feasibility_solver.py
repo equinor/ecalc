@@ -7,8 +7,13 @@ from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
+from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
+from libecalc.process.process_solver.pipeline_section import Pipeline
+from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
+from libecalc.process.process_solver.pipeline_solver_factory import create_pipeline_solver
 from libecalc.process.process_units.compressor import Compressor
 from libecalc.process.shaft import VariableSpeedShaft
+from libecalc.process.stream_distribution.stream_distribution_item import StreamDistributionItem
 from libecalc.testing.chart_data_factory import ChartDataFactory
 
 # ── Rate-axis constants ──────────────────────────────────────────────────────
@@ -131,14 +136,7 @@ _UNISIM_CURVES = [
 
 
 @pytest.fixture
-def compressor(fluid_service):
-    """Variable-speed compressor using the Unisim methane chart for all FeasibilitySolver tests.
-
-    Seven speed curves (7 689–11 533 rpm) with 4–6 points each.  Head values are
-    converted from meter liquid column to J/kg.  The reference inlet (500 000 sm³/day,
-    30 bara, medium gas) gives an actual volumetric rate well below the minimum-speed
-    surge, so anti-surge recirculation is always active in normal operation.
-    """
+def compressor_chart():
     curves = [
         ChartCurve(
             rate_actual_m3_hour=[p[0] for p in pts],
@@ -148,9 +146,21 @@ def compressor(fluid_service):
         )
         for speed, pts in _UNISIM_CURVES
     ]
+    return ChartDataFactory.from_curves(curves)
+
+
+@pytest.fixture
+def compressor(fluid_service, compressor_chart):
+    """Variable-speed compressor using the Unisim methane chart for all FeasibilitySolver tests.
+
+    Seven speed curves (7 689–11 533 rpm) with 4–6 points each.  Head values are
+    converted from meter liquid column to J/kg.  The reference inlet (500 000 sm³/day,
+    30 bara, medium gas) gives an actual volumetric rate well below the minimum-speed
+    surge, so anti-surge recirculation is always active in normal operation.
+    """
     return Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=ChartDataFactory.from_curves(curves),
+        compressor_chart=compressor_chart,
         fluid_service=fluid_service,
     )
 
@@ -200,7 +210,7 @@ def feasibility_solver_setup(
             process_pipeline_id=process_pipeline_id,
         )
 
-        return FeasibilitySolver(pipeline_section_solver=segment_solver)
+        return FeasibilitySolver(pipeline_solver=segment_solver)
 
     return _create
 
@@ -219,19 +229,19 @@ class TestRateAxisLowHead:
         """Rate below chart envelope (recirculation zone) → excess = 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=500_000.0, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_LOW_HEAD_TARGET)) == 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_LOW_HEAD_TARGET)]) == 0.0
 
     def test_inside_chart(self, feasibility_solver_setup, compressor, stream_factory):
         """Rate inside chart envelope → excess = 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_LOW_HEAD_INSIDE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_LOW_HEAD_TARGET)) == 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_LOW_HEAD_TARGET)]) == 0.0
 
     def test_right_of_chart(self, feasibility_solver_setup, compressor, stream_factory):
         """Rate above solver capacity limit → excess > 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_LOW_HEAD_OUTSIDE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_LOW_HEAD_TARGET)) > 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_LOW_HEAD_TARGET)]) > 0.0
 
 
 class TestRateAxisHighHead:
@@ -248,19 +258,19 @@ class TestRateAxisHighHead:
         """Rate below chart envelope (recirculation zone) → excess = 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=500_000.0, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_HIGH_HEAD_TARGET)) == 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_HIGH_HEAD_TARGET)]) == 0.0
 
     def test_inside_chart(self, feasibility_solver_setup, compressor, stream_factory):
         """Rate inside chart envelope → excess = 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_HIGH_HEAD_INSIDE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_HIGH_HEAD_TARGET)) == 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_HIGH_HEAD_TARGET)]) == 0.0
 
     def test_right_of_chart(self, feasibility_solver_setup, compressor, stream_factory):
         """Rate above solver capacity limit → excess > 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_HIGH_HEAD_OUTSIDE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_HIGH_HEAD_TARGET)) > 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_HIGH_HEAD_TARGET)]) > 0.0
 
 
 class TestHeadAxisLowRate:
@@ -277,32 +287,32 @@ class TestHeadAxisLowRate:
         """Target below min achievable (~49 bara) — globally infeasible → excess = full rate."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_LOW_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
-        excess = solver.get_excess_rate(inlet, FloatConstraint(_LOW_RATE_HEAD_PATH_BELOW_MIN))
+        excess = solver.get_excess_rate(inlet, [FloatConstraint(_LOW_RATE_HEAD_PATH_BELOW_MIN)])
         assert excess == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
 
     def test_left_of_min_speed_curve(self, feasibility_solver_setup, compressor, stream_factory):
         """Target below 7 689 rpm head at this rate — recirculation at min speed → excess = 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_LOW_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_LOW_RATE_HEAD_PATH_LEFT_MIN_SPD)) == 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_LOW_RATE_HEAD_PATH_LEFT_MIN_SPD)]) == 0.0
 
     def test_inside_chart(self, feasibility_solver_setup, compressor, stream_factory):
         """Target inside natural operating region → excess = 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_LOW_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_LOW_RATE_HEAD_PATH_INSIDE)) == 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_LOW_RATE_HEAD_PATH_INSIDE)]) == 0.0
 
     def test_left_of_surge(self, feasibility_solver_setup, compressor, stream_factory):
         """Target above 8 787 rpm region — 9 886+ rpm operate left of surge via ASV → excess = 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_LOW_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_LOW_RATE_HEAD_PATH_LEFT_SURGE)) == 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_LOW_RATE_HEAD_PATH_LEFT_SURGE)]) == 0.0
 
     def test_above_maximum_achievable(self, feasibility_solver_setup, compressor, stream_factory):
         """Target above max achievable (~116 bara) — globally infeasible → excess = full rate."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_LOW_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
-        excess = solver.get_excess_rate(inlet, FloatConstraint(_LOW_RATE_HEAD_PATH_ABOVE_MAX))
+        excess = solver.get_excess_rate(inlet, [FloatConstraint(_LOW_RATE_HEAD_PATH_ABOVE_MAX)])
         assert excess == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
 
 
@@ -323,13 +333,13 @@ class TestHeadAxisHighRate:
         """Target below min achievable at this rate (~67 bara) — rate-conditional → excess > 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_HIGH_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_HIGH_RATE_HEAD_PATH_BELOW_MIN)) > 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_HIGH_RATE_HEAD_PATH_BELOW_MIN)]) > 0.0
 
     def test_inside_chart(self, feasibility_solver_setup, compressor, stream_factory):
         """Target inside natural operating region → excess = 0."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_HIGH_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
-        assert solver.get_excess_rate(inlet, FloatConstraint(_HIGH_RATE_HEAD_PATH_INSIDE)) == 0.0
+        assert solver.get_excess_rate(inlet, [FloatConstraint(_HIGH_RATE_HEAD_PATH_INSIDE)]) == 0.0
 
     def test_right_of_max_speed_curve(self, feasibility_solver_setup, compressor, stream_factory):
         """Target above 11 533 rpm head at 6 000 m³/h (~101 bara) — lower rate is at max speed
@@ -338,7 +348,7 @@ class TestHeadAxisHighRate:
         inlet = stream_factory(standard_rate_m3_per_day=_HIGH_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
         assert (
             0.0
-            < solver.get_excess_rate(inlet, FloatConstraint(_HIGH_RATE_HEAD_PATH_RIGHT_MAX_SPD))
+            < solver.get_excess_rate(inlet, [FloatConstraint(_HIGH_RATE_HEAD_PATH_RIGHT_MAX_SPD)])
             < inlet.standard_rate_sm3_per_day
         )
 
@@ -346,7 +356,7 @@ class TestHeadAxisHighRate:
         """Target above global max achievable (~116 bara) — infeasible at any rate → excess = full rate."""
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_HIGH_RATE_HEAD_PATH_RATE, pressure_bara=30.0)
-        excess = solver.get_excess_rate(inlet, FloatConstraint(_HIGH_RATE_HEAD_PATH_ABOVE_MAX))
+        excess = solver.get_excess_rate(inlet, [FloatConstraint(_HIGH_RATE_HEAD_PATH_ABOVE_MAX)])
         assert excess == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
 
 
@@ -359,26 +369,17 @@ def two_stage_feasibility_solver(
     individual_asv_rate_control_strategy_factory,
     pipeline_section_solver_factory,
     fluid_service,
+    compressor_chart,
 ):
     """Two identical Unisim stages in series on a shared shaft, with inter-stage cooling."""
-    curves = [
-        ChartCurve(
-            rate_actual_m3_hour=[p[0] for p in pts],
-            polytropic_head_joule_per_kg=[_HEAD_CONV(p[1]) for p in pts],
-            efficiency_fraction=[p[2] for p in pts],
-            speed_rpm=float(speed),
-        )
-        for speed, pts in _UNISIM_CURVES
-    ]
-    chart = ChartDataFactory.from_curves(curves)
     c1 = Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=chart,
+        compressor_chart=compressor_chart,
         fluid_service=fluid_service,
     )
     c2 = Compressor(
         process_unit_id=ProcessUnitId(ecalc_id_generator()),
-        compressor_chart=chart,
+        compressor_chart=compressor_chart,
         fluid_service=fluid_service,
     )
     shaft = VariableSpeedShaft()
@@ -401,7 +402,7 @@ def two_stage_feasibility_solver(
         pressure_control_strategy=pressure_control,
         process_pipeline_id=process_pipeline_id,
     )
-    return FeasibilitySolver(pipeline_section_solver=segment_solver)
+    return FeasibilitySolver(pipeline_solver=segment_solver)
 
 
 class TestTwoStageTrain:
@@ -419,16 +420,119 @@ class TestTwoStageTrain:
     def test_inside(self, two_stage_feasibility_solver, stream_factory):
         """Rate well inside two-stage capacity → excess = 0."""
         inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
-        assert two_stage_feasibility_solver.get_excess_rate(inlet, FloatConstraint(_TWO_STAGE_TARGET)) == 0.0
+        assert two_stage_feasibility_solver.get_excess_rate(inlet, [FloatConstraint(_TWO_STAGE_TARGET)]) == 0.0
 
     def test_above_achievable_pressure(self, two_stage_feasibility_solver, stream_factory):
         """Target above two-stage maximum (~450 bara) — infeasible at any rate → excess = full rate."""
         inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
-        excess = two_stage_feasibility_solver.get_excess_rate(inlet, FloatConstraint(_TWO_STAGE_ABOVE_MAX_TARGET))
+        excess = two_stage_feasibility_solver.get_excess_rate(inlet, [FloatConstraint(_TWO_STAGE_ABOVE_MAX_TARGET)])
         assert excess == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
 
     def test_rate_exceeds_capacity(self, two_stage_feasibility_solver, stream_factory):
         """Rate above two-stage capacity at 250 bara → excess > 0, < full rate."""
         inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_HIGH_RATE), pressure_bara=30.0)
-        excess = two_stage_feasibility_solver.get_excess_rate(inlet, FloatConstraint(_TWO_STAGE_TARGET))
+        excess = two_stage_feasibility_solver.get_excess_rate(inlet, [FloatConstraint(_TWO_STAGE_TARGET)])
         assert 0.0 < excess < inlet.standard_rate_sm3_per_day
+
+
+@pytest.fixture
+def two_section_pipeline_factory(
+    stage_units_factory,
+    process_runner_factory,
+    with_individual_asv,
+    individual_asv_anti_surge_strategy_factory,
+    individual_asv_rate_control_strategy_factory,
+    pipeline_section_factory,
+    fluid_service,
+    compressor_chart,
+):
+    """Two identical Unisim stages on a shared shaft, one stage per pipeline section."""
+
+    def create_pipeline() -> Pipeline:
+        shaft = VariableSpeedShaft()
+        process_pipeline_id = ProcessPipelineId(ecalc_id_generator())
+
+        def create_section():
+            compressor = Compressor(
+                process_unit_id=ProcessUnitId(ecalc_id_generator()),
+                compressor_chart=compressor_chart,
+                fluid_service=fluid_service,
+            )
+            process_units, loops = with_individual_asv(stage_units_factory(compressor=compressor, shaft=shaft))
+            loop_ids = [loop.get_id() for loop in loops]
+            runner = process_runner_factory(units=process_units, configuration_handlers=[shaft, *loops])
+            return pipeline_section_factory(
+                runner=runner,
+                anti_surge_strategy=individual_asv_anti_surge_strategy_factory(
+                    runner=runner, recirculation_loop_ids=loop_ids, compressors=[compressor]
+                ),
+                pressure_control_strategy=individual_asv_rate_control_strategy_factory(
+                    runner=runner, recirculation_loop_ids=loop_ids, compressors=[compressor]
+                ),
+                shaft=shaft,
+                process_pipeline_id=process_pipeline_id,
+            )
+
+        return Pipeline(process_pipeline_sections=[create_section(), create_section()])
+
+    return create_pipeline
+
+
+@pytest.fixture
+def two_section_feasibility_solver(two_section_pipeline_factory) -> FeasibilitySolver:
+    return FeasibilitySolver(pipeline_solver=create_pipeline_solver(two_section_pipeline_factory()))
+
+
+def _two_section_targets(interstage_pressure: float, discharge_pressure: float) -> list[FloatConstraint]:
+    return [FloatConstraint(interstage_pressure), FloatConstraint(discharge_pressure)]
+
+
+def test_create_pipeline_solver_selects_solver_by_number_of_sections(two_section_pipeline_factory):
+    pipeline = two_section_pipeline_factory()
+    single_section_pipeline = Pipeline(process_pipeline_sections=pipeline.get_process_pipeline_sections()[:1])
+
+    assert isinstance(create_pipeline_solver(pipeline), MultiPressureSolver)
+    assert isinstance(create_pipeline_solver(single_section_pipeline), PipelineSectionSolver)
+
+
+class TestTwoSectionTrain:
+    """Same two Unisim stages as TestTwoStageTrain, split into two pipeline sections with an interstage target.
+
+    Solved by MultiPressureSolver. At 80/250 bara the train handles _TWO_STAGE_INSIDE_RATE but not _TWO_STAGE_HIGH_RATE.
+    """
+
+    def test_inside(self, two_section_feasibility_solver, stream_factory):
+        """Rate well inside capacity with reachable targets → excess = 0."""
+        inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
+        assert two_section_feasibility_solver.get_excess_rate(inlet, _two_section_targets(80.0, 250.0)) == 0.0
+
+    def test_rate_exceeds_capacity(self, two_section_feasibility_solver, stream_factory):
+        """Rate above capacity at 80/250 bara → excess > 0, < full rate."""
+        inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_HIGH_RATE), pressure_bara=30.0)
+        excess = two_section_feasibility_solver.get_excess_rate(inlet, _two_section_targets(80.0, 250.0))
+        assert 0.0 < excess < inlet.standard_rate_sm3_per_day
+
+    @pytest.mark.parametrize("interstage_pressure", [60.0, 120.0])
+    def test_unreachable_interstage_target(self, two_section_feasibility_solver, stream_factory, interstage_pressure):
+        """Same rate and discharge target as test_inside, only the interstage target differs.
+
+        120 bara is above what stage 1 can reach from 30 bara, and 60 bara leaves too much
+        pressure ratio for stage 2 to reach 250 bara. No rate is feasible, so the full inlet rate is excess.
+        This shows that the solver checks the interstage target and not only the discharge target.
+        """
+        inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
+        excess = two_section_feasibility_solver.get_excess_rate(inlet, _two_section_targets(interstage_pressure, 250.0))
+        assert excess == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
+
+    def test_stream_distribution_item_uses_all_pressure_targets(self, two_section_feasibility_solver, stream_factory):
+        """Stream distribution evaluates each train through StreamDistributionItem.
+
+        Both targets must reach the solver: the unreachable interstage target (120 bara) gives
+        full excess, while 80 bara gives none.
+        """
+        inlet = stream_factory(standard_rate_m3_per_day=float(_TWO_STAGE_INSIDE_RATE), pressure_bara=30.0)
+        reachable = StreamDistributionItem(two_section_feasibility_solver, _two_section_targets(80.0, 250.0))
+        unreachable = StreamDistributionItem(two_section_feasibility_solver, _two_section_targets(120.0, 250.0))
+
+        assert reachable.get_excess_rate(inlet) == 0.0
+        assert unreachable.get_excess_rate(inlet) == pytest.approx(inlet.standard_rate_sm3_per_day, rel=1e-6)
