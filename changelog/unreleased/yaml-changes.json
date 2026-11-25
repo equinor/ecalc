@@ -37,6 +37,14 @@
       ]
     },
     {
+      "kind": "added",
+      "path": [
+        "TIMELINE",
+        "PHASES"
+      ],
+      "description": "Named operating phases with a WHEN expression that references a time series or variable and evaluates to true or false in every period. Phases are not used by other parts of the model yet."
+    },
+    {
       "kind": "changed",
       "path": [
         "INLET_STREAMS"

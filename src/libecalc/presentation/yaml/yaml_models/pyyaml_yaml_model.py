@@ -52,7 +52,12 @@ from libecalc.presentation.yaml.yaml_types.yaml_compressor import YamlCompressor
 from libecalc.presentation.yaml.yaml_types.yaml_default_datetime import YamlDefaultDatetime
 from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
-from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
+from libecalc.presentation.yaml.yaml_types.yaml_timeline import (
+    TimelineEventReference,
+    TimelinePhaseReference,
+    YamlTimelineEvent,
+    YamlTimelinePhase,
+)
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
 from libecalc.presentation.yaml.yaml_validation_context import (
     YamlModelValidationContext,
@@ -70,6 +75,7 @@ _PERFORMANCE_CURVES_KEY = "PERFORMANCE_CURVES"
 _PROCESS_SIMULATIONS_KEY = "PROCESS_SIMULATIONS"
 _TIMELINE_KEY = "TIMELINE"
 _EVENTS_KEY = "EVENTS"
+_PHASES_KEY = "PHASES"
 _PUMP_MODELS_KEY = "PUMP_MODELS"
 _PUMPS_KEY = "PUMPS"
 _PUMP_PIPELINES_KEY = "PUMP_PIPELINES"
@@ -582,6 +588,22 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             except PydanticValidationError:
                 pass
         return timeline_events
+
+    @property
+    def timeline_phases(self) -> dict[TimelinePhaseReference, YamlTimelinePhase]:
+        timeline = self._get_yaml_dict_or_empty(_TIMELINE_KEY)
+        raw_phases = timeline.get(_PHASES_KEY)
+        if not isinstance(raw_phases, dict):
+            return {}
+
+        timeline_phases: dict[TimelinePhaseReference, YamlTimelinePhase] = {}
+        adapter = TypeAdapter(YamlTimelinePhase)
+        for reference, timeline_phase in raw_phases.items():
+            try:
+                timeline_phases[reference] = adapter.validate_python(timeline_phase)
+            except PydanticValidationError:
+                pass
+        return timeline_phases
 
     @property
     def pumps(self) -> list[YamlPump]:

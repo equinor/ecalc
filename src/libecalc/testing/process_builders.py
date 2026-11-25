@@ -2,6 +2,7 @@ from typing import Self
 
 from libecalc.common.utils.rates import RateType
 from libecalc.ecalc_model.timeline_event import TimelineEventType
+from libecalc.ecalc_model.timeline_phase import TimelinePhaseType
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlDefinitions, YamlPerformanceCurveDefinition
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
@@ -60,8 +61,10 @@ from libecalc.presentation.yaml.yaml_types.yaml_data_or_file import YamlFile
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import (
     TimelineEventReference,
+    TimelinePhaseReference,
     YamlTimeline,
     YamlTimelineEvent,
+    YamlTimelinePhase,
 )
 from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiSurgeType
 from libecalc.process.process_solver.pressure_control.pressure_control_strategy import PressureControlType
@@ -577,16 +580,53 @@ class YamlTimelineEventBuilder(Builder[YamlTimelineEvent]):
         return self
 
 
+class YamlTimelinePhaseBuilder(Builder[YamlTimelinePhase]):
+    def __init__(self):
+        self.title: str | None = None
+        self.type: TimelinePhaseType | None = None
+        self.when = None
+        self.description: str | None = None
+
+    def with_title(self, title: str | None) -> Self:
+        self.title = title
+        return self
+
+    def with_type(self, type: TimelinePhaseType) -> Self:
+        self.type = type
+        return self
+
+    def with_when(self, when) -> Self:
+        self.when = when
+        return self
+
+    def with_description(self, description: str | None) -> Self:
+        self.description = description
+        return self
+
+    def with_test_data(self) -> Self:
+        self.title = "Production"
+        self.type = TimelinePhaseType.PRODUCTION
+        self.when = "SIM;GAS_PROD > 0"
+        self.description = "Gas is produced."
+        return self
+
+
 class YamlTimelineBuilder(Builder[YamlTimeline]):
     def __init__(self):
         self.events: dict[TimelineEventReference, YamlTimelineEvent] = {}
+        self.phases: dict[TimelinePhaseReference, YamlTimelinePhase] = {}
 
     def with_event(self, reference: TimelineEventReference, event: YamlTimelineEvent) -> Self:
         self.events[reference] = event
         return self
 
+    def with_phase(self, reference: TimelinePhaseReference, phase: YamlTimelinePhase) -> Self:
+        self.phases[reference] = phase
+        return self
+
     def with_test_data(self) -> Self:
         self.events = {"new_wells_tie_in": YamlTimelineEventBuilder().with_test_data().validate()}
+        self.phases = {"production": YamlTimelinePhaseBuilder().with_test_data().validate()}
         return self
 
 
