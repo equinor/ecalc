@@ -1,5 +1,6 @@
 from collections import defaultdict
 from collections.abc import Iterable
+from string import Template
 from typing import Annotated, Any, Self
 
 from pydantic import (
@@ -97,113 +98,49 @@ def _describe_duplicate(name: str, sections: list[str]) -> str:
     return f"'{name}' is used in more than one place: {', '.join(unique_sections)}."
 
 
-class YamlAsset(YamlBase):
-    """An eCalc™ yaml file"""
+def validate_unique_references(model_name: str, sections: Iterable[tuple[str, Iterable[str]]]) -> None:
+    """
+    Raise a ValidationError if a name is used more than once across sections.
 
+    Each section is (dotted yaml path, names), so a duplicate can be reported with a precise location.
+    """
+    sections_by_name: dict[str, list[str]] = defaultdict(list)
+    for section, names in sections:
+        for name in names:
+            sections_by_name[name].append(section)
+
+    line_errors = [
+        InitErrorDetails(
+            type=PydanticCustomError("duplicate_reference", "{message}", {"message": message}),
+            loc=(*section.split("."), name),
+            input=name,
+        )
+        for name, found_sections in sections_by_name.items()
+        if len(found_sections) > 1
+        for message in (_describe_duplicate(name, found_sections),)
+        # Same-section repeats share an identical yaml path (the path is the name itself); keep one.
+        for section in dict.fromkeys(found_sections)
+    ]
+    if line_errors:
+        raise ValidationError.from_exception_data(model_name, line_errors)
+
+
+class YamlAssetCommon(YamlBase):
     model_config = ConfigDict(
         title="Asset",
     )
 
-    definitions: YamlDefinitions = Field(
-        default_factory=YamlDefinitions,
-        title="DEFINITIONS",
-        description="Contains reusable definitions.",
-    )
     time_series: list[YamlTimeSeriesCollection] = Field(
         default_factory=list,
         title="TIME_SERIES",
         description="Defines the inputs for time dependent variables, or 'reservoir variables'."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/TIME_SERIES",
     )
-    facility_inputs: list[YamlFacilityModel] = Field(
-        default_factory=list,
-        title="FACILITY_INPUTS",
-        description="Defines input files which characterize various facility elements."
-        "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
-    )
-    fluid_models: dict[str, YamlFluidModel] = Field(
-        default_factory=dict,
-        title="FLUID_MODELS",
-        description="Defines fluid models that can be referenced by inlet streams.",
-    )
-    inlet_streams: list[YamlInletStream] = Field(
-        default_factory=list,
-        title="INLET_STREAMS",
-        description="Defines inlet streams, each identified by NAME, that a STREAM_DISTRIBUTION can refer to by name.",
-    )
-    models: list[YamlConsumerModel] = Field(
-        default_factory=list,
-        title="MODELS",
-        description="Defines input files which characterize various facility elements."
-        "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
-    )
-    fuel_types: list[YamlFuelType] = Field(
-        default_factory=list,
-        title="FUEL_TYPES",
-        description="Specifies the various fuel types and associated emissions used in the model."
-        "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
-    )
     variables: YamlVariables = Field(
         default_factory=dict,
         title="VARIABLES",
         description="Defines variables used in an energy usage model by means of expressions or constants."
         "\n\n$ECALC_DOCS_KEYWORDS_URL/VARIABLES",
-    )
-    shafts: list[YamlShaft] = Field(
-        default_factory=list,
-        title="SHAFTS",
-        description="Defines named shafts representing mechanical connections between drivers and driven equipment.",
-    )
-    compressors: list[YamlCompressor] = Field(
-        default_factory=list,
-        title="COMPRESSORS",
-        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
-        "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
-    )
-    process_pipelines: list[YamlProcessPipeline] = Field(
-        default_factory=list,
-        title="PROCESS_PIPELINES",
-        description="Defines process pipelines, each identified by NAME, to use in process simulations.",
-    )
-    process_simulations: list[YamlProcessSimulation] = Field(
-        default_factory=list,
-        title="PROCESS_SIMULATIONS",
-        description="Defines one or more process simulations to be run.",
-    )
-
-    energy_network: YamlEnergyNetwork | None = Field(
-        None,
-        title="ENERGY_NETWORK",
-        description="Defines the energy network configuration.",
-    )
-
-    timeline: YamlTimeline | None = Field(
-        None,
-        title="TIMELINE",
-        description="Defines dated events in the model. Event dates are added to the time steps of process "
-        "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
-    )
-    pumps: list[YamlPump] = Field(
-        default_factory=list,
-        title="PUMPS",
-        description="Defines the physical pumps in the model. Pump process units in PUMP_PIPELINES refer to a pump "
-        "by name with PUMP.",
-    )
-    pump_pipelines: list[YamlPumpPipeline] = Field(
-        default_factory=list,
-        title="PUMP_PIPELINES",
-        description="Defines pump pipelines to use in pump simulations.",
-    )
-    pump_simulations: list[YamlPumpSimulation] = Field(
-        default_factory=list,
-        title="PUMP_SIMULATIONS",
-        description="Defines one or more pump simulations to be run. A pump simulation distributes a liquid inlet "
-        "rate over its target pump pipelines.",
-    )
-    installations: list[YamlInstallation] = Field(
-        default_factory=list,
-        title="INSTALLATIONS",
-        description="Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
     )
     start: YamlDefaultDatetime | None = Field(
         None,
@@ -217,25 +154,61 @@ class YamlAsset(YamlBase):
         description="Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\n$ECALC_DOCS_KEYWORDS_URL/END",
     )
 
+    @field_validator("time_series", mode="after")
+    @classmethod
+    def validate_unique_time_series_names(cls, collection, info: ValidationInfo):
+        duplicated_names = get_duplicates(item.name for item in collection)
+        if len(duplicated_names) > 0:
+            raise ValueError(
+                f"{cls.model_fields[info.field_name].alias if info.field_name is not None else 'Unknown field'} names must be unique."
+                f" Duplicated names are: {', '.join(duplicated_names)}"
+            )
+        return collection
+
+
+class YamlLegacyAsset(YamlAssetCommon):
+    """A legacy eCalc™ yaml file"""
+
+    facility_inputs: list[YamlFacilityModel] = Field(
+        default_factory=list,
+        title="FACILITY_INPUTS",
+        description="Defines input files which characterize various facility elements."
+        "\n\n$ECALC_DOCS_KEYWORDS_URL/FACILITY_INPUTS",
+    )
+    fluid_models: dict[str, YamlFluidModel] = Field(
+        default_factory=dict,
+        title="FLUID_MODELS",
+        description="Defines fluid models that can be referenced by FLUID_MODEL in compressor models in MODELS.",
+    )
+    models: list[YamlConsumerModel] = Field(
+        default_factory=list,
+        title="MODELS",
+        description="Defines input files which characterize various facility elements."
+        "\n\n$ECALC_DOCS_KEYWORDS_URL/MODELS",
+    )
+    fuel_types: list[YamlFuelType] = Field(
+        ...,
+        title="FUEL_TYPES",
+        description="Specifies the various fuel types and associated emissions used in the model."
+        "\n\n$ECALC_DOCS_KEYWORDS_URL/FUEL_TYPES",
+    )
+    installations: list[YamlInstallation] = Field(
+        ...,
+        title="INSTALLATIONS",
+        description="Description of the system of energy consumers.\n\n$ECALC_DOCS_KEYWORDS_URL/INSTALLATIONS",
+    )
+
     @model_validator(mode="after")
-    def validate_legacy_or_nextgen(self, info: ValidationInfo):
-        nextgen = (info.context or {}).get(YamlModelValidationContextNames.nextgen)
-        if nextgen is None:
-            return self
-
-        unavailable = _aliases((LEGACY_ROOT_FIELDS if nextgen else NEXTGEN_ROOT_FIELDS) & self.model_fields_set)
-        if unavailable:
-            raise ValueError(
-                f"The following elements are not available in a {'NextGen' if nextgen else 'legacy'} model: "
-                f"{', '.join(unavailable)}."
-            )
-
-        missing = _aliases(get_required_root_field_names(nextgen) - self.model_fields_set)
-        if missing:
-            raise ValueError(
-                f"The following elements are required in a {'NextGen' if nextgen else 'legacy'} model: "
-                f"{', '.join(missing)}."
-            )
+    def validate_unique_references(self) -> Self:
+        validate_unique_references(
+            self.__class__.__name__,
+            (
+                ("FACILITY_INPUTS", (facility_input.name for facility_input in self.facility_inputs)),
+                ("MODELS", (model.name for model in self.models)),
+                ("FUEL_TYPES", (fuel_type.name for fuel_type in self.fuel_types)),
+                ("FLUID_MODELS", self.fluid_models.keys()),
+            ),
+        )
         return self
 
     @model_validator(mode="after")
@@ -275,6 +248,86 @@ class YamlAsset(YamlBase):
 
         return self
 
+
+class YamlNextgenAsset(YamlAssetCommon):
+    """A NextGen eCalc™ yaml file"""
+
+    definitions: YamlDefinitions = Field(
+        default_factory=YamlDefinitions,
+        title="DEFINITIONS",
+        description="Contains reusable definitions.",
+    )
+    inlet_streams: list[YamlInletStream] = Field(
+        default_factory=list,
+        title="INLET_STREAMS",
+        description="Defines inlet streams, each identified by NAME, that a STREAM_DISTRIBUTION can refer to by name.",
+    )
+    shafts: list[YamlShaft] = Field(
+        default_factory=list,
+        title="SHAFTS",
+        description="Defines named shafts representing mechanical connections between drivers and driven equipment.",
+    )
+    compressors: list[YamlCompressor] = Field(
+        default_factory=list,
+        title="COMPRESSORS",
+        description="Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and "
+        "COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
+    )
+    process_pipelines: list[YamlProcessPipeline] = Field(
+        default_factory=list,
+        title="PROCESS_PIPELINES",
+        description="Defines process pipelines, each identified by NAME, to use in process simulations.",
+    )
+    process_simulations: list[YamlProcessSimulation] = Field(
+        default_factory=list,
+        title="PROCESS_SIMULATIONS",
+        description="Defines one or more process simulations to be run.",
+    )
+    energy_network: YamlEnergyNetwork | None = Field(
+        None,
+        title="ENERGY_NETWORK",
+        description="Defines the energy network configuration.",
+    )
+    timeline: YamlTimeline | None = Field(
+        None,
+        title="TIMELINE",
+        description="Defines dated events in the model. Event dates are added to the time steps of process "
+        "simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
+    )
+    pumps: list[YamlPump] = Field(
+        default_factory=list,
+        title="PUMPS",
+        description="Defines the physical pumps in the model. Pump process units in PUMP_PIPELINES refer to a pump "
+        "by name with PUMP.",
+    )
+    pump_pipelines: list[YamlPumpPipeline] = Field(
+        default_factory=list,
+        title="PUMP_PIPELINES",
+        description="Defines pump pipelines to use in pump simulations.",
+    )
+    pump_simulations: list[YamlPumpSimulation] = Field(
+        default_factory=list,
+        title="PUMP_SIMULATIONS",
+        description="Defines one or more pump simulations to be run. A pump simulation distributes a liquid inlet "
+        "rate over its target pump pipelines.",
+    )
+
+    @model_validator(mode="after")
+    def validate_unique_references(self) -> Self:
+        validate_unique_references(
+            self.__class__.__name__,
+            (
+                ("PROCESS_PIPELINES", (pipeline.name for pipeline in self.process_pipelines)),
+                ("DEFINITIONS.COMPRESSOR_MODELS", self.definitions.compressor_models.keys()),
+                ("DEFINITIONS.FLUIDS", self.definitions.fluids.keys()),
+                ("DEFINITIONS.PERFORMANCE_CURVES", self.definitions.performance_curves.keys()),
+                ("PROCESS_SIMULATIONS", (simulation.name for simulation in self.process_simulations)),
+                ("INLET_STREAMS", (inlet_stream.name for inlet_stream in self.inlet_streams)),
+                ("TIMELINE.EVENTS", self.timeline.events.keys() if self.timeline is not None else ()),
+            ),
+        )
+        return self
+
     @model_validator(mode="after")
     def validate_pipeline_targeted_by_single_simulation(self):
         """A process pipeline can currently only be solved by a single process simulation."""
@@ -299,22 +352,6 @@ class YamlAsset(YamlBase):
             )
 
         return self
-
-    @field_validator("time_series", mode="after")
-    @classmethod
-    def validate_unique_time_series_names(cls, collection, info: ValidationInfo):
-        names = []
-
-        for item in collection:
-            names.append(item.name)
-
-        duplicated_names = get_duplicates(names)
-        if len(duplicated_names) > 0:
-            raise ValueError(
-                f"{cls.model_fields[info.field_name].alias if info.field_name is not None else 'Unknown field'} names must be unique."
-                f" Duplicated names are: {', '.join(duplicated_names)}"
-            )
-        return collection
 
     @field_validator("shafts", mode="after")
     @classmethod
@@ -464,44 +501,6 @@ class YamlAsset(YamlBase):
 
         if violations:
             raise ValueError("\n".join([*violations, "Each domain can model a compressor at most once."]))
-        return self
-
-    @model_validator(mode="after")
-    def validate_unique_references(self) -> Self:
-        # Each entry is (dotted yaml path, names), so a duplicate can be reported with a precise location.
-        sections: tuple[tuple[str, Iterable[str]], ...] = (
-            ("FACILITY_INPUTS", (facility_input.name for facility_input in self.facility_inputs)),
-            ("MODELS", (model.name for model in self.models)),
-            ("FUEL_TYPES", (fuel_type.name for fuel_type in self.fuel_types)),
-            ("PROCESS_PIPELINES", (pipeline.name for pipeline in self.process_pipelines)),
-            ("DEFINITIONS.COMPRESSOR_MODELS", self.definitions.compressor_models.keys()),
-            ("DEFINITIONS.FLUIDS", self.definitions.fluids.keys()),
-            ("DEFINITIONS.PERFORMANCE_CURVES", self.definitions.performance_curves.keys()),
-            ("PROCESS_SIMULATIONS", (process_simulation.name for process_simulation in self.process_simulations)),
-            ("FLUID_MODELS", self.fluid_models.keys()),
-            ("INLET_STREAMS", (inlet_stream.name for inlet_stream in self.inlet_streams)),
-            ("TIMELINE.EVENTS", self.timeline.events.keys() if self.timeline is not None else ()),
-        )
-
-        sections_by_name: dict[str, list[str]] = defaultdict(list)
-        for section, names in sections:
-            for name in names:
-                sections_by_name[name].append(section)
-
-        line_errors = [
-            InitErrorDetails(
-                type=PydanticCustomError("duplicate_reference", "{message}", {"message": message}),
-                loc=(*section.split("."), name),
-                input=name,
-            )
-            for name, found_sections in sections_by_name.items()
-            if len(found_sections) > 1
-            for message in (_describe_duplicate(name, found_sections),)
-            # Same-section repeats share an identical yaml path (the path is the name itself); keep one.
-            for section in dict.fromkeys(found_sections)
-        ]
-        if line_errors:
-            raise ValidationError.from_exception_data(self.__class__.__name__, line_errors)
         return self
 
     @model_validator(mode="after")
@@ -679,33 +678,24 @@ class YamlAsset(YamlBase):
         return self
 
 
-COMMON_ROOT_FIELDS = frozenset({"time_series", "variables", "facility_inputs", "start", "end"})
-LEGACY_ROOT_FIELDS = frozenset({"fluid_models", "models", "fuel_types", "installations"})
-NEXTGEN_ROOT_FIELDS = frozenset(
-    {
-        "definitions",
-        "inlet_streams",
-        "shafts",
-        "compressors",
-        "process_pipelines",
-        "process_simulations",
-        "pumps",
-        "pump_pipelines",
-        "pump_simulations",
-        "energy_network",
-        "timeline",
-    }
-)
-LEGACY_REQUIRED_ROOT_FIELDS = frozenset({"fuel_types", "installations"})
+def _substitute_descriptions(node: Any, substitutions: dict[str, str]) -> Any:
+    if isinstance(node, dict):
+        return {
+            key: Template(value).safe_substitute(substitutions)
+            if key == "description" and isinstance(value, str)
+            else _substitute_descriptions(value, substitutions)
+            for key, value in node.items()
+        }
+    if isinstance(node, list):
+        return [_substitute_descriptions(item, substitutions) for item in node]
+    return node
 
 
-def _aliases(field_names: Iterable[str]) -> list[str]:
-    return sorted(YamlAsset.model_fields[field_name].alias or field_name.upper() for field_name in field_names)
-
-
-def get_root_field_names(nextgen: bool) -> set[str]:
-    return set(COMMON_ROOT_FIELDS | (NEXTGEN_ROOT_FIELDS if nextgen else LEGACY_ROOT_FIELDS))
-
-
-def get_required_root_field_names(nextgen: bool) -> set[str]:
-    return set() if nextgen else set(LEGACY_REQUIRED_ROOT_FIELDS)
+class YamlAssetSchemaGenerator:
+    @staticmethod
+    def get_schema(nextgen: bool, docs_keywords_url: str | None = None) -> dict:
+        asset_type = YamlNextgenAsset if nextgen else YamlLegacyAsset
+        yaml_schema = asset_type.model_json_schema(by_alias=True)
+        if docs_keywords_url is not None:
+            yaml_schema = _substitute_descriptions(yaml_schema, {"ECALC_DOCS_KEYWORDS_URL": docs_keywords_url})
+        return yaml_schema

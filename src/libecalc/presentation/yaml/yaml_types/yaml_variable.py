@@ -1,6 +1,8 @@
 from typing import Annotated, Union
 
-from pydantic import StringConstraints
+from pydantic import GetJsonSchemaHandler, StringConstraints
+from pydantic.json_schema import JsonSchemaValue
+from pydantic_core import CoreSchema
 
 from libecalc.expression import Expression
 from libecalc.presentation.yaml.yaml_types import YamlBase
@@ -17,10 +19,20 @@ class YamlSingleVariable(YamlBase):
     value: Expression
 
 
+class NoAdditionalProperties:
+    def __get_pydantic_json_schema__(self, core_schema: CoreSchema, handler: GetJsonSchemaHandler) -> JsonSchemaValue:
+        json_schema = handler(core_schema)
+        json_schema["additionalProperties"] = False
+        return json_schema
+
+
 YamlTimeVariable = dict[YamlDefaultDatetime, YamlSingleVariable]
 
 YamlVariable = Union[YamlSingleVariable, YamlTimeVariable]
 
 YamlVariableReferenceId = Annotated[str, StringConstraints(pattern=r"^[A-Za-z][A-Za-z0-9_]*$")]
 
-YamlVariables = dict[YamlVariableReferenceId, YamlVariable]
+YamlVariables = Annotated[
+    dict[YamlVariableReferenceId, YamlVariable],
+    NoAdditionalProperties(),
+]

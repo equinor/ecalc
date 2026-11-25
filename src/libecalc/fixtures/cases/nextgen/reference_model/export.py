@@ -8,7 +8,7 @@ from typing import Any
 
 import yaml
 
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlNextgenAsset
 from libecalc.version import __version__
 
 from .model import RESOURCE_DIRECTORY, build_reference_model
@@ -59,7 +59,7 @@ def _simplify(data: Any, key: str | None = None) -> Any:
     return data
 
 
-def render_model_yaml(model: YamlAsset) -> str:
+def render_model_yaml(model: YamlNextgenAsset) -> str:
     data = model.model_dump(mode="json", exclude_unset=True, by_alias=True)
     body = yaml.dump(_simplify(data), Dumper=_ModelDumper, default_flow_style=False, sort_keys=False, width=120)
     return GENERATED_HEADER + body
@@ -69,7 +69,7 @@ def resource_paths() -> list[Path]:
     return sorted(RESOURCE_DIRECTORY.glob(f"*{RESOURCE_SUFFIX}"))
 
 
-def example_files(model: YamlAsset | None = None) -> dict[str, str]:
+def example_files(model: YamlNextgenAsset | None = None) -> dict[str, str]:
     model = model if model is not None else build_reference_model()
     return {
         MODEL_FILE_NAME: render_model_yaml(model),

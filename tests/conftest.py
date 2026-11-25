@@ -44,7 +44,7 @@ from libecalc.presentation.yaml.model import YamlModel
 from libecalc.presentation.yaml.resource_service import ResourceService, TupleWithError
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.yaml_model import ReaderType, YamlConfiguration, YamlValidator
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlLegacyAsset, YamlNextgenAsset
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_pipeline import (
     YamlCompressorProcessUnitInstance,
     YamlProcessPipeline,
@@ -296,7 +296,7 @@ def configuration_service_factory():
 
 @pytest.fixture
 def yaml_asset_configuration_service_factory(configuration_service_factory):
-    def yaml_asset_configuration_service(model: YamlAsset, name: str):
+    def yaml_asset_configuration_service(model: YamlLegacyAsset | YamlNextgenAsset, name: str):
         data = model.model_dump(by_alias=True, exclude_unset=True, mode="json")
         source = yaml.dump(data)
         return configuration_service_factory(ResourceStream(stream=StringIO(source), name=name))

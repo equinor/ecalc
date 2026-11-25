@@ -12,7 +12,7 @@ from libecalc.presentation.yaml.mappers.model import ResourceValidationException
 from libecalc.presentation.yaml.model_validation_exception import ModelValidationException
 from libecalc.presentation.yaml.yaml_entities import MemoryResource, ResourceStream
 from libecalc.presentation.yaml.yaml_models.pyyaml_yaml_model import PyYamlYamlModel
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlNextgenAsset
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlCompressorSampled,
@@ -217,7 +217,7 @@ class TestYamlCompressorSampled:
             network.validate()
 
 
-def _asset(file: str) -> YamlAsset:
+def _asset(file: str) -> YamlNextgenAsset:
     energy_network = (
         YamlEnergyNetworkBuilder()
         .with_sources([_fuel_source("fuel")])

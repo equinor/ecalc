@@ -467,7 +467,9 @@ class TestYamlFile:
         model_file = tmp_path / "nextgen.yaml"
         model_file.write_text("END: 2025-01-01\nTIMELINE:\n  EVENTS: {}\n")
 
-        with pytest.raises(ModelValidationException, match="not available in a legacy model: TIMELINE"):
+        with pytest.raises(
+            ModelValidationException, match=r"Location: TIMELINE\n\tMessage: This is not a valid keyword"
+        ):
             runner.invoke(
                 main.app,
                 _get_args(model_file=model_file, output_folder=tmp_path / "output"),

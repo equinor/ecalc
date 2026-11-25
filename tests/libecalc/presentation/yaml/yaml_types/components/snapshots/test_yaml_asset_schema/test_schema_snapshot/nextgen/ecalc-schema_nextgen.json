@@ -1,0 +1,3549 @@
+{
+    "$defs": {
+        "AntiSurgeType": {
+            "enum": [
+                "NO_ASV",
+                "INDIVIDUAL_ASV",
+                "COMMON_ASV"
+            ],
+            "title": "AntiSurgeType",
+            "type": "string"
+        },
+        "CompressorReference": {
+            "type": "string"
+        },
+        "DefinitionReference": {
+            "type": "string"
+        },
+        "InstanceReference": {
+            "type": "string"
+        },
+        "PipelineEventAction": {
+            "enum": [
+                "CHANGE",
+                "ADD",
+                "REMOVE"
+            ],
+            "title": "PipelineEventAction",
+            "type": "string"
+        },
+        "PipelineEventChangeType": {
+            "enum": [
+                "REBUNDLE"
+            ],
+            "title": "PipelineEventChangeType",
+            "type": "string"
+        },
+        "PumpReference": {
+            "type": "string"
+        },
+        "ShaftReference": {
+            "type": "string"
+        },
+        "TimelineEventReference": {
+            "type": "string"
+        },
+        "TimelineEventType": {
+            "enum": [
+                "OPERATIONAL_MEASURE",
+                "ENERGY_EFFICIENCY_MEASURE",
+                "CALIBRATION",
+                "TIE_IN",
+                "INCREASED_GAS_RATE",
+                "INCREASED_WATER_INJECTION",
+                "FUEL_SWITCH",
+                "OTHER"
+            ],
+            "title": "TimelineEventType",
+            "type": "string"
+        },
+        "YamlCombustionEngineModelChange": {
+            "additionalProperties": false,
+            "description": "A dated change of a gas turbine's or diesel engine's model. The unit stays the same unit in the energy network;\nonly the model used to convert power to fuel changes.",
+            "examples": [
+                {
+                    "CHANGE_TO": {
+                        "CURVE": {
+                            "EFFICIENCY": [
+                                0.142,
+                                0.216,
+                                0.263
+                            ],
+                            "LOAD": [
+                                2.352,
+                                4.589,
+                                6.853
+                            ]
+                        },
+                        "TYPE": "LOAD_TO_EFFICIENCY"
+                    },
+                    "CHANGE_TYPE": "REBUNDLE",
+                    "REF": "turbine_upgrade"
+                },
+                {
+                    "CHANGE_TO": "upgraded_turbine",
+                    "CHANGE_TYPE": "REBUNDLE",
+                    "REF": "turbine_upgrade"
+                }
+            ],
+            "properties": {
+                "CHANGE_TO": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DefinitionReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlTurbineDefinition"
+                        }
+                    ],
+                    "description": "The model to use from the event date on.",
+                    "title": "CHANGE_TO"
+                },
+                "CHANGE_TYPE": {
+                    "$ref": "#/$defs/YamlEnergyUnitChangeType",
+                    "default": "REBUNDLE",
+                    "description": "Nature of the change. REBUNDLE: the unit stays the same unit in the energy network, with a new model.",
+                    "title": "CHANGE_TYPE"
+                },
+                "REF": {
+                    "$ref": "#/$defs/TimelineEventReference",
+                    "description": "Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date (inclusive).",
+                    "title": "REF"
+                }
+            },
+            "required": [
+                "CHANGE_TO",
+                "REF"
+            ],
+            "title": "CombustionEngineModelChange",
+            "type": "object"
+        },
+        "YamlCommonStreamDistribution": {
+            "additionalProperties": false,
+            "properties": {
+                "INLET_STREAM": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/InstanceReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlInletStream"
+                        }
+                    ],
+                    "title": "Inlet Stream"
+                },
+                "METHOD": {
+                    "const": "COMMON_STREAM",
+                    "title": "Method",
+                    "type": "string"
+                },
+                "SETTINGS": {
+                    "items": {
+                        "$ref": "#/$defs/YamlCommonStreamSetting"
+                    },
+                    "title": "Settings",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "METHOD",
+                "INLET_STREAM",
+                "SETTINGS"
+            ],
+            "title": "YamlCommonStreamDistribution",
+            "type": "object"
+        },
+        "YamlCommonStreamSetting": {
+            "additionalProperties": false,
+            "properties": {
+                "OVERFLOW": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "$ref": "#/$defs/YamlOverflow"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "title": "Overflow"
+                },
+                "RATE_FRACTIONS": {
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ]
+                    },
+                    "title": "Rate Fractions",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "RATE_FRACTIONS"
+            ],
+            "title": "YamlCommonStreamSetting",
+            "type": "object"
+        },
+        "YamlCompositionFluidDefinition": {
+            "additionalProperties": false,
+            "properties": {
+                "COMPOSITION": {
+                    "$ref": "#/$defs/YamlFluidComposition"
+                },
+                "EOS_MODEL": {
+                    "$ref": "#/$defs/YamlEosModel",
+                    "default": "SRK"
+                },
+                "TYPE": {
+                    "const": "COMPOSITION",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "COMPOSITION"
+            ],
+            "title": "YamlCompositionFluidDefinition",
+            "type": "object"
+        },
+        "YamlCompressor": {
+            "additionalProperties": false,
+            "description": "A physical compressor. Pipeline compressor slots and COMPRESSOR_SAMPLED units reference it by name.",
+            "properties": {
+                "ALIAS": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Optional alias for the compressor, e.g. 'RIA'.",
+                    "title": "ALIAS"
+                },
+                "NAME": {
+                    "description": "Unique name of the physical compressor, e.g. its equipment tag.",
+                    "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
+                    "title": "NAME",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME"
+            ],
+            "title": "Compressor",
+            "type": "object"
+        },
+        "YamlCompressorChart": {
+            "additionalProperties": false,
+            "properties": {
+                "CURVES": {
+                    "description": "Compressor chart curves, one per speed.",
+                    "oneOf": [
+                        {
+                            "items": {
+                                "$ref": "#/$defs/YamlCurve"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlFile"
+                        }
+                    ],
+                    "title": "CURVES"
+                },
+                "UNITS": {
+                    "$ref": "#/$defs/YamlUnits",
+                    "description": "Defines the units",
+                    "title": "UNITS"
+                }
+            },
+            "required": [
+                "CURVES"
+            ],
+            "title": "YamlCompressorChart",
+            "type": "object"
+        },
+        "YamlCompressorMechanicalEfficiency": {
+            "additionalProperties": false,
+            "properties": {
+                "COMPRESSOR": {
+                    "$ref": "#/$defs/CompressorReference",
+                    "description": "Reference to a compressor on the drive train's shaft.",
+                    "title": "COMPRESSOR"
+                },
+                "EFFICIENCY": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Mechanical efficiency (0\u20131] of the compressor: gas power divided by the shaft power it demands from the driver. Covers losses in the compressor's bearings and seals and its share of the gearbox and couplings, not the driver's own losses.",
+                    "title": "EFFICIENCY"
+                }
+            },
+            "required": [
+                "COMPRESSOR",
+                "EFFICIENCY"
+            ],
+            "title": "CompressorMechanicalEfficiency",
+            "type": "object"
+        },
+        "YamlCompressorModelChart": {
+            "additionalProperties": false,
+            "description": "A compressor model: a compressor chart and a control margin.",
+            "properties": {
+                "CHART": {
+                    "$ref": "#/$defs/YamlCompressorChart"
+                },
+                "CONTROL_MARGIN": {
+                    "$ref": "#/$defs/YamlControlMargin",
+                    "description": "Margin added to the compressor's surge control line.",
+                    "title": "CONTROL_MARGIN"
+                },
+                "TYPE": {
+                    "const": "COMPRESSOR_CHART",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "CHART",
+                "CONTROL_MARGIN"
+            ],
+            "title": "YamlCompressorModelChart",
+            "type": "object"
+        },
+        "YamlCompressorProcessUnitInstance": {
+            "additionalProperties": false,
+            "description": "A compressor from COMPRESSORS, run with a compressor model.",
+            "properties": {
+                "COMPRESSOR": {
+                    "$ref": "#/$defs/CompressorReference",
+                    "description": "Reference to a compressor defined in COMPRESSORS. CHANGE_TARGET and CONSTRAINTS.PROCESS_UNIT refer to this process unit by the compressor's name. The compressor's shaft is given in SHAFTS.",
+                    "title": "COMPRESSOR"
+                },
+                "MODEL": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DefinitionReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlCompressorModelChart"
+                        }
+                    ],
+                    "description": "The compressor model. Replaces TARGET. Other PROCESS_UNITs no longer supported. They must be defined inline without a reference.",
+                    "title": "MODEL"
+                },
+                "TYPE": {
+                    "const": "COMPRESSOR",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "MODEL",
+                "COMPRESSOR"
+            ],
+            "title": "COMPRESSOR_PROCESS_UNIT",
+            "type": "object"
+        },
+        "YamlCompressorSampled": {
+            "additionalProperties": false,
+            "description": "A compressor whose mechanical power is looked up in `FILE` from `RATE`, `SUCTION_PRESSURE` and/or\n`DISCHARGE_PRESSURE`. `FILE` must have a `MECHANICAL_POWER` column [MW], and `INPUT` must provide mechanical\npower, e.g. a `GAS_TURBINE` or an `ELECTRICAL_MOTOR`.\n\n`FILE` must have a column for exactly those of `RATE`, `SUCTION_PRESSURE` and `DISCHARGE_PRESSURE` that are\ngiven.",
+            "properties": {
+                "COMPRESSOR": {
+                    "$ref": "#/$defs/CompressorReference",
+                    "description": "Reference to a compressor defined in COMPRESSORS.",
+                    "title": "COMPRESSOR"
+                },
+                "DISCHARGE_PRESSURE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Compressor outlet pressure (bara), looked up in FILE.",
+                    "title": "DISCHARGE_PRESSURE"
+                },
+                "FILE": {
+                    "description": "Resource with a MECHANICAL_POWER [MW] column, and a column for each of RATE, SUCTION_PRESSURE and DISCHARGE_PRESSURE that is given.",
+                    "title": "FILE",
+                    "type": "string"
+                },
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "RATE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Rate through the compressor (Sm\u00b3/d), looked up in FILE.",
+                    "title": "RATE"
+                },
+                "SUCTION_PRESSURE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Compressor inlet pressure (bara), looked up in FILE.",
+                    "title": "SUCTION_PRESSURE"
+                },
+                "TYPE": {
+                    "const": "COMPRESSOR_SAMPLED",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "INPUT",
+                "COMPRESSOR",
+                "FILE"
+            ],
+            "title": "CompressorSampled",
+            "type": "object"
+        },
+        "YamlControlMargin": {
+            "additionalProperties": false,
+            "properties": {
+                "UNIT": {
+                    "$ref": "#/$defs/YamlControlMarginUnits"
+                },
+                "VALUE": {
+                    "title": "Value",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "UNIT",
+                "VALUE"
+            ],
+            "title": "YamlControlMargin",
+            "type": "object"
+        },
+        "YamlControlMarginUnits": {
+            "enum": [
+                "FRACTION",
+                "PERCENTAGE"
+            ],
+            "title": "YamlControlMarginUnits",
+            "type": "string"
+        },
+        "YamlCurve": {
+            "additionalProperties": false,
+            "properties": {
+                "EFFICIENCY": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "Efficiency",
+                    "type": "array"
+                },
+                "HEAD": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "Head",
+                    "type": "array"
+                },
+                "RATE": {
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "Rate",
+                    "type": "array"
+                },
+                "SPEED": {
+                    "default": 1,
+                    "title": "Speed",
+                    "type": "number"
+                }
+            },
+            "required": [
+                "RATE",
+                "HEAD",
+                "EFFICIENCY"
+            ],
+            "title": "YamlCurve",
+            "type": "object"
+        },
+        "YamlDefaultTimeSeriesCollection": {
+            "additionalProperties": false,
+            "properties": {
+                "FILE": {
+                    "description": "Specifies the name of a time series input file.\n\nhttps://example.com/docs/keywords/FILE",
+                    "title": "FILE",
+                    "type": "string"
+                },
+                "INFLUENCE_TIME_VECTOR": {
+                    "default": true,
+                    "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\nhttps://example.com/docs/keywords/INFLUENCE_TIME_VECTOR",
+                    "title": "INFLUENCE_TIME_VECTOR",
+                    "type": "boolean"
+                },
+                "NAME": {
+                    "description": "Name of the time series.\n\nhttps://example.com/docs/keywords/NAME",
+                    "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "DEFAULT",
+                    "description": "Defines the type of time series input file.\n\nhttps://example.com/docs/keywords/TYPE",
+                    "title": "TYPE",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "FILE",
+                "TYPE"
+            ],
+            "title": "TimeSeries",
+            "type": "object"
+        },
+        "YamlDefinitions": {
+            "additionalProperties": false,
+            "description": "Definitions section of an eCalc\u2122 yaml file, containing reusable definitions.",
+            "properties": {
+                "COMPRESSOR_MODELS": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/YamlCompressorModelChart"
+                    },
+                    "description": "Defines compressor models that can be referenced by name from MODEL of a compressor process unit in PROCESS_PIPELINES, and from CHANGE_TO of a REBUNDLE change.",
+                    "title": "COMPRESSOR_MODELS",
+                    "type": "object"
+                },
+                "FLUIDS": {
+                    "additionalProperties": {
+                        "discriminator": {
+                            "mapping": {
+                                "COMPOSITION": "#/$defs/YamlCompositionFluidDefinition",
+                                "PREDEFINED": "#/$defs/YamlPredefinedFluidDefinition"
+                            },
+                            "propertyName": "TYPE"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/$defs/YamlPredefinedFluidDefinition"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlCompositionFluidDefinition"
+                            }
+                        ]
+                    },
+                    "description": "Defines fluids that can be referenced in inlet streams.",
+                    "title": "FLUIDS",
+                    "type": "object"
+                },
+                "PERFORMANCE_CURVES": {
+                    "additionalProperties": {
+                        "discriminator": {
+                            "mapping": {
+                                "LOAD_TO_EFFICIENCY": "#/$defs/YamlTurbineDefinition",
+                                "POWER_TO_FUEL": "#/$defs/YamlGeneratorDefinition"
+                            },
+                            "propertyName": "TYPE"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/$defs/YamlTurbineDefinition"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlGeneratorDefinition"
+                            }
+                        ]
+                    },
+                    "description": "Defines performance curves that can be referenced from GAS_TURBINE, DIESEL_ENGINE, and GENERATOR_SET units in the ENERGY_NETWORK. TYPE: LOAD_TO_EFFICIENCY (referenced by GAS_TURBINE and DIESEL_ENGINE) interpolates fuel from a load/efficiency curve: demand below the first LOAD burns the fuel of the first LOAD, and the last efficiency is used above the last LOAD. TYPE: POWER_TO_FUEL (referenced by GENERATOR_SET) interpolates fuel directly from a power/fuel curve: below the first POWER the lowest FUEL is used, and above the last POWER the highest FUEL is used. In both cases the last point is the maximum power, which is the unit's capacity.",
+                    "title": "PERFORMANCE_CURVES",
+                    "type": "object"
+                },
+                "PUMP_MODELS": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/YamlPumpModel"
+                    },
+                    "description": "Defines pump models that can be referenced by name from MODEL of a pump process unit in PUMP_PIPELINES.",
+                    "title": "PUMP_MODELS",
+                    "type": "object"
+                }
+            },
+            "title": "Definitions",
+            "type": "object"
+        },
+        "YamlDieselConsumer": {
+            "additionalProperties": false,
+            "properties": {
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "RATE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlRateCurve"
+                        }
+                    ],
+                    "description": "Diesel consumption rate (l/d), as an expression or a curve lookup.",
+                    "title": "RATE"
+                },
+                "TYPE": {
+                    "const": "DIESEL_CONSUMER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE",
+                "RATE"
+            ],
+            "title": "DieselConsumer",
+            "type": "object"
+        },
+        "YamlDieselEngine": {
+            "additionalProperties": false,
+            "properties": {
+                "CHANGES": {
+                    "default": [],
+                    "description": "Changes to the diesel engine model over time, such as a rebundle. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlCombustionEngineModelChange"
+                    },
+                    "title": "CHANGES",
+                    "type": "array"
+                },
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "MODEL": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DefinitionReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlTurbineDefinition"
+                        }
+                    ],
+                    "description": "Diesel engine model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
+                    "title": "MODEL"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "DIESEL_ENGINE",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE",
+                "MODEL"
+            ],
+            "title": "DieselEngine",
+            "type": "object"
+        },
+        "YamlDieselSource": {
+            "additionalProperties": false,
+            "properties": {
+                "LOWER_HEATING_VALUE": {
+                    "anyOf": [
+                        {
+                            "exclusiveMaximum": 100,
+                            "exclusiveMinimum": 0,
+                            "type": "number"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Lower heating value [MJ/Sm3 for FUEL_GAS_SOURCE, MJ/L for DIESEL_SOURCE] of the fuel, required for any GAS_TURBINE or DIESEL_ENGINE drawing from this source.",
+                    "title": "LOWER_HEATING_VALUE"
+                },
+                "NAME": {
+                    "description": "Unique name for this energy source.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "DIESEL_SOURCE",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "TYPE"
+            ],
+            "title": "DieselSource",
+            "type": "object"
+        },
+        "YamlDispatchStrategy": {
+            "enum": [
+                "PRIORITY",
+                "EQUAL_SPLIT"
+            ],
+            "title": "YamlDispatchStrategy",
+            "type": "string"
+        },
+        "YamlDriveTrain": {
+            "additionalProperties": false,
+            "properties": {
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "MECHANICAL_EFFICIENCIES": {
+                    "description": "Mechanical efficiency per compressor on the shaft. Each compressor demands its gas power divided by its efficiency as shaft power. A compressor not listed has efficiency 1.0.",
+                    "items": {
+                        "$ref": "#/$defs/YamlCompressorMechanicalEfficiency"
+                    },
+                    "title": "MECHANICAL_EFFICIENCIES",
+                    "type": "array"
+                },
+                "SHAFT": {
+                    "$ref": "#/$defs/ShaftReference",
+                    "description": "Reference to a shaft in SHAFTS. The compressors on the shaft determine shaft power demand.",
+                    "title": "SHAFT"
+                },
+                "TYPE": {
+                    "const": "DRIVE_TRAIN",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "INPUT",
+                "SHAFT"
+            ],
+            "title": "YamlDriveTrain",
+            "type": "object"
+        },
+        "YamlEfficiencyUnits": {
+            "enum": [
+                "FRACTION",
+                "PERCENTAGE"
+            ],
+            "title": "YamlEfficiencyUnits",
+            "type": "string"
+        },
+        "YamlElectricalBus": {
+            "additionalProperties": false,
+            "properties": {
+                "DISPATCH_STRATEGY": {
+                    "$ref": "#/$defs/YamlDispatchStrategy",
+                    "description": "How to allocate demand across the inputs.",
+                    "title": "DISPATCH_STRATEGY"
+                },
+                "INPUT": {
+                    "description": "At least two sources or units feeding into this junction, in dispatch priority order. An entry is either a name, or a NAME with an optional CAPACITY dispatch limit. A single supplier connects directly to its consumers instead.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlJunctionInput"
+                            }
+                        ]
+                    },
+                    "minItems": 2,
+                    "title": "INPUT",
+                    "type": "array"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "ELECTRICAL_BUS",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "DISPATCH_STRATEGY",
+                "TYPE"
+            ],
+            "title": "ElectricalBus",
+            "type": "object"
+        },
+        "YamlElectricalCable": {
+            "additionalProperties": false,
+            "properties": {
+                "CAPACITY": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Maximum output capacity. Omit for unlimited.",
+                    "title": "CAPACITY"
+                },
+                "EFFICIENCY": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Transmission efficiency (0\u20131]. 1.0 means no loss. Defaults to 1.0 if omitted.",
+                    "title": "EFFICIENCY"
+                },
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "ELECTRICAL_CABLE",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE"
+            ],
+            "title": "ElectricalCable",
+            "type": "object"
+        },
+        "YamlElectricalConsumer": {
+            "additionalProperties": false,
+            "properties": {
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "LOAD": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlLoadCurve"
+                        }
+                    ],
+                    "description": "Electrical power demand (MW), as an expression or a curve lookup.",
+                    "title": "LOAD"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "ELECTRICAL_CONSUMER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE",
+                "LOAD"
+            ],
+            "title": "ElectricalConsumer",
+            "type": "object"
+        },
+        "YamlElectricalMotor": {
+            "additionalProperties": false,
+            "properties": {
+                "CAPACITY": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Maximum output capacity. Omit for unlimited.",
+                    "title": "CAPACITY"
+                },
+                "EFFICIENCY": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Conversion efficiency (0\u20131]. Defaults to 0.95 if omitted.",
+                    "title": "EFFICIENCY"
+                },
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "ELECTRICAL_MOTOR",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE"
+            ],
+            "title": "ElectricalMotor",
+            "type": "object"
+        },
+        "YamlElectricalSource": {
+            "additionalProperties": false,
+            "properties": {
+                "CAPACITY": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Maximum output capacity. Omit for unlimited.",
+                    "title": "CAPACITY"
+                },
+                "NAME": {
+                    "description": "Unique name for this energy source.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "ELECTRICAL_SOURCE",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "TYPE"
+            ],
+            "title": "ElectricalSource",
+            "type": "object"
+        },
+        "YamlEnergyNetwork": {
+            "additionalProperties": false,
+            "properties": {
+                "SOURCES": {
+                    "description": "External energy entering the system (fuel gas, electrical, diesel).",
+                    "items": {
+                        "discriminator": {
+                            "mapping": {
+                                "DIESEL_SOURCE": "#/$defs/YamlDieselSource",
+                                "ELECTRICAL_SOURCE": "#/$defs/YamlElectricalSource",
+                                "FUEL_GAS_SOURCE": "#/$defs/YamlFuelGasSource"
+                            },
+                            "propertyName": "TYPE"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/$defs/YamlFuelGasSource"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlDieselSource"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlElectricalSource"
+                            }
+                        ]
+                    },
+                    "minItems": 1,
+                    "title": "SOURCES",
+                    "type": "array"
+                },
+                "UNITS": {
+                    "default": [],
+                    "description": "Converters, junctions, and consumers forming the energy network.",
+                    "items": {
+                        "discriminator": {
+                            "mapping": {
+                                "COMPRESSOR_SAMPLED": "#/$defs/YamlCompressorSampled",
+                                "DIESEL_CONSUMER": "#/$defs/YamlDieselConsumer",
+                                "DIESEL_ENGINE": "#/$defs/YamlDieselEngine",
+                                "DRIVE_TRAIN": "#/$defs/YamlDriveTrain",
+                                "ELECTRICAL_BUS": "#/$defs/YamlElectricalBus",
+                                "ELECTRICAL_CABLE": "#/$defs/YamlElectricalCable",
+                                "ELECTRICAL_CONSUMER": "#/$defs/YamlElectricalConsumer",
+                                "ELECTRICAL_MOTOR": "#/$defs/YamlElectricalMotor",
+                                "FUEL_GAS_CONSUMER": "#/$defs/YamlFuelGasConsumer",
+                                "GAS_TURBINE": "#/$defs/YamlGasTurbine",
+                                "GENERATOR_SET": "#/$defs/YamlGeneratorSet",
+                                "MECHANICAL_CONSUMER": "#/$defs/YamlMechanicalConsumer"
+                            },
+                            "propertyName": "TYPE"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/$defs/YamlGeneratorSet"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlGasTurbine"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlDieselEngine"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlElectricalMotor"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlElectricalCable"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlElectricalBus"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlElectricalConsumer"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlMechanicalConsumer"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlDriveTrain"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlFuelGasConsumer"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlDieselConsumer"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlCompressorSampled"
+                            }
+                        ]
+                    },
+                    "title": "UNITS",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "SOURCES"
+            ],
+            "title": "EnergyNetwork",
+            "type": "object"
+        },
+        "YamlEnergyUnitChangeType": {
+            "description": "How the energy unit's model changes at the event. REBUNDLE: same physical unit, new model.",
+            "enum": [
+                "REBUNDLE"
+            ],
+            "title": "YamlEnergyUnitChangeType",
+            "type": "string"
+        },
+        "YamlEosModel": {
+            "enum": [
+                "SRK",
+                "PR",
+                "GERG_SRK",
+                "GERG_PR"
+            ],
+            "title": "YamlEosModel",
+            "type": "string"
+        },
+        "YamlFile": {
+            "additionalProperties": false,
+            "properties": {
+                "FILE": {
+                    "description": "Specifies the name of an input file. See documentation for more information.",
+                    "title": "FILE",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "FILE"
+            ],
+            "title": "YamlFile",
+            "type": "object"
+        },
+        "YamlFluidComposition": {
+            "additionalProperties": false,
+            "properties": {
+                "CO2": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "Co2"
+                },
+                "ethane": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "Ethane"
+                },
+                "i_butane": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "I Butane"
+                },
+                "i_pentane": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "I Pentane"
+                },
+                "methane": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Methane"
+                },
+                "n_butane": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "N Butane"
+                },
+                "n_hexane": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "N Hexane"
+                },
+                "n_pentane": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "N Pentane"
+                },
+                "nitrogen": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "Nitrogen"
+                },
+                "propane": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "Propane"
+                },
+                "water": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "default": 0.0,
+                    "title": "Water"
+                }
+            },
+            "required": [
+                "methane"
+            ],
+            "title": "YamlFluidComposition",
+            "type": "object"
+        },
+        "YamlFuelGasConsumer": {
+            "additionalProperties": false,
+            "properties": {
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "RATE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlRateCurve"
+                        }
+                    ],
+                    "description": "Fuel gas consumption rate (Sm\u00b3/d), as an expression or a curve lookup.",
+                    "title": "RATE"
+                },
+                "TYPE": {
+                    "const": "FUEL_GAS_CONSUMER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE",
+                "RATE"
+            ],
+            "title": "FuelGasConsumer",
+            "type": "object"
+        },
+        "YamlFuelGasSource": {
+            "additionalProperties": false,
+            "properties": {
+                "LOWER_HEATING_VALUE": {
+                    "anyOf": [
+                        {
+                            "exclusiveMaximum": 100,
+                            "exclusiveMinimum": 0,
+                            "type": "number"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Lower heating value [MJ/Sm3 for FUEL_GAS_SOURCE, MJ/L for DIESEL_SOURCE] of the fuel, required for any GAS_TURBINE or DIESEL_ENGINE drawing from this source.",
+                    "title": "LOWER_HEATING_VALUE"
+                },
+                "NAME": {
+                    "description": "Unique name for this energy source.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "FUEL_GAS_SOURCE",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "TYPE"
+            ],
+            "title": "FuelGasSource",
+            "type": "object"
+        },
+        "YamlFuelTable": {
+            "additionalProperties": false,
+            "properties": {
+                "FUEL": {
+                    "description": "Consumption rate for each VARIABLE value. In a FILE, this is the FUEL column (matching the legacy TABULAR/TABULATED convention, so existing files can be reused as-is).",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "FUEL",
+                    "type": "array"
+                },
+                "VARIABLE": {
+                    "description": "Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't FUEL.",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "VARIABLE",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "VARIABLE",
+                "FUEL"
+            ],
+            "title": "FuelTable",
+            "type": "object"
+        },
+        "YamlGasTurbine": {
+            "additionalProperties": false,
+            "properties": {
+                "CHANGES": {
+                    "default": [],
+                    "description": "Changes to the turbine model over time, such as a rebundle. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlCombustionEngineModelChange"
+                    },
+                    "title": "CHANGES",
+                    "type": "array"
+                },
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "MODEL": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DefinitionReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlTurbineDefinition"
+                        }
+                    ],
+                    "description": "Turbine model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
+                    "title": "MODEL"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "GAS_TURBINE",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE",
+                "MODEL"
+            ],
+            "title": "GasTurbine",
+            "type": "object"
+        },
+        "YamlGeneratorCurve": {
+            "additionalProperties": false,
+            "properties": {
+                "FUEL": {
+                    "description": "Fuel rate for each power. In a FILE, this is the FUEL column. Unit follows the connected source: Sm3/day for a FUEL_GAS_SOURCE, L/day for a DIESEL_SOURCE.",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "FUEL",
+                    "type": "array"
+                },
+                "POWER": {
+                    "description": "Electrical power [MW], strictly increasing. In a FILE, this is the POWER column.",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "POWER",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "POWER",
+                "FUEL"
+            ],
+            "title": "GeneratorCurve",
+            "type": "object"
+        },
+        "YamlGeneratorDefinition": {
+            "additionalProperties": false,
+            "examples": [
+                {
+                    "CURVE": {
+                        "FUEL": [
+                            0,
+                            25000,
+                            48000,
+                            70000
+                        ],
+                        "POWER": [
+                            0,
+                            5,
+                            10,
+                            15
+                        ]
+                    },
+                    "TYPE": "POWER_TO_FUEL"
+                },
+                {
+                    "CURVE": {
+                        "FILE": "generator_curve.csv"
+                    },
+                    "TYPE": "POWER_TO_FUEL"
+                }
+            ],
+            "properties": {
+                "CURVE": {
+                    "description": "Power and fuel values, given directly or in a FILE with POWER and FUEL columns.",
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/YamlGeneratorCurve"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlFile"
+                        }
+                    ],
+                    "title": "CURVE"
+                },
+                "TYPE": {
+                    "const": "POWER_TO_FUEL",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "CURVE"
+            ],
+            "title": "GeneratorDefinition",
+            "type": "object"
+        },
+        "YamlGeneratorModelChange": {
+            "additionalProperties": false,
+            "description": "A dated change of the generator set's model. The generator set stays the same unit in the energy network;\nonly the model used to convert power to fuel changes.",
+            "examples": [
+                {
+                    "CHANGE_TO": {
+                        "CURVE": {
+                            "FUEL": [
+                                0,
+                                23000,
+                                44000,
+                                64000
+                            ],
+                            "POWER": [
+                                0,
+                                5,
+                                10,
+                                15
+                            ]
+                        },
+                        "TYPE": "POWER_TO_FUEL"
+                    },
+                    "CHANGE_TYPE": "REBUNDLE",
+                    "REF": "generator_upgrade"
+                },
+                {
+                    "CHANGE_TO": "upgraded_generator",
+                    "CHANGE_TYPE": "REBUNDLE",
+                    "REF": "generator_upgrade"
+                }
+            ],
+            "properties": {
+                "CHANGE_TO": {
+                    "description": "The generator set model to use from the event date on.",
+                    "oneOf": [
+                        {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/$defs/DefinitionReference"
+                                },
+                                {
+                                    "$ref": "#/$defs/YamlGeneratorDefinition"
+                                }
+                            ]
+                        },
+                        {
+                            "$ref": "#/$defs/YamlGeneratorSetEngineDefinition"
+                        }
+                    ],
+                    "title": "CHANGE_TO"
+                },
+                "CHANGE_TYPE": {
+                    "$ref": "#/$defs/YamlEnergyUnitChangeType",
+                    "default": "REBUNDLE",
+                    "description": "Nature of the change. REBUNDLE: the unit stays the same unit in the energy network, with a new model.",
+                    "title": "CHANGE_TYPE"
+                },
+                "REF": {
+                    "$ref": "#/$defs/TimelineEventReference",
+                    "description": "Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date (inclusive).",
+                    "title": "REF"
+                }
+            },
+            "required": [
+                "CHANGE_TO",
+                "REF"
+            ],
+            "title": "GeneratorModelChange",
+            "type": "object"
+        },
+        "YamlGeneratorSet": {
+            "additionalProperties": false,
+            "properties": {
+                "CHANGES": {
+                    "default": [],
+                    "description": "Changes to the generator set model over time, such as a rebundle. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlGeneratorModelChange"
+                    },
+                    "title": "CHANGES",
+                    "type": "array"
+                },
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "MODEL": {
+                    "description": "Generator set model, given directly as a power-to-fuel curve or a gas turbine/diesel engine driven model.",
+                    "oneOf": [
+                        {
+                            "anyOf": [
+                                {
+                                    "$ref": "#/$defs/DefinitionReference"
+                                },
+                                {
+                                    "$ref": "#/$defs/YamlGeneratorDefinition"
+                                }
+                            ]
+                        },
+                        {
+                            "$ref": "#/$defs/YamlGeneratorSetEngineDefinition"
+                        }
+                    ],
+                    "title": "MODEL"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "GENERATOR_SET",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE",
+                "MODEL"
+            ],
+            "title": "GeneratorSet",
+            "type": "object"
+        },
+        "YamlGeneratorSetEngineDefinition": {
+            "additionalProperties": false,
+            "description": "A generator set driven by a combustion engine (gas turbine or diesel engine) combined with a\ngenerator efficiency, as opposed to a direct power-to-fuel curve.",
+            "examples": [
+                {
+                    "ENGINE": "lm2500_curve",
+                    "GENERATOR_EFFICIENCY": 0.97,
+                    "TYPE": "GAS_TURBINE_DRIVEN"
+                },
+                {
+                    "ENGINE": "diesel_engine_curve",
+                    "GENERATOR_EFFICIENCY": 0.97,
+                    "TYPE": "DIESEL_ENGINE_DRIVEN"
+                }
+            ],
+            "properties": {
+                "ENGINE": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DefinitionReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlTurbineDefinition"
+                        }
+                    ],
+                    "description": "Engine model, given directly in place or as a reference to DEFINITIONS.PERFORMANCE_CURVES.",
+                    "title": "ENGINE"
+                },
+                "GENERATOR_EFFICIENCY": {
+                    "description": "Electrical generator conversion efficiency, a fraction above 0 and up to 1.",
+                    "exclusiveMinimum": 0,
+                    "maximum": 1,
+                    "title": "GENERATOR_EFFICIENCY",
+                    "type": "number"
+                },
+                "TYPE": {
+                    "description": "The combustion engine type driving the generator set.",
+                    "enum": [
+                        "GAS_TURBINE_DRIVEN",
+                        "DIESEL_ENGINE_DRIVEN"
+                    ],
+                    "title": "TYPE",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "ENGINE",
+                "GENERATOR_EFFICIENCY"
+            ],
+            "title": "GeneratorSetEngineDefinition",
+            "type": "object"
+        },
+        "YamlHeadUnits": {
+            "enum": [
+                "M",
+                "KJ_PER_KG",
+                "JOULE_PER_KG"
+            ],
+            "title": "YamlHeadUnits",
+            "type": "string"
+        },
+        "YamlIndividualStreamDistribution": {
+            "additionalProperties": false,
+            "properties": {
+                "INLET_STREAMS": {
+                    "items": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/$defs/InstanceReference"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlInletStream"
+                            }
+                        ]
+                    },
+                    "title": "Inlet Streams",
+                    "type": "array"
+                },
+                "METHOD": {
+                    "const": "INDIVIDUAL_STREAMS",
+                    "title": "Method",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "METHOD",
+                "INLET_STREAMS"
+            ],
+            "title": "YamlIndividualStreamDistribution",
+            "type": "object"
+        },
+        "YamlInletStream": {
+            "additionalProperties": false,
+            "description": "Represents an inlet stream definition that can be referenced by process system and stream distribution.",
+            "properties": {
+                "FLUID": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DefinitionReference"
+                        },
+                        {
+                            "discriminator": {
+                                "mapping": {
+                                    "COMPOSITION": "#/$defs/YamlCompositionFluidDefinition",
+                                    "PREDEFINED": "#/$defs/YamlPredefinedFluidDefinition"
+                                },
+                                "propertyName": "TYPE"
+                            },
+                            "oneOf": [
+                                {
+                                    "$ref": "#/$defs/YamlPredefinedFluidDefinition"
+                                },
+                                {
+                                    "$ref": "#/$defs/YamlCompositionFluidDefinition"
+                                }
+                            ]
+                        }
+                    ],
+                    "description": "Reference to a fluid definition.",
+                    "title": "FLUID"
+                },
+                "NAME": {
+                    "description": "Unique name of the inlet stream.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "PRESSURE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Pressure in Bara",
+                    "title": "PRESSURE"
+                },
+                "RATE": {
+                    "$ref": "#/$defs/YamlInletStreamRate",
+                    "description": "Rate with unit + value.",
+                    "title": "RATE"
+                },
+                "TEMPERATURE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Temperature in K.",
+                    "title": "TEMPERATURE"
+                }
+            },
+            "required": [
+                "NAME",
+                "FLUID",
+                "TEMPERATURE",
+                "PRESSURE",
+                "RATE"
+            ],
+            "title": "YamlInletStream",
+            "type": "object"
+        },
+        "YamlInletStreamRate": {
+            "additionalProperties": false,
+            "properties": {
+                "CONDITION": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "A logical condition that determines whether the venting emitter emission rate is applicable. This condition must evaluate to true for the rate to be used.",
+                    "title": "CONDITION"
+                },
+                "CONDITIONS": {
+                    "anyOf": [
+                        {
+                            "items": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "number"
+                                    },
+                                    {
+                                        "type": "integer"
+                                    }
+                                ]
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "A list of logical conditions that collectively determine whether the venting emitter emission rate is applicable. All conditions in the list must evaluate to true for the rate to be used.",
+                    "title": "CONDITIONS"
+                },
+                "TYPE": {
+                    "const": "STREAM_DAY",
+                    "default": "STREAM_DAY",
+                    "description": "Type of rate. STREAM_DAY for stream day rate. ONLY STREAM_DAY is supported for inlet stream rate.",
+                    "title": "TYPE",
+                    "type": "string"
+                },
+                "UNIT": {
+                    "$ref": "#/$defs/YamlStreamRateUnit",
+                    "description": "Rate unit. SM3_PER_DAY for standard volume.",
+                    "title": "UNIT"
+                },
+                "VALUE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "title": "Value"
+                }
+            },
+            "required": [
+                "VALUE",
+                "UNIT"
+            ],
+            "title": "Rate",
+            "type": "object"
+        },
+        "YamlJunctionInput": {
+            "additionalProperties": false,
+            "properties": {
+                "CAPACITY": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Dispatch limit for this input, measured at the junction after any upstream loss. It guides how demand is split and does not cap it: demand beyond every limit is placed on the last input, and exceeding a limit is not itself a capacity failure. Omit for unlimited, until a deliverability rule exists.",
+                    "title": "CAPACITY"
+                },
+                "NAME": {
+                    "description": "Source or unit feeding into this junction.",
+                    "title": "NAME",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME"
+            ],
+            "title": "JunctionInput",
+            "type": "object"
+        },
+        "YamlLiquidInletStream": {
+            "additionalProperties": false,
+            "description": "A liquid stream into a pump simulation.",
+            "properties": {
+                "DENSITY": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Liquid density [kg/m3].",
+                    "title": "DENSITY"
+                },
+                "NAME": {
+                    "description": "Name of the inlet stream.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "PRESSURE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Pressure [bara].",
+                    "title": "PRESSURE"
+                },
+                "RATE": {
+                    "$ref": "#/$defs/YamlLiquidStreamRate",
+                    "description": "Liquid rate.",
+                    "title": "RATE"
+                }
+            },
+            "required": [
+                "NAME",
+                "PRESSURE",
+                "DENSITY",
+                "RATE"
+            ],
+            "title": "LIQUID_INLET_STREAM",
+            "type": "object"
+        },
+        "YamlLiquidRemoverDefinition": {
+            "additionalProperties": false,
+            "description": "A liquid remover (scrubber) unit \u2014 removes any condensed liquid from\nthe stream, leaving only the gas phase.\n\nNo-op if the stream is already pure vapor.",
+            "properties": {
+                "TYPE": {
+                    "const": "LIQUID_REMOVER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE"
+            ],
+            "title": "YamlLiquidRemoverDefinition",
+            "type": "object"
+        },
+        "YamlLiquidStreamRate": {
+            "additionalProperties": false,
+            "properties": {
+                "TYPE": {
+                    "const": "STREAM_DAY",
+                    "default": "STREAM_DAY",
+                    "description": "Type of rate. Only STREAM_DAY is supported.",
+                    "title": "TYPE",
+                    "type": "string"
+                },
+                "UNIT": {
+                    "$ref": "#/$defs/YamlLiquidStreamRateUnit",
+                    "description": "Rate unit. M3_PER_DAY.",
+                    "title": "UNIT"
+                },
+                "VALUE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Liquid volume rate.",
+                    "title": "VALUE"
+                }
+            },
+            "required": [
+                "VALUE",
+                "UNIT"
+            ],
+            "title": "LIQUID_STREAM_RATE",
+            "type": "object"
+        },
+        "YamlLiquidStreamRateUnit": {
+            "enum": [
+                "M3_PER_DAY"
+            ],
+            "title": "YamlLiquidStreamRateUnit",
+            "type": "string"
+        },
+        "YamlLoadCurve": {
+            "additionalProperties": false,
+            "description": "Alternative to a direct LOAD expression: looks POWER up in a curve keyed on VARIABLE.",
+            "examples": [
+                {
+                    "CURVE": {
+                        "POWER": [
+                            0,
+                            0.8,
+                            3.4
+                        ],
+                        "VARIABLE": [
+                            0,
+                            1000,
+                            5000
+                        ]
+                    },
+                    "VARIABLE": "SIM;RATE"
+                },
+                {
+                    "CURVE": {
+                        "FILE": "pump_sampled.csv"
+                    },
+                    "VARIABLE": "SIM;RATE"
+                }
+            ],
+            "properties": {
+                "CURVE": {
+                    "description": "Variable and power values, given directly or in a FILE with a POWER column and one other column for the variable.",
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/YamlPowerCurve"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlFile"
+                        }
+                    ],
+                    "title": "CURVE"
+                },
+                "VARIABLE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Value looked up in CURVE.",
+                    "title": "VARIABLE"
+                }
+            },
+            "required": [
+                "CURVE",
+                "VARIABLE"
+            ],
+            "title": "LoadCurve",
+            "type": "object"
+        },
+        "YamlMechanicalConsumer": {
+            "additionalProperties": false,
+            "properties": {
+                "INPUT": {
+                    "description": "Source or component this receives energy from.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "LOAD": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlLoadCurve"
+                        }
+                    ],
+                    "description": "Shaft power demand (MW), as an expression or a curve lookup.",
+                    "title": "LOAD"
+                },
+                "NAME": {
+                    "description": "Unique name for this component.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "MECHANICAL_CONSUMER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "INPUT",
+                "TYPE",
+                "LOAD"
+            ],
+            "title": "MechanicalConsumer",
+            "type": "object"
+        },
+        "YamlMiscellaneousTimeSeriesCollection": {
+            "additionalProperties": false,
+            "properties": {
+                "EXTRAPOLATION": {
+                    "default": false,
+                    "description": "Defines whether the rates in the source should be set to 0 after last time step or constant equal to value at last time step after time interval.\n\nhttps://example.com/docs/keywords/EXTRAPOLATION",
+                    "title": "EXTRAPOLATION",
+                    "type": "boolean"
+                },
+                "FILE": {
+                    "description": "Specifies the name of a time series input file.\n\nhttps://example.com/docs/keywords/FILE",
+                    "title": "FILE",
+                    "type": "string"
+                },
+                "INFLUENCE_TIME_VECTOR": {
+                    "default": true,
+                    "description": "Determines if the time steps in this input source will contribute to the global time vector.\n\nhttps://example.com/docs/keywords/INFLUENCE_TIME_VECTOR",
+                    "title": "INFLUENCE_TIME_VECTOR",
+                    "type": "boolean"
+                },
+                "INTERPOLATION_TYPE": {
+                    "description": "Defines how the time series are interpolated between input time steps.\n\nhttps://example.com/docs/keywords/INTERPOLATION_TYPE",
+                    "enum": [
+                        "LEFT",
+                        "RIGHT",
+                        "LINEAR"
+                    ],
+                    "title": "INTERPOLATION_TYPE",
+                    "type": "string"
+                },
+                "NAME": {
+                    "description": "Name of the time series.\n\nhttps://example.com/docs/keywords/NAME",
+                    "pattern": "^[A-Za-z][A-Za-z0-9_]*$",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "TYPE": {
+                    "const": "MISCELLANEOUS",
+                    "description": "Defines the type of time series input file.\n\nhttps://example.com/docs/keywords/TYPE",
+                    "title": "TYPE",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME",
+                "FILE",
+                "TYPE",
+                "INTERPOLATION_TYPE"
+            ],
+            "title": "TimeSeries",
+            "type": "object"
+        },
+        "YamlMixerDefinition": {
+            "additionalProperties": false,
+            "description": "Mixes an external sidestream into the through-stream at an\nintermediate point in the pipeline.",
+            "properties": {
+                "SIDESTREAM": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/InstanceReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlInletStream"
+                        }
+                    ],
+                    "description": "Sidestream to mix in. Either a reference to a named stream or an inline stream definition.",
+                    "title": "INLET_STREAM"
+                },
+                "TYPE": {
+                    "const": "MIXER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "SIDESTREAM"
+            ],
+            "title": "YamlMixerDefinition",
+            "type": "object"
+        },
+        "YamlOverflow": {
+            "additionalProperties": false,
+            "properties": {
+                "FROM_REFERENCE": {
+                    "$ref": "#/$defs/InstanceReference"
+                },
+                "TO_REFERENCE": {
+                    "$ref": "#/$defs/InstanceReference"
+                }
+            },
+            "required": [
+                "FROM_REFERENCE",
+                "TO_REFERENCE"
+            ],
+            "title": "YamlOverflow",
+            "type": "object"
+        },
+        "YamlPipelineChange": {
+            "additionalProperties": false,
+            "properties": {
+                "CHANGE_TARGET": {
+                    "$ref": "#/$defs/InstanceReference",
+                    "description": "Name of the process unit in the pipeline to change. For REBUNDLE, the COMPRESSOR of a compressor process unit in this pipeline.",
+                    "title": "CHANGE_TARGET"
+                },
+                "CHANGE_TO": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DefinitionReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlCompressorModelChart"
+                        }
+                    ],
+                    "description": "The compressor model to use from the event on.",
+                    "title": "CHANGE_TO"
+                },
+                "CHANGE_TYPE": {
+                    "$ref": "#/$defs/PipelineEventChangeType",
+                    "description": "Nature of the change, e.g. REBUNDLE (chart change, same physical compressor).",
+                    "title": "CHANGE_TYPE"
+                },
+                "REF": {
+                    "$ref": "#/$defs/TimelineEventReference",
+                    "description": "Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date.",
+                    "title": "REF"
+                },
+                "TYPE": {
+                    "$ref": "#/$defs/PipelineEventAction",
+                    "description": "Action to perform: CHANGE, ADD, or REMOVE a process unit.",
+                    "title": "TYPE"
+                }
+            },
+            "required": [
+                "TYPE",
+                "CHANGE_TARGET",
+                "CHANGE_TO",
+                "CHANGE_TYPE",
+                "REF"
+            ],
+            "title": "YamlPipelineChange",
+            "type": "object"
+        },
+        "YamlPowerCurve": {
+            "additionalProperties": false,
+            "properties": {
+                "POWER": {
+                    "description": "Power [MW] for each VARIABLE value. In a FILE, this is the POWER column.",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "POWER",
+                    "type": "array"
+                },
+                "VARIABLE": {
+                    "description": "Values of the variable the curve is keyed on, strictly increasing. In a FILE, this is whichever column isn't POWER.",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "VARIABLE",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "VARIABLE",
+                "POWER"
+            ],
+            "title": "PowerCurve",
+            "type": "object"
+        },
+        "YamlPredefinedFluidDefinition": {
+            "additionalProperties": false,
+            "properties": {
+                "EOS_MODEL": {
+                    "$ref": "#/$defs/YamlEosModel",
+                    "default": "SRK"
+                },
+                "GAS_TYPE": {
+                    "$ref": "#/$defs/YamlPredefinedFluidType",
+                    "default": "MEDIUM"
+                },
+                "TYPE": {
+                    "const": "PREDEFINED",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE"
+            ],
+            "title": "YamlPredefinedFluidDefinition",
+            "type": "object"
+        },
+        "YamlPredefinedFluidType": {
+            "enum": [
+                "ULTRA_DRY",
+                "DRY",
+                "MEDIUM",
+                "RICH",
+                "ULTRA_RICH"
+            ],
+            "title": "YamlPredefinedFluidType",
+            "type": "string"
+        },
+        "YamlPressureDropperDefinition": {
+            "additionalProperties": false,
+            "description": "A pressure dropper unit \u2014 reduces stream pressure by a fixed amount.",
+            "properties": {
+                "PRESSURE_DROP": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Pressure drop across the unit [bar].",
+                    "title": "PRESSURE_DROP"
+                },
+                "TYPE": {
+                    "const": "PRESSURE_DROPPER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "PRESSURE_DROP"
+            ],
+            "title": "YamlPressureDropperDefinition",
+            "type": "object"
+        },
+        "YamlProcessConstraint": {
+            "additionalProperties": false,
+            "properties": {
+                "ANTI_SURGE": {
+                    "$ref": "#/$defs/AntiSurgeType",
+                    "description": "Anti-surge strategy to keep the compressor train within safe operating capacity.",
+                    "title": "ANTI_SURGE"
+                },
+                "OUTLET_PRESSURE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Target outlet pressure [bara].",
+                    "title": "OUTLET_PRESSURE"
+                },
+                "PRESSURE_CONTROL": {
+                    "description": "How to meet the target pressure at this constraint point.",
+                    "enum": [
+                        "UPSTREAM_CHOKE",
+                        "DOWNSTREAM_CHOKE",
+                        "COMMON_ASV",
+                        "INDIVIDUAL_ASV_RATE",
+                        "INDIVIDUAL_ASV_PRESSURE"
+                    ],
+                    "title": "PRESSURE_CONTROL",
+                    "type": "string"
+                },
+                "PROCESS_UNIT": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/InstanceReference"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "The COMPRESSOR of a compressor process unit in this pipeline. The pipeline is split after it. If omitted, the constraint applies at the pipeline outlet.",
+                    "title": "PROCESS_UNIT"
+                }
+            },
+            "required": [
+                "OUTLET_PRESSURE",
+                "PRESSURE_CONTROL",
+                "ANTI_SURGE"
+            ],
+            "title": "YamlProcessConstraint",
+            "type": "object"
+        },
+        "YamlProcessPipeline": {
+            "additionalProperties": false,
+            "properties": {
+                "CHANGES": {
+                    "default": [],
+                    "description": "Changes to the pipeline over time, such as rebundling a compressor. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlPipelineChange"
+                    },
+                    "title": "CHANGES",
+                    "type": "array"
+                },
+                "NAME": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "PROCESS_UNITS": {
+                    "description": "The process units in flow order, each given by its TYPE. Only a compressor process unit is referred to by name, its COMPRESSOR.",
+                    "items": {
+                        "discriminator": {
+                            "mapping": {
+                                "COMPRESSOR": "#/$defs/YamlCompressorProcessUnitInstance",
+                                "LIQUID_REMOVER": "#/$defs/YamlLiquidRemoverDefinition",
+                                "MIXER": "#/$defs/YamlMixerDefinition",
+                                "PRESSURE_DROPPER": "#/$defs/YamlPressureDropperDefinition",
+                                "SPLITTER": "#/$defs/YamlSplitterDefinition",
+                                "TEMPERATURE_SETTER": "#/$defs/YamlTemperatureSetterDefinition"
+                            },
+                            "propertyName": "TYPE"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/$defs/YamlCompressorProcessUnitInstance"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlPressureDropperDefinition"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlTemperatureSetterDefinition"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlLiquidRemoverDefinition"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlMixerDefinition"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlSplitterDefinition"
+                            }
+                        ]
+                    },
+                    "title": "PROCESS_UNITS",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "NAME",
+                "PROCESS_UNITS"
+            ],
+            "title": "YamlProcessPipeline",
+            "type": "object"
+        },
+        "YamlProcessSimulation": {
+            "additionalProperties": false,
+            "properties": {
+                "CONSTRAINTS": {
+                    "additionalProperties": {
+                        "items": {
+                            "$ref": "#/$defs/YamlProcessConstraint"
+                        },
+                        "type": "array"
+                    },
+                    "description": "Constraints per target. Key is pipeline name, value is list of constraints.",
+                    "propertyNames": {
+                        "$ref": "#/$defs/InstanceReference"
+                    },
+                    "title": "CONSTRAINTS",
+                    "type": "object"
+                },
+                "NAME": {
+                    "title": "Name",
+                    "type": "string"
+                },
+                "STREAM_DISTRIBUTION": {
+                    "discriminator": {
+                        "mapping": {
+                            "COMMON_STREAM": "#/$defs/YamlCommonStreamDistribution",
+                            "INDIVIDUAL_STREAMS": "#/$defs/YamlIndividualStreamDistribution"
+                        },
+                        "propertyName": "METHOD"
+                    },
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/YamlCommonStreamDistribution"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlIndividualStreamDistribution"
+                        }
+                    ],
+                    "title": "Stream Distribution"
+                },
+                "TARGETS": {
+                    "items": {
+                        "$ref": "#/$defs/InstanceReference"
+                    },
+                    "title": "TARGETS",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "NAME",
+                "TARGETS",
+                "STREAM_DISTRIBUTION",
+                "CONSTRAINTS"
+            ],
+            "title": "YamlProcessSimulation",
+            "type": "object"
+        },
+        "YamlPump": {
+            "additionalProperties": false,
+            "description": "A physical pump. Pump process units in PUMP_PIPELINES reference it by name.",
+            "properties": {
+                "ALIAS": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Optional alias for the pump.",
+                    "title": "ALIAS"
+                },
+                "NAME": {
+                    "description": "Unique name of the physical pump.",
+                    "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
+                    "title": "NAME",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME"
+            ],
+            "title": "Pump",
+            "type": "object"
+        },
+        "YamlPumpChart": {
+            "additionalProperties": false,
+            "properties": {
+                "CURVES": {
+                    "description": "Pump chart curves, one per speed. A single speed gives a single-speed pump.",
+                    "oneOf": [
+                        {
+                            "items": {
+                                "$ref": "#/$defs/YamlCurve"
+                            },
+                            "type": "array"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlFile"
+                        }
+                    ],
+                    "title": "CURVES"
+                },
+                "UNITS": {
+                    "$ref": "#/$defs/YamlUnits",
+                    "description": "Defines the units",
+                    "title": "UNITS"
+                }
+            },
+            "required": [
+                "CURVES"
+            ],
+            "title": "PUMP_CHART",
+            "type": "object"
+        },
+        "YamlPumpCommonStreamDistribution": {
+            "additionalProperties": false,
+            "properties": {
+                "INLET_STREAM": {
+                    "$ref": "#/$defs/YamlLiquidInletStream",
+                    "description": "The stream shared by the targets.",
+                    "title": "INLET_STREAM"
+                },
+                "METHOD": {
+                    "const": "COMMON_STREAM",
+                    "title": "Method",
+                    "type": "string"
+                },
+                "SETTINGS": {
+                    "description": "Ordered settings. The first setting where every pump is within its chart is used.",
+                    "items": {
+                        "$ref": "#/$defs/YamlPumpCommonStreamSetting"
+                    },
+                    "title": "SETTINGS",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "METHOD",
+                "INLET_STREAM",
+                "SETTINGS"
+            ],
+            "title": "PUMP_COMMON_STREAM_DISTRIBUTION",
+            "type": "object"
+        },
+        "YamlPumpCommonStreamSetting": {
+            "additionalProperties": false,
+            "properties": {
+                "RATE_FRACTIONS": {
+                    "description": "Fraction of the inlet stream rate to each target, in the order of TARGETS.",
+                    "items": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "number"
+                            },
+                            {
+                                "type": "integer"
+                            }
+                        ]
+                    },
+                    "title": "RATE_FRACTIONS",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "RATE_FRACTIONS"
+            ],
+            "title": "PUMP_COMMON_STREAM_SETTING",
+            "type": "object"
+        },
+        "YamlPumpConstraint": {
+            "additionalProperties": false,
+            "properties": {
+                "OUTLET_PRESSURE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Requested outlet pressure [bara].",
+                    "title": "OUTLET_PRESSURE"
+                },
+                "PRESSURE_CONTROL": {
+                    "$ref": "#/$defs/YamlPumpPressureControl",
+                    "default": "NONE",
+                    "description": "How to meet OUTLET_PRESSURE when the pump cannot run at a head low enough for it. DOWNSTREAM_CHOKE: a choke after the pump drops the excess discharge pressure. NONE: no choke, so the discharge pressure may be above OUTLET_PRESSURE. Defaults to NONE.",
+                    "title": "PRESSURE_CONTROL"
+                },
+                "PROCESS_UNIT": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/PumpReference"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "The PUMP of a pump process unit in this pipeline. If omitted, the constraint applies at the pipeline outlet, after the last pump.",
+                    "title": "PROCESS_UNIT"
+                }
+            },
+            "required": [
+                "OUTLET_PRESSURE"
+            ],
+            "title": "PUMP_CONSTRAINT",
+            "type": "object"
+        },
+        "YamlPumpIndividualStreamDistribution": {
+            "additionalProperties": false,
+            "properties": {
+                "INLET_STREAMS": {
+                    "description": "One inlet stream per target, in the order of TARGETS.",
+                    "items": {
+                        "$ref": "#/$defs/YamlLiquidInletStream"
+                    },
+                    "title": "INLET_STREAMS",
+                    "type": "array"
+                },
+                "METHOD": {
+                    "const": "INDIVIDUAL_STREAMS",
+                    "title": "Method",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "METHOD",
+                "INLET_STREAMS"
+            ],
+            "title": "PUMP_INDIVIDUAL_STREAM_DISTRIBUTION",
+            "type": "object"
+        },
+        "YamlPumpModel": {
+            "additionalProperties": false,
+            "description": "A pump model: a pump chart and an optional minimum flow rate.",
+            "properties": {
+                "CHART": {
+                    "$ref": "#/$defs/YamlPumpChart",
+                    "description": "The pump chart.",
+                    "title": "CHART"
+                },
+                "MINIMUM_FLOW_RATE": {
+                    "anyOf": [
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Minimum pump flow [m3/h]. Defaults to the chart minimum. The pump recirculates up to it.",
+                    "title": "MINIMUM_FLOW_RATE"
+                },
+                "TYPE": {
+                    "const": "PUMP_CHART",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "CHART"
+            ],
+            "title": "PUMP_MODEL",
+            "type": "object"
+        },
+        "YamlPumpPipeline": {
+            "additionalProperties": false,
+            "properties": {
+                "NAME": {
+                    "description": "Name of the pump pipeline.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "PROCESS_UNITS": {
+                    "description": "The process units in flow order, each given by its TYPE.",
+                    "items": {
+                        "discriminator": {
+                            "mapping": {
+                                "PRESSURE_DROPPER": "#/$defs/YamlPressureDropperDefinition",
+                                "PUMP": "#/$defs/YamlPumpProcessUnit"
+                            },
+                            "propertyName": "TYPE"
+                        },
+                        "oneOf": [
+                            {
+                                "$ref": "#/$defs/YamlPumpProcessUnit"
+                            },
+                            {
+                                "$ref": "#/$defs/YamlPressureDropperDefinition"
+                            }
+                        ]
+                    },
+                    "title": "PROCESS_UNITS",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "NAME",
+                "PROCESS_UNITS"
+            ],
+            "title": "PUMP_PIPELINE",
+            "type": "object"
+        },
+        "YamlPumpPressureControl": {
+            "enum": [
+                "DOWNSTREAM_CHOKE",
+                "NONE"
+            ],
+            "title": "YamlPumpPressureControl",
+            "type": "string"
+        },
+        "YamlPumpProcessUnit": {
+            "additionalProperties": false,
+            "description": "A pump from PUMPS, run with a pump model.",
+            "properties": {
+                "MODEL": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/DefinitionReference"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlPumpModel"
+                        }
+                    ],
+                    "description": "The pump model, a reference to DEFINITIONS.PUMP_MODELS or inline.",
+                    "title": "MODEL"
+                },
+                "PUMP": {
+                    "$ref": "#/$defs/PumpReference",
+                    "description": "Reference to a pump defined in PUMPS.",
+                    "title": "PUMP"
+                },
+                "TYPE": {
+                    "const": "PUMP",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "PUMP",
+                "MODEL"
+            ],
+            "title": "PUMP_PROCESS_UNIT",
+            "type": "object"
+        },
+        "YamlPumpSimulation": {
+            "additionalProperties": false,
+            "properties": {
+                "CONSTRAINTS": {
+                    "additionalProperties": {
+                        "items": {
+                            "$ref": "#/$defs/YamlPumpConstraint"
+                        },
+                        "type": "array"
+                    },
+                    "description": "Constraints per target. Key is the pump pipeline name.",
+                    "propertyNames": {
+                        "$ref": "#/$defs/InstanceReference"
+                    },
+                    "title": "CONSTRAINTS",
+                    "type": "object"
+                },
+                "NAME": {
+                    "description": "Name of the pump simulation.",
+                    "title": "NAME",
+                    "type": "string"
+                },
+                "STREAM_DISTRIBUTION": {
+                    "description": "How the inlet rate is distributed over the targets.",
+                    "discriminator": {
+                        "mapping": {
+                            "COMMON_STREAM": "#/$defs/YamlPumpCommonStreamDistribution",
+                            "INDIVIDUAL_STREAMS": "#/$defs/YamlPumpIndividualStreamDistribution"
+                        },
+                        "propertyName": "METHOD"
+                    },
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/YamlPumpCommonStreamDistribution"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlPumpIndividualStreamDistribution"
+                        }
+                    ],
+                    "title": "STREAM_DISTRIBUTION"
+                },
+                "TARGETS": {
+                    "description": "The pump pipelines in PUMP_PIPELINES to simulate together.",
+                    "items": {
+                        "$ref": "#/$defs/InstanceReference"
+                    },
+                    "title": "TARGETS",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "NAME",
+                "TARGETS",
+                "STREAM_DISTRIBUTION",
+                "CONSTRAINTS"
+            ],
+            "title": "PUMP_SIMULATION",
+            "type": "object"
+        },
+        "YamlRateCurve": {
+            "additionalProperties": false,
+            "description": "Alternative to a direct RATE expression: looks FUEL up in a curve keyed on VARIABLE.",
+            "examples": [
+                {
+                    "CURVE": {
+                        "FUEL": [
+                            0,
+                            8000,
+                            35000
+                        ],
+                        "VARIABLE": [
+                            0,
+                            1000,
+                            5000
+                        ]
+                    },
+                    "VARIABLE": "SIM;RATE"
+                },
+                {
+                    "CURVE": {
+                        "FILE": "flare_sampled.csv"
+                    },
+                    "VARIABLE": "SIM;RATE"
+                }
+            ],
+            "properties": {
+                "CURVE": {
+                    "description": "Variable and fuel values, given directly or in a FILE with a FUEL column and one other column for the variable.",
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/YamlFuelTable"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlFile"
+                        }
+                    ],
+                    "title": "CURVE"
+                },
+                "VARIABLE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Value looked up in CURVE.",
+                    "title": "VARIABLE"
+                }
+            },
+            "required": [
+                "CURVE",
+                "VARIABLE"
+            ],
+            "title": "RateCurve",
+            "type": "object"
+        },
+        "YamlRateUnits": {
+            "enum": [
+                "AM3_PER_HOUR"
+            ],
+            "title": "YamlRateUnits",
+            "type": "string"
+        },
+        "YamlShaft": {
+            "additionalProperties": false,
+            "properties": {
+                "COMPRESSORS": {
+                    "description": "Names of the compressors in COMPRESSORS that sit on this shaft and run at its speed. A compressor placed in a process pipeline must be on a shaft. A DRIVE_TRAIN on this shaft drives all of them.",
+                    "items": {
+                        "$ref": "#/$defs/CompressorReference"
+                    },
+                    "title": "COMPRESSORS",
+                    "type": "array"
+                },
+                "NAME": {
+                    "description": "Unique name of the shaft.",
+                    "pattern": "^[A-Z\u00c6\u00d8\u00c5a-z\u00e6\u00f8\u00e5\\d_/\\- ]*$",
+                    "title": "NAME",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "NAME"
+            ],
+            "title": "Shaft",
+            "type": "object"
+        },
+        "YamlSingleVariable": {
+            "additionalProperties": false,
+            "description": "A variable in YAML that can be set to a valid eCalc Expression",
+            "properties": {
+                "VALUE": {
+                    "anyOf": [
+                        {
+                            "type": "integer"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "string"
+                        }
+                    ],
+                    "title": "Value"
+                }
+            },
+            "required": [
+                "VALUE"
+            ],
+            "title": "YamlSingleVariable",
+            "type": "object"
+        },
+        "YamlSplitterDefinition": {
+            "additionalProperties": false,
+            "description": "Removes a fixed rate from the through-stream at an\nintermediate point in the pipeline (e.g. fuel gas offtake).",
+            "properties": {
+                "OFFTAKE_RATE": {
+                    "$ref": "#/$defs/YamlInletStreamRate",
+                    "description": "Standard rate to split off.",
+                    "title": "OFFTAKE_RATE"
+                },
+                "TYPE": {
+                    "const": "SPLITTER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "OFFTAKE_RATE"
+            ],
+            "title": "YamlSplitterDefinition",
+            "type": "object"
+        },
+        "YamlStreamRateUnit": {
+            "enum": [
+                "SM3_PER_DAY"
+            ],
+            "title": "YamlStreamRateUnit",
+            "type": "string"
+        },
+        "YamlTemperatureSetterDefinition": {
+            "additionalProperties": false,
+            "description": "A temperature setter unit \u2014 forces the stream to a specified temperature.",
+            "properties": {
+                "TEMPERATURE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "number"
+                        },
+                        {
+                            "type": "integer"
+                        }
+                    ],
+                    "description": "Target temperature [Celsius].",
+                    "title": "TEMPERATURE"
+                },
+                "TYPE": {
+                    "const": "TEMPERATURE_SETTER",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "TEMPERATURE"
+            ],
+            "title": "YamlTemperatureSetterDefinition",
+            "type": "object"
+        },
+        "YamlTimeline": {
+            "additionalProperties": false,
+            "properties": {
+                "EVENTS": {
+                    "additionalProperties": {
+                        "$ref": "#/$defs/YamlTimelineEvent"
+                    },
+                    "default": {},
+                    "description": "Dated events that change the model permanently, e.g. a tie-in or a compressor rebundle. The key is the event reference, used by other parts of the model to refer to the event.",
+                    "propertyNames": {
+                        "$ref": "#/$defs/TimelineEventReference"
+                    },
+                    "title": "EVENTS",
+                    "type": "object"
+                }
+            },
+            "title": "Timeline",
+            "type": "object"
+        },
+        "YamlTimelineEvent": {
+            "additionalProperties": false,
+            "properties": {
+                "DESCRIPTION": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Human-readable description of the event and its purpose.",
+                    "title": "DESCRIPTION"
+                },
+                "FROM": {
+                    "description": "Date when the event takes effect. The change is permanent from this date.",
+                    "format": "date",
+                    "title": "FROM",
+                    "type": "string"
+                },
+                "TITLE": {
+                    "anyOf": [
+                        {
+                            "type": "string"
+                        },
+                        {
+                            "type": "null"
+                        }
+                    ],
+                    "default": null,
+                    "description": "Human-friendly label for the event. Defaults to the event reference.",
+                    "title": "TITLE"
+                },
+                "TYPE": {
+                    "$ref": "#/$defs/TimelineEventType",
+                    "description": "Category of the event: OPERATIONAL_MEASURE, ENERGY_EFFICIENCY_MEASURE, CALIBRATION, TIE_IN, INCREASED_GAS_RATE, INCREASED_WATER_INJECTION, FUEL_SWITCH, OTHER.",
+                    "title": "TYPE"
+                }
+            },
+            "required": [
+                "TYPE",
+                "FROM"
+            ],
+            "title": "YamlTimelineEvent",
+            "type": "object"
+        },
+        "YamlTurbineCurve": {
+            "additionalProperties": false,
+            "properties": {
+                "EFFICIENCY": {
+                    "description": "Turbine efficiency [fraction above 0 and up to 1] for each load. In a FILE, this is the EFFICIENCY column.",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "EFFICIENCY",
+                    "type": "array"
+                },
+                "LOAD": {
+                    "description": "Turbine loads [MW], strictly increasing. In a FILE, this is the LOAD column.",
+                    "items": {
+                        "type": "number"
+                    },
+                    "title": "LOAD",
+                    "type": "array"
+                }
+            },
+            "required": [
+                "LOAD",
+                "EFFICIENCY"
+            ],
+            "title": "TurbineCurve",
+            "type": "object"
+        },
+        "YamlTurbineDefinition": {
+            "additionalProperties": false,
+            "examples": [
+                {
+                    "CURVE": {
+                        "EFFICIENCY": [
+                            0.138,
+                            0.21,
+                            0.255
+                        ],
+                        "LOAD": [
+                            2.352,
+                            4.589,
+                            6.853
+                        ]
+                    },
+                    "TYPE": "LOAD_TO_EFFICIENCY"
+                },
+                {
+                    "CURVE": {
+                        "FILE": "turbine_curve.csv"
+                    },
+                    "TYPE": "LOAD_TO_EFFICIENCY"
+                }
+            ],
+            "properties": {
+                "CURVE": {
+                    "description": "Load and efficiency values, given directly or in a FILE with LOAD and EFFICIENCY columns.",
+                    "oneOf": [
+                        {
+                            "$ref": "#/$defs/YamlTurbineCurve"
+                        },
+                        {
+                            "$ref": "#/$defs/YamlFile"
+                        }
+                    ],
+                    "title": "CURVE"
+                },
+                "TYPE": {
+                    "const": "LOAD_TO_EFFICIENCY",
+                    "title": "Type",
+                    "type": "string"
+                }
+            },
+            "required": [
+                "TYPE",
+                "CURVE"
+            ],
+            "title": "TurbineDefinition",
+            "type": "object"
+        },
+        "YamlUnits": {
+            "additionalProperties": false,
+            "properties": {
+                "EFFICIENCY": {
+                    "$ref": "#/$defs/YamlEfficiencyUnits",
+                    "default": "PERCENTAGE",
+                    "description": "Unit of efficiency in chart. Supported units are PERCENTAGE and FRACTION.",
+                    "title": "EFFICIENCY"
+                },
+                "HEAD": {
+                    "$ref": "#/$defs/YamlHeadUnits",
+                    "default": "M",
+                    "description": "Unit for head in chart. Supported units are M, KJ_PER_KG, JOULE_PER_KG",
+                    "title": "HEAD"
+                },
+                "RATE": {
+                    "$ref": "#/$defs/YamlRateUnits",
+                    "default": "AM3_PER_HOUR",
+                    "description": "Unit for rate in chart. Currently only AM3_PER_HOUR is supported",
+                    "title": "RATE"
+                }
+            },
+            "title": "YamlUnits",
+            "type": "object"
+        }
+    },
+    "additionalProperties": false,
+    "description": "A NextGen eCalc\u2122 yaml file",
+    "properties": {
+        "COMPRESSORS": {
+            "description": "Defines the physical compressors in the model. Compressor process units in PROCESS_PIPELINES and COMPRESSOR_SAMPLED units in ENERGY_NETWORK refer to a compressor by name with COMPRESSOR.",
+            "items": {
+                "$ref": "#/$defs/YamlCompressor"
+            },
+            "title": "COMPRESSORS",
+            "type": "array"
+        },
+        "DEFINITIONS": {
+            "$ref": "#/$defs/YamlDefinitions",
+            "description": "Contains reusable definitions.",
+            "title": "DEFINITIONS"
+        },
+        "END": {
+            "description": "Global end date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://example.com/docs/keywords/END",
+            "format": "date",
+            "title": "END",
+            "type": "string"
+        },
+        "ENERGY_NETWORK": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/YamlEnergyNetwork"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null,
+            "description": "Defines the energy network configuration.",
+            "title": "ENERGY_NETWORK"
+        },
+        "INLET_STREAMS": {
+            "description": "Defines inlet streams, each identified by NAME, that a STREAM_DISTRIBUTION can refer to by name.",
+            "items": {
+                "$ref": "#/$defs/YamlInletStream"
+            },
+            "title": "INLET_STREAMS",
+            "type": "array"
+        },
+        "PROCESS_PIPELINES": {
+            "description": "Defines process pipelines, each identified by NAME, to use in process simulations.",
+            "items": {
+                "$ref": "#/$defs/YamlProcessPipeline"
+            },
+            "title": "PROCESS_PIPELINES",
+            "type": "array"
+        },
+        "PROCESS_SIMULATIONS": {
+            "description": "Defines one or more process simulations to be run.",
+            "items": {
+                "$ref": "#/$defs/YamlProcessSimulation"
+            },
+            "title": "PROCESS_SIMULATIONS",
+            "type": "array"
+        },
+        "PUMPS": {
+            "description": "Defines the physical pumps in the model. Pump process units in PUMP_PIPELINES refer to a pump by name with PUMP.",
+            "items": {
+                "$ref": "#/$defs/YamlPump"
+            },
+            "title": "PUMPS",
+            "type": "array"
+        },
+        "PUMP_PIPELINES": {
+            "description": "Defines pump pipelines to use in pump simulations.",
+            "items": {
+                "$ref": "#/$defs/YamlPumpPipeline"
+            },
+            "title": "PUMP_PIPELINES",
+            "type": "array"
+        },
+        "PUMP_SIMULATIONS": {
+            "description": "Defines one or more pump simulations to be run. A pump simulation distributes a liquid inlet rate over its target pump pipelines.",
+            "items": {
+                "$ref": "#/$defs/YamlPumpSimulation"
+            },
+            "title": "PUMP_SIMULATIONS",
+            "type": "array"
+        },
+        "SHAFTS": {
+            "description": "Defines named shafts representing mechanical connections between drivers and driven equipment.",
+            "items": {
+                "$ref": "#/$defs/YamlShaft"
+            },
+            "title": "SHAFTS",
+            "type": "array"
+        },
+        "START": {
+            "anyOf": [
+                {
+                    "format": "date",
+                    "type": "string"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null,
+            "description": "Global start date for eCalc calculations in <YYYY-MM-DD> format.\n\nhttps://example.com/docs/keywords/START",
+            "title": "START"
+        },
+        "TIMELINE": {
+            "anyOf": [
+                {
+                    "$ref": "#/$defs/YamlTimeline"
+                },
+                {
+                    "type": "null"
+                }
+            ],
+            "default": null,
+            "description": "Defines dated events in the model. Event dates are added to the time steps of process simulations and the energy network. Replaces ECALC_EVENTS and PROCESS_EVENTS",
+            "title": "TIMELINE"
+        },
+        "TIME_SERIES": {
+            "description": "Defines the inputs for time dependent variables, or 'reservoir variables'.\n\nhttps://example.com/docs/keywords/TIME_SERIES",
+            "items": {
+                "discriminator": {
+                    "mapping": {
+                        "DEFAULT": "#/$defs/YamlDefaultTimeSeriesCollection",
+                        "MISCELLANEOUS": "#/$defs/YamlMiscellaneousTimeSeriesCollection"
+                    },
+                    "propertyName": "TYPE"
+                },
+                "oneOf": [
+                    {
+                        "$ref": "#/$defs/YamlDefaultTimeSeriesCollection"
+                    },
+                    {
+                        "$ref": "#/$defs/YamlMiscellaneousTimeSeriesCollection"
+                    }
+                ]
+            },
+            "title": "TIME_SERIES",
+            "type": "array"
+        },
+        "VARIABLES": {
+            "additionalProperties": false,
+            "description": "Defines variables used in an energy usage model by means of expressions or constants.\n\nhttps://example.com/docs/keywords/VARIABLES",
+            "patternProperties": {
+                "^[A-Za-z][A-Za-z0-9_]*$": {
+                    "anyOf": [
+                        {
+                            "$ref": "#/$defs/YamlSingleVariable"
+                        },
+                        {
+                            "additionalProperties": {
+                                "$ref": "#/$defs/YamlSingleVariable"
+                            },
+                            "propertyNames": {
+                                "format": "date"
+                            },
+                            "type": "object"
+                        }
+                    ]
+                }
+            },
+            "title": "VARIABLES",
+            "type": "object"
+        }
+    },
+    "required": [
+        "END"
+    ],
+    "title": "Asset",
+    "type": "object"
+}

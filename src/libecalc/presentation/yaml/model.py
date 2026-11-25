@@ -178,7 +178,6 @@ class YamlModel:
             for compressor in self._configuration.compressors
         }
         self._pumps = {pump.name: PumpEquipment(name=pump.name, alias=pump.alias) for pump in self._configuration.pumps}
-        # Unknown compressor names are skipped here and reported by validation (YamlAsset).
         self._shafts = {
             shaft.name: ShaftEquipment(
                 name=shaft.name,
