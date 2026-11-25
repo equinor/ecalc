@@ -3,7 +3,7 @@ from datetime import datetime
 import pytest
 
 from libecalc.common.time_utils import Periods
-from libecalc.common.variables import ExpressionCannotEvaluateToBooleanValueException, VariablesMap, evaluate_boolean
+from libecalc.common.variables import ExpressionCannotEvaluateToBooleanValueException, VariablesMap
 from libecalc.expression.expression import Expression
 
 
@@ -27,13 +27,13 @@ def expression_evaluator() -> VariablesMap:
     ],
 )
 def test_evaluate_boolean(expression_evaluator, expression, expected):
-    values = evaluate_boolean(expression_evaluator, Expression.setup_from_expression(expression))
+    values = expression_evaluator.evaluate_boolean(Expression.setup_from_expression(expression))
 
     assert values.tolist() == expected
 
 
 def test_evaluate_boolean_raises_when_not_1_or_0(expression_evaluator):
     with pytest.raises(ExpressionCannotEvaluateToBooleanValueException, match="got 5, 10") as exc_info:
-        evaluate_boolean(expression_evaluator, Expression.setup_from_expression("SIM;RATE"))
+        expression_evaluator.evaluate_boolean(Expression.setup_from_expression("SIM;RATE"))
 
     assert exc_info.value.invalid_values == [5, 10]
