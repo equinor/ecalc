@@ -3,7 +3,7 @@ from typing import get_args
 
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     CONSUMER_TYPES,
-    GENERATOR_INPUT_ENERGY,
+    GENERATOR_SET_INPUT_ENERGY,
     INPUT_ENERGY,
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
@@ -71,8 +71,8 @@ def _unit_type_name(unit_class: type) -> str:
 
 
 def _input_energy(unit_type: str) -> set[EnergyType]:
-    if unit_type == "GENERATOR":
-        return set(GENERATOR_INPUT_ENERGY)
+    if unit_type == "GENERATOR_SET":
+        return set(GENERATOR_SET_INPUT_ENERGY)
     return {INPUT_ENERGY[unit_type]}
 
 

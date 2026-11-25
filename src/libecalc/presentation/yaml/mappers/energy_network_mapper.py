@@ -21,9 +21,9 @@ from libecalc.energy.models.combustion_engine_fuel_model import (
     DieselEngineFuelModel,
     TurbineFuelModel,
 )
-from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
+from libecalc.energy.models.generator_set_fuel_model import GeneratorSetFuelModel
 from libecalc.expression.expression import ExpressionType
-from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
+from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions, expect_resolved
 from libecalc.presentation.yaml.domain.energy import (
     CurveConsumerDemand,
     ExpressionDemand,
@@ -35,7 +35,7 @@ from libecalc.presentation.yaml.domain.energy import (
     TimeSeriesEnergyUnit,
     TimeSeriesEnergyUnitFactory,
     TimeSeriesGasTurbineFactory,
-    TimeSeriesGeneratorFactory,
+    TimeSeriesGeneratorSetFactory,
     TimeSeriesJunctionFactory,
     TimeSeriesSourceFactory,
 )
@@ -48,12 +48,13 @@ from libecalc.presentation.yaml.mappers.energy.curve_consumer_mapper import (
     map_load_curve_model,
     map_rate_curve_model,
 )
-from libecalc.presentation.yaml.mappers.energy.generator_fuel_model_mapper import map_generator_fuel_model
+from libecalc.presentation.yaml.mappers.energy.generator_set_fuel_model_mapper import map_generator_set_fuel_model
 from libecalc.presentation.yaml.mappers.model import ResourceValidationException
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     OUTPUT_ENERGY,
     SOURCE_OUTPUT_ENERGY,
     EnergyType,
+    LowerHeatingValueLookup,
     YamlCombustionEngineModelChange,
     YamlCompressorSampled,
     YamlDieselConsumer,
@@ -70,8 +71,8 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlEnergySourceType,
     YamlFuelGasConsumer,
     YamlGasTurbine,
-    YamlGenerator,
     YamlGeneratorModelChange,
+    YamlGeneratorSet,
     YamlJunctionBase,
     YamlLoadCurve,
     YamlMechanicalConsumer,
@@ -79,9 +80,11 @@ from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlRateCurve,
     get_input_names,
     get_named_units,
-    resolve_lhv_by_source_name,
 )
 from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_definition import YamlGeneratorDefinition
+from libecalc.presentation.yaml.yaml_types.energy.yaml_generator_set_definition import (
+    YamlGeneratorSetEngineDefinition,
+)
 from libecalc.presentation.yaml.yaml_types.energy.yaml_turbine_definition import YamlTurbineDefinition
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 from libecalc.presentation.yaml.yaml_types.yaml_compressor import CompressorReference
@@ -127,7 +130,7 @@ class EnergyNetworkMapper:
         """
         resources = resources or {}
         output_types = self._yaml_output_types(yaml_energy_network)
-        lhv_by_source_name = resolve_lhv_by_source_name(yaml_energy_network.sources)
+        lhv_lookup = LowerHeatingValueLookup(yaml_energy_network.sources)
 
         node_ids_by_name: dict[str, EnergyUnitId] = {name: EnergyUnitId(ecalc_id_generator()) for name in output_types}
 
@@ -170,7 +173,7 @@ class EnergyNetworkMapper:
                     resources,
                     expression_evaluator,
                     output_types,
-                    lhv_by_source_name,
+                    lhv_lookup,
                 )
                 mapped_nodes.append((node, input_type, output_type))
                 connections.extend((node_ids_by_name[input_name], node_id) for input_name in get_input_names(unit))
@@ -341,7 +344,7 @@ class EnergyNetworkMapper:
             energy_type,
         )
 
-    def _resolve_definitions[Unit: (YamlGenerator, YamlGasTurbine, YamlDieselEngine)](self, unit: Unit) -> Unit:
+    def _resolve_definitions[Unit: (YamlGeneratorSet, YamlGasTurbine, YamlDieselEngine)](self, unit: Unit) -> Unit:
         try:
             return expand_definitions(unit, definitions=self._definitions)
         except DefinitionReferenceError as e:
@@ -366,27 +369,36 @@ class EnergyNetworkMapper:
 
     @staticmethod
     def _map_generator_model(
-        unit: YamlGenerator,
+        unit: YamlGeneratorSet,
         resources: Mapping[str, Resource],
-        definition: DefinitionReference | YamlGeneratorDefinition,
-    ) -> GeneratorFuelModel:
-        assert isinstance(definition, YamlGeneratorDefinition)
-        return map_generator_fuel_model(unit.name, definition, resources)
+        lhv_lookup: LowerHeatingValueLookup,
+        definition: DefinitionReference | YamlGeneratorDefinition | YamlGeneratorSetEngineDefinition,
+    ) -> GeneratorSetFuelModel:
+        definition = expect_resolved(
+            definition, (YamlGeneratorDefinition, YamlGeneratorSetEngineDefinition), field="MODEL"
+        )
+        return map_generator_set_fuel_model(
+            unit.name,
+            definition,
+            resources,
+            source_lower_heating_value=lhv_lookup.for_source(unit.input),
+            input_name=unit.input,
+        )
 
     @staticmethod
     def _map_combustion_engine_model[ModelT: CombustionEngineFuelModel](
         unit: YamlGasTurbine | YamlDieselEngine,
         resources: Mapping[str, Resource],
-        lhv_by_source_name: Mapping[str, float],
+        lhv_lookup: LowerHeatingValueLookup,
         model_class: type[ModelT],
         definition: DefinitionReference | YamlTurbineDefinition,
     ) -> ModelT:
-        assert isinstance(definition, YamlTurbineDefinition)
+        definition = expect_resolved(definition, YamlTurbineDefinition, field="MODEL")
         return map_combustion_engine_fuel_model(
             unit.name,
             definition,
             resources,
-            source_lower_heating_value=lhv_by_source_name.get(unit.input),
+            source_lower_heating_value=lhv_lookup.for_source(unit.input),
             input_name=unit.input,
             model_class=model_class,
         )
@@ -399,15 +411,15 @@ class EnergyNetworkMapper:
         resources: Mapping[str, Resource],
         expression_evaluator: ExpressionEvaluator,
         output_types: Mapping[str, type[Energy]],
-        lhv_by_source_name: Mapping[str, float],
+        lhv_lookup: LowerHeatingValueLookup,
     ) -> tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]:
         match unit:
-            case YamlGenerator():
+            case YamlGeneratorSet():
                 unit = self._resolve_definitions(unit)
-                map_model = partial(self._map_generator_model, unit, resources)
+                map_model = partial(self._map_generator_model, unit, resources, lhv_lookup)
                 input_energy_type = output_types[unit.input]
                 return (
-                    TimeSeriesGeneratorFactory(
+                    TimeSeriesGeneratorSetFactory(
                         name=unit.name,
                         energy_unit_id=energy_unit_id,
                         fuel_model=map_model(unit.model),
@@ -419,9 +431,7 @@ class EnergyNetworkMapper:
                 )
             case YamlGasTurbine():
                 unit = self._resolve_definitions(unit)
-                map_model = partial(
-                    self._map_combustion_engine_model, unit, resources, lhv_by_source_name, TurbineFuelModel
-                )
+                map_model = partial(self._map_combustion_engine_model, unit, resources, lhv_lookup, TurbineFuelModel)
                 return (
                     TimeSeriesGasTurbineFactory(
                         name=unit.name,
@@ -435,7 +445,7 @@ class EnergyNetworkMapper:
             case YamlDieselEngine():
                 unit = self._resolve_definitions(unit)
                 map_model = partial(
-                    self._map_combustion_engine_model, unit, resources, lhv_by_source_name, DieselEngineFuelModel
+                    self._map_combustion_engine_model, unit, resources, lhv_lookup, DieselEngineFuelModel
                 )
                 return (
                     TimeSeriesDieselEngineFactory(

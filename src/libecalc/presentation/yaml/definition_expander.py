@@ -13,6 +13,7 @@ from typing import Annotated, Any, Union, get_args, get_origin
 
 from pydantic import BaseModel
 
+from libecalc.common.errors.exceptions import ProgrammingError
 from libecalc.presentation.yaml.yaml_types.process.yaml_process_references import DefinitionReference
 
 
@@ -111,6 +112,11 @@ def _get_item_type(annotation: Any) -> Any:
 def _expand_value(value: Any, annotation: Any, definitions: dict[str, Any]) -> Any:
     """Expand a single value based on its type annotation."""
 
+    # Unwrap a top-level Annotated (pydantic strips this for direct field annotations, but not for
+    # container item types such as list[Annotated[Union[...], ...]]).
+    if get_origin(annotation) is Annotated:
+        annotation = get_args(annotation)[0]
+
     # Check if this field is a union containing DefinitionReference
     if _is_definition_reference_union(annotation) and isinstance(value, str):
         resolved = _lookup_definition(value, definitions)
@@ -134,12 +140,30 @@ def _expand_value(value: Any, annotation: Any, definitions: dict[str, Any]) -> A
     return value
 
 
+def _flatten_union(annotation: Any) -> tuple[Any, ...]:
+    """Flatten an annotation into its leaf types, unwrapping ``Annotated`` and nested unions.
+
+    A single shared normalizer for both ``_is_definition_reference_union`` and ``get_expected_types``,
+    so a discriminated union member like ``Annotated[DefinitionReference | Model, Tag(...)]`` or a
+    single-type member like ``Annotated[Model, Tag(...)]`` is unwrapped consistently by both.
+    """
+    origin = get_origin(annotation)
+    if origin is Annotated:
+        return _flatten_union(get_args(annotation)[0])
+    if origin is Union or origin is types.UnionType:
+        return tuple(leaf for arg in get_args(annotation) for leaf in _flatten_union(arg))
+    return (annotation,)
+
+
 def _is_definition_reference_union(annotation: Any) -> bool:
-    """Check if the annotation is a Union containing DefinitionReference."""
+    """Check if the annotation is a Union containing DefinitionReference.
+
+    Handles plain unions (``A | B | DefinitionReference``) as well as discriminated unions where
+    a member is ``Annotated[DefinitionReference | Model, ...]`` (e.g. a Tag-wrapped curve variant).
+    """
     origin = get_origin(annotation)
     if origin is Union or origin is types.UnionType:
-        args = get_args(annotation)
-        return any(a is DefinitionReference for a in args)
+        return DefinitionReference in _flatten_union(annotation)
     return False
 
 
@@ -175,27 +199,17 @@ def _validate_resolved_type(reference: str, resolved: Any, annotation: Any) -> N
 def get_expected_types(annotation: Any) -> list[type]:
     """Extract the concrete types from a union annotation, excluding DefinitionReference.
 
-    Handles plain unions (``A | B | DefinitionReference``) as well as
-    ``Annotated[Union[...], ...]`` wrappers used by pydantic discriminated unions.
+    Handles plain unions (``A | B | DefinitionReference``) as well as discriminated unions with
+    ``Annotated``-wrapped members, single-type or union alike (e.g. a Tag-wrapped engine variant).
 
     Returns:
         A list of concrete types that a resolved definition must be an instance of.
     """
-    args = get_args(annotation)
-    expected: list[type] = []
-    for a in args:
-        if a is DefinitionReference:
-            continue
-        # Unwrap Annotated[Union[...], ...] (e.g. discriminated unions)
-        if get_origin(a) is Annotated:
-            inner_args = get_args(a)
-            inner = inner_args[0] if inner_args else a
-            inner_origin = get_origin(inner)
-            if inner_origin is Union or isinstance(inner, types.UnionType):
-                for t in get_args(inner):
-                    if isinstance(t, type):
-                        expected.append(t)
-                continue
-        if isinstance(a, type):
-            expected.append(a)
-    return expected
+    return [t for t in _flatten_union(annotation) if isinstance(t, type) and t is not DefinitionReference]
+
+
+def expect_resolved[T](value: Any, expected: type[T] | tuple[type[T], ...], *, field: str) -> T:
+    """Narrow a field's type after `expand_definitions` has resolved it; raises instead of a bare assert."""
+    if not isinstance(value, expected):
+        raise ProgrammingError(f"Expected '{field}' to have been resolved to {expected}, got {type(value).__name__}.")
+    return value

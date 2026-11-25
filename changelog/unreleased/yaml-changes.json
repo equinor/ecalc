@@ -1,6 +1,17 @@
 {
   "entries": [
     {
+      "kind": "added",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "GENERATOR_SET",
+        "MODEL",
+        "GENERATORSETENGINEDEFINITION"
+      ],
+      "description": "A GENERATOR_SET can now be driven by a gas turbine or diesel engine (TYPE GAS_TURBINE_DRIVEN/DIESEL_ENGINE_DRIVEN) combined with a GENERATOR_EFFICIENCY, instead of only a direct power-to-fuel curve."
+    },
+    {
       "kind": "changed",
       "path": [
         "INLET_STREAMS"
@@ -13,6 +24,22 @@
         "PROCESS_PIPELINES"
       ],
       "description": "A list in which each process pipeline is identified by its NAME, instead of a mapping keyed by name. Names must be unique. To migrate, drop each key and keep its entry, with its NAME, as a list item."
+    },
+    {
+      "kind": "removed",
+      "path": [
+        "ENERGY_NETWORK",
+        "UNITS",
+        "GENERATOR"
+      ],
+      "description": "Renamed to GENERATOR_SET. The curve-based MODEL is unchanged; rename the unit's TYPE from GENERATOR to GENERATOR_SET.",
+      "replaced_by": [
+        [
+          "ENERGY_NETWORK",
+          "UNITS",
+          "GENERATOR_SET"
+        ]
+      ]
     },
     {
       "kind": "removed",

@@ -62,8 +62,8 @@ The model contains:
   train.
 - Two pumps defined in `PUMPS`, run in `PUMP_PIPELINES` with a pump model from `DEFINITIONS.PUMP_MODELS`, and one
   `PUMP_SIMULATIONS` entry that distributes a common liquid inlet stream between the pump pipelines.
-- An `ENERGY_NETWORK` with fuel gas and electrical sources, generator, gas turbines, electrical cable and motors, drive
-  trains for the export trains, an electrical consumer, and sampled compressors driven by an electrical motor and by
+- An `ENERGY_NETWORK` with fuel gas and electrical sources, generator set, gas turbines, electrical cable and motors, drive
+  trains for the export trains, an electrical consumer, and sampled compressors driven by an electrical motor or by
   a gas turbine.
 - `MECHANICAL_EFFICIENCIES` on `export_train_1_drive`, for both compressors on its shaft, and on `export_train_2_el`,
   for one compressor. The other compressor has efficiency 1.0.

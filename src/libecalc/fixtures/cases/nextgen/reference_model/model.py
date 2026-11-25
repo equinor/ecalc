@@ -44,13 +44,14 @@ from libecalc.testing.energy_builders import (
     YamlElectricalConsumerBuilder,
     YamlElectricalMotorBuilder,
     YamlElectricalSourceBuilder,
-    YamlEnergyGeneratorBuilder,
+    YamlEnergyGeneratorSetBuilder,
     YamlEnergyNetworkBuilder,
     YamlFileBuilder,
     YamlFuelGasSourceBuilder,
     YamlGasTurbineBuilder,
     YamlGeneratorDefinitionBuilder,
     YamlGeneratorModelChangeBuilder,
+    YamlGeneratorSetEngineDefinitionBuilder,
     YamlTurbineDefinitionBuilder,
 )
 from libecalc.testing.process_builders import (
@@ -387,7 +388,7 @@ def _process_simulation():
 
 
 def _energy_sources() -> list[YamlEnergySource]:
-    lower_heating_value_by_source = {"fuel_gas": 38.0, "fuel_gas3": 38.0}
+    lower_heating_value_by_source = {"fuel_gas": 38.0, "fuel_gas3": 38.0, "fuel_gas6": 38.0}
 
     def _fuel_gas_source(name: str):
         builder = YamlFuelGasSourceBuilder().with_name(name)
@@ -397,7 +398,7 @@ def _energy_sources() -> list[YamlEnergySource]:
         return builder.validate()
 
     fuel_gas_sources: list[YamlEnergySource] = [
-        _fuel_gas_source(name) for name in ("fuel_gas", "fuel_gas2", "fuel_gas3")
+        _fuel_gas_source(name) for name in ("fuel_gas", "fuel_gas2", "fuel_gas3", "fuel_gas6")
     ]
     electrical_sources: list[YamlEnergySource] = [
         YamlElectricalSourceBuilder().with_name(name).validate() for name in ("el_source", "pfs")
@@ -460,7 +461,7 @@ def _turbine_upgrade_changes() -> list[YamlCombustionEngineModelChange]:
 def _energy_units():
     return [
         _gas_turbine("export_turbine", "fuel_gas", changes=_turbine_upgrade_changes()),
-        YamlEnergyGeneratorBuilder()
+        YamlEnergyGeneratorSetBuilder()
         .with_name("genset_a")
         .with_input("fuel_gas2")
         .with_model(YamlGeneratorDefinitionBuilder().with_test_data().validate())
@@ -473,6 +474,12 @@ def _energy_units():
         .with_efficiency(0.98)
         .validate(),
         _electrical_motor("export_motor", "long_cable"),
+        YamlEnergyGeneratorSetBuilder()
+        .with_name("genset_b")
+        .with_input("fuel_gas6")
+        .with_model(YamlGeneratorSetEngineDefinitionBuilder().with_test_data().validate())
+        .validate(),
+        YamlElectricalConsumerBuilder().with_name("genset_b_load").with_input("genset_b").with_load(2).validate(),
         _drive_train(
             "export_turbine",
             _shaft_name(1),

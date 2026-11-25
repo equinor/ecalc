@@ -11,7 +11,7 @@ from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.energy_units import DieselEngine, ElectricalMotor, GasTurbine, Generator
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 from libecalc.energy.models.combustion_engine_fuel_model import DieselEngineFuelModel, TurbineFuelModel
-from libecalc.energy.models.generator_fuel_model import GeneratorFuelModel
+from libecalc.energy.models.generator_set_fuel_model import GeneratorSetFuelModel
 from libecalc.presentation.yaml.domain.energy.base import TimeSeriesEnergyUnitFactory
 from libecalc.presentation.yaml.domain.energy.expressions import resolve_optional_energy
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
@@ -37,15 +37,15 @@ def _required_period(unit_description: str, extra: Mapping[str, Any]) -> Period:
     return period
 
 
-class TimeSeriesGeneratorFactory(TimeSeriesEnergyUnitFactory):
+class TimeSeriesGeneratorSetFactory(TimeSeriesEnergyUnitFactory):
     def __init__(
         self,
         *,
         name: str,
-        fuel_model: GeneratorFuelModel,
+        fuel_model: GeneratorSetFuelModel,
         energy_unit_id: EnergyUnitId | None = None,
         input_energy_type: type[Energy],
-        model_events: Sequence[EnergyUnitModelEvent[GeneratorFuelModel]] = (),
+        model_events: Sequence[EnergyUnitModelEvent[GeneratorSetFuelModel]] = (),
     ) -> None:
         super().__init__(name=name, energy_unit_id=energy_unit_id)
         self.fuel_model = fuel_model
