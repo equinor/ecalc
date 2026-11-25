@@ -1,6 +1,6 @@
 import re
 
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlNextgenAsset
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlComponent,
     YamlCompressorSampled,
@@ -46,7 +46,7 @@ def _unit_label(unit: YamlComponent) -> str:
             return _label(unit.name, unit.type)
 
 
-def energy_network_to_mermaid(model: YamlAsset) -> str:
+def energy_network_to_mermaid(model: YamlNextgenAsset) -> str:
     network = model.energy_network
     if network is None:
         return ""

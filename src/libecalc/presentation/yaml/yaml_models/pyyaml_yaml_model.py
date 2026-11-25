@@ -27,8 +27,9 @@ from libecalc.presentation.yaml.yaml_models.exceptions import DuplicateKeyError,
 from libecalc.presentation.yaml.yaml_models.yaml_model import YamlConfiguration, YamlValidator
 from libecalc.presentation.yaml.yaml_node import YamlDict, YamlList
 from libecalc.presentation.yaml.yaml_types.components.yaml_asset import (
-    YamlAsset,
     YamlDefinitions,
+    YamlLegacyAsset,
+    YamlNextgenAsset,
     YamlPerformanceCurveDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import YamlInstallation
@@ -53,7 +54,10 @@ from libecalc.presentation.yaml.yaml_types.yaml_pump import YamlPump
 from libecalc.presentation.yaml.yaml_types.yaml_shaft import YamlShaft
 from libecalc.presentation.yaml.yaml_types.yaml_timeline import TimelineEventReference, YamlTimelineEvent
 from libecalc.presentation.yaml.yaml_types.yaml_variable import YamlVariable, YamlVariableReferenceId, YamlVariables
-from libecalc.presentation.yaml.yaml_validation_context import YamlModelValidationContext
+from libecalc.presentation.yaml.yaml_validation_context import (
+    YamlModelValidationContext,
+    YamlModelValidationContextNames,
+)
 
 # Top-level YAML keywords used only by experimental/new sections
 _DEFINITIONS_KEY = "DEFINITIONS"
@@ -343,9 +347,9 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
             self._internal_datamodel.get(_DEFINITIONS_KEY, {}) if isinstance(self._internal_datamodel, dict) else {}
         )
         if isinstance(definitions, dict):
-            for section in (_COMPRESSOR_MODELS_KEY, _PERFORMANCE_CURVES_KEY):
+            for section in (_COMPRESSOR_MODELS_KEY, _PERFORMANCE_CURVES_KEY, _PUMP_MODELS_KEY):
                 resource_names.extend(_find_file_references(definitions.get(section)))
-        for section in (_PROCESS_PIPELINES_KEY, "ENERGY_NETWORK"):
+        for section in (_PROCESS_PIPELINES_KEY, _PUMP_PIPELINES_KEY, "ENERGY_NETWORK"):
             resource_names.extend(_find_file_references(self._internal_datamodel.get(section)))
 
         # Dedup while preserving order — the same CSV may be referenced by multiple charts.
@@ -616,9 +620,10 @@ class PyYamlYamlModel(YamlValidator, YamlConfiguration):
         """All dates in the yaml."""
         return set(find_date_keys_in_yaml(self._internal_datamodel))
 
-    def validate(self, context: YamlModelValidationContext) -> Self:  # type: ignore[override]
+    def validate(self, context: YamlModelValidationContext) -> Self:
         try:
-            YamlAsset.model_validate(deepcopy(self._internal_datamodel), context=context)
+            asset_type = YamlNextgenAsset if context.get(YamlModelValidationContextNames.nextgen) else YamlLegacyAsset
+            asset_type.model_validate(deepcopy(self._internal_datamodel), context=context)
             return self
         except PydanticValidationError as e:
             errors = []

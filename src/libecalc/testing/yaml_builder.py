@@ -18,7 +18,11 @@ from libecalc.presentation.yaml.yaml_types.components.legacy.energy_usage_model.
 )
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_electricity_consumer import YamlElectricityConsumer
 from libecalc.presentation.yaml.yaml_types.components.legacy.yaml_fuel_consumer import YamlFuelConsumer
-from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsset, YamlDefinitions
+from libecalc.presentation.yaml.yaml_types.components.yaml_asset import (
+    YamlDefinitions,
+    YamlLegacyAsset,
+    YamlNextgenAsset,
+)
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.components.yaml_generator_set import YamlGeneratorSet
 from libecalc.presentation.yaml.yaml_types.components.yaml_installation import (
@@ -737,9 +741,9 @@ class YamlFuelTypeBuilder(Builder[YamlFuelType]):
         return self
 
 
-class YamlLegacyAssetBuilder(Builder[YamlAsset]):
+class YamlLegacyAssetBuilder(Builder[YamlLegacyAsset]):
     """
-    Builder for a legacy YamlAsset.
+    Builder for a YamlLegacyAsset.
 
     Only supports the legacy root elements FACILITY_INPUTS, MODELS, FUEL_TYPES and INSTALLATIONS, in addition to the
     elements common to legacy and NextGen models. Use YamlAssetBuilder for a NextGen model.
@@ -818,9 +822,9 @@ class YamlLegacyAssetBuilder(Builder[YamlAsset]):
         return self
 
 
-class YamlAssetBuilder(Builder[YamlAsset]):
+class YamlAssetBuilder(Builder[YamlNextgenAsset]):
     """
-    Builder for a NextGen YamlAsset.
+    Builder for a YamlNextgenAsset.
 
     Legacy root elements (FACILITY_INPUTS, MODELS, FUEL_TYPES, INSTALLATIONS) are not available here; use
     YamlLegacyAssetBuilder for a legacy model.
