@@ -57,16 +57,25 @@ The model contains:
 
 - Four export trains with two compressors each, defined in `COMPRESSORS`, placed on a `SHAFTS` entry per train, and run in
   `PROCESS_PIPELINES` with a compressor model from `DEFINITIONS.COMPRESSOR_MODELS`.
-- A `TIMELINE` event that rebundles the compressors of the first export train.
+- Three `TIMELINE` events: a tie-in that rebundles the compressors of the first export train, and two equipment
+  upgrades (`export_turbine`'s turbine model, referenced from `DEFINITIONS.PERFORMANCE_CURVES`; `genset_a`'s
+  generator model, given inline).
 - One `PROCESS_SIMULATIONS` entry that distributes a common inlet stream between the export trains, with constraints for each
   train.
 - Two pumps defined in `PUMPS`, run in `PUMP_PIPELINES` with a pump model from `DEFINITIONS.PUMP_MODELS`, and one
   `PUMP_SIMULATIONS` entry that distributes a common liquid inlet stream between the pump pipelines.
-- An `ENERGY_NETWORK` with fuel gas and electrical sources, generator set, gas turbines, electrical cable and motors, drive
-  trains for the export trains, an electrical consumer, and sampled compressors driven by an electrical motor or by
-  a gas turbine.
-- `MECHANICAL_EFFICIENCIES` on `export_train_1_drive`, for both compressors on its shaft, and on `export_train_2_el`,
-  for one compressor. The other compressor has efficiency 1.0.
+- An `ENERGY_NETWORK` with fuel gas, diesel and electrical sources (the electrical source and cable both have a
+  `CAPACITY`), three generator sets (one referencing a shared `DEFINITIONS.PERFORMANCE_CURVES` entry, one with an
+  inline, diesel-scaled curve, and one engine-driven), gas turbines, an electrical bus merging the generator sets and
+  an electrical source (mixing the full `YamlJunctionInput` form with the bare-string shorthand for the uncapped last
+  input), an electrical cable, motors, drive trains for the export trains, electrical consumers (one with a flat
+  `LOAD`, one with a `LOAD` curve keyed on a time series variable, one fed directly by the engine-driven generator
+  set), a `FUEL_GAS_CONSUMER` with a `FILE`-backed rate curve, a `DIESEL_CONSUMER` with a flat `RATE`, sampled
+  compressors driven by an electrical motor and by a gas turbine (one using all three lookup variables, the other
+  only `RATE`), and a diesel engine on a mobile rig (with its own inline performance curve) driving a mechanical
+  consumer directly.
+- `MECHANICAL_EFFICIENCIES` on the `export_shaft_1` drive train, for both compressors on its shaft, and on the
+  `export_shaft_2` drive train, for one compressor. The other compressor has efficiency 1.0.
 
 ## Download {{/* #download */}}
 

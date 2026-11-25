@@ -7,8 +7,12 @@ from libecalc.presentation.yaml.yaml_types.components.yaml_asset import YamlAsse
 from libecalc.presentation.yaml.yaml_types.components.yaml_expression_type import YamlExpressionType
 from libecalc.presentation.yaml.yaml_types.energy.yaml_energy_network import (
     YamlCombustionEngineModelChange,
+    YamlDispatchStrategy,
     YamlEnergySource,
+    YamlEnergyUnitChangeType,
     YamlGeneratorModelChange,
+    YamlJunctionInput,
+    YamlTurbineDefinition,
 )
 from libecalc.presentation.yaml.yaml_types.models.yaml_compressor_chart import (
     YamlEfficiencyUnits,
@@ -37,9 +41,11 @@ from libecalc.process.process_solver.anti_surge.anti_surge_strategy import AntiS
 from libecalc.testing.energy_builders import (
     YamlCombustionEngineModelChangeBuilder,
     YamlCompressorSampledBuilder,
+    YamlDieselConsumerBuilder,
     YamlDieselEngineBuilder,
     YamlDieselSourceBuilder,
     YamlDriveTrainBuilder,
+    YamlElectricalBusBuilder,
     YamlElectricalCableBuilder,
     YamlElectricalConsumerBuilder,
     YamlElectricalMotorBuilder,
@@ -47,11 +53,15 @@ from libecalc.testing.energy_builders import (
     YamlEnergyGeneratorSetBuilder,
     YamlEnergyNetworkBuilder,
     YamlFileBuilder,
+    YamlFuelGasConsumerBuilder,
     YamlFuelGasSourceBuilder,
     YamlGasTurbineBuilder,
+    YamlGeneratorCurveBuilder,
     YamlGeneratorDefinitionBuilder,
     YamlGeneratorModelChangeBuilder,
     YamlGeneratorSetEngineDefinitionBuilder,
+    YamlMechanicalConsumerBuilder,
+    YamlTurbineCurveBuilder,
     YamlTurbineDefinitionBuilder,
 )
 from libecalc.testing.process_builders import (
@@ -95,11 +105,14 @@ FLUID_NAME = "medium_fluid2"
 COMPRESSOR_MODEL_A = "compressor_model_A"
 COMPRESSOR_MODEL_B = "compressor_model_B"
 COMPRESSOR_CHART_FILE = "compressor_chart.csv"
-TIE_IN_EVENT = "increased_gas_rate_2027"
-GENERATOR_UPGRADE_EVENT = "generator_upgrade_2030"
-TURBINE_UPGRADE_EVENT = "turbine_upgrade_2028"
+NEW_WELLS_TIE_IN_EVENT = "new_wells_tie_in"
+GENSET_A_UPGRADE_EVENT = "genset_a_upgrade"
+EXPORT_TURBINE_UPGRADE_EVENT = "export_turbine_upgrade"
 
 TURBINE_PERFORMANCE_CURVE = "turbine_performance_curve"
+UPGRADED_TURBINE_PERFORMANCE_CURVE = "upgraded_turbine_performance_curve"
+GENERATOR_PERFORMANCE_CURVE = "generator_performance_curve"
+MAIN_BUS = "main_bus"
 
 PUMP_MODEL = "injection_pump_model"
 PUMP_NAMES = ["injection_pump_1", "injection_pump_2"]
@@ -162,7 +175,7 @@ def _timeline():
     return (
         YamlTimelineBuilder()
         .with_event(
-            TIE_IN_EVENT,
+            NEW_WELLS_TIE_IN_EVENT,
             YamlTimelineEventBuilder()
             .with_title("Tie-in of new wells")
             .with_type(TimelineEventType.TIE_IN)
@@ -171,7 +184,7 @@ def _timeline():
             .validate(),
         )
         .with_event(
-            TURBINE_UPGRADE_EVENT,
+            EXPORT_TURBINE_UPGRADE_EVENT,
             YamlTimelineEventBuilder()
             .with_title("Turbine upgrade")
             .with_type(TimelineEventType.ENERGY_EFFICIENCY_MEASURE)
@@ -180,7 +193,7 @@ def _timeline():
             .validate(),
         )
         .with_event(
-            GENERATOR_UPGRADE_EVENT,
+            GENSET_A_UPGRADE_EVENT,
             YamlTimelineEventBuilder()
             .with_title("Generator upgrade")
             .with_type(TimelineEventType.ENERGY_EFFICIENCY_MEASURE)
@@ -304,18 +317,32 @@ def _definitions():
         .with_compressor_model(COMPRESSOR_MODEL_B, _compressor_model())
         .with_pump_model(PUMP_MODEL, _pump_model())
         .with_performance_curve(TURBINE_PERFORMANCE_CURVE, YamlTurbineDefinitionBuilder().with_test_data().validate())
+        .with_performance_curve(
+            UPGRADED_TURBINE_PERFORMANCE_CURVE,
+            YamlTurbineDefinitionBuilder()
+            .with_curve(
+                YamlTurbineCurveBuilder()
+                .with_load([2.352, 4.589, 6.853])
+                .with_efficiency([0.142, 0.216, 0.263])
+                .validate()
+            )
+            .validate(),
+        )
+        .with_performance_curve(
+            GENERATOR_PERFORMANCE_CURVE, YamlGeneratorDefinitionBuilder().with_test_data().validate()
+        )
         .validate()
     )
 
 
-def _rebundle_changes(train_number: int) -> list[YamlPipelineChange]:
+def _export_train_changes(train_number: int) -> list[YamlPipelineChange]:
     return [
         YamlPipelineChange(
             type=PipelineEventAction.CHANGE,
             change_type=PipelineEventChangeType.REBUNDLE,
             change_target=_compressor_name(train_number, number),
             change_to=COMPRESSOR_MODEL_B,
-            ref=TIE_IN_EVENT,
+            ref=NEW_WELLS_TIE_IN_EVENT,
         )
         for number in _compressor_numbers()
     ]
@@ -337,7 +364,7 @@ def _export_train(train_number: int, changes: list[YamlPipelineChange] | None = 
 
 def _process_pipelines() -> list[YamlProcessPipeline]:
     return [
-        _export_train(train_number, changes=_rebundle_changes(train_number) if train_number == 1 else None)
+        _export_train(train_number, changes=_export_train_changes(train_number) if train_number == 1 else None)
         for train_number in _train_numbers()
     ]
 
@@ -401,7 +428,7 @@ def _energy_sources() -> list[YamlEnergySource]:
         _fuel_gas_source(name) for name in ("fuel_gas", "fuel_gas2", "fuel_gas3", "fuel_gas6")
     ]
     electrical_sources: list[YamlEnergySource] = [
-        YamlElectricalSourceBuilder().with_name(name).validate() for name in ("el_source", "pfs")
+        YamlElectricalSourceBuilder().with_name("pfs").with_capacity(12).validate()
     ]
     diesel_sources: list[YamlEnergySource] = [
         YamlDieselSourceBuilder().with_name("diesel").with_lower_heating_value(35.7).validate()
@@ -409,17 +436,25 @@ def _energy_sources() -> list[YamlEnergySource]:
     return fuel_gas_sources + electrical_sources + diesel_sources
 
 
-def _sampled_compressor(input: str, compressor: str, file: str):
-    return (
+def _sampled_compressor(
+    input: str,
+    compressor: str,
+    file: str,
+    suction_pressure: float | None = None,
+    discharge_pressure: float | None = None,
+):
+    builder = (
         YamlCompressorSampledBuilder()
         .with_input(input)
         .with_compressor(compressor)
         .with_file(file)
         .with_rate(f"$var.{SAMPLED_COMPRESSOR_RATE}")
-        .with_suction_pressure(20)
-        .with_discharge_pressure(120)
-        .validate()
     )
+    if suction_pressure is not None:
+        builder = builder.with_suction_pressure(suction_pressure)
+    if discharge_pressure is not None:
+        builder = builder.with_discharge_pressure(discharge_pressure)
+    return builder.validate()
 
 
 def _gas_turbine(name: str, input: str, changes: list[YamlCombustionEngineModelChange] | None = None):
@@ -433,14 +468,14 @@ def _gas_turbine(name: str, input: str, changes: list[YamlCombustionEngineModelC
     )
 
 
-def _diesel_engine(name: str, input: str):
-    return YamlDieselEngineBuilder().with_name(name).with_input(input).with_model(TURBINE_PERFORMANCE_CURVE).validate()
-
-
 def _electrical_motor(name: str, input: str):
     return (
         YamlElectricalMotorBuilder().with_name(name).with_input(input).with_efficiency(0.95).with_capacity(5).validate()
     )
+
+
+def _diesel_engine(name: str, input: str, model: str | YamlTurbineDefinition):
+    return YamlDieselEngineBuilder().with_name(name).with_input(input).with_model(model).validate()
 
 
 def _drive_train(input: str, shaft: str, mechanical_efficiencies: dict[str, float] | None = None):
@@ -450,30 +485,62 @@ def _drive_train(input: str, shaft: str, mechanical_efficiencies: dict[str, floa
     return builder.validate()
 
 
-def _generator_upgrade_changes() -> list[YamlGeneratorModelChange]:
-    return [YamlGeneratorModelChangeBuilder().with_test_data().with_ref(GENERATOR_UPGRADE_EVENT).validate()]
+def _genset_a_changes() -> list[YamlGeneratorModelChange]:
+    return [YamlGeneratorModelChangeBuilder().with_test_data().with_ref(GENSET_A_UPGRADE_EVENT).validate()]
 
 
-def _turbine_upgrade_changes() -> list[YamlCombustionEngineModelChange]:
-    return [YamlCombustionEngineModelChangeBuilder().with_test_data().with_ref(TURBINE_UPGRADE_EVENT).validate()]
+def _export_turbine_changes() -> list[YamlCombustionEngineModelChange]:
+    return [
+        YamlCombustionEngineModelChangeBuilder()
+        .with_change_to(UPGRADED_TURBINE_PERFORMANCE_CURVE)
+        .with_change_type(YamlEnergyUnitChangeType.REBUNDLE)
+        .with_ref(EXPORT_TURBINE_UPGRADE_EVENT)
+        .validate()
+    ]
 
 
 def _energy_units():
     return [
-        _gas_turbine("export_turbine", "fuel_gas", changes=_turbine_upgrade_changes()),
+        _gas_turbine("export_turbine", "fuel_gas", changes=_export_turbine_changes()),
+        _gas_turbine("export_turbine_2", "fuel_gas"),
         YamlEnergyGeneratorSetBuilder()
         .with_name("genset_a")
         .with_input("fuel_gas2")
-        .with_model(YamlGeneratorDefinitionBuilder().with_test_data().validate())
-        .with_changes(_generator_upgrade_changes())
+        .with_model(GENERATOR_PERFORMANCE_CURVE)
+        .with_changes(_genset_a_changes())
+        .validate(),
+        YamlEnergyGeneratorSetBuilder()
+        .with_name("essential_generator")
+        .with_input("diesel")
+        .with_model(
+            YamlGeneratorDefinitionBuilder()
+            .with_curve(
+                YamlGeneratorCurveBuilder()
+                .with_power([0.0, 1.0, 3.0, 5.0])
+                .with_fuel([0.0, 7000.0, 21000.0, 35000.0])
+                .validate()
+            )
+            .validate()
+        )
+        .validate(),
+        YamlElectricalBusBuilder()
+        .with_name(MAIN_BUS)
+        .with_input(
+            [
+                YamlJunctionInput(name="genset_a", capacity=15),
+                YamlJunctionInput(name="pfs_cable", capacity=10),
+                "essential_generator",
+            ]
+        )
+        .with_dispatch_strategy(YamlDispatchStrategy.PRIORITY)
         .validate(),
         YamlElectricalCableBuilder()
-        .with_name("long_cable")
-        .with_input("genset_a")
-        .with_capacity(20)
+        .with_name("pfs_cable")
+        .with_input("pfs")
+        .with_capacity(10)
         .with_efficiency(0.98)
         .validate(),
-        _electrical_motor("export_motor", "long_cable"),
+        _electrical_motor("export_motor", MAIN_BUS),
         YamlEnergyGeneratorSetBuilder()
         .with_name("genset_b")
         .with_input("fuel_gas6")
@@ -486,23 +553,60 @@ def _energy_units():
             mechanical_efficiencies={_compressor_name(1, 1): 0.97, _compressor_name(1, 2): 0.95},
         ),
         _drive_train(
-            "export_motor",
+            "export_turbine_2",
             _shaft_name(2),
             mechanical_efficiencies={_compressor_name(2, 1): 0.96},
         ),
-        _diesel_engine("backup_diesel_engine", "diesel"),
+        _drive_train("export_motor", _shaft_name(3)),
+        _electrical_motor("export_motor_2", MAIN_BUS),
         _drive_train(
-            "backup_diesel_engine",
+            "export_motor_2",
             _shaft_name(4),
             mechanical_efficiencies={_compressor_name(4, 1): 0.95, _compressor_name(4, 2): 0.93},
         ),
-        _electrical_motor("pfs_motor", "pfs"),
-        _drive_train("pfs_motor", _shaft_name(3)),
-        YamlElectricalConsumerBuilder().with_name("base_load").with_input("el_source").with_load(5).validate(),
-        _electrical_motor("sampled_el_motor", "genset_a"),
-        _sampled_compressor("sampled_el_motor", "sampled_el_compressor", "sampled_el_compressor.csv"),
+        YamlElectricalConsumerBuilder().with_name("base_load").with_input(MAIN_BUS).with_load(5).validate(),
+        YamlElectricalConsumerBuilder()
+        .with_name("water_injection_pump")
+        .with_input(MAIN_BUS)
+        .with_load_curve(
+            curve={"variable": [0, 15000, 30000], "power": [0.0, 2.2, 4.5]},
+            variable="$var.water_injection_rate",
+        )
+        .validate(),
+        _electrical_motor("sampled_el_motor", MAIN_BUS),
+        _sampled_compressor(
+            "sampled_el_motor",
+            "sampled_el_compressor",
+            "sampled_el_compressor.csv",
+            suction_pressure=20,
+            discharge_pressure=120,
+        ),
         _gas_turbine("sampled_turbine", "fuel_gas3"),
         _sampled_compressor("sampled_turbine", "sampled_mech_compressor", "sampled_mech_compressor.csv"),
+        YamlFuelGasConsumerBuilder()
+        .with_name("flare")
+        .with_input("fuel_gas2")
+        .with_rate_curve(curve={"file": "flare_rate.csv"}, variable="$var.gasrateb_cd")
+        .validate(),
+        _diesel_engine(
+            "rig_diesel_engine",
+            "diesel",
+            YamlTurbineDefinitionBuilder()
+            .with_curve(
+                YamlTurbineCurveBuilder().with_load([0.5, 1.5, 3.0]).with_efficiency([0.28, 0.34, 0.37]).validate()
+            )
+            .validate(),
+        ),
+        YamlMechanicalConsumerBuilder()
+        .with_name("drilling_equipment")
+        .with_input("rig_diesel_engine")
+        .with_load(1.5)
+        .validate(),
+        YamlDieselConsumerBuilder()
+        .with_name("firewater_pump")
+        .with_input("diesel")
+        .with_rate("$var.gas_export_condition {*} 600")
+        .validate(),
     ]
 
 
