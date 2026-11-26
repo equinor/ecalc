@@ -9,6 +9,7 @@ from libecalc.process.process_solver.search_strategies import (
     BisectResult,
     DidNotConvergeError,
 )
+from libecalc.process.process_solver.solver import OfftakeExceedsInletFailure
 
 _RATE_SEARCH_TOLERANCE = 1e-4
 _RATE_SEARCH_MAX_ITERATIONS = 40
@@ -59,10 +60,18 @@ class FeasibilitySolver:
         pressure_targets: Sequence[FloatConstraint],
         upper_bound_sm3_per_day: float,
     ) -> float:
+        """Largest feasible inlet rate, found by bisection.
+
+        A splitter makes rates below its offtake infeasible too, so too low rates must search higher.
+        """
         boundary = Boundary(min=0.0, max=upper_bound_sm3_per_day)
 
         def probe(rate: float) -> BisectResult:
-            feasible = self._is_feasible(inlet_stream.with_standard_rate(rate), pressure_targets)
+            failure = self._solver.find_solution(pressure_targets, inlet_stream.with_standard_rate(rate)).failure
+            if isinstance(failure, OfftakeExceedsInletFailure):
+                # Rate too low for the splitter offtake: search higher, but don't accept it.
+                return BisectResult(higher=True, accepted=False)
+            feasible = failure is None
             return BisectResult(higher=feasible, accepted=feasible)
 
         try:
