@@ -22,9 +22,10 @@ from libecalc.ecalc_model.process.pump.pump_simulation import PumpConstraint, Pu
 from libecalc.ecalc_model.process.pump.time_series_liquid_stream import TimeSeriesLiquidStream
 from libecalc.expression.expression import ExpressionType
 from libecalc.presentation.yaml.domain.time_series_expression import TimeSeriesExpression
-from libecalc.process.chart.chart import ChartCurve, ChartData
+from libecalc.process.chart.chart import ChartData
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId, ProcessUnitConnectionId
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.testing.pump_test_data import single_speed_pump_chart
 
 PERIODS = [
     Period(datetime(2025, 1, 1), datetime(2026, 1, 1)),
@@ -38,17 +39,8 @@ def periods() -> list[Period]:
 
 
 @pytest.fixture
-def pump_chart(chart_data_factory) -> ChartData:
-    return chart_data_factory.from_curves(
-        curves=[
-            ChartCurve(
-                speed_rpm=1,
-                rate_actual_m3_hour=[277.0, 524.0, 666.0, 832.0, 927.0],
-                polytropic_head_joule_per_kg=[10415.277, 9845.316, 9254.754, 8308.089, 7605.693],
-                efficiency_fraction=[0.4759, 0.6426, 0.6871, 0.7052, 0.6908],
-            )
-        ]
-    )
+def pump_chart() -> ChartData:
+    return single_speed_pump_chart()
 
 
 @pytest.fixture

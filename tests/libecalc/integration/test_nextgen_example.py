@@ -2,6 +2,7 @@ from pathlib import Path
 
 import pytest
 
+from libecalc.ecalc_model.process.pump.pump_simulation_evaluation import evaluate_pump_simulation
 from libecalc.fixtures import YamlCase
 from libecalc.fixtures.case_utils import YamlCaseLoader
 from libecalc.fixtures.cases.nextgen.reference_model import MODEL_FILE_NAME, export_reference_model
@@ -38,6 +39,17 @@ def test_nextgen_example_runs(nextgen_model):
     assert len(simulations) == 1
     assert len(nextgen_model.get_shafts()) == 4
     assert len(nextgen_model.get_compressors()) == 10
+
+
+def test_nextgen_example_pumps_are_valid_in_every_period(nextgen_model):
+    pump_pipelines, [pump_simulation] = nextgen_model.get_pump_simulations()
+
+    result = evaluate_pump_simulation(pump_simulation, pump_pipelines)
+
+    assert all(period_result.is_valid for period_result in result.period_results)
+    # Both pumps run until 2028. From then one pump takes the rate, which is below the chart's maximum rate of
+    # 980 m3/h.
+    assert [period_result.selected_setting_index for period_result in result.period_results] == [1] * 8 + [0] * 14
 
 
 def test_nextgen_example_sampled_compressors_give_mechanical_power(nextgen_model):

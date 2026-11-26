@@ -49,10 +49,10 @@ def test_pump_process_unit_rejects_non_positive_efficiency(chart_data_factory, p
     chart = chart_data_factory.from_curves(
         curves=[
             ChartCurve(
-                speed_rpm=1,
-                rate_actual_m3_hour=[277.0, 524.0],
-                polytropic_head_joule_per_kg=[10415.277, 9845.316],
-                efficiency_fraction=[0.0, 0.6426],
+                speed_rpm=2000.0,
+                rate_actual_m3_hour=[200.0, 400.0],
+                polytropic_head_joule_per_kg=[9000.0, 8500.0],
+                efficiency_fraction=[0.0, 0.7],
             )
         ]
     )

@@ -1,10 +1,12 @@
-from typing import Final, Self
+from typing import Final, NewType, Self
+from uuid import UUID
 
 from libecalc.common.ddd.entity import Entity
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.ecalc_model.validation import InvalidEcalcModelException
 from libecalc.process.process_pipeline.process_unit import ProcessUnitId
-from libecalc.process.pump.pump_process_simulation import LiquidRecirculationLoopId
+
+LiquidRecirculationLoopId = NewType("LiquidRecirculationLoopId", UUID)
 
 
 class LiquidRecirculationLoop(Entity[LiquidRecirculationLoopId]):
