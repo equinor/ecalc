@@ -62,7 +62,7 @@ def test_ecalc_model_to_import_ecalc_model_or_common_only(libecalc_architecture)
         "libecalc.common",
         "libecalc.process",  # Should ecalc_model "module" be allowed to pick stuff from core domains (process, energy, emission)?
         "libecalc.energy",
-        "libecalc.presentation",  # TODO: timeseries stuff, to be moved to ecalc_model?
+        "libecalc.presentation.yaml.domain",  # TODO: timeseries stuff, to be moved to ecalc_model?
     ]
     rule = (
         Rule()

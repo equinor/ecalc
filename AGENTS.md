@@ -21,28 +21,6 @@ python -m pytest -m "not dockersnapshot and not x86"
 
 Other markers (see `pyproject.toml`): `e2e`, `integtest`, `slow`, `snapshot`, `inlinesnapshot`, `arch`.
 
-## Legacy Code
-
-The following paths are legacy. Do not read them for context, copy patterns, naming or structure from them, import
-from them in new code, or modify them unless explicitly asked. New code and structure must follow the non-legacy
-modules only.
-
-Paths under `src/`:
-
-- `src/ecalc_cli/`
-
-Paths under `src/libecalc/`:
-
-- `application/`
-- `domain/`, except the top-level files prefixed with `time_series_`
-- `dto/`
-- `examples/`, except where new code is used
-- `fixtures/`, except `fixtures/cases/nextgen/`
-- `presentation/exporter/`
-- `presentation/flow_diagram/`
-- `presentation/json_result/`
-- `presentation/simple_result/`
-
 ## Code Style
 
 - **Python 3.12+**, package manager **uv**.
