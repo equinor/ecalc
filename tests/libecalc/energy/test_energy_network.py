@@ -17,13 +17,15 @@ from libecalc.energy.energy_units import (
     ElectricalMotor,
     Generator,
 )
+from libecalc.energy.errors import InvalidEnergyNetworkInputError
 
 
-def create_topology(nodes, connections):
+def create_topology(nodes, connections, exclusive_input_nodes=None):
     return EnergyNetworkTopology.create(
         node_input_types={node.get_id(): node.get_input_energy_type() for node in nodes},
         node_output_types={node.get_id(): node.get_output_energy_type() for node in nodes},
         connections=[(source.get_id(), target.get_id()) for source, target in connections],
+        exclusive_input_nodes=exclusive_input_nodes,
     )
 
 
@@ -476,3 +478,84 @@ class TestJunctionDispatch:
         assert energy_on(energy_network, topology, wind, direct_load) == ElectricalPower(3)
         assert energy_on(energy_network, topology, grid, bus) == ElectricalPower(1)
         assert set(energy_network.get_capacity_failures()) == {wind.get_id()}
+
+
+class TestExclusiveInputConnections:
+    def test_uses_only_the_active_candidate_and_zeros_the_inactive_one(
+        self, energy_network_simulation_factory, energy_unit_factory_factory
+    ):
+        first_source = energy_unit_factory_factory(Source, "first_source", output_energy_type=ElectricalPower)
+        second_source = energy_unit_factory_factory(Source, "second_source", output_energy_type=ElectricalPower)
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
+        topology = create_topology(
+            nodes=[first_source, second_source, load],
+            connections=[(first_source, load), (second_source, load)],
+            exclusive_input_nodes=[load.get_id()],
+        )
+        energy_network_simulation = energy_network_simulation_factory(
+            energy_unit_factories=[first_source, second_source], topology=topology
+        )
+
+        energy_network = energy_network_simulation.run(
+            {connection_id(topology, first_source, load): ElectricalPower(6)},
+            active_connections={load.get_id(): first_source.get_id()},
+        )
+
+        assert energy_on(energy_network, topology, first_source, load) == ElectricalPower(6)
+        assert energy_on(energy_network, topology, second_source, load) == ElectricalPower(0)
+
+    def test_rejects_missing_active_connection_for_an_exclusive_input_node(
+        self, energy_network_simulation_factory, energy_unit_factory_factory
+    ):
+        first_source = energy_unit_factory_factory(Source, "first_source", output_energy_type=ElectricalPower)
+        second_source = energy_unit_factory_factory(Source, "second_source", output_energy_type=ElectricalPower)
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
+        topology = create_topology(
+            nodes=[first_source, second_source, load],
+            connections=[(first_source, load), (second_source, load)],
+            exclusive_input_nodes=[load.get_id()],
+        )
+        energy_network_simulation = energy_network_simulation_factory(
+            energy_unit_factories=[first_source, second_source], topology=topology
+        )
+
+        with pytest.raises(InvalidEnergyNetworkInputError, match="Missing active connections"):
+            energy_network_simulation.run(
+                {connection_id(topology, first_source, load): ElectricalPower(6)}, active_connections={}
+            )
+
+    def test_rejects_unexpected_active_connection_for_a_non_exclusive_node(
+        self, energy_network_simulation_factory, energy_unit_factory_factory
+    ):
+        source = energy_unit_factory_factory(Source, "source", output_energy_type=ElectricalPower)
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
+        topology = create_topology(nodes=[source, load], connections=[(source, load)])
+        energy_network_simulation = energy_network_simulation_factory(energy_unit_factories=[source], topology=topology)
+
+        with pytest.raises(InvalidEnergyNetworkInputError, match="Unexpected active connections"):
+            energy_network_simulation.run(
+                {connection_id(topology, source, load): ElectricalPower(6)},
+                active_connections={load.get_id(): source.get_id()},
+            )
+
+    def test_rejects_active_connection_naming_a_non_predecessor(
+        self, energy_network_simulation_factory, energy_unit_factory_factory
+    ):
+        first_source = energy_unit_factory_factory(Source, "first_source", output_energy_type=ElectricalPower)
+        second_source = energy_unit_factory_factory(Source, "second_source", output_energy_type=ElectricalPower)
+        unrelated_source = energy_unit_factory_factory(Source, "unrelated_source", output_energy_type=ElectricalPower)
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
+        topology = create_topology(
+            nodes=[first_source, second_source, unrelated_source, load],
+            connections=[(first_source, load), (second_source, load)],
+            exclusive_input_nodes=[load.get_id()],
+        )
+        energy_network_simulation = energy_network_simulation_factory(
+            energy_unit_factories=[first_source, second_source, unrelated_source], topology=topology
+        )
+
+        with pytest.raises(InvalidEnergyNetworkInputError, match="which is not a predecessor"):
+            energy_network_simulation.run(
+                {connection_id(topology, first_source, load): ElectricalPower(6)},
+                active_connections={load.get_id(): unrelated_source.get_id()},
+            )

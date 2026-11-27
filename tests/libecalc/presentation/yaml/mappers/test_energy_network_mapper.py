@@ -4,6 +4,9 @@ from uuid import UUID
 import pytest
 
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
+from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
 from libecalc.ecalc_model.timeline_event import (
     TimelineEvent,
     TimelineEventNotFoundException,
@@ -21,6 +24,11 @@ TURBINE = {"TYPE": "LOAD_TO_EFFICIENCY", "CURVE": {"LOAD": [10, 20], "EFFICIENCY
 GENERATOR_SET_MODEL = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER": [5, 10], "FUEL": [20000, 35000]}}
 
 
+def _active_incoming_connection(scheduled_network, node_id, period: Period) -> EnergyConnection:
+    active_candidate_id = scheduled_network.active_connections_at(period)[node_id]
+    return scheduled_network.topology.get_connection(active_candidate_id, node_id)
+
+
 def test_gas_turbine_capacity_is_the_curve_maximum(energy_network_mapper_factory, expression_evaluator_factory, period):
     yaml_network = YamlEnergyNetwork.model_validate(
         {
@@ -30,7 +38,10 @@ def test_gas_turbine_capacity_is_the_curve_maximum(energy_network_mapper_factory
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    scheduled_network, factories, _ = energy_network_mapper_factory().map_energy_network(
+        yaml_network, expression_evaluator
+    )
+    topology = scheduled_network.topology
 
     (turbine,) = (factory for factory in factories if factory.get_name() == "turbine")
     gas_turbine = turbine.create(
@@ -60,7 +71,10 @@ def test_diesel_engine_capacity_is_the_curve_maximum(
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    scheduled_network, factories, _ = energy_network_mapper_factory().map_energy_network(
+        yaml_network, expression_evaluator
+    )
+    topology = scheduled_network.topology
 
     (engine,) = (factory for factory in factories if factory.get_name() == "engine")
     diesel_engine = engine.create(
@@ -80,7 +94,10 @@ def test_generator_set_capacity_is_the_curve_maximum(
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    scheduled_network, factories, _ = energy_network_mapper_factory().map_energy_network(
+        yaml_network, expression_evaluator
+    )
+    topology = scheduled_network.topology
 
     (genset,) = (factory for factory in factories if factory.get_name() == "genset")
     generator_set = genset.create(
@@ -141,7 +158,10 @@ def test_generator_set_with_gas_turbine_composes_capacity_from_engine_and_effici
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    scheduled_network, factories, _ = energy_network_mapper_factory().map_energy_network(
+        yaml_network, expression_evaluator
+    )
+    topology = scheduled_network.topology
 
     (genset,) = (factory for factory in factories if factory.get_name() == "genset")
     generator_set = genset.create(
@@ -173,7 +193,10 @@ def test_generator_set_with_diesel_engine_composes_capacity_from_engine_and_effi
     )
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
 
-    topology, factories, _ = energy_network_mapper_factory().map_energy_network(yaml_network, expression_evaluator)
+    scheduled_network, factories, _ = energy_network_mapper_factory().map_energy_network(
+        yaml_network, expression_evaluator
+    )
+    topology = scheduled_network.topology
 
     (genset,) = (factory for factory in factories if factory.get_name() == "genset")
     generator_set = genset.create(
@@ -208,9 +231,10 @@ def test_maps_sources_units_connections_and_expressions(
     )
 
     expression_evaluator = expression_evaluator_factory.from_periods(periods=[period])
-    topology, energy_unit_factories, consumers = energy_network_mapper_factory().map_energy_network(
+    scheduled_network, energy_unit_factories, consumers = energy_network_mapper_factory().map_energy_network(
         yaml_network, expression_evaluator
     )
+    topology = scheduled_network.topology
 
     assert {connection.energy_type for connection in topology.get_connections()} == {
         DieselRate,
@@ -298,9 +322,10 @@ class TestMappedNetworkSimulation:
             periods=[first_period, second_period],
             variables={"SIM1;LOAD": [22, 20], "SIM1;CABLE_AT_BUS": [19.4, 15]},
         )
-        topology, energy_unit_factories, consumers = energy_network_mapper_factory().map_energy_network(
+        scheduled_network, energy_unit_factories, consumers = energy_network_mapper_factory().map_energy_network(
             YamlEnergyNetwork.model_validate(SHORE_AND_WIND), expression_evaluator
         )
+        topology = scheduled_network.topology
         simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=energy_unit_factories)
         ids_by_name = {node.get_name(): node.get_id() for node in [*energy_unit_factories, *consumers]}
 
@@ -335,6 +360,7 @@ GENERATOR_SET_MODEL_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER":
 
 FIRST_YEAR = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
 SECOND_YEAR = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
+THIRD_YEAR = Period(start=datetime(2022, 1, 1), end=datetime(2023, 1, 1))
 
 
 class TestGeneratorSetModelEvents:
@@ -463,3 +489,233 @@ class TestCombustionEngineModelEvents:
         fuel = engine.get_input_energies()[connection.id].value
         fuel_upgraded = engine_upgraded.get_input_energies()[connection.id].value
         assert fuel_upgraded == pytest.approx(fuel / 2)
+
+
+class TestInputChanges:
+    @staticmethod
+    def _switch_event() -> TimelineEvent:
+        return TimelineEvent(
+            reference="switch_to_pfs",
+            title="Switch to power from shore",
+            type=TimelineEventType.FUEL_SWITCH,
+            from_when=SECOND_YEAR.start,
+            description=None,
+        )
+
+    @staticmethod
+    def _network() -> YamlEnergyNetwork:
+        return YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [
+                    {"NAME": "genset_bus", "TYPE": "ELECTRICAL_SOURCE"},
+                    {"NAME": "pfs", "TYPE": "ELECTRICAL_SOURCE"},
+                ],
+                "UNITS": [
+                    {
+                        "NAME": "motor",
+                        "TYPE": "ELECTRICAL_MOTOR",
+                        "INPUT": "genset_bus",
+                        "INPUT_CHANGES": [{"INPUT": "pfs", "REF": "switch_to_pfs"}],
+                    }
+                ],
+            }
+        )
+
+    def test_wires_both_candidates_directly_to_the_unit_with_no_synthetic_node(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        service = TimelineEventService(timeline_events=[self._switch_event()])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        scheduled_network, factories, _ = energy_network_mapper_factory(
+            timeline_event_service=service
+        ).map_energy_network(self._network(), expression_evaluator)
+        topology = scheduled_network.topology
+
+        (motor,) = (factory for factory in factories if factory.get_name() == "motor")
+        (genset_bus,) = (factory for factory in factories if factory.get_name() == "genset_bus")
+        (pfs,) = (factory for factory in factories if factory.get_name() == "pfs")
+
+        # Exactly the nodes declared in YAML, wired exactly as declared.
+        assert {factory.get_name() for factory in factories} == {"motor", "genset_bus", "pfs"}
+        incoming_ids = {connection.source_id for connection in topology.get_incoming_connections(motor.get_id())}
+        assert incoming_ids == {genset_bus.get_id(), pfs.get_id()}
+
+    def test_schedule_selects_the_active_candidate_per_period(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        service = TimelineEventService(timeline_events=[self._switch_event()])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        scheduled_network, factories, _ = energy_network_mapper_factory(
+            timeline_event_service=service
+        ).map_energy_network(self._network(), expression_evaluator)
+
+        (motor,) = (factory for factory in factories if factory.get_name() == "motor")
+        (genset_bus,) = (factory for factory in factories if factory.get_name() == "genset_bus")
+        (pfs,) = (factory for factory in factories if factory.get_name() == "pfs")
+
+        assert (
+            _active_incoming_connection(scheduled_network, motor.get_id(), FIRST_YEAR).source_id == genset_bus.get_id()
+        )
+        assert _active_incoming_connection(scheduled_network, motor.get_id(), SECOND_YEAR).source_id == pfs.get_id()
+
+    def test_unknown_event_reference_is_rejected(self, energy_network_mapper_factory, expression_evaluator_factory):
+        service = TimelineEventService(timeline_events=[])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        with pytest.raises(TimelineEventNotFoundException, match="switch_to_pfs"):
+            energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
+                self._network(), expression_evaluator
+            )
+
+    def test_switches_back_to_an_earlier_candidate_with_no_duplicate_connection(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        """A -> B -> A: the reused candidate must still be wired in exactly once."""
+        switch_away = TimelineEvent(
+            reference="switch_to_essential",
+            title="Switch to essential generator",
+            type=TimelineEventType.OTHER,
+            from_when=SECOND_YEAR.start,
+            description=None,
+        )
+        switch_back = TimelineEvent(
+            reference="switch_back_to_genset",
+            title="Switch back to genset",
+            type=TimelineEventType.OTHER,
+            from_when=THIRD_YEAR.start,
+            description=None,
+        )
+        service = TimelineEventService(timeline_events=[switch_away, switch_back])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR, THIRD_YEAR])
+        network = YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [
+                    {"NAME": "genset_bus", "TYPE": "ELECTRICAL_SOURCE"},
+                    {"NAME": "essential_generator", "TYPE": "ELECTRICAL_SOURCE"},
+                ],
+                "UNITS": [
+                    {
+                        "NAME": "motor",
+                        "TYPE": "ELECTRICAL_MOTOR",
+                        "INPUT": "genset_bus",
+                        "INPUT_CHANGES": [
+                            {"INPUT": "essential_generator", "REF": "switch_to_essential"},
+                            {"INPUT": "genset_bus", "REF": "switch_back_to_genset"},
+                        ],
+                    }
+                ],
+            }
+        )
+
+        scheduled_network, factories, _ = energy_network_mapper_factory(
+            timeline_event_service=service
+        ).map_energy_network(network, expression_evaluator)
+        topology = scheduled_network.topology
+
+        (motor,) = (factory for factory in factories if factory.get_name() == "motor")
+        (genset_bus,) = (factory for factory in factories if factory.get_name() == "genset_bus")
+        (essential_generator,) = (factory for factory in factories if factory.get_name() == "essential_generator")
+
+        incoming_ids = [connection.source_id for connection in topology.get_incoming_connections(motor.get_id())]
+        assert sorted(incoming_ids) == sorted({genset_bus.get_id(), essential_generator.get_id()})
+
+        assert (
+            _active_incoming_connection(scheduled_network, motor.get_id(), FIRST_YEAR).source_id == genset_bus.get_id()
+        )
+        assert (
+            _active_incoming_connection(scheduled_network, motor.get_id(), SECOND_YEAR).source_id
+            == essential_generator.get_id()
+        )
+        assert (
+            _active_incoming_connection(scheduled_network, motor.get_id(), THIRD_YEAR).source_id == genset_bus.get_id()
+        )
+
+
+class TestDriveTrainInputChanges:
+    """A drive train's INPUT_CHANGES produce one InputSchedule shared by every compressor on its shaft: they must
+    always switch together, since they share one shaft power source.
+    """
+
+    FIRST_COMPRESSOR = "23KA001 Gas Compressor"
+    SECOND_COMPRESSOR = "23KA002 Gas Compressor"
+    SHAFT = "export_shaft"
+
+    @classmethod
+    def _compressor_equipment_ids(cls) -> dict[str, EquipmentId]:
+        return {
+            cls.FIRST_COMPRESSOR: CompressorEquipment(name=cls.FIRST_COMPRESSOR).get_id(),
+            cls.SECOND_COMPRESSOR: CompressorEquipment(name=cls.SECOND_COMPRESSOR).get_id(),
+        }
+
+    @classmethod
+    def _shafts(cls, compressor_equipment_ids: dict[str, EquipmentId]) -> dict[str, ShaftEquipment]:
+        return {
+            cls.SHAFT: ShaftEquipment(
+                name=cls.SHAFT,
+                compressor_equipment_ids=[
+                    compressor_equipment_ids[cls.FIRST_COMPRESSOR],
+                    compressor_equipment_ids[cls.SECOND_COMPRESSOR],
+                ],
+            )
+        }
+
+    @staticmethod
+    def _switch_event() -> TimelineEvent:
+        return TimelineEvent(
+            reference="switch_turbine",
+            title="Switch drive train input",
+            type=TimelineEventType.OTHER,
+            from_when=SECOND_YEAR.start,
+            description=None,
+        )
+
+    @staticmethod
+    def _network() -> YamlEnergyNetwork:
+        return YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [
+                    {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
+                ],
+                "UNITS": [
+                    {"NAME": "turbine_a", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
+                    {"NAME": "turbine_b", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
+                    {
+                        "TYPE": "DRIVE_TRAIN",
+                        "INPUT": "turbine_a",
+                        "SHAFT": "export_shaft",
+                        "INPUT_CHANGES": [{"INPUT": "turbine_b", "REF": "switch_turbine"}],
+                    },
+                ],
+            }
+        )
+
+    def test_both_compressors_on_the_shaft_switch_together(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        compressor_equipment_ids = self._compressor_equipment_ids()
+        service = TimelineEventService(timeline_events=[self._switch_event()])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        scheduled_network, factories, _ = energy_network_mapper_factory(
+            shafts=self._shafts(compressor_equipment_ids),
+            compressor_equipment_ids=compressor_equipment_ids,
+            timeline_event_service=service,
+        ).map_energy_network(self._network(), expression_evaluator)
+
+        (turbine_a,) = (factory for factory in factories if factory.get_name() == "turbine_a")
+        (turbine_b,) = (factory for factory in factories if factory.get_name() == "turbine_b")
+        compressor_nodes = [
+            node_id
+            for node_id in scheduled_network.active_connections_at(FIRST_YEAR)
+            if node_id in scheduled_network.active_connections_at(SECOND_YEAR)
+        ]
+        assert len(compressor_nodes) == 2
+
+        active_first_year = scheduled_network.active_connections_at(FIRST_YEAR)
+        active_second_year = scheduled_network.active_connections_at(SECOND_YEAR)
+
+        # Both compressors share the drive train's one InputSchedule: they must switch in lockstep.
+        assert {active_first_year[node_id] for node_id in compressor_nodes} == {turbine_a.get_id()}
+        assert {active_second_year[node_id] for node_id in compressor_nodes} == {turbine_b.get_id()}

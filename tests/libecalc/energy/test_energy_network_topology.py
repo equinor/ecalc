@@ -10,13 +10,15 @@ from libecalc.energy.energy_units import (
 # Units that draw energy need an incoming connection, which only exists once the topology does, so topology tests
 # identify nodes through factories instead.
 from libecalc.energy.errors import InvalidEnergyNetworkError
+from libecalc.energy.ids import EnergyUnitId
 
 
-def create_topology(units, connections):
+def create_topology(units, connections, exclusive_input_nodes=None):
     return EnergyNetworkTopology.create(
         node_input_types={unit.get_id(): unit.get_input_energy_type() for unit in units},
         node_output_types={unit.get_id(): unit.get_output_energy_type() for unit in units},
         connections=[(source.get_id(), target.get_id()) for source, target in connections],
+        exclusive_input_nodes=exclusive_input_nodes,
     )
 
 
@@ -79,8 +81,30 @@ class TestEnergyNetworkTopologyValidation:
         with pytest.raises(InvalidEnergyNetworkError, match="Duplicate energy connection ID"):
             EnergyNetworkTopology(nodes=[source.get_id(), load.get_id()], connections=[connection, connection])
 
+    def test_rejects_unknown_exclusive_input_node(self, energy_unit_factory_factory):
+        source = Source("source", output_energy=ElectricalPower(0))
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
+        unknown_node = EnergyUnitId(Source._create_id())
+
+        with pytest.raises(InvalidEnergyNetworkError, match="Exclusive input node is unknown"):
+            create_topology([source, load], [(source, load)], exclusive_input_nodes=[unknown_node])
+
+    def test_rejects_exclusive_input_node_without_predecessors(self, energy_unit_factory_factory):
+        source = Source("source", output_energy=ElectricalPower(0))
+
+        with pytest.raises(InvalidEnergyNetworkError, match="has no predecessors to choose from"):
+            create_topology([source], [], exclusive_input_nodes=[source.get_id()])
+
 
 class TestEnergyNetworkTopology:
+    def test_exposes_exclusive_input_nodes(self, energy_unit_factory_factory):
+        source = Source("source", output_energy=ElectricalPower(0))
+        load = energy_unit_factory_factory(Consumer, "load", input_energy_type=ElectricalPower)
+
+        topology = create_topology([source, load], [(source, load)], exclusive_input_nodes=[load.get_id()])
+
+        assert topology.get_exclusive_input_nodes() == frozenset({load.get_id()})
+
     def test_exposes_typed_connections_in_topological_order(self, energy_unit_factory_factory):
         source = Source("source", output_energy=ElectricalPower(0))
         cable = energy_unit_factory_factory(ElectricalCable, "cable")

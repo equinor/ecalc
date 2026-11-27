@@ -9,7 +9,9 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.resource import Resource
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
+from libecalc.ecalc_model.input_schedule import InputSchedule
 from libecalc.ecalc_model.model_event import EnergyUnitEventChangeType, EnergyUnitModelEvent
+from libecalc.ecalc_model.scheduled_energy_network import ScheduledEnergyNetwork
 from libecalc.ecalc_model.timeline_event import TimelineEventService
 from libecalc.energy.dispatch import DispatchStrategy, PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
@@ -120,11 +122,12 @@ class EnergyNetworkMapper:
         expression_evaluator: ExpressionEvaluator,
         resources: Mapping[str, Resource] | None = None,
     ) -> tuple[
-        EnergyNetworkTopology,
+        ScheduledEnergyNetwork,
         Sequence[TimeSeriesEnergyUnitFactory],
         Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor | TimeSeriesCompressorSampled],
     ]:
-        """Return topology, node factories (including junctions), and consumers.
+        """Return the scheduled network (topology + input schedules), node factories (including junctions), and
+        consumers.
 
         References may point to units declared later.
         """
@@ -136,6 +139,7 @@ class EnergyNetworkMapper:
 
         mapped_nodes: list[tuple[TimeSeriesEnergyUnit, type[Energy] | None, type[Energy] | None]] = []
         connections: list[tuple[EnergyUnitId, EnergyUnitId]] = []
+        schedules: dict[EnergyUnitId, InputSchedule] = {}
 
         for source in yaml_energy_network.sources:
             node, input_type, output_type = self._map_source(
@@ -149,7 +153,9 @@ class EnergyNetworkMapper:
                 mapped_nodes.append((node, node.get_input_energy_type(), None))
                 connections.append((node_ids_by_name[unit.input], node.get_id()))
             elif isinstance(unit, YamlDriveTrain):
-                input_id = node_ids_by_name[unit.input]
+                drive_train_schedule = (
+                    self._build_input_schedule(unit, node_ids_by_name) if unit.input_changes else None
+                )
                 mechanical_efficiencies = {
                     entry.compressor: self._time_series(entry.efficiency, expression_evaluator)
                     for entry in unit.mechanical_efficiencies
@@ -163,7 +169,11 @@ class EnergyNetworkMapper:
                         mechanical_efficiency=mechanical_efficiencies.get(compressor_name),
                     )
                     mapped_nodes.append((node, MechanicalPower, None))
-                    connections.append((input_id, node.get_id()))
+                    connections.extend(
+                        (node_ids_by_name[input_name], node.get_id()) for input_name in get_input_names(unit)
+                    )
+                    if drive_train_schedule is not None:
+                        schedules[node.get_id()] = drive_train_schedule
             else:
                 node_id = node_ids_by_name.get(unit.name) or EnergyUnitId(ecalc_id_generator())
                 node, input_type, output_type = self._map_unit(
@@ -177,6 +187,14 @@ class EnergyNetworkMapper:
                 )
                 mapped_nodes.append((node, input_type, output_type))
                 connections.extend((node_ids_by_name[input_name], node_id) for input_name in get_input_names(unit))
+                if (
+                    isinstance(
+                        unit,
+                        YamlElectricalMotor | YamlElectricalCable | YamlElectricalConsumer | YamlMechanicalConsumer,
+                    )
+                    and unit.input_changes
+                ):
+                    schedules[node_id] = self._build_input_schedule(unit, node_ids_by_name)
 
         self._check_no_duplicate_generated_names(mapped_nodes)
 
@@ -184,6 +202,7 @@ class EnergyNetworkMapper:
             node_input_types={node.get_id(): input_type for node, input_type, _ in mapped_nodes},
             node_output_types={node.get_id(): output_type for node, _, output_type in mapped_nodes},
             connections=connections,
+            exclusive_input_nodes=schedules.keys(),
         )
 
         energy_unit_factories = [node for node, _, _ in mapped_nodes if isinstance(node, TimeSeriesEnergyUnitFactory)]
@@ -192,7 +211,7 @@ class EnergyNetworkMapper:
             for node, _, _ in mapped_nodes
             if isinstance(node, TimeSeriesConsumer | TimeSeriesProcessCompressor | TimeSeriesCompressorSampled)
         ]
-        return topology, energy_unit_factories, consumers
+        return ScheduledEnergyNetwork(topology=topology, schedules=schedules), energy_unit_factories, consumers
 
     def _map_compressor_sampled(
         self,
@@ -522,6 +541,35 @@ class EnergyNetworkMapper:
                     demand=self._rate_demand(unit.name, unit.rate, DieselRate, resources, expression_evaluator),
                 )
                 return consumer, consumer.get_input_energy_type(), None
+
+    def _build_input_schedule(
+        self,
+        unit: YamlElectricalMotor
+        | YamlElectricalCable
+        | YamlElectricalConsumer
+        | YamlDriveTrain
+        | YamlMechanicalConsumer,
+        node_ids_by_name: Mapping[str, EnergyUnitId],
+    ) -> InputSchedule:
+        """Build the `InputSchedule` selecting which of `unit`'s candidate inputs (already wired in directly by
+        `get_input_names`) is active, as a function of time. The energy network graph stays static; only which
+        candidate is active for a given period varies.
+        """
+        unit_name = unit.shaft if isinstance(unit, YamlDriveTrain) else unit.name
+        changes = sorted(
+            (
+                (
+                    self._timeline_event_service.get_event_by_reference(change.ref).from_when,
+                    node_ids_by_name[change.input],
+                )
+                for change in unit.input_changes
+            ),
+            key=lambda change: change[0],
+        )
+        try:
+            return InputSchedule(initial=node_ids_by_name[unit.input], changes=tuple(changes))
+        except InvalidEnergyNetworkInputError as e:
+            raise InvalidEnergyNetworkInputError(f"'{unit_name}': {e.message}") from e
 
     def _map_junction_inputs(
         self,

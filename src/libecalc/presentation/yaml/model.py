@@ -44,9 +44,9 @@ from libecalc.ecalc_model.process.process_pipeline import ProcessPipeline
 from libecalc.ecalc_model.process.pump.pump_pipeline import PumpPipeline
 from libecalc.ecalc_model.process.pump.pump_simulation import PumpSimulation
 from libecalc.ecalc_model.process_simulation import ProcessSimulation
+from libecalc.ecalc_model.scheduled_energy_network import ScheduledEnergyNetwork
 from libecalc.ecalc_model.timeline_event import TimelineEvent, TimelineEventService
 from libecalc.ecalc_model.timeline_phase import TimelinePhase
-from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.errors import EnergyDomainError
 from libecalc.expression.extract_expressions import extract_expression_references
 from libecalc.presentation.yaml.definition_expander import DefinitionReferenceError, expand_definitions
@@ -381,7 +381,7 @@ class YamlModel:
     def get_energy_network(
         self,
     ) -> tuple[
-        EnergyNetworkTopology | None,
+        ScheduledEnergyNetwork | None,
         Sequence[TimeSeriesEnergyUnitFactory],
         Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor | TimeSeriesCompressorSampled],
         list[Period],
@@ -410,13 +410,13 @@ class YamlModel:
         )
         facility_resources, _ = self._resource_service.get_facility_resources()
         try:
-            topology, energy_unit_factories, consumers = EnergyNetworkMapper(
+            scheduled_network, energy_unit_factories, consumers = EnergyNetworkMapper(
                 shafts=self._shafts,
                 compressor_equipment_ids=self._get_compressor_equipment_ids(),
                 definitions=self._get_definitions(),
                 timeline_event_service=self._get_timeline_event_service(),
             ).map_energy_network(yaml_energy_network, expression_evaluator, resources=facility_resources)
-            return topology, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
+            return scheduled_network, energy_unit_factories, consumers, expression_evaluator.get_periods().periods
         except ResourceValidationException as e:
             raise ModelValidationException(
                 errors=[

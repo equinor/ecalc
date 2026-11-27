@@ -148,6 +148,40 @@ YamlModelChangeReference = Annotated[
 ]
 
 
+class YamlInputChange(YamlBase):
+    """A dated change of what feeds this unit. The unit stays the same unit in the energy network; only its INPUT
+    changes, to a new source or unit of the same energy type."""
+
+    model_config = ConfigDict(
+        title="InputChange",
+        json_schema_extra={
+            "examples": [{"INPUT": "power_from_shore", "REF": "pfs_start"}],
+        },
+    )
+
+    input: Annotated[
+        str,
+        Field(
+            title="INPUT",
+            description="Source or unit to receive energy from, from the event date on. Must provide the same "
+            "energy type as the input active immediately before it.",
+        ),
+    ]
+    ref: YamlModelChangeReference
+
+
+# Only units whose behaviour doesn't depend on which input they have (no per-input model, e.g. fuel heating value)
+# support INPUT_CHANGES. Shared as a type alias, not a base class field, to keep each unit's field list explicit.
+YamlInputChanges = Annotated[
+    list[YamlInputChange],
+    Field(
+        title="INPUT_CHANGES",
+        description="Dated changes to what feeds this unit. Each change takes effect from the date of its "
+        "referenced TIMELINE.EVENTS entry.",
+    ),
+]
+
+
 class YamlGeneratorModelChange(YamlBase):
     """A dated change of the generator set's model. The generator set stays the same unit in the energy network;
     only the model used to convert power to fuel changes."""
@@ -292,6 +326,7 @@ class YamlElectricalMotor(YamlConverterBase):
             description="Conversion efficiency (0–1]. Defaults to 0.95 if omitted.",
         ),
     ] = None
+    input_changes: YamlInputChanges = []
 
     @field_validator("efficiency", mode="after")
     @classmethod
@@ -311,6 +346,7 @@ class YamlElectricalCable(YamlConverterBase):
             description="Transmission efficiency (0–1]. 1.0 means no loss. Defaults to 1.0 if omitted.",
         ),
     ] = None
+    input_changes: YamlInputChanges = []
 
     @field_validator("efficiency", mode="after")
     @classmethod
@@ -553,6 +589,7 @@ class YamlElectricalConsumer(YamlConsumerBase):
             description="Electrical power demand (MW), as an expression or a curve lookup.",
         ),
     ]
+    input_changes: YamlInputChanges = []
 
     @field_validator("load", mode="after")
     @classmethod
@@ -573,6 +610,7 @@ class YamlMechanicalConsumer(YamlConsumerBase):
             description="Shaft power demand (MW), as an expression or a curve lookup.",
         ),
     ]
+    input_changes: YamlInputChanges = []
 
     @field_validator("load", mode="after")
     @classmethod
@@ -619,6 +657,7 @@ class YamlDriveTrain(YamlBase):
             description="Source or component this receives energy from.",
         ),
     ]
+    input_changes: YamlInputChanges = []
     shaft: Annotated[
         ShaftReference,
         Field(
@@ -900,9 +939,14 @@ def get_unit_label(component: YamlComponent) -> str:
 
 
 def get_input_names(component: YamlComponent) -> list[str]:
-    """Return input names in declared order."""
+    """Return input names in first-occurrence order, deduplicated to support switching back to an earlier candidate (A -> B -> A)."""
     if isinstance(component, YamlJunctionBase):
         return [junction_input.name for junction_input in component.get_inputs()]
+    if isinstance(
+        component,
+        YamlElectricalMotor | YamlElectricalCable | YamlElectricalConsumer | YamlDriveTrain | YamlMechanicalConsumer,
+    ):
+        return list(dict.fromkeys([component.input, *(change.input for change in component.input_changes)]))
     return [component.input]
 
 

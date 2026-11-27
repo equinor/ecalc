@@ -28,6 +28,7 @@ class EnergyNetworkTopology:
         nodes: Sequence[EnergyUnitId],
         connections: Iterable[EnergyConnection],
         energy_network_id: UUID | None = None,
+        exclusive_input_nodes: Iterable[EnergyUnitId] | None = None,
     ):
         self._nodes: list[EnergyUnitId] = []
 
@@ -50,6 +51,8 @@ class EnergyNetworkTopology:
         self._add_connections(connections)
         self._topological_order = self._create_topological_order()
         self._id = energy_network_id or EnergyNetworkTopology._create_id()
+        self._exclusive_input_nodes: frozenset[EnergyUnitId] = frozenset(exclusive_input_nodes or ())
+        self._validate_exclusive_input_nodes()
 
     @classmethod
     def _create_id(cls: type[Self]) -> EnergyNetworkId:
@@ -62,6 +65,7 @@ class EnergyNetworkTopology:
         node_output_types: dict[EnergyUnitId, type[Energy] | None],
         connections: Iterable[tuple[EnergyUnitId, EnergyUnitId]],
         energy_network_id: UUID | None = None,
+        exclusive_input_nodes: Iterable[EnergyUnitId] | None = None,
     ) -> Self:
         """Create a network after deriving and validating each connection's energy type."""
         if node_input_types.keys() != node_output_types.keys():
@@ -104,7 +108,10 @@ class EnergyNetworkTopology:
                 )
 
         return cls(
-            nodes=list(node_input_types.keys()), connections=connection_list, energy_network_id=energy_network_id
+            nodes=list(node_input_types.keys()),
+            connections=connection_list,
+            energy_network_id=energy_network_id,
+            exclusive_input_nodes=exclusive_input_nodes,
         )
 
     def get_id(self) -> UUID:
@@ -143,6 +150,10 @@ class EnergyNetworkTopology:
     ) -> tuple[EnergyUnitId, ...]:
         return self._topological_order
 
+    def get_exclusive_input_nodes(self) -> frozenset[EnergyUnitId]:
+        """Nodes that take exactly one active predecessor at a time, chosen externally (e.g. via a schedule)."""
+        return self._exclusive_input_nodes
+
     # Private topology construction and validation
     def _add_connections(
         self,
@@ -180,6 +191,13 @@ class EnergyNetworkTopology:
             return tuple(TopologicalSorter(self._predecessors).static_order())
         except CycleError as error:
             raise InvalidEnergyNetworkError("Energy network cannot be cyclic") from error
+
+    def _validate_exclusive_input_nodes(self) -> None:
+        for node_id in self._exclusive_input_nodes:
+            if node_id not in self._nodes:
+                raise InvalidEnergyNetworkError(f"Exclusive input node is unknown: {node_id}")
+            if not self._predecessors[node_id]:
+                raise InvalidEnergyNetworkError(f"Exclusive input node {node_id} has no predecessors to choose from")
 
     def get_outgoing_connections(self, node_id: EnergyUnitId) -> tuple[EnergyConnection, ...]:
         return tuple(self._connections[node_id, successor_id] for successor_id in self._successors[node_id])
