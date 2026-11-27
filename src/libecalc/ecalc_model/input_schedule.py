@@ -2,6 +2,7 @@ from datetime import datetime
 
 from libecalc.common.ddd import value_object
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.model_event import latest_value_at
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
 
@@ -35,10 +36,4 @@ class InputSchedule:
         return frozenset((self.initial, *(candidate_id for _, candidate_id in self.changes)))
 
     def active_at(self, period: Period) -> EnergyUnitId:
-        active = self.initial
-        for change_time, candidate_id in self.changes:
-            if change_time <= period.start:
-                active = candidate_id
-            else:
-                break
-        return active
+        return latest_value_at(self.initial, self.changes, period.start)

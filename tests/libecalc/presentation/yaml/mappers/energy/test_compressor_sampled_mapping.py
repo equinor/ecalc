@@ -153,13 +153,14 @@ class TestMapper:
         mechanical_power,
     ):
         evaluator = expression_evaluator_factory.from_periods(periods=[period])
-        topology, factories, consumers = energy_network_mapper_factory(
+        scheduled_network, factories, consumers = energy_network_mapper_factory(
             compressor_equipment_ids=COMPRESSOR_EQUIPMENT_IDS
         ).map_energy_network(
             _network(compressor_input),
             evaluator,
             resources={"compressor.csv": make_resource(RATE=rates, MECHANICAL_POWER=mechanical_power)},
         )
+        topology = scheduled_network.topology
 
         (compressor,) = consumers
         assert isinstance(compressor, TimeSeriesCompressorSampled)
@@ -247,9 +248,10 @@ class TestEndToEnd:
         model = _yaml_model(
             yaml_model_factory, {"compressor.csv": make_resource(RATE=rates, MECHANICAL_POWER=mechanical_power)}
         )
-        topology, factories, consumers, _periods = model.get_energy_network()
+        scheduled_network, factories, consumers, _periods = model.get_energy_network()
 
-        assert topology is not None
+        assert scheduled_network is not None
+        topology = scheduled_network.topology
         assert len(topology.get_nodes()) == 3
         assert len(topology.get_connections()) == 2
         assert [f.get_name() for f in factories] == ["fuel", "turbine"]

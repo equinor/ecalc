@@ -9,14 +9,15 @@ from libecalc.common.variables import ExpressionEvaluator
 from libecalc.domain.resource import Resource
 from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
 from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
+from libecalc.ecalc_model.input_schedule import InputSchedule
 from libecalc.ecalc_model.model_event import EnergyUnitEventChangeType, EnergyUnitModelEvent
+from libecalc.ecalc_model.scheduled_energy_network import ScheduledEnergyNetwork
 from libecalc.ecalc_model.timeline_event import TimelineEventService
 from libecalc.energy.dispatch import DispatchStrategy, PriorityDispatch
 from libecalc.energy.energy_network_topology import EnergyNetworkTopology
 from libecalc.energy.energy_types import DieselRate, ElectricalPower, Energy, FuelGasRate, MechanicalPower
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
-from libecalc.energy.input_schedule import InputSchedule
 from libecalc.energy.models.combustion_engine_fuel_model import (
     CombustionEngineFuelModel,
     DieselEngineFuelModel,
@@ -121,11 +122,12 @@ class EnergyNetworkMapper:
         expression_evaluator: ExpressionEvaluator,
         resources: Mapping[str, Resource] | None = None,
     ) -> tuple[
-        EnergyNetworkTopology,
+        ScheduledEnergyNetwork,
         Sequence[TimeSeriesEnergyUnitFactory],
         Sequence[TimeSeriesConsumer | TimeSeriesProcessCompressor | TimeSeriesCompressorSampled],
     ]:
-        """Return topology, node factories (including junctions), and consumers.
+        """Return the scheduled network (topology + input schedules), node factories (including junctions), and
+        consumers.
 
         References may point to units declared later.
         """
@@ -200,7 +202,7 @@ class EnergyNetworkMapper:
             node_input_types={node.get_id(): input_type for node, input_type, _ in mapped_nodes},
             node_output_types={node.get_id(): output_type for node, _, output_type in mapped_nodes},
             connections=connections,
-            schedules=schedules,
+            exclusive_input_nodes=schedules.keys(),
         )
 
         energy_unit_factories = [node for node, _, _ in mapped_nodes if isinstance(node, TimeSeriesEnergyUnitFactory)]
@@ -209,7 +211,7 @@ class EnergyNetworkMapper:
             for node, _, _ in mapped_nodes
             if isinstance(node, TimeSeriesConsumer | TimeSeriesProcessCompressor | TimeSeriesCompressorSampled)
         ]
-        return topology, energy_unit_factories, consumers
+        return ScheduledEnergyNetwork(topology=topology, schedules=schedules), energy_unit_factories, consumers
 
     def _map_compressor_sampled(
         self,

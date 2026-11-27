@@ -1,10 +1,9 @@
 import abc
 import operator
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from functools import reduce
 from typing import Any
 
-from libecalc.common.time_utils import Period
 from libecalc.energy import Energy, EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_network import EnergyNetwork
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId, EnergyNetworkTopology
@@ -47,30 +46,33 @@ class EnergyNetworkSimulation:
             self._energy_unit_factories[energy_unit_id] = energy_unit_factory
 
         assert self._energy_unit_factories.keys() <= set(self._topology.get_nodes())
+        exclusive_input_nodes = self._topology.get_exclusive_input_nodes()
         for node_id in self._topology.get_nodes():
             if node_id not in self._energy_unit_factories:
                 assert not self._topology.get_successors(node_id), "Missing factory for a supplying node"
-                has_schedule = self._topology.get_schedule(node_id) is not None
-                assert has_schedule or len(self._topology.get_predecessors(node_id)) <= 1, (
+                is_exclusive = node_id in exclusive_input_nodes
+                assert is_exclusive or len(self._topology.get_predecessors(node_id)) <= 1, (
                     "A consumer cannot split its demand"
                 )
 
     def run(
         self,
         connection_demands: dict[EnergyConnectionId, Energy],
+        active_connections: Mapping[EnergyUnitId, EnergyUnitId] | None = None,
         **extra: Any,
     ) -> EnergyNetwork:
         """Calculate connection energies and capacity failures from demands on consumer-targeting connections.
 
-        `extra` is forwarded to every factory, for example to select the evaluation period. A `period` is
-        required whenever any node has a dated input schedule, to resolve which incoming connection is active.
+        `extra` is forwarded to every factory, for example to select the evaluation period. `active_connections`
+        must have exactly one entry per exclusive-input node, naming which predecessor is active.
         """
-        period: Period | None = extra.get("period")
-        self._validate_connection_demands(connection_demands, period)
+        active_connections = active_connections or {}
+        self._validate_active_connections(active_connections)
+        self._validate_connection_demands(connection_demands, active_connections)
 
         energy_units: dict[EnergyUnitId, EnergyUnit] = {}
         connection_energy: dict[EnergyConnectionId, Energy] = dict(connection_demands)
-        self._zero_inactive_candidates(period, connection_energy)
+        self._zero_inactive_candidates(active_connections, connection_energy)
 
         for node_id in reversed(self._topology.get_topological_order()):
             outgoing_connections = self._topology.get_outgoing_connections(node_id)
@@ -79,7 +81,7 @@ class EnergyNetworkSimulation:
                 continue
 
             demand = reduce(operator.add, [connection_energy[connection.id] for connection in outgoing_connections])
-            incoming_connections = self._incoming_connections_for(node_id, period)
+            incoming_connections = self._incoming_connections_for(node_id, active_connections)
 
             energy_unit = self._energy_unit_factories[node_id].create(
                 demand,
@@ -99,46 +101,63 @@ class EnergyNetworkSimulation:
             connection_energy=connection_energy,
         )
 
-    def _incoming_connections_for(self, node_id: EnergyUnitId, period: Period | None) -> tuple[EnergyConnection, ...]:
-        """A node's incoming connections, restricted to the single active one when the node has a schedule."""
-        schedule = self._topology.get_schedule(node_id)
-        if schedule is None:
+    def _incoming_connections_for(
+        self, node_id: EnergyUnitId, active_connections: Mapping[EnergyUnitId, EnergyUnitId]
+    ) -> tuple[EnergyConnection, ...]:
+        """A node's incoming connections, restricted to the single active one for exclusive-input nodes."""
+        if node_id not in self._topology.get_exclusive_input_nodes():
             return self._topology.get_incoming_connections(node_id)
-        return (self._topology.get_active_incoming_connection(node_id, self._required_period(period, node_id)),)
-
-    def _required_period(self, period: Period | None, node_id: EnergyUnitId) -> Period:
-        if period is None:
-            raise InvalidEnergyNetworkInputError(
-                f"Energy unit {node_id} has a dated input schedule; `period` is required to resolve it"
-            )
-        return period
+        active_candidate_id = active_connections[node_id]
+        return (self._topology.get_connection(active_candidate_id, node_id),)
 
     def _zero_inactive_candidates(
         self,
-        period: Period | None,
+        active_connections: Mapping[EnergyUnitId, EnergyUnitId],
         connection_energy: dict[EnergyConnectionId, Energy],
     ) -> None:
-        """Give every non-active candidate connection of a scheduled node zero energy, so upstream nodes that
-        only supply an inactive candidate still have a connection energy to look up."""
-        for node_id in self._topology.get_nodes():
-            schedule = self._topology.get_schedule(node_id)
-            if schedule is None:
-                continue
-            active_connection = self._topology.get_active_incoming_connection(
-                node_id, self._required_period(period, node_id)
-            )
+        """Give every non-active candidate connection of an exclusive-input node zero energy, so upstream nodes
+        that only supply an inactive candidate still have a connection energy to look up."""
+        for node_id, active_candidate_id in active_connections.items():
+            active_connection = self._topology.get_connection(active_candidate_id, node_id)
             for connection in self._topology.get_incoming_connections(node_id):
                 if connection.id != active_connection.id:
                     connection_energy.setdefault(connection.id, connection.energy_type(value=0))
 
+    def _validate_active_connections(self, active_connections: Mapping[EnergyUnitId, EnergyUnitId]) -> None:
+        exclusive_input_nodes = self._topology.get_exclusive_input_nodes()
+        provided_ids = set(active_connections)
+
+        missing_ids = exclusive_input_nodes - provided_ids
+        if missing_ids:
+            raise InvalidEnergyNetworkInputError(
+                f"Missing active connections for exclusive-input energy units: "
+                f"{', '.join(self._format_energy_unit_reference(node_id) for node_id in sorted(missing_ids, key=str))}"
+            )
+
+        unexpected_ids = provided_ids - exclusive_input_nodes
+        if unexpected_ids:
+            raise InvalidEnergyNetworkInputError(
+                f"Unexpected active connections for energy units that do not have exclusive input: "
+                f"{', '.join(self._format_energy_unit_reference(node_id) for node_id in sorted(unexpected_ids, key=str))}"
+            )
+
+        for node_id, active_candidate_id in active_connections.items():
+            if active_candidate_id not in self._topology.get_predecessors(node_id):
+                raise InvalidEnergyNetworkInputError(
+                    f"Active connection for {self._format_energy_unit_reference(node_id)} names "
+                    f"{self._format_energy_unit_reference(active_candidate_id)}, which is not a predecessor"
+                )
+
     def _validate_connection_demands(
         self,
         connection_demands: dict[EnergyConnectionId, Energy],
-        period: Period | None,
+        active_connections: Mapping[EnergyUnitId, EnergyUnitId],
     ) -> None:
         consumer_ids = self._topology.get_leaf_nodes()
         consumer_connection_ids = {
-            connection.id for node_id in consumer_ids for connection in self._incoming_connections_for(node_id, period)
+            connection.id
+            for node_id in consumer_ids
+            for connection in self._incoming_connections_for(node_id, active_connections)
         }
         self._validate_connection_ids(
             provided_ids=set(connection_demands),

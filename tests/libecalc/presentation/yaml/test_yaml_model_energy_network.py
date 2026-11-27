@@ -49,9 +49,10 @@ def test_input_capacity_reads_a_time_series_referenced_only_by_the_junction(yaml
         nextgen=True,
     )
 
-    topology, energy_unit_factories, consumers, _periods = model.get_energy_network()
+    scheduled_network, energy_unit_factories, consumers, _periods = model.get_energy_network()
 
-    assert topology is not None
+    assert scheduled_network is not None
+    topology = scheduled_network.topology
     simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=energy_unit_factories)
     (load,) = consumers
     assert load.demand.expression is not None
@@ -113,7 +114,8 @@ def latest_network_data_factory(yaml_asset_builder_factory):
 
 
 def _run_turbine_per_period(model):
-    topology, factories, consumers, _ = model.get_energy_network()
+    scheduled_network, factories, consumers, _ = model.get_energy_network()
+    topology = scheduled_network.topology
     simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=factories)
     (load,) = consumers
     (load_connection,) = topology.get_incoming_connections(load.get_id())
@@ -385,7 +387,8 @@ def _generator_set_model_data(model, definitions, base_data_factory, load=7.0, c
 
 
 def _run_generator_set_per_period(model):
-    topology, factories, consumers, _ = model.get_energy_network()
+    scheduled_network, factories, consumers, _ = model.get_energy_network()
+    topology = scheduled_network.topology
     simulation = EnergyNetworkSimulation(topology=topology, energy_unit_factories=factories)
     (load,) = consumers
     (load_connection,) = topology.get_incoming_connections(load.get_id())

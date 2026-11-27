@@ -54,7 +54,15 @@ def active_model[ModelT](
     initial_model: ModelT, model_events: Sequence[EnergyUnitModelEvent[ModelT]], at: datetime
 ) -> ModelT:
     """The model in use at ``at``: the latest event that has started, otherwise the initial model."""
-    started_events = [event for event in model_events if event.change_time <= at]
-    if not started_events:
-        return initial_model
-    return max(started_events, key=lambda event: event.change_time).change_to
+    return latest_value_at(initial_model, [(event.change_time, event.change_to) for event in model_events], at)
+
+
+def latest_value_at[T](initial: T, changes: Sequence[tuple[datetime, T]], at: datetime) -> T:
+    """The value in effect at ``at``, given a dated sequence of changes: the latest-started change, or
+    ``initial`` if none has started yet. Shared by model-switch events (`active_model`) and energy-unit
+    input-schedule switches (`libecalc.ecalc_model.input_schedule.InputSchedule.active_at`).
+    """
+    started = [(change_time, value) for change_time, value in changes if change_time <= at]
+    if not started:
+        return initial
+    return max(started, key=lambda item: item[0])[1]

@@ -4,9 +4,9 @@ from uuid import UUID
 import pytest
 
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.input_schedule import InputSchedule
 from libecalc.energy.energy_unit import EnergyUnitId
 from libecalc.energy.errors import InvalidEnergyNetworkInputError
-from libecalc.energy.input_schedule import InputSchedule
 
 FIRST_CANDIDATE = EnergyUnitId(UUID(int=1))
 SECOND_CANDIDATE = EnergyUnitId(UUID(int=2))
