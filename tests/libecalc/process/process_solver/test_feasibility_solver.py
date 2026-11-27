@@ -1,10 +1,12 @@
+from collections.abc import Sequence
+
 import pytest
 
 from libecalc.common.units import Unit
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.process.chart import ChartCurve
 from libecalc.process.process_pipeline.process_pipeline import ProcessPipelineId
-from libecalc.process.process_pipeline.process_unit import ProcessUnitId
+from libecalc.process.process_pipeline.process_unit import ProcessUnit, ProcessUnitId
 from libecalc.process.process_solver.feasibility_solver import FeasibilitySolver
 from libecalc.process.process_solver.float_constraint import FloatConstraint
 from libecalc.process.process_solver.multi_pressure_solver import MultiPressureSolver
@@ -12,6 +14,7 @@ from libecalc.process.process_solver.pipeline_section import Pipeline
 from libecalc.process.process_solver.pipeline_section_solver import PipelineSectionSolver
 from libecalc.process.process_solver.pipeline_solver_factory import create_pipeline_solver
 from libecalc.process.process_units.compressor import Compressor
+from libecalc.process.process_units.splitter import Splitter
 from libecalc.process.shaft import VariableSpeedShaft
 from libecalc.process.stream_distribution.stream_distribution_item import StreamDistributionItem
 from libecalc.testing.chart_data_factory import ChartDataFactory
@@ -181,11 +184,12 @@ def feasibility_solver_setup(
       - too low:  min achievable outlet pressure (max recirculation) > target
     """
 
-    def _create(compressor: Compressor) -> FeasibilitySolver:
+    def _create(compressor: Compressor, upstream_units: Sequence[ProcessUnit] = ()) -> FeasibilitySolver:
+        """upstream_units are placed before the compressor, e.g. a splitter taking out gas before compression."""
         shaft = VariableSpeedShaft()
         shaft.connect(compressor)
 
-        process_units, loops = with_individual_asv([compressor])
+        process_units, loops = with_individual_asv([*upstream_units, compressor])
         loop_ids = [loop.get_id() for loop in loops]
         runner = process_runner_factory(
             units=process_units,
@@ -242,6 +246,49 @@ class TestRateAxisLowHead:
         solver = feasibility_solver_setup(compressor)
         inlet = stream_factory(standard_rate_m3_per_day=_LOW_HEAD_OUTSIDE, pressure_bara=30.0)
         assert solver.get_excess_rate(inlet, [FloatConstraint(_LOW_HEAD_TARGET)]) > 0.0
+
+
+class TestSplitterOfftake:
+    """A splitter before the compressor takes out a fixed rate. The compressor only gets the rest."""
+
+    _OFFTAKE_RATE = 5_500_000.0
+    _RATE_TO_COMPRESSOR = _LOW_HEAD_OUTSIDE  # more than the compressor can handle
+    _INLET_RATE = _OFFTAKE_RATE + _RATE_TO_COMPRESSOR
+
+    def test_offtake_is_not_counted_as_excess(
+        self, feasibility_solver_setup, compressor, compressor_factory, compressor_chart, fluid_service, stream_factory
+    ):
+        """The compressor gets the same rate in both cases, so the excess must be the same."""
+
+        pressure_targets = [FloatConstraint(_LOW_HEAD_TARGET)]
+
+        # Pipeline: splitter -> compressor
+        splitter = Splitter(fluid_service=fluid_service, rate=self._OFFTAKE_RATE)
+        solver_splitter_and_compressor = feasibility_solver_setup(compressor, upstream_units=[splitter])
+        excess_splitter_and_compressor = solver_splitter_and_compressor.get_excess_rate(
+            stream_factory(standard_rate_m3_per_day=self._INLET_RATE, pressure_bara=30.0), pressure_targets
+        )
+
+        # Pipeline: compressor (no splitter, but same rate to compressor)
+        solver_compressor_only = feasibility_solver_setup(compressor_factory(compressor_chart))
+        excess_compressor_only = solver_compressor_only.get_excess_rate(
+            stream_factory(standard_rate_m3_per_day=self._RATE_TO_COMPRESSOR, pressure_bara=30.0), pressure_targets
+        )
+
+        assert excess_compressor_only > 0.0  # rate above compressor capacity, otherwise the rate search is skipped
+        assert excess_splitter_and_compressor == pytest.approx(excess_compressor_only, rel=1e-2)
+
+    def test_inlet_below_offtake_gives_full_excess(
+        self, feasibility_solver_setup, compressor, fluid_service, stream_factory
+    ):
+        """Inlet rate below the offtake rate is infeasible at any rate → excess = full rate."""
+        splitter = Splitter(fluid_service=fluid_service, rate=self._OFFTAKE_RATE)
+        splitter_then_compressor = feasibility_solver_setup(compressor, upstream_units=[splitter])
+        inlet_stream = stream_factory(standard_rate_m3_per_day=self._OFFTAKE_RATE / 2, pressure_bara=30.0)
+
+        excess_rate = splitter_then_compressor.get_excess_rate(inlet_stream, [FloatConstraint(_LOW_HEAD_TARGET)])
+
+        assert excess_rate == pytest.approx(inlet_stream.standard_rate_sm3_per_day, rel=1e-6)
 
 
 class TestRateAxisHighHead:
