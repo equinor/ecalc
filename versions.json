@@ -1,0 +1,31 @@
+{
+  "latest": "v15.9",
+  "next": "/ecalc/next/",
+  "versions": [
+    {
+      "name": "v15.9",
+      "release": "v15.9.0",
+      "path": "/ecalc/v15.9/"
+    },
+    {
+      "name": "v15.8",
+      "release": "v15.8.0",
+      "path": "/ecalc/v15.8/"
+    },
+    {
+      "name": "v15.7",
+      "release": "v15.7.0",
+      "path": "/ecalc/v15.7/"
+    },
+    {
+      "name": "v15.6",
+      "release": "v15.6.0",
+      "path": "/ecalc/v15.6/"
+    },
+    {
+      "name": "v15.5",
+      "release": "v15.5.0",
+      "path": "/ecalc/v15.5/"
+    }
+  ]
+}
