@@ -4,6 +4,7 @@ from collections.abc import Iterable, Sequence
 from functools import reduce
 from typing import Any
 
+from libecalc.common.time_utils import Period
 from libecalc.energy import Energy, EnergyUnit, EnergyUnitId
 from libecalc.energy.energy_network import EnergyNetwork
 from libecalc.energy.energy_network_topology import EnergyConnection, EnergyConnectionId, EnergyNetworkTopology
@@ -49,7 +50,10 @@ class EnergyNetworkSimulation:
         for node_id in self._topology.get_nodes():
             if node_id not in self._energy_unit_factories:
                 assert not self._topology.get_successors(node_id), "Missing factory for a supplying node"
-                assert len(self._topology.get_predecessors(node_id)) <= 1, "A consumer cannot split its demand"
+                has_schedule = self._topology.get_schedule(node_id) is not None
+                assert has_schedule or len(self._topology.get_predecessors(node_id)) <= 1, (
+                    "A consumer cannot split its demand"
+                )
 
     def run(
         self,
@@ -58,12 +62,15 @@ class EnergyNetworkSimulation:
     ) -> EnergyNetwork:
         """Calculate connection energies and capacity failures from demands on consumer-targeting connections.
 
-        `extra` is forwarded to every factory, for example to select the evaluation period.
+        `extra` is forwarded to every factory, for example to select the evaluation period. A `period` is
+        required whenever any node has a dated input schedule, to resolve which incoming connection is active.
         """
-        self._validate_connection_demands(connection_demands)
+        period: Period | None = extra.get("period")
+        self._validate_connection_demands(connection_demands, period)
 
         energy_units: dict[EnergyUnitId, EnergyUnit] = {}
         connection_energy: dict[EnergyConnectionId, Energy] = dict(connection_demands)
+        self._zero_inactive_candidates(period, connection_energy)
 
         for node_id in reversed(self._topology.get_topological_order()):
             outgoing_connections = self._topology.get_outgoing_connections(node_id)
@@ -72,7 +79,7 @@ class EnergyNetworkSimulation:
                 continue
 
             demand = reduce(operator.add, [connection_energy[connection.id] for connection in outgoing_connections])
-            incoming_connections = self._topology.get_incoming_connections(node_id)
+            incoming_connections = self._incoming_connections_for(node_id, period)
 
             energy_unit = self._energy_unit_factories[node_id].create(
                 demand,
@@ -92,10 +99,46 @@ class EnergyNetworkSimulation:
             connection_energy=connection_energy,
         )
 
-    def _validate_connection_demands(self, connection_demands: dict[EnergyConnectionId, Energy]) -> None:
+    def _incoming_connections_for(self, node_id: EnergyUnitId, period: Period | None) -> tuple[EnergyConnection, ...]:
+        """A node's incoming connections, restricted to the single active one when the node has a schedule."""
+        schedule = self._topology.get_schedule(node_id)
+        if schedule is None:
+            return self._topology.get_incoming_connections(node_id)
+        return (self._topology.get_active_incoming_connection(node_id, self._required_period(period, node_id)),)
+
+    def _required_period(self, period: Period | None, node_id: EnergyUnitId) -> Period:
+        if period is None:
+            raise InvalidEnergyNetworkInputError(
+                f"Energy unit {node_id} has a dated input schedule; `period` is required to resolve it"
+            )
+        return period
+
+    def _zero_inactive_candidates(
+        self,
+        period: Period | None,
+        connection_energy: dict[EnergyConnectionId, Energy],
+    ) -> None:
+        """Give every non-active candidate connection of a scheduled node zero energy, so upstream nodes that
+        only supply an inactive candidate still have a connection energy to look up."""
+        for node_id in self._topology.get_nodes():
+            schedule = self._topology.get_schedule(node_id)
+            if schedule is None:
+                continue
+            active_connection = self._topology.get_active_incoming_connection(
+                node_id, self._required_period(period, node_id)
+            )
+            for connection in self._topology.get_incoming_connections(node_id):
+                if connection.id != active_connection.id:
+                    connection_energy.setdefault(connection.id, connection.energy_type(value=0))
+
+    def _validate_connection_demands(
+        self,
+        connection_demands: dict[EnergyConnectionId, Energy],
+        period: Period | None,
+    ) -> None:
         consumer_ids = self._topology.get_leaf_nodes()
         consumer_connection_ids = {
-            connection.id for connection in self._topology.get_connections() if connection.target_id in consumer_ids
+            connection.id for node_id in consumer_ids for connection in self._incoming_connections_for(node_id, period)
         }
         self._validate_connection_ids(
             provided_ids=set(connection_demands),

@@ -788,6 +788,15 @@
                     "title": "INPUT",
                     "type": "string"
                 },
+                "INPUT_CHANGES": {
+                    "default": [],
+                    "description": "Dated changes to what feeds this unit. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlInputChange"
+                    },
+                    "title": "INPUT_CHANGES",
+                    "type": "array"
+                },
                 "MECHANICAL_EFFICIENCIES": {
                     "description": "Mechanical efficiency per compressor on the shaft. Each compressor demands its gas power divided by its efficiency as shaft power. A compressor not listed has efficiency 1.0.",
                     "items": {
@@ -913,6 +922,15 @@
                     "title": "INPUT",
                     "type": "string"
                 },
+                "INPUT_CHANGES": {
+                    "default": [],
+                    "description": "Dated changes to what feeds this unit. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlInputChange"
+                    },
+                    "title": "INPUT_CHANGES",
+                    "type": "array"
+                },
                 "NAME": {
                     "description": "Unique name for this component.",
                     "title": "NAME",
@@ -939,6 +957,15 @@
                     "description": "Source or component this receives energy from.",
                     "title": "INPUT",
                     "type": "string"
+                },
+                "INPUT_CHANGES": {
+                    "default": [],
+                    "description": "Dated changes to what feeds this unit. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlInputChange"
+                    },
+                    "title": "INPUT_CHANGES",
+                    "type": "array"
                 },
                 "LOAD": {
                     "anyOf": [
@@ -1023,6 +1050,15 @@
                     "description": "Source or component this receives energy from.",
                     "title": "INPUT",
                     "type": "string"
+                },
+                "INPUT_CHANGES": {
+                    "default": [],
+                    "description": "Dated changes to what feeds this unit. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlInputChange"
+                    },
+                    "title": "INPUT_CHANGES",
+                    "type": "array"
                 },
                 "NAME": {
                     "description": "Unique name for this component.",
@@ -2009,6 +2045,34 @@
             "title": "Rate",
             "type": "object"
         },
+        "YamlInputChange": {
+            "additionalProperties": false,
+            "description": "A dated change of what feeds this unit. The unit stays the same unit in the energy network; only its INPUT\nchanges, to a new source or unit of the same energy type.",
+            "examples": [
+                {
+                    "INPUT": "power_from_shore",
+                    "REF": "pfs_start"
+                }
+            ],
+            "properties": {
+                "INPUT": {
+                    "description": "Source or unit to receive energy from, from the event date on. Must provide the same energy type as the input active immediately before it.",
+                    "title": "INPUT",
+                    "type": "string"
+                },
+                "REF": {
+                    "$ref": "#/$defs/TimelineEventReference",
+                    "description": "Reference to an event in TIMELINE.EVENTS. The change takes effect from the event date (inclusive).",
+                    "title": "REF"
+                }
+            },
+            "required": [
+                "INPUT",
+                "REF"
+            ],
+            "title": "InputChange",
+            "type": "object"
+        },
         "YamlJunctionInput": {
             "additionalProperties": false,
             "properties": {
@@ -2227,6 +2291,15 @@
                     "description": "Source or component this receives energy from.",
                     "title": "INPUT",
                     "type": "string"
+                },
+                "INPUT_CHANGES": {
+                    "default": [],
+                    "description": "Dated changes to what feeds this unit. Each change takes effect from the date of its referenced TIMELINE.EVENTS entry.",
+                    "items": {
+                        "$ref": "#/$defs/YamlInputChange"
+                    },
+                    "title": "INPUT_CHANGES",
+                    "type": "array"
                 },
                 "LOAD": {
                     "anyOf": [

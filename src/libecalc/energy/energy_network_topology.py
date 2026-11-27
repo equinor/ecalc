@@ -1,13 +1,15 @@
-from collections.abc import Iterable, Sequence
+from collections.abc import Iterable, Mapping, Sequence
 from graphlib import CycleError, TopologicalSorter
 from typing import Self
 from uuid import UUID
 
 from libecalc.common.ddd import value_object
+from libecalc.common.time_utils import Period
 from libecalc.common.utils.ecalc_uuid import ecalc_id_generator
 from libecalc.energy.energy_types import Energy
 from libecalc.energy.errors import InvalidEnergyNetworkError
 from libecalc.energy.ids import EnergyConnectionId, EnergyNetworkId, EnergyUnitId
+from libecalc.energy.input_schedule import InputSchedule
 
 
 @value_object
@@ -28,6 +30,7 @@ class EnergyNetworkTopology:
         nodes: Sequence[EnergyUnitId],
         connections: Iterable[EnergyConnection],
         energy_network_id: UUID | None = None,
+        schedules: Mapping[EnergyUnitId, InputSchedule] | None = None,
     ):
         self._nodes: list[EnergyUnitId] = []
 
@@ -50,6 +53,8 @@ class EnergyNetworkTopology:
         self._add_connections(connections)
         self._topological_order = self._create_topological_order()
         self._id = energy_network_id or EnergyNetworkTopology._create_id()
+        self._schedules: dict[EnergyUnitId, InputSchedule] = dict(schedules) if schedules else {}
+        self._validate_schedules()
 
     @classmethod
     def _create_id(cls: type[Self]) -> EnergyNetworkId:
@@ -62,6 +67,7 @@ class EnergyNetworkTopology:
         node_output_types: dict[EnergyUnitId, type[Energy] | None],
         connections: Iterable[tuple[EnergyUnitId, EnergyUnitId]],
         energy_network_id: UUID | None = None,
+        schedules: Mapping[EnergyUnitId, InputSchedule] | None = None,
     ) -> Self:
         """Create a network after deriving and validating each connection's energy type."""
         if node_input_types.keys() != node_output_types.keys():
@@ -104,7 +110,10 @@ class EnergyNetworkTopology:
                 )
 
         return cls(
-            nodes=list(node_input_types.keys()), connections=connection_list, energy_network_id=energy_network_id
+            nodes=list(node_input_types.keys()),
+            connections=connection_list,
+            energy_network_id=energy_network_id,
+            schedules=schedules,
         )
 
     def get_id(self) -> UUID:
@@ -181,9 +190,28 @@ class EnergyNetworkTopology:
         except CycleError as error:
             raise InvalidEnergyNetworkError("Energy network cannot be cyclic") from error
 
+    def _validate_schedules(self) -> None:
+        for node_id, schedule in self._schedules.items():
+            if node_id not in self._nodes:
+                raise InvalidEnergyNetworkError(f"Schedule references unknown energy node: {node_id}")
+
+            unknown_candidates = schedule.get_candidate_ids() - self._predecessors[node_id]
+            if unknown_candidates:
+                raise InvalidEnergyNetworkError(
+                    f"Schedule for {node_id} references candidates that are not predecessors: {unknown_candidates}"
+                )
+
     def get_outgoing_connections(self, node_id: EnergyUnitId) -> tuple[EnergyConnection, ...]:
         return tuple(self._connections[node_id, successor_id] for successor_id in self._successors[node_id])
 
     def get_incoming_connections(self, node_id: EnergyUnitId) -> tuple[EnergyConnection, ...]:
         """Return incoming connections with no implied dispatch priority."""
         return tuple(self._connections[predecessor_id, node_id] for predecessor_id in self._predecessors[node_id])
+
+    def get_schedule(self, node_id: EnergyUnitId) -> InputSchedule | None:
+        return self._schedules.get(node_id)
+
+    def get_active_incoming_connection(self, node_id: EnergyUnitId, period: Period) -> EnergyConnection:
+        schedule = self._schedules[node_id]
+        active_candidate_id = schedule.active_at(period)
+        return self._connections[active_candidate_id, node_id]

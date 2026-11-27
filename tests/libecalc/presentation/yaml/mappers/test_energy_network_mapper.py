@@ -335,6 +335,7 @@ GENERATOR_SET_MODEL_AFTER_UPGRADE = {"TYPE": "POWER_TO_FUEL", "CURVE": {"POWER":
 
 FIRST_YEAR = Period(start=datetime(2020, 1, 1), end=datetime(2021, 1, 1))
 SECOND_YEAR = Period(start=datetime(2021, 1, 1), end=datetime(2022, 1, 1))
+THIRD_YEAR = Period(start=datetime(2022, 1, 1), end=datetime(2023, 1, 1))
 
 
 class TestGeneratorSetModelEvents:
@@ -463,3 +464,137 @@ class TestCombustionEngineModelEvents:
         fuel = engine.get_input_energies()[connection.id].value
         fuel_upgraded = engine_upgraded.get_input_energies()[connection.id].value
         assert fuel_upgraded == pytest.approx(fuel / 2)
+
+
+class TestInputChanges:
+    @staticmethod
+    def _switch_event() -> TimelineEvent:
+        return TimelineEvent(
+            reference="switch_to_pfs",
+            title="Switch to power from shore",
+            type=TimelineEventType.FUEL_SWITCH,
+            from_when=SECOND_YEAR.start,
+            description=None,
+        )
+
+    @staticmethod
+    def _network() -> YamlEnergyNetwork:
+        return YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [
+                    {"NAME": "genset_bus", "TYPE": "ELECTRICAL_SOURCE"},
+                    {"NAME": "pfs", "TYPE": "ELECTRICAL_SOURCE"},
+                ],
+                "UNITS": [
+                    {
+                        "NAME": "motor",
+                        "TYPE": "ELECTRICAL_MOTOR",
+                        "INPUT": "genset_bus",
+                        "INPUT_CHANGES": [{"INPUT": "pfs", "REF": "switch_to_pfs"}],
+                    }
+                ],
+            }
+        )
+
+    def test_wires_both_candidates_directly_to_the_unit_with_no_synthetic_node(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        service = TimelineEventService(timeline_events=[self._switch_event()])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        topology, factories, _ = energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
+            self._network(), expression_evaluator
+        )
+
+        (motor,) = (factory for factory in factories if factory.get_name() == "motor")
+        (genset_bus,) = (factory for factory in factories if factory.get_name() == "genset_bus")
+        (pfs,) = (factory for factory in factories if factory.get_name() == "pfs")
+
+        # Exactly the nodes declared in YAML, wired exactly as declared.
+        assert {factory.get_name() for factory in factories} == {"motor", "genset_bus", "pfs"}
+        incoming_ids = {connection.source_id for connection in topology.get_incoming_connections(motor.get_id())}
+        assert incoming_ids == {genset_bus.get_id(), pfs.get_id()}
+
+    def test_schedule_selects_the_active_candidate_per_period(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        service = TimelineEventService(timeline_events=[self._switch_event()])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        topology, factories, _ = energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
+            self._network(), expression_evaluator
+        )
+
+        (motor,) = (factory for factory in factories if factory.get_name() == "motor")
+        (genset_bus,) = (factory for factory in factories if factory.get_name() == "genset_bus")
+        (pfs,) = (factory for factory in factories if factory.get_name() == "pfs")
+
+        assert topology.get_active_incoming_connection(motor.get_id(), FIRST_YEAR).source_id == genset_bus.get_id()
+        assert topology.get_active_incoming_connection(motor.get_id(), SECOND_YEAR).source_id == pfs.get_id()
+
+    def test_unknown_event_reference_is_rejected(self, energy_network_mapper_factory, expression_evaluator_factory):
+        service = TimelineEventService(timeline_events=[])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        with pytest.raises(TimelineEventNotFoundException, match="switch_to_pfs"):
+            energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
+                self._network(), expression_evaluator
+            )
+
+    def test_switches_back_to_an_earlier_candidate_with_no_duplicate_connection(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        """A -> B -> A: the reused candidate must still be wired in exactly once."""
+        switch_away = TimelineEvent(
+            reference="switch_to_essential",
+            title="Switch to essential generator",
+            type=TimelineEventType.OTHER,
+            from_when=SECOND_YEAR.start,
+            description=None,
+        )
+        switch_back = TimelineEvent(
+            reference="switch_back_to_genset",
+            title="Switch back to genset",
+            type=TimelineEventType.OTHER,
+            from_when=THIRD_YEAR.start,
+            description=None,
+        )
+        service = TimelineEventService(timeline_events=[switch_away, switch_back])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR, THIRD_YEAR])
+        network = YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [
+                    {"NAME": "genset_bus", "TYPE": "ELECTRICAL_SOURCE"},
+                    {"NAME": "essential_generator", "TYPE": "ELECTRICAL_SOURCE"},
+                ],
+                "UNITS": [
+                    {
+                        "NAME": "motor",
+                        "TYPE": "ELECTRICAL_MOTOR",
+                        "INPUT": "genset_bus",
+                        "INPUT_CHANGES": [
+                            {"INPUT": "essential_generator", "REF": "switch_to_essential"},
+                            {"INPUT": "genset_bus", "REF": "switch_back_to_genset"},
+                        ],
+                    }
+                ],
+            }
+        )
+
+        topology, factories, _ = energy_network_mapper_factory(timeline_event_service=service).map_energy_network(
+            network, expression_evaluator
+        )
+
+        (motor,) = (factory for factory in factories if factory.get_name() == "motor")
+        (genset_bus,) = (factory for factory in factories if factory.get_name() == "genset_bus")
+        (essential_generator,) = (factory for factory in factories if factory.get_name() == "essential_generator")
+
+        incoming_ids = [connection.source_id for connection in topology.get_incoming_connections(motor.get_id())]
+        assert sorted(incoming_ids) == sorted({genset_bus.get_id(), essential_generator.get_id()})
+
+        assert topology.get_active_incoming_connection(motor.get_id(), FIRST_YEAR).source_id == genset_bus.get_id()
+        assert (
+            topology.get_active_incoming_connection(motor.get_id(), SECOND_YEAR).source_id
+            == essential_generator.get_id()
+        )
+        assert topology.get_active_incoming_connection(motor.get_id(), THIRD_YEAR).source_id == genset_bus.get_id()
