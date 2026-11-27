@@ -1,5 +1,22 @@
 # Changelog
 
+## [15.10.0](https://github.com/equinor/ecalc/compare/v15.9.0...v15.10.0) (2026-11-27)
+
+
+### Features
+
+* evaluate pump simulations ([#1977](https://github.com/equinor/ecalc/issues/1977)) ([10a8b05](https://github.com/equinor/ecalc/commit/10a8b058043409af5adc71834d55e93edd8cee59))
+
+
+### Bug Fixes
+
+* handle splitter offtake in feasibility rate search ([#1981](https://github.com/equinor/ecalc/issues/1981)) ([67b73b7](https://github.com/equinor/ecalc/commit/67b73b7a2f49319931a290a1f3b979b0acb532e4))
+
+
+### Miscellaneous Chores
+
+* scope legacy code rule to NextGen packages ([3a58cc0](https://github.com/equinor/ecalc/commit/3a58cc04438aa885df6764ee4cc62fd4c3a3ee24))
+
 ## [15.9.0](https://github.com/equinor/ecalc/compare/v15.8.0...v15.9.0) (2026-11-25)
 
 
