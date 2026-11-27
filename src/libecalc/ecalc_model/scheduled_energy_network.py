@@ -1,4 +1,5 @@
 from collections.abc import Mapping
+from types import MappingProxyType
 
 from libecalc.common.ddd import value_object
 from libecalc.common.time_utils import Period
@@ -20,6 +21,9 @@ class ScheduledEnergyNetwork:
     schedules: Mapping[EnergyUnitId, InputSchedule]
 
     def __post_init__(self) -> None:
+        # A defensive, read-only copy: without it, the caller's own dict could still be mutated after
+        # construction, silently invalidating what we just checked below.
+        object.__setattr__(self, "schedules", MappingProxyType(dict(self.schedules)))
         exclusive_input_nodes = self.topology.get_exclusive_input_nodes()
         scheduled_nodes = frozenset(self.schedules.keys())
 
@@ -44,3 +48,7 @@ class ScheduledEnergyNetwork:
     def active_connections_at(self, period: Period) -> Mapping[EnergyUnitId, EnergyUnitId]:
         """Which predecessor is active, at `period`, for every exclusive-input node."""
         return {node_id: schedule.active_at(period) for node_id, schedule in self.schedules.items()}
+
+    def __hash__(self) -> int:
+        # A `Mapping` isn't hashable itself; hash its items instead, mirroring `__eq__`'s by-value semantics.
+        return hash((self.topology, frozenset(self.schedules.items())))

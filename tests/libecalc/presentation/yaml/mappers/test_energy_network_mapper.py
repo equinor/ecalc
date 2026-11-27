@@ -4,6 +4,9 @@ from uuid import UUID
 import pytest
 
 from libecalc.common.time_utils import Period
+from libecalc.ecalc_model.equipment.compressor_equipment import CompressorEquipment
+from libecalc.ecalc_model.equipment.equipment_id import EquipmentId
+from libecalc.ecalc_model.equipment.shaft_equipment import ShaftEquipment
 from libecalc.ecalc_model.timeline_event import (
     TimelineEvent,
     TimelineEventNotFoundException,
@@ -628,3 +631,91 @@ class TestInputChanges:
         assert (
             _active_incoming_connection(scheduled_network, motor.get_id(), THIRD_YEAR).source_id == genset_bus.get_id()
         )
+
+
+class TestDriveTrainInputChanges:
+    """A drive train's INPUT_CHANGES produce one InputSchedule shared by every compressor on its shaft: they must
+    always switch together, since they share one shaft power source.
+    """
+
+    FIRST_COMPRESSOR = "23KA001 Gas Compressor"
+    SECOND_COMPRESSOR = "23KA002 Gas Compressor"
+    SHAFT = "export_shaft"
+
+    @classmethod
+    def _compressor_equipment_ids(cls) -> dict[str, EquipmentId]:
+        return {
+            cls.FIRST_COMPRESSOR: CompressorEquipment(name=cls.FIRST_COMPRESSOR).get_id(),
+            cls.SECOND_COMPRESSOR: CompressorEquipment(name=cls.SECOND_COMPRESSOR).get_id(),
+        }
+
+    @classmethod
+    def _shafts(cls, compressor_equipment_ids: dict[str, EquipmentId]) -> dict[str, ShaftEquipment]:
+        return {
+            cls.SHAFT: ShaftEquipment(
+                name=cls.SHAFT,
+                compressor_equipment_ids=[
+                    compressor_equipment_ids[cls.FIRST_COMPRESSOR],
+                    compressor_equipment_ids[cls.SECOND_COMPRESSOR],
+                ],
+            )
+        }
+
+    @staticmethod
+    def _switch_event() -> TimelineEvent:
+        return TimelineEvent(
+            reference="switch_turbine",
+            title="Switch drive train input",
+            type=TimelineEventType.OTHER,
+            from_when=SECOND_YEAR.start,
+            description=None,
+        )
+
+    @staticmethod
+    def _network() -> YamlEnergyNetwork:
+        return YamlEnergyNetwork.model_validate(
+            {
+                "SOURCES": [
+                    {"NAME": "fuel", "TYPE": "FUEL_GAS_SOURCE", "LOWER_HEATING_VALUE": 38},
+                ],
+                "UNITS": [
+                    {"NAME": "turbine_a", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
+                    {"NAME": "turbine_b", "TYPE": "GAS_TURBINE", "INPUT": "fuel", "MODEL": TURBINE},
+                    {
+                        "TYPE": "DRIVE_TRAIN",
+                        "INPUT": "turbine_a",
+                        "SHAFT": "export_shaft",
+                        "INPUT_CHANGES": [{"INPUT": "turbine_b", "REF": "switch_turbine"}],
+                    },
+                ],
+            }
+        )
+
+    def test_both_compressors_on_the_shaft_switch_together(
+        self, energy_network_mapper_factory, expression_evaluator_factory
+    ):
+        compressor_equipment_ids = self._compressor_equipment_ids()
+        service = TimelineEventService(timeline_events=[self._switch_event()])
+        expression_evaluator = expression_evaluator_factory.from_periods(periods=[FIRST_YEAR, SECOND_YEAR])
+
+        scheduled_network, factories, _ = energy_network_mapper_factory(
+            shafts=self._shafts(compressor_equipment_ids),
+            compressor_equipment_ids=compressor_equipment_ids,
+            timeline_event_service=service,
+        ).map_energy_network(self._network(), expression_evaluator)
+
+        (turbine_a,) = (factory for factory in factories if factory.get_name() == "turbine_a")
+        (turbine_b,) = (factory for factory in factories if factory.get_name() == "turbine_b")
+        compressor_nodes = [
+            node_id
+            for node_id in scheduled_network.active_connections_at(FIRST_YEAR)
+            if node_id in scheduled_network.active_connections_at(SECOND_YEAR)
+        ]
+        assert len(compressor_nodes) == 2
+
+        active_first_year = scheduled_network.active_connections_at(FIRST_YEAR)
+        active_second_year = scheduled_network.active_connections_at(SECOND_YEAR)
+
+        # Both compressors share the drive train's one InputSchedule: they must switch in lockstep.
+        assert {active_first_year[node_id] for node_id in compressor_nodes} == {turbine_a.get_id()}
+        assert {active_second_year[node_id] for node_id in compressor_nodes} == {turbine_b.get_id()}
